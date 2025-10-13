@@ -1,5 +1,62 @@
 {
-	"files.associations": {
-		"wrangler.json": "jsonc"
-	}
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit"
+  },
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // prettier
+  "[xml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "workbench.editor.customLabels.patterns": {
+    "**/app/**/page.tsx": "${dirname} - Page",
+    "**/app/**/layout.tsx": "${dirname} - Layout",
+    "**/app/**/route.ts": "${dirname} - API Route",
+    "**/components/**/index.tsx": "${dirname} - Component"
+  },
+  "tailwindCSS.experimental.configFile": "packages/ui/src/globals.css",
+  "i18n-ally.enabledFrameworks": ["next-intl"],
+  "i18n-ally.localesPaths": [
+    "apps/calendar/messages",
+    "apps/web/messages",
+    "apps/rewise/messages",
+    "apps/nova/messages"
+  ],
+  "i18n-ally.autoDetection": true,
+  "i18n-ally.keystyle": "nested",
+  "codeQL.githubDatabase.update": "never",
+  "codeQL.githubDatabase.download": "never",
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true,
+  "i18n-ally.sourceLanguage": "en",
+  "typescript.experimental.useTsgo": false,
+  "cSpell.words": ["Tuturuuu", "tuturuuu"],
+  "python-envs.defaultEnvManager": "ms-python.python:venv",
+  "python-envs.defaultPackageManager": "ms-python.python:pip",
+  "python-envs.pythonProjects": [],
+  "vitest.disableWorkspaceWarning": true
 }
