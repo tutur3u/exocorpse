@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+.open-next/
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Lock files
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Minified files
+*.min.js
+*.min.css
+
+# Debug and logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment files
+.env*.local
+.dev.vars*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# Generated files
+CHANGELOG.md
+CHANGELOG.rst
+
+# Cloudflare specific
+.wrangler/
+public/_headers
+
+# Temporary files
+*.tmp
+*.temp
