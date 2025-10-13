@@ -1,12 +1,12 @@
 {
   "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit",
-    "source.fixAll.biome": "explicit"
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
   },
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
-  "editor.defaultFormatter": "esbenp.prettier-vscode", // prettier
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[xml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -38,14 +38,9 @@
     "**/app/**/route.ts": "${dirname} - API Route",
     "**/components/**/index.tsx": "${dirname} - Component"
   },
-  "tailwindCSS.experimental.configFile": "packages/ui/src/globals.css",
+  "tailwindCSS.experimental.configFile": "src/app/globals.css",
   "i18n-ally.enabledFrameworks": ["next-intl"],
-  "i18n-ally.localesPaths": [
-    "apps/calendar/messages",
-    "apps/web/messages",
-    "apps/rewise/messages",
-    "apps/nova/messages"
-  ],
+  "i18n-ally.localesPaths": [],
   "i18n-ally.autoDetection": true,
   "i18n-ally.keystyle": "nested",
   "codeQL.githubDatabase.update": "never",
