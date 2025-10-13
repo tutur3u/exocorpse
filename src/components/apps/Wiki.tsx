@@ -1,79 +1,38 @@
 "use client";
 
-import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
-
-type Character = {
-  division: "Pulse" | "Neuro";
-  description: string;
-};
-
-const characters: Array<ListDetailItem<string, Character>> = [
-  {
-    id: "pulse",
-    title: "Pulse Division",
-    subtitle: "Direct action & combat ops",
-    data: {
-      division: "Pulse",
-      description:
-        "The physically dominant branch of EXOCORPSE, specializing in direct action and combat operations.",
-    },
-  },
-  {
-    id: "neuro",
-    title: "Neuro Division",
-    subtitle: "Strategy, intelligence, covert",
-    data: {
-      division: "Neuro",
-      description:
-        "The intellectually cunning branch, handling strategy, intelligence, and covert operations.",
-    },
-  },
-];
+import { useEffect, useState } from "react";
+import { getPublishedStories, type Story } from "@/lib/actions/wiki";
+import WikiClient from "./WikiClient";
 
 export default function Wiki() {
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getPublishedStories()
+      .then((data) => {
+        setStories(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching stories:", error);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
         <h2 className="text-2xl font-bold">Character & World Wiki</h2>
       </div>
       <div className="flex-1 overflow-hidden">
-        <ListDetail
-          items={characters}
-          fullscreen
-          indexLayout="grid"
-          renderItemCard={(item) => (
-            <div className="group transition-all duration-200 hover:scale-105 hover:cursor-pointer hover:shadow-lg">
-              <div className="mb-1 text-base font-semibold transition-colors duration-20">
-                {item.title}
-              </div>
-              {item.subtitle ? (
-                <div className="text-xs text-gray-500 transition-colors duration-200 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300">
-                  {item.subtitle}
-                </div>
-              ) : null}
-            </div>
-          )}
-          renderDetail={(item) => (
-            <div className="space-y-4">
-              {/* <div>
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                {item.subtitle ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {item.subtitle}
-                  </p>
-                ) : null}
-              </div> */}
-              <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {item.data.description}
-                </p>
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Division: {item.data.division}
-              </div>
-            </div>
-          )}
-        />
+        {loading ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+          </div>
+        ) : (
+          <WikiClient stories={stories} />
+        )}
       </div>
     </div>
   );
