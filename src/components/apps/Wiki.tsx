@@ -1,36 +1,79 @@
+"use client";
+
+import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
+
+type Character = {
+  division: "Pulse" | "Neuro";
+  description: string;
+};
+
+const characters: Array<ListDetailItem<string, Character>> = [
+  {
+    id: "pulse",
+    title: "Pulse Division",
+    subtitle: "Direct action & combat ops",
+    data: {
+      division: "Pulse",
+      description:
+        "The physically dominant branch of EXOCORPSE, specializing in direct action and combat operations.",
+    },
+  },
+  {
+    id: "neuro",
+    title: "Neuro Division",
+    subtitle: "Strategy, intelligence, covert",
+    data: {
+      division: "Neuro",
+      description:
+        "The intellectually cunning branch, handling strategy, intelligence, and covert operations.",
+    },
+  },
+];
+
 export default function Wiki() {
   return (
-    <div className="h-full overflow-auto p-6">
-      <h2 className="mb-4 text-2xl font-bold">Character & World Wiki</h2>
-      <div className="space-y-6">
-        <section>
-          <h3 className="mb-3 text-xl font-semibold">Characters</h3>
-          <div className="space-y-3">
-            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <h4 className="mb-2 font-semibold">Pulse Division</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                The physically dominant branch of EXOCORPSE, specializing in
-                direct action and combat operations.
-              </p>
+    <div className="flex h-full flex-col">
+      <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+        <h2 className="text-2xl font-bold">Character & World Wiki</h2>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <ListDetail
+          items={characters}
+          fullscreen
+          indexLayout="grid"
+          renderItemCard={(item) => (
+            <div>
+              <div className="mb-1 text-base font-semibold group-hover:text-blue-600">
+                {item.title}
+              </div>
+              {item.subtitle ? (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {item.subtitle}
+                </div>
+              ) : null}
             </div>
-            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <h4 className="mb-2 font-semibold">Neuro Division</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                The intellectually cunning branch, handling strategy,
-                intelligence, and covert operations.
-              </p>
+          )}
+          renderDetail={(item) => (
+            <div className="space-y-4">
+              {/* <div>
+                <h3 className="text-xl font-semibold">{item.title}</h3>
+                {item.subtitle ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {item.subtitle}
+                  </p>
+                ) : null}
+              </div> */}
+              <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {item.data.description}
+                </p>
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Division: {item.data.division}
+              </div>
             </div>
-          </div>
-        </section>
-        <section>
-          <h3 className="mb-3 text-xl font-semibold">World</h3>
-          <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Detailed world-building content will be displayed here, fetched
-              from the database.
-            </p>
-          </div>
-        </section>
+          )}
+        />
       </div>
     </div>
   );
