@@ -4,7 +4,7 @@
     "": {
       "name": "my-next-app",
       "dependencies": {
-        "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.0",
+        "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
         "next": "^15.5.4",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
@@ -202,7 +202,7 @@
 
     "@tailwindcss/postcss": ["@tailwindcss/postcss@4.1.14", "", { "dependencies": { "@alloc/quick-lru": "^5.2.0", "@tailwindcss/node": "4.1.14", "@tailwindcss/oxide": "4.1.14", "postcss": "^8.4.41", "tailwindcss": "4.1.14" } }, "sha512-BdMjIxy7HUNThK87C7BC8I1rE8BVUsfNQSI5siQ4JK3iIa3w0XyVvVL9SXLWO//CtYTcp1v7zci0fYwJOjB+Zg=="],
 
-    "@tuturuuu/supabase": ["@jsr/tuturuuu__supabase@0.1.0", "https://npm.jsr.io/~/11/@jsr/tuturuuu__supabase/0.1.0.tgz", { "dependencies": { "@jsr/tuturuuu__types": "^0.1.5", "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.75.0", "next": "^16.0.0-canary.1" } }, "sha512-N23pHgD/6VVWA1qiVALP8LqDeHS6JTusVYKwwHxkZhS5EuECelJ6227pX7wnbdlzMQWWxkBtG2JezuvqVFD3IA=="],
+    "@tuturuuu/supabase": ["@jsr/tuturuuu__supabase@0.1.1", "https://npm.jsr.io/~/11/@jsr/tuturuuu__supabase/0.1.1.tgz", { "dependencies": { "@jsr/tuturuuu__types": "^0.1.5", "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.75.0", "next": "^16.0.0-canary.1" } }, "sha512-9GZv7iZ/162DbH1e3o9btSrz84oRCXuY1Wr+Wp0xAuLgskrbB5yzvZVOWJV0P+dh141l1DCNiTJPp+SHKC3CJw=="],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
 
