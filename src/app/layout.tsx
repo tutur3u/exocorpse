@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FENRYS & MORRIS",
+  title: "EXOCORPSE",
   description:
     "Exocorpse is a secret corporation that cleanses humanity's sins by committing them, carrying out missions from heists to assassinations. Its agents are divided into two branches: the physically dominant Pulse and the intellectually cunning Neuro.",
 };
