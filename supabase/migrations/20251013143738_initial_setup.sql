@@ -51,7 +51,7 @@ CREATE TYPE visibility_level AS ENUM (
 
 -- Stories/Universes (top-level containers)
 CREATE TABLE stories (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   -- Basic info
   title TEXT NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE stories (
 
 -- Relationship types (customizable per story/world)
 CREATE TABLE relationship_types (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   story_id UUID REFERENCES stories(id) ON DELETE CASCADE, -- NULL means global/default
 
   -- Basic info
@@ -122,7 +122,7 @@ CREATE TABLE relationship_types (
 
 -- Event types (customizable per story/world)
 CREATE TABLE event_types (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   story_id UUID REFERENCES stories(id) ON DELETE CASCADE, -- NULL means global/default
 
   -- Basic info
@@ -145,7 +145,7 @@ CREATE TABLE event_types (
 
 -- Outfit types (customizable per story/world)
 CREATE TABLE outfit_types (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   story_id UUID REFERENCES stories(id) ON DELETE CASCADE, -- NULL means global/default
 
   -- Basic info
@@ -172,7 +172,7 @@ CREATE TABLE outfit_types (
 
 -- Worlds within stories
 CREATE TABLE worlds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
 
   -- Basic info
@@ -206,7 +206,7 @@ CREATE TABLE worlds (
 
 -- Factions/Organizations
 CREATE TABLE factions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   world_id UUID REFERENCES worlds(id) ON DELETE CASCADE,
   parent_faction_id UUID REFERENCES factions(id) ON DELETE SET NULL,
 
@@ -245,7 +245,7 @@ CREATE TABLE factions (
 
 -- Locations within worlds
 CREATE TABLE locations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   world_id UUID NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
   parent_location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
 
@@ -284,7 +284,7 @@ CREATE TABLE locations (
 
 -- Characters (OCs)
 CREATE TABLE characters (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   world_id UUID REFERENCES worlds(id) ON DELETE CASCADE,
 
   -- Basic info
@@ -348,7 +348,7 @@ CREATE TABLE characters (
 
 -- Character outfits/costumes
 CREATE TABLE character_outfits (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   outfit_type_id UUID REFERENCES outfit_types(id) ON DELETE SET NULL,
 
@@ -374,7 +374,7 @@ CREATE TABLE character_outfits (
 
 -- Character gallery (artwork)
 CREATE TABLE character_gallery (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
 
   -- Basic info
@@ -403,7 +403,7 @@ CREATE TABLE character_gallery (
 
 -- Timelines
 CREATE TABLE timelines (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   world_id UUID NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
 
   -- Basic info
@@ -427,7 +427,7 @@ CREATE TABLE timelines (
 
 -- Events
 CREATE TABLE events (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   world_id UUID NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
   timeline_id UUID REFERENCES timelines(id) ON DELETE SET NULL,
   location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
@@ -465,7 +465,7 @@ CREATE TABLE events (
 
 -- Tags (flexible categorization)
 CREATE TABLE tags (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   -- Basic info
   name TEXT NOT NULL UNIQUE,
@@ -484,7 +484,7 @@ CREATE TABLE tags (
 
 -- Moodboards
 CREATE TABLE moodboards (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   -- Basic info
   name TEXT NOT NULL,
@@ -507,7 +507,7 @@ CREATE TABLE moodboards (
 
 -- Media assets (centralized media management)
 CREATE TABLE media_assets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   -- Basic info
   name TEXT NOT NULL,
@@ -545,7 +545,7 @@ CREATE TABLE media_assets (
 
 -- Character relationships
 CREATE TABLE character_relationships (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   -- The two characters in the relationship
   character_a_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
@@ -570,7 +570,7 @@ CREATE TABLE character_relationships (
 
 -- Character-Faction memberships
 CREATE TABLE character_factions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   faction_id UUID NOT NULL REFERENCES factions(id) ON DELETE CASCADE,
@@ -594,7 +594,7 @@ CREATE TABLE character_factions (
 
 -- Character-Event participation
 CREATE TABLE event_participants (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
@@ -611,7 +611,7 @@ CREATE TABLE event_participants (
 
 -- Faction-Event involvement
 CREATE TABLE event_factions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   faction_id UUID NOT NULL REFERENCES factions(id) ON DELETE CASCADE,
@@ -628,7 +628,7 @@ CREATE TABLE event_factions (
 
 -- Tagging system (polymorphic tags)
 CREATE TABLE entity_tags (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
 
@@ -645,7 +645,7 @@ CREATE TABLE entity_tags (
 
 -- Character-Location associations (where characters are from/live)
 CREATE TABLE character_locations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   location_id UUID NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
