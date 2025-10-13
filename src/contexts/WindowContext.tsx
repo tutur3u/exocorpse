@@ -4,7 +4,6 @@ import AboutMe from "@/components/apps/AboutMe";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
-import { TASKBAR_HEIGHT } from "@/constants";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
 import React, { createContext, useCallback, useContext, useState } from "react";
 
@@ -133,14 +132,7 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
                 position: w.position,
                 size: w.size,
               },
-              position: { x: 0, y: 0 },
-              size: {
-                width: typeof window !== "undefined" ? window.innerWidth : 0,
-                height:
-                  typeof window !== "undefined"
-                    ? window.innerHeight - TASKBAR_HEIGHT
-                    : 0,
-              }, // Account for taskbar
+              // Don't update position/size yet - let animation handle it
             }
           : w,
       ),
@@ -155,9 +147,8 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
             return {
               ...w,
               state: "normal" as const,
-              position: w.previousState.position,
-              size: w.previousState.size,
-              previousState: undefined,
+              // Don't update position/size yet - let animation handle it
+              previousState: w.previousState, // Keep previousState for animation
             };
           }
           return {

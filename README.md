@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exocorpse
+
+A Next.js 15+ desktop-style portfolio application with an integrated fantasy wiki system, inspired by the lore of Exocorpse - an underground corporation devoted to cleansing humanity's sins.
+
+## About Exocorpse
+
+**Exocorpse** is an underground corporation that strives to cleanse all of humanity's sins by devoting themselves to being sinners. The staff perform missions like heists, assassinations, bodyguard duties, and information manipulation, all in pursuit of a better world.
+
+The corporation divides its members into two prototype branches:
+
+- **Prototype: Pulse** - Specialists in physical strength, combat, and agility. They are the frontliners who follow the rhythm of the heart.
+- **Prototype: Neuro** - Masters of intelligence and psychology. They work in the background, manipulating the dialects and information of the world.
+
+## Features
+
+### Desktop-Style Interface
+
+- Draggable, resizable windows mimicking a desktop OS
+- Window management (minimize, maximize, restore, close)
+- Z-index stacking and focus management
+
+### Wiki System (Primary Feature)
+
+- Comprehensive fantasy story encyclopedia
+- Hierarchical structure: Stories → Worlds → Characters & Factions
+- Dynamic theming that changes per story/world
+- Detailed character profiles with outfits, backstory, moodboards, and galleries
+- Faction management and character relationships
+- Full CRUD operations with Supabase backend
+
+### Portfolio (Planned)
+
+- Dual tabs for artwork and writing
+- Rotating gallery for featured monthly works
+- Lightbox viewing with descriptions
+- Advanced filtering by year and tags
+
+### Commission Info (Planned)
+
+- Service pricing and examples
+- Rotating galleries per service
+- Terms of Service and blacklist viewers
+
+### About Me (Planned)
+
+- Personal information and background
+- Likes & dislikes
+- FAQ section
+- Social media links
+
+## Tech Stack
+
+- **Framework**: Next.js 15.5+ with Turbopack
+- **Runtime**: Bun
+- **Database**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS v4+
+- **Language**: TypeScript (strict mode)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Bun installed on your system
+
+### Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Install dependencies
+bun install
+
+# Start development server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+For local development:
 
-## Learn More
+```bash
+bun sb:start         # Start local Supabase
+bun sb:reset         # Reset database with migrations
+```
 
-To learn more about Next.js, take a look at the following resources:
+For remote/linked development:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bun sbr:link         # Link to remote project
+bun sbr:reset        # Reset remote database
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See `CLAUDE.md` for complete command reference.
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+src/
+├── app/                    # Next.js app directory
+├── components/
+│   ├── apps/              # Application windows
+│   │   ├── Wiki.tsx       # Wiki app (server component)
+│   │   ├── WikiClient.tsx # Wiki interactivity
+│   │   ├── forms/         # CRUD forms
+│   │   └── ...
+│   ├── Desktop.tsx        # Desktop container
+│   ├── Window.tsx         # Window wrapper
+│   └── ...
+├── contexts/              # React contexts
+│   ├── WindowContext.tsx  # Window state management
+│   └── StoryThemeContext.tsx
+├── lib/
+│   ├── actions/           # Server actions
+│   │   └── wiki.ts        # Wiki CRUD operations
+│   └── supabase/          # Supabase clients
+└── types/                 # TypeScript types
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+For detailed technical documentation and architecture, see [CLAUDE.md](./CLAUDE.md).
+
+## License
+
+Private project.
