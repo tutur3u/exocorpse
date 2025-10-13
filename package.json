@@ -37,7 +37,8 @@
     "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.0",
     "next": "^15.5.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-rnd": "^10.5.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
