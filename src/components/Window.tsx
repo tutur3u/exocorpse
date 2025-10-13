@@ -3,7 +3,7 @@
 import { TASKBAR_HEIGHT } from "@/constants";
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
 interface WindowProps {
@@ -26,16 +26,129 @@ export default function Window({ id, title, children }: WindowProps) {
 
   const window = windows.find((w) => w.id === id);
   const rndRef = useRef<Rnd>(null);
+  const [isAnimating, setIsAnimating] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
+  const prevStateRef = useRef(window?.state);
+  const animationFrameRef = useRef<number>(undefined);
+  const [animatingSize, setAnimatingSize] = useState<{ width: number; height: number } | null>(null);
+  const [animatingPos, setAnimatingPos] = useState<{ x: number; y: number } | null>(null);
 
+  // Window opening animation
   useEffect(() => {
-    if (window?.state === "maximized" && rndRef.current) {
-      rndRef.current.updateSize({
-        width: globalThis.window.innerWidth,
-        height: globalThis.window.innerHeight - TASKBAR_HEIGHT,
-      });
-      rndRef.current.updatePosition({ x: 0, y: 0 });
+    if (window && window.state !== "minimized") {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 200);
+      return () => clearTimeout(timer);
     }
-  }, [window?.state]);
+  }, []);
+
+  // Animate window size/position changes
+  const animateWindow = useCallback(
+    (
+      startPos: { x: number; y: number },
+      startSize: { width: number; height: number },
+      endPos: { x: number; y: number },
+      endSize: { width: number; height: number },
+      duration: number = 300,
+    ) => {
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function (ease-in-out)
+        const eased =
+          progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        const currentPos = {
+          x: startPos.x + (endPos.x - startPos.x) * eased,
+          y: startPos.y + (endPos.y - startPos.y) * eased,
+        };
+
+        const currentSize = {
+          width: startSize.width + (endSize.width - startSize.width) * eased,
+          height:
+            startSize.height + (endSize.height - startSize.height) * eased,
+        };
+
+        setAnimatingPos(currentPos);
+        setAnimatingSize(currentSize);
+
+        if (progress < 1) {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        } else {
+          // Animation complete, sync with context
+          setAnimatingPos(null);
+          setAnimatingSize(null);
+          updateWindowPosition(id, endPos);
+          updateWindowSize(id, endSize);
+        }
+      };
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      animationFrameRef.current = requestAnimationFrame(animate);
+    },
+    [id, updateWindowPosition, updateWindowSize, setAnimatingPos, setAnimatingSize],
+  );
+
+  // Handle maximize/restore with animation
+  useEffect(() => {
+    if (window && prevStateRef.current !== window.state) {
+      if (prevStateRef.current === "normal" && window.state === "maximized") {
+        // Animate to maximized
+        const startPos = window.position;
+        const startSize = window.size;
+        const endPos = { x: 0, y: 0 };
+        const endSize = {
+          width: globalThis.window.innerWidth,
+          height: globalThis.window.innerHeight - TASKBAR_HEIGHT,
+        };
+
+        animateWindow(startPos, startSize, endPos, endSize);
+      } else if (
+        prevStateRef.current === "maximized" &&
+        window.state === "normal"
+      ) {
+        // Animate to normal (using previousState)
+        const startPos = window.position;
+        const startSize = window.size;
+        const endPos = window.previousState?.position || window.position;
+        const endSize = window.previousState?.size || window.size;
+
+        animateWindow(startPos, startSize, endPos, endSize);
+      }
+      prevStateRef.current = window.state;
+    }
+  }, [window?.state, window?.position, window?.size, window?.previousState, animateWindow]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      closeWindow(id);
+    }, 150);
+  };
+
+  const handleMinimize = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      minimizeWindow(id);
+      setIsClosing(false);
+    }, 150);
+  };
 
   if (!window || window.state === "minimized") {
     return null;
@@ -43,11 +156,15 @@ export default function Window({ id, title, children }: WindowProps) {
 
   const isMaximized = window.state === "maximized";
 
+  // Use animating values during animation, otherwise use context values
+  const currentPosition = animatingPos || window.position;
+  const currentSize = animatingSize || window.size;
+
   return (
     <Rnd
       ref={rndRef}
-      position={window.position}
-      size={window.size}
+      position={currentPosition}
+      size={currentSize}
       onDragStart={() => focusWindow(id)}
       onDragStop={(e, d) => {
         updateWindowPosition(id, { x: d.x, y: d.y });
@@ -71,7 +188,9 @@ export default function Window({ id, title, children }: WindowProps) {
       className="window-container pointer-events-auto"
     >
       <div
-        className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900"
+        className={`flex h-full flex-col overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${
+          isAnimating ? "animate-scaleIn" : ""
+        } ${isClosing ? "animate-fadeOut" : ""}`}
         onMouseDown={() => focusWindow(id)}
       >
         {/* Title Bar */}
@@ -83,7 +202,7 @@ export default function Window({ id, title, children }: WindowProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => minimizeWindow(id)}
+              onClick={handleMinimize}
               className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
               title="Minimize"
             >
@@ -127,7 +246,7 @@ export default function Window({ id, title, children }: WindowProps) {
               </svg>
             </button>
             <button
-              onClick={() => closeWindow(id)}
+              onClick={handleClose}
               className="flex h-6 w-6 items-center justify-center rounded hover:bg-red-500 hover:text-white"
               title="Close"
             >

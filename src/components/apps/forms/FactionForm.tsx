@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
 import type { Faction } from "@/lib/actions/wiki";
+import { useState } from "react";
 
 type FactionFormProps = {
   faction?: Faction;
@@ -52,13 +50,24 @@ export default function FactionForm({
   const handleNameChange = (value: string) => {
     setName(value);
     if (!faction) {
-      setSlug(value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+      setSlug(
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800">
+    <div
+      className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="animate-slideUp w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="mb-4 text-2xl font-bold">
           {faction ? "Edit Faction" : "Create New Faction"}
         </h2>

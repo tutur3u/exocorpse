@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
 import type { Character } from "@/lib/actions/wiki";
+import { useState } from "react";
 
 type CharacterFormProps = {
   character?: Character;
@@ -26,7 +24,7 @@ export default function CharacterForm({
   const [slug, setSlug] = useState(character?.slug || "");
   const [nickname, setNickname] = useState(character?.nickname || "");
   const [personalitySummary, setPersonalitySummary] = useState(
-    character?.personality_summary || ""
+    character?.personality_summary || "",
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,13 +52,24 @@ export default function CharacterForm({
   const handleNameChange = (value: string) => {
     setName(value);
     if (!character) {
-      setSlug(value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+      setSlug(
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800">
+    <div
+      className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="animate-slideUp w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="mb-4 text-2xl font-bold">
           {character ? "Edit Character" : "Create New Character"}
         </h2>

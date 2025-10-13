@@ -8,6 +8,7 @@ export type World = Tables<"worlds">;
 export type Character = Tables<"characters">;
 export type Faction = Tables<"factions">;
 export type CharacterDetail = Tables<"character_details">;
+export type CharacterFaction = Tables<"character_factions">;
 
 /**
  * Fetch all stories (including unpublished, since RLS is disabled)
@@ -59,7 +60,7 @@ export async function createStory(story: {
  */
 export async function updateStory(
   id: string,
-  updates: Partial<Omit<Story, "id" | "created_at">>
+  updates: Partial<Omit<Story, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -109,7 +110,7 @@ export async function getStoryBySlug(slug: string) {
       worlds (
         *
       )
-    `
+    `,
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -252,7 +253,7 @@ export async function getCharacterOutfits(characterId: string) {
       `
       *,
       outfit_types (*)
-    `
+    `,
     )
     .eq("character_id", characterId)
     .is("deleted_at", null)
@@ -343,7 +344,7 @@ export async function createWorld(world: {
  */
 export async function updateWorld(
   id: string,
-  updates: Partial<Omit<World, "id" | "created_at">>
+  updates: Partial<Omit<World, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -414,7 +415,7 @@ export async function createCharacter(character: {
  */
 export async function updateCharacter(
   id: string,
-  updates: Partial<Omit<Character, "id" | "created_at">>
+  updates: Partial<Omit<Character, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -485,7 +486,7 @@ export async function createFaction(faction: {
  */
 export async function updateFaction(
   id: string,
-  updates: Partial<Omit<Faction, "id" | "created_at">>
+  updates: Partial<Omit<Faction, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -517,6 +518,129 @@ export async function deleteFaction(id: string) {
 
   if (error) {
     console.error("Error deleting faction:", error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// CHARACTER-FACTION RELATIONSHIP OPERATIONS
+// ============================================================================
+
+/**
+ * Get all faction memberships for a character
+ */
+export async function getCharacterFactions(characterId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_factions")
+    .select(
+      `
+      *,
+      factions (*)
+    `,
+    )
+    .eq("character_id", characterId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching character factions:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get all characters in a faction
+ */
+export async function getFactionMembers(factionId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_factions")
+    .select(
+      `
+      *,
+      characters (*)
+    `,
+    )
+    .eq("faction_id", factionId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching faction members:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Add a character to a faction
+ */
+export async function addCharacterToFaction(data: {
+  character_id: string;
+  faction_id: string;
+  role?: string;
+  rank?: string;
+  is_current?: boolean;
+}) {
+  const supabase = await getSupabaseServer();
+
+  const { data: result, error } = await supabase
+    .from("character_factions")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding character to faction:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update character-faction membership
+ */
+export async function updateCharacterFaction(
+  id: string,
+  updates: Partial<
+    Omit<CharacterFaction, "id" | "created_at" | "character_id" | "faction_id">
+  >,
+) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_factions")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating character faction:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Remove a character from a faction
+ */
+export async function removeCharacterFromFaction(id: string) {
+  const supabase = await getSupabaseServer();
+
+  const { error } = await supabase
+    .from("character_factions")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error removing character from faction:", error);
     throw error;
   }
 }
