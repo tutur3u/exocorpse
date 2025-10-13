@@ -72,13 +72,13 @@ export default function ListDetail<TId extends string | number, TData>({
   if (indexLayout === "grid") {
     return (
       <div className={`flex h-full flex-col ${className ?? ""}`}>
-        <div className="min-w-0 flex-1 overflow-auto p-6 @container">
+        <div className="@container min-w-0 flex-1 overflow-auto p-6">
           <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @2xl:grid-cols-3">
             {items.map((item) => (
               <div
                 key={String(item.id)}
                 onClick={() => setSelectedId(item.id)}
-                className="group rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 cursor-pointer"
+                className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
               >
                 {renderItemCard ? (
                   renderItemCard(item)
