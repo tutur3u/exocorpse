@@ -38,6 +38,15 @@ export async function createStory(story: {
   slug: string;
   description?: string;
   summary?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_background_color?: string;
+  theme_text_color?: string;
+  theme_custom_css?: string;
+  theme_background_image?: string;
+  content?: string;
+  is_published?: boolean;
+  visibility?: "public" | "unlisted" | "private";
 }) {
   const supabase = await getSupabaseServer();
 
@@ -322,6 +331,14 @@ export async function createWorld(world: {
   slug: string;
   description?: string;
   summary?: string;
+  world_type?: string;
+  size?: string;
+  population?: number;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_background_image?: string;
+  theme_map_image?: string;
+  content?: string;
 }) {
   const supabase = await getSupabaseServer();
 
@@ -392,7 +409,35 @@ export async function createCharacter(character: {
   name: string;
   slug: string;
   nickname?: string;
+  title?: string;
+  age?: number;
+  age_description?: string;
+  species?: string;
+  gender?: string;
+  pronouns?: string;
+  height?: string;
+  weight?: string;
+  build?: string;
+  hair_color?: string;
+  eye_color?: string;
+  skin_tone?: string;
+  distinguishing_features?: string;
+  status?: "alive" | "deceased" | "unknown" | "missing" | "imprisoned";
+  occupation?: string;
   personality_summary?: string;
+  likes?: string;
+  dislikes?: string;
+  fears?: string;
+  goals?: string;
+  backstory?: string;
+  lore?: string;
+  skills?: string;
+  abilities?: string;
+  strengths?: string;
+  weaknesses?: string;
+  profile_image?: string;
+  banner_image?: string;
+  color_scheme?: string;
 }) {
   const supabase = await getSupabaseServer();
 
@@ -464,6 +509,18 @@ export async function createFaction(faction: {
   slug: string;
   description?: string;
   summary?: string;
+  faction_type?: string;
+  founding_date?: string;
+  status?: string;
+  primary_goal?: string;
+  ideology?: string;
+  reputation?: string;
+  power_level?: string;
+  member_count?: number;
+  logo_url?: string;
+  color_scheme?: string;
+  banner_image?: string;
+  content?: string;
 }) {
   const supabase = await getSupabaseServer();
 
