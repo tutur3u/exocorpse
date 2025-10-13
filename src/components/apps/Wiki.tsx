@@ -42,12 +42,12 @@ export default function Wiki() {
           fullscreen
           indexLayout="grid"
           renderItemCard={(item) => (
-            <div>
-              <div className="mb-1 text-base font-semibold group-hover:text-blue-600">
+            <div className="group transition-all duration-200 hover:scale-105 hover:cursor-pointer hover:shadow-lg">
+              <div className="mb-1 text-base font-semibold transition-colors duration-20">
                 {item.title}
               </div>
               {item.subtitle ? (
-                <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="text-xs text-gray-500 transition-colors duration-200 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300">
                   {item.subtitle}
                 </div>
               ) : null}

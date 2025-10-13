@@ -70,7 +70,7 @@ export default function ListDetail<TId extends string | number, TData>({
               <button
                 key={String(item.id)}
                 onClick={() => setSelectedId(item.id)}
-                className="group rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+                className="group rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:scale-105 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
               >
                 {renderItemCard ? (
                   renderItemCard(item)
