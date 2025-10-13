@@ -4,6 +4,7 @@ import AboutMe from "@/components/apps/AboutMe";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
+import { TASKBAR_HEIGHT } from "@/constants";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
 import React, { createContext, useCallback, useContext, useState } from "react";
 
@@ -69,12 +70,20 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
       const existingWindow = windows.find((w) => w.id === id);
 
       if (existingWindow) {
-        // If window exists but is minimized, restore it
+        // If window exists but is minimized, restore it (set state to "normal" and bring to front)
         if (existingWindow.state === "minimized") {
-          restoreWindow(id);
+          setWindows((prev) =>
+            prev.map((w) =>
+              w.id === id ? { ...w, state: "normal", zIndex: nextZIndex } : w,
+            ),
+          );
+          setNextZIndex((prev) => prev + 1);
         } else {
-          // Just focus it
-          focusWindow(id);
+          // Just focus it (bring to front)
+          setWindows((prev) =>
+            prev.map((w) => (w.id === id ? { ...w, zIndex: nextZIndex } : w)),
+          );
+          setNextZIndex((prev) => prev + 1);
         }
         return;
       }
@@ -126,8 +135,11 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
               },
               position: { x: 0, y: 0 },
               size: {
-                width: window.innerWidth,
-                height: window.innerHeight - 48,
+                width: typeof window !== "undefined" ? window.innerWidth : 0,
+                height:
+                  typeof window !== "undefined"
+                    ? window.innerHeight - TASKBAR_HEIGHT
+                    : 0,
               }, // Account for taskbar
             }
           : w,

@@ -1,5 +1,6 @@
 "use client";
 
+import { TASKBAR_HEIGHT } from "@/constants";
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
 import { useEffect, useRef } from "react";
@@ -30,7 +31,7 @@ export default function Window({ id, title, children }: WindowProps) {
     if (window?.state === "maximized" && rndRef.current) {
       rndRef.current.updateSize({
         width: globalThis.window.innerWidth,
-        height: globalThis.window.innerHeight - 48,
+        height: globalThis.window.innerHeight - TASKBAR_HEIGHT,
       });
       rndRef.current.updatePosition({ x: 0, y: 0 });
     }

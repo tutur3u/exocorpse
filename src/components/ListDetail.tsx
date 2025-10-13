@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export interface ListDetailItem<TId extends string | number, TData> {
   id: TId;
@@ -31,7 +31,15 @@ export default function ListDetail<TId extends string | number, TData>({
   renderItemCard,
 }: ListDetailProps<TId, TData>) {
   const [selectedId, setSelectedId] = useState<TId | null>(initialSelectedId);
-  const selectedItem = items.find((i) => i.id === selectedId) ?? null;
+
+  // Memoize a Map of items by ID for O(1) lookups instead of O(n) find operations
+  const itemsMap = useMemo(() => {
+    const map = new Map<TId, ListDetailItem<TId, TData>>();
+    items.forEach((item) => map.set(item.id, item));
+    return map;
+  }, [items]);
+
+  const selectedItem = selectedId ? (itemsMap.get(selectedId) ?? null) : null;
 
   if (fullscreen && selectedItem) {
     return (
@@ -90,7 +98,6 @@ export default function ListDetail<TId extends string | number, TData>({
             ))}
           </div>
         </div>
-        {fullscreen ? null : <div className="hidden" aria-hidden />}
       </div>
     );
   }
