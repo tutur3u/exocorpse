@@ -59,7 +59,7 @@ export async function createStory(story: {
  */
 export async function updateStory(
   id: string,
-  updates: Partial<Omit<Story, "id" | "created_at">>
+  updates: Partial<Omit<Story, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -109,7 +109,7 @@ export async function getStoryBySlug(slug: string) {
       worlds (
         *
       )
-    `
+    `,
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -252,7 +252,7 @@ export async function getCharacterOutfits(characterId: string) {
       `
       *,
       outfit_types (*)
-    `
+    `,
     )
     .eq("character_id", characterId)
     .is("deleted_at", null)
@@ -343,7 +343,7 @@ export async function createWorld(world: {
  */
 export async function updateWorld(
   id: string,
-  updates: Partial<Omit<World, "id" | "created_at">>
+  updates: Partial<Omit<World, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -414,7 +414,7 @@ export async function createCharacter(character: {
  */
 export async function updateCharacter(
   id: string,
-  updates: Partial<Omit<Character, "id" | "created_at">>
+  updates: Partial<Omit<Character, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 
@@ -485,7 +485,7 @@ export async function createFaction(faction: {
  */
 export async function updateFaction(
   id: string,
-  updates: Partial<Omit<Faction, "id" | "created_at">>
+  updates: Partial<Omit<Faction, "id" | "created_at">>,
 ) {
   const supabase = await getSupabaseServer();
 

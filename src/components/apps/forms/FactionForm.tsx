@@ -52,12 +52,17 @@ export default function FactionForm({
   const handleNameChange = (value: string) => {
     setName(value);
     if (!faction) {
-      setSlug(value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+      setSlug(
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800">
         <h2 className="mb-4 text-2xl font-bold">
           {faction ? "Edit Faction" : "Create New Faction"}

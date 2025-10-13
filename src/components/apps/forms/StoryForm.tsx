@@ -50,12 +50,17 @@ export default function StoryForm({
     setTitle(value);
     if (!story) {
       // Only auto-generate slug for new stories
-      setSlug(value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+      setSlug(
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-800">
         <h2 className="mb-4 text-2xl font-bold">
           {story ? "Edit Story" : "Create New Story"}
@@ -63,9 +68,7 @@ export default function StoryForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Title *
-            </label>
+            <label className="mb-1 block text-sm font-medium">Title *</label>
             <input
               type="text"
               value={title}
@@ -77,9 +80,7 @@ export default function StoryForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Slug *
-            </label>
+            <label className="mb-1 block text-sm font-medium">Slug *</label>
             <input
               type="text"
               value={slug}
@@ -94,9 +95,7 @@ export default function StoryForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Summary
-            </label>
+            <label className="mb-1 block text-sm font-medium">Summary</label>
             <input
               type="text"
               value={summary}
