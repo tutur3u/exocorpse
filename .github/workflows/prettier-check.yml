@@ -26,7 +26,6 @@ jobs:
         # Required for creating commits and PRs
         token: ${{ secrets.GITHUB_TOKEN }}
 
-
     - uses: oven-sh/setup-bun@v2
 
     - name: Install dependencies
@@ -38,7 +37,7 @@ jobs:
 
     - name: Apply Prettier fixes
       if: steps.check-format.outputs.format_failed == 'true'
-      run: bun format
+      run: bun format:fix
 
     - name: Check for changes
       if: steps.check-format.outputs.format_failed == 'true'
