@@ -27,9 +27,10 @@ import {
   updateWorld,
   type World,
 } from "@/lib/actions/wiki";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import CharacterDetailModal from "./CharacterDetailModal";
-import FactionManager from "./FactionManager";
+import FactionManager, { type FactionMembership } from "./FactionManager";
 import CharacterForm from "./forms/CharacterForm";
 import FactionForm from "./forms/FactionForm";
 import StoryForm from "./forms/StoryForm";
@@ -83,7 +84,9 @@ export default function WikiClient({
     id: string;
     name: string;
   } | null>(null);
-  const [entityMemberships, setEntityMemberships] = useState<any[]>([]);
+  const [entityMemberships, setEntityMemberships] = useState<
+    FactionMembership[]
+  >([]);
 
   // Fetch worlds when a story is selected
   useEffect(() => {
@@ -620,10 +623,12 @@ export default function WikiClient({
                   {/* Cover Image in Detail */}
                   {item.data.theme_background_image && (
                     <div className="h-48 overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-purple-500">
-                      <img
+                      <Image
                         src={item.data.theme_background_image}
                         alt={item.title}
                         className="h-full w-full object-cover"
+                        width={1280}
+                        height={720}
                       />
                     </div>
                   )}
@@ -1028,10 +1033,12 @@ export default function WikiClient({
                             <div className="h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-700">
                               {"profile_image" in item.data &&
                               item.data.profile_image ? (
-                                <img
+                                <Image
                                   src={item.data.profile_image}
                                   alt={item.title}
                                   className="h-full w-full object-cover"
+                                  width={128}
+                                  height={128}
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">
@@ -1128,8 +1135,9 @@ export default function WikiClient({
                       <>
                         {"nickname" in item.data && item.data.nickname && (
                           <div className="text-sm text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">Nickname:</span> "
-                            {item.data.nickname}"
+                            <span className="font-medium">Nickname:</span>{" "}
+                            &quot;
+                            {item.data.nickname}&quot;
                           </div>
                         )}
                         {"personality_summary" in item.data &&

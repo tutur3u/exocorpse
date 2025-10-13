@@ -4,6 +4,7 @@ import {
   getCharacterGallery,
   getCharacterOutfits,
 } from "@/lib/actions/wiki";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type CharacterDetailModalProps = {
@@ -63,9 +64,9 @@ export default function CharacterDetailModal({
           getCharacterOutfits(character.id),
           getCharacterFactions(character.id),
         ]);
-        setGallery(galleryData as any);
-        setOutfits(outfitsData as any);
-        setFactions(factionsData as any);
+        setGallery(galleryData);
+        setOutfits(outfitsData);
+        setFactions(factionsData);
       } catch (error) {
         console.error("Error fetching character data:", error);
       } finally {
@@ -122,10 +123,12 @@ export default function CharacterDetailModal({
             <div className="absolute -bottom-16 left-8">
               <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-gray-200 to-gray-300 shadow-xl ring-2 ring-gray-200 dark:border-gray-900 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
                 {character.profile_image ? (
-                  <img
+                  <Image
                     src={character.profile_image}
                     alt={character.name}
                     className="h-full w-full object-cover"
+                    width={128}
+                    height={128}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-4xl font-bold text-white">
@@ -143,7 +146,7 @@ export default function CharacterDetailModal({
             </h1>
             {character.nickname && (
               <p className="mb-2 text-lg text-gray-600 italic dark:text-gray-400">
-                "{character.nickname}"
+                &quot;{character.nickname}&quot;
               </p>
             )}
             {character.title && (
@@ -181,7 +184,11 @@ export default function CharacterDetailModal({
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() =>
+                    setActiveTab(
+                      tab.id as "overview" | "outfits" | "lore" | "gallery",
+                    )
+                  }
                   className={`relative rounded-t-lg px-4 py-3 font-medium transition-all duration-200 ${
                     activeTab === tab.id
                       ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
@@ -373,10 +380,12 @@ export default function CharacterDetailModal({
                           >
                             {outfit.image_url && (
                               <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                <img
+                                <Image
                                   src={outfit.image_url}
                                   alt={outfit.name}
                                   className="h-full w-full object-cover"
+                                  width={128}
+                                  height={128}
                                 />
                               </div>
                             )}
@@ -483,10 +492,12 @@ export default function CharacterDetailModal({
                             onClick={() => setSelectedImage(image)}
                             className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-500 dark:ring-gray-700"
                           >
-                            <img
+                            <Image
                               src={image.thumbnail_url || image.image_url}
                               alt={image.title}
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                              width={128}
+                              height={128}
                             />
                           </button>
                         ))}
@@ -511,10 +522,12 @@ export default function CharacterDetailModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl">
-              <img
+              <Image
                 src={selectedImage.image_url}
                 alt={selectedImage.title}
                 className="max-h-[70vh] w-full object-contain"
+                width={1280}
+                height={720}
               />
             </div>
             <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">

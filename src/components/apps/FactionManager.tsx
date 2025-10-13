@@ -1,7 +1,7 @@
 import type { Character, Faction } from "@/lib/actions/wiki";
 import { useState } from "react";
 
-type FactionMembership = {
+export type FactionMembership = {
   id: string;
   character_id: string;
   faction_id: string;
@@ -25,7 +25,6 @@ type FactionManagerProps = {
 
 export default function FactionManager({
   type,
-  entityId,
   entityName,
   availableEntities,
   memberships,

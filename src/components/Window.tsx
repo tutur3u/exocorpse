@@ -30,8 +30,14 @@ export default function Window({ id, title, children }: WindowProps) {
   const [isClosing, setIsClosing] = useState(false);
   const prevStateRef = useRef(window?.state);
   const animationFrameRef = useRef<number>(undefined);
-  const [animatingSize, setAnimatingSize] = useState<{ width: number; height: number } | null>(null);
-  const [animatingPos, setAnimatingPos] = useState<{ x: number; y: number } | null>(null);
+  const [animatingSize, setAnimatingSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [animatingPos, setAnimatingPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Window opening animation
   useEffect(() => {
@@ -40,7 +46,7 @@ export default function Window({ id, title, children }: WindowProps) {
       const timer = setTimeout(() => setIsAnimating(false), 200);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [window]);
 
   // Animate window size/position changes
   const animateWindow = useCallback(
@@ -93,7 +99,13 @@ export default function Window({ id, title, children }: WindowProps) {
       }
       animationFrameRef.current = requestAnimationFrame(animate);
     },
-    [id, updateWindowPosition, updateWindowSize, setAnimatingPos, setAnimatingSize],
+    [
+      id,
+      updateWindowPosition,
+      updateWindowSize,
+      setAnimatingPos,
+      setAnimatingSize,
+    ],
   );
 
   // Handle maximize/restore with animation
@@ -124,7 +136,7 @@ export default function Window({ id, title, children }: WindowProps) {
       }
       prevStateRef.current = window.state;
     }
-  }, [window?.state, window?.position, window?.size, window?.previousState, animateWindow]);
+  }, [animateWindow, window]);
 
   // Cleanup
   useEffect(() => {
