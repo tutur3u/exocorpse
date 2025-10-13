@@ -4,7 +4,7 @@
     "source.fixAll.biome": "explicit"
   },
   "editor.formatOnPaste": false,
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "editor.formatOnSaveMode": "file",
   "editor.defaultFormatter": "esbenp.prettier-vscode", // prettier
   "[xml]": {
