@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
-		"build": "next build",
+		"build": "next build --turbopack",
 		"start": "next start",
 		"lint": "next lint",
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
@@ -25,6 +25,7 @@
 		"@types/react-dom": "^19.2.1",
 		"eslint": "^9.37.0",
 		"eslint-config-next": "^15.5.4",
+		"supabase": "^2.51.0",
 		"tailwindcss": "^4.1.14",
 		"typescript": "^5.9.3",
 		"wrangler": "^4.42.2"
