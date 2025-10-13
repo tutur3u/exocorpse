@@ -5,7 +5,7 @@
       "name": "my-next-app",
       "dependencies": {
         "@opennextjs/cloudflare": "^1.10.1",
-        "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.0.8",
+        "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.0",
         "next": "^15.5.4",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
@@ -532,7 +532,7 @@
 
     "@tsconfig/node18": ["@tsconfig/node18@1.0.3", "", {}, "sha512-RbwvSJQsuN9TB04AQbGULYfOGE/RnSFk/FLQ5b0NmDf5Kx2q/lABZbHQPKCO1vZ6Fiwkplu+yb9pGdLy1iGseQ=="],
 
-    "@tuturuuu/supabase": ["@jsr/tuturuuu__supabase@0.0.8", "https://npm.jsr.io/~/11/@jsr/tuturuuu__supabase/0.0.8.tgz", { "dependencies": { "@jsr/tuturuuu__types": "^0.1.5", "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.75.0", "next": "^16.0.0-canary.1" } }, "sha512-Ys5txU8Ipt0FlpvTsyg61bE5jpKSeMH9qzrDpitCJ9Ok5nbsUHgLX9PiKxxVBh8oLnT4MHGVlLUjAuuL0RdI2Q=="],
+    "@tuturuuu/supabase": ["@jsr/tuturuuu__supabase@0.1.0", "https://npm.jsr.io/~/11/@jsr/tuturuuu__supabase/0.1.0.tgz", { "dependencies": { "@jsr/tuturuuu__types": "^0.1.5", "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.75.0", "next": "^16.0.0-canary.1" } }, "sha512-N23pHgD/6VVWA1qiVALP8LqDeHS6JTusVYKwwHxkZhS5EuECelJ6227pX7wnbdlzMQWWxkBtG2JezuvqVFD3IA=="],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
 
