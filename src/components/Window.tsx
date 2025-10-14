@@ -30,6 +30,7 @@ export default function Window({ id, title, children }: WindowProps) {
   const [isClosing, setIsClosing] = useState(false);
   const prevStateRef = useRef(window?.state);
   const animationFrameRef = useRef<number>(undefined);
+  const hasAnimatedRef = useRef(false);
   const [animatingSize, setAnimatingSize] = useState<{
     width: number;
     height: number;
@@ -39,10 +40,11 @@ export default function Window({ id, title, children }: WindowProps) {
     y: number;
   } | null>(null);
 
-  // Window opening animation
+  // Window opening animation - only run once on mount
   useEffect(() => {
-    if (window && window.state !== "minimized") {
+    if (window && window.state !== "minimized" && !hasAnimatedRef.current) {
       setIsAnimating(true);
+      hasAnimatedRef.current = true;
       const timer = setTimeout(() => setIsAnimating(false), 200);
       return () => clearTimeout(timer);
     }

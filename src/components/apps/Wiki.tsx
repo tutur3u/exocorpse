@@ -1,25 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getPublishedStories, type Story } from "@/lib/actions/wiki";
-import WikiClient from "./WikiClient";
 import { StoryThemeProvider } from "@/contexts/StoryThemeContext";
+import { useStories } from "@/hooks/useStories";
+import WikiClient from "./WikiClient";
 
 export default function Wiki() {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getPublishedStories()
-      .then((data) => {
-        setStories(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching stories:", error);
-        setLoading(false);
-      });
-  }, []);
+  const { data: stories = [], isLoading } = useStories();
 
   return (
     <StoryThemeProvider>
@@ -28,7 +14,7 @@ export default function Wiki() {
           <h2 className="text-2xl font-bold">Character & World Wiki</h2>
         </div>
         <div className="flex-1 overflow-hidden">
-          {loading ? (
+          {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <div className="text-gray-500 dark:text-gray-400">Loading...</div>
             </div>
