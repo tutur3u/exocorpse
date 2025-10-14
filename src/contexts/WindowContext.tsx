@@ -16,6 +16,7 @@ interface WindowContextType {
   maximizeWindow: (id: AppId) => void;
   restoreWindow: (id: AppId) => void;
   focusWindow: (id: AppId) => void;
+  minimizeAllWindows: () => void;
   updateWindowPosition: (id: AppId, position: { x: number; y: number }) => void;
   updateWindowSize: (
     id: AppId,
@@ -180,6 +181,15 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
     [nextZIndex],
   );
 
+  const minimizeAllWindows = useCallback(() => {
+    setWindows((prev) =>
+      prev.map((w) => ({
+        ...w,
+        state: "minimized" as const,
+      })),
+    );
+  }, []);
+
   const updateWindowPosition = useCallback(
     (id: AppId, position: { x: number; y: number }) => {
       setWindows((prev) =>
@@ -207,6 +217,7 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
         maximizeWindow,
         restoreWindow,
         focusWindow,
+        minimizeAllWindows,
         updateWindowPosition,
         updateWindowSize,
       }}
