@@ -9,7 +9,7 @@ import {
   type Story,
   type World,
 } from "@/lib/actions/wiki";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 interface WorldsClientProps {
@@ -34,33 +34,48 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
     enabled: !!selectedStoryId,
   });
 
+  const createMutation = useMutation({
+    mutationFn: createWorld,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
+      setShowForm(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof updateWorld>[1];
+    }) => updateWorld(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
+      setEditingWorld(null);
+      setShowForm(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteWorld,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
+    },
+  });
+
   const handleCreate = async (data: Parameters<typeof createWorld>[0]) => {
-    const newWorld = await createWorld(data);
-    queryClient.setQueryData(
-      ["worlds", selectedStoryId],
-      [newWorld, ...worlds],
-    );
-    setShowForm(false);
+    await createMutation.mutateAsync(data);
   };
 
   const handleUpdate = async (data: Parameters<typeof updateWorld>[1]) => {
     if (!editingWorld) return;
-    const updated = await updateWorld(editingWorld.id, data);
-    queryClient.setQueryData(
-      ["worlds", selectedStoryId],
-      worlds.map((w) => (w.id === updated.id ? updated : w)),
-    );
-    setEditingWorld(null);
-    setShowForm(false);
+    await updateMutation.mutateAsync({ id: editingWorld.id, data });
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this world?")) return;
-    await deleteWorld(id);
-    queryClient.setQueryData(
-      ["worlds", selectedStoryId],
-      worlds.filter((w) => w.id !== id),
-    );
+    await deleteMutation.mutateAsync(id);
   };
 
   const selectedStory = stories.find((s) => s.id === selectedStoryId);

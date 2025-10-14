@@ -17,7 +17,7 @@ import {
   type Story,
   updateCharacter,
 } from "@/lib/actions/wiki";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 interface CharactersClientProps {
@@ -69,33 +69,72 @@ export default function CharactersClient({
     enabled: !!selectedWorldId,
   });
 
+  const createMutation = useMutation({
+    mutationFn: createCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["characters", selectedWorldId],
+      });
+      setShowForm(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof updateCharacter>[1];
+    }) => updateCharacter(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["characters", selectedWorldId],
+      });
+      setEditingCharacter(null);
+      setShowForm(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["characters", selectedWorldId],
+      });
+    },
+  });
+
+  const addToFactionMutation = useMutation({
+    mutationFn: addCharacterToFaction,
+    onSuccess: async () => {
+      if (!managingCharacter) return;
+      const memberships = await getCharacterFactions(managingCharacter.id);
+      setEntityMemberships(memberships);
+    },
+  });
+
+  const removeFromFactionMutation = useMutation({
+    mutationFn: removeCharacterFromFaction,
+    onSuccess: async () => {
+      if (!managingCharacter) return;
+      const memberships = await getCharacterFactions(managingCharacter.id);
+      setEntityMemberships(memberships);
+    },
+  });
+
   const handleCreate = async (data: Parameters<typeof createCharacter>[0]) => {
-    const newChar = await createCharacter(data);
-    queryClient.setQueryData(
-      ["characters", selectedWorldId],
-      [newChar, ...characters],
-    );
-    setShowForm(false);
+    await createMutation.mutateAsync(data);
   };
 
   const handleUpdate = async (data: Parameters<typeof updateCharacter>[1]) => {
     if (!editingCharacter) return;
-    const updated = await updateCharacter(editingCharacter.id, data);
-    queryClient.setQueryData(
-      ["characters", selectedWorldId],
-      characters.map((c) => (c.id === updated.id ? updated : c)),
-    );
-    setEditingCharacter(null);
-    setShowForm(false);
+    await updateMutation.mutateAsync({ id: editingCharacter.id, data });
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this character?")) return;
-    await deleteCharacter(id);
-    queryClient.setQueryData(
-      ["characters", selectedWorldId],
-      characters.filter((c) => c.id !== id),
-    );
+    await deleteMutation.mutateAsync(id);
   };
 
   const handleOpenFactionManager = async (id: string, name: string) => {
@@ -107,21 +146,16 @@ export default function CharactersClient({
 
   const handleAddToFaction = async (factionId: string, role?: string) => {
     if (!managingCharacter) return;
-    await addCharacterToFaction({
+    await addToFactionMutation.mutateAsync({
       character_id: managingCharacter.id,
       faction_id: factionId,
       role,
       is_current: true,
     });
-    const memberships = await getCharacterFactions(managingCharacter.id);
-    setEntityMemberships(memberships);
   };
 
   const handleRemoveFromFaction = async (membershipId: string) => {
-    await removeCharacterFromFaction(membershipId);
-    if (!managingCharacter) return;
-    const memberships = await getCharacterFactions(managingCharacter.id);
-    setEntityMemberships(memberships);
+    await removeFromFactionMutation.mutateAsync(membershipId);
   };
 
   const selectedWorld = worlds.find((w) => w.id === selectedWorldId);

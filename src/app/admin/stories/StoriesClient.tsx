@@ -7,7 +7,7 @@ import {
   type Story,
   updateStory,
 } from "@/lib/actions/wiki";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 interface StoriesClientProps {
@@ -25,30 +25,48 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
 
+  const createMutation = useMutation({
+    mutationFn: createStory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      setShowForm(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof updateStory>[1];
+    }) => updateStory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      setEditingStory(null);
+      setShowForm(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteStory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+    },
+  });
+
   const handleCreate = async (data: Parameters<typeof createStory>[0]) => {
-    const newStory = await createStory(data);
-    queryClient.setQueryData(["stories"], [newStory, ...stories]);
-    setShowForm(false);
+    await createMutation.mutateAsync(data);
   };
 
   const handleUpdate = async (data: Parameters<typeof updateStory>[1]) => {
     if (!editingStory) return;
-    const updated = await updateStory(editingStory.id, data);
-    queryClient.setQueryData(
-      ["stories"],
-      stories.map((s) => (s.id === updated.id ? updated : s)),
-    );
-    setEditingStory(null);
-    setShowForm(false);
+    await updateMutation.mutateAsync({ id: editingStory.id, data });
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this story?")) return;
-    await deleteStory(id);
-    queryClient.setQueryData(
-      ["stories"],
-      stories.filter((s) => s.id !== id),
-    );
+    await deleteMutation.mutateAsync(id);
   };
 
   return (
