@@ -19,12 +19,12 @@ export default function MusicPlayer() {
   // Attempt autoplay on mount. If browser blocks unmuted autoplay,
   // fallback to muted autoplay so audio starts streaming without user click.
   useEffect(() => {
+    // Guard clause to ensure this only runs once on mount
+    if (autoplayAttempted) return;
+
     const attemptAutoplay = async () => {
       const audio = audioRef.current;
       if (!audio) return;
-
-      // Ensure we don't preload the whole file; allow streaming.
-      audio.preload = "none";
 
       try {
         // Try playing unmuted first
@@ -55,8 +55,15 @@ export default function MusicPlayer() {
     // Run after a short delay to ensure the audio element is ready in some environments
     const t = setTimeout(() => attemptAutoplay(), 0);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    autoplayAttempted,
+    audioRef,
+    volume,
+    setIsPlaying,
+    setAutoplayMuted,
+    setVolume,
+    setAutoplayAttempted,
+  ]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -78,16 +85,21 @@ export default function MusicPlayer() {
     setAutoplayMuted(false);
   };
 
+  const unmuteAudio = () => {
+    if (!audioRef.current) return;
+
+    audioRef.current.muted = false;
+    const restoredVolume = volume === 0 ? 0.5 : volume;
+    setVolume(restoredVolume);
+    setAutoplayMuted(false);
+  };
+
   const toggleMute = () => {
     if (!audioRef.current) return;
 
     if (audioRef.current.muted || volume === 0) {
       // Unmute and restore a sensible volume
-      audioRef.current.muted = false;
-      const restoredVolume = volume === 0 ? 0.5 : volume;
-      setVolume(restoredVolume);
-      audioRef.current.volume = restoredVolume;
-      setAutoplayMuted(false);
+      unmuteAudio();
     } else {
       audioRef.current.muted = true;
       setVolume(0);
@@ -98,13 +110,7 @@ export default function MusicPlayer() {
   return (
     <div className="relative flex items-center gap-2">
       {/* Audio element with streaming support */}
-      <audio
-        ref={audioRef}
-        src="/exocorpse.mp3"
-        loop
-        preload="none"
-        onEnded={() => setIsPlaying(false)}
-      />
+      <audio ref={audioRef} src="/exocorpse.mp3" loop preload="metadata" />
 
       {/* Volume Slider Popup */}
       {showVolumeSlider && (
@@ -162,9 +168,7 @@ export default function MusicPlayer() {
             className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-black"
             title="Autoplay started muted — click to unmute"
             onClick={() => {
-              if (!audioRef.current) return;
-              audioRef.current.muted = false;
-              setAutoplayMuted(false);
+              unmuteAudio();
               setShowVolumeSlider(true);
             }}
           >

@@ -4,6 +4,7 @@ import WorldForm from "@/components/admin/forms/WorldForm";
 import {
   createWorld,
   deleteWorld,
+  getPublishedStories,
   getWorldsByStoryId,
   updateWorld,
   type Story,
@@ -25,7 +26,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: () => initialStories,
+    queryFn: getPublishedStories,
     initialData: initialStories,
   });
 

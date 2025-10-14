@@ -27,7 +27,6 @@ export default function WikiClient({
   stories: initialStories,
 }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
-  const [stories] = useState(initialStories);
   const [viewMode, setViewMode] = useState<ViewMode>("stories");
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<World | null>(null);
