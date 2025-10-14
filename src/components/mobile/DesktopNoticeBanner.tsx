@@ -4,12 +4,43 @@ import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "exocorpse-desktop-notice-dismissed";
 
+// Safe localStorage utility functions
+const isLocalStorageAvailable = (): boolean => {
+  try {
+    if (typeof window === "undefined") return false;
+    const testKey = "__test__";
+    localStorage.setItem(testKey, testKey);
+    localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getFromLocalStorage = (key: string): string | null => {
+  if (!isLocalStorageAvailable()) return null;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const setToLocalStorage = (key: string, value: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Silently fail if localStorage is not available
+  }
+};
+
 export default function DesktopNoticeBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     // Check if banner was previously dismissed
-    const isDismissed = localStorage.getItem(STORAGE_KEY);
+    const isDismissed = getFromLocalStorage(STORAGE_KEY);
     if (!isDismissed) {
       setIsVisible(true);
     }
@@ -17,7 +48,7 @@ export default function DesktopNoticeBanner() {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem(STORAGE_KEY, "true");
+    setToLocalStorage(STORAGE_KEY, "true");
   };
 
   if (!isVisible) return null;

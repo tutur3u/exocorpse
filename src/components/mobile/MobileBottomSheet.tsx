@@ -66,11 +66,6 @@ export default function MobileBottomSheet() {
     else if (deltaY < -50) {
       if (sheetState === "closed") {
         openSheet();
-      } else if (sheetState === "half-open") {
-        // Only expand if no app is selected (showing app list)
-        if (!selectedApp) {
-          // Don't auto-expand, user needs to select an app
-        }
       }
     }
 
