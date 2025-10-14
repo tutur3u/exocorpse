@@ -23,9 +23,7 @@ type WikiClientProps = {
   stories: Story[];
 };
 
-export default function WikiClient({
-  stories: initialStories,
-}: WikiClientProps) {
+export default function WikiClient({ stories }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
   const [viewMode, setViewMode] = useState<ViewMode>("stories");
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
@@ -151,6 +149,7 @@ export default function WikiClient({
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
+                    <title>No worlds icon</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -209,6 +208,7 @@ export default function WikiClient({
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
+                    <title>No content icon</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

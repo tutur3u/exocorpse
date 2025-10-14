@@ -135,6 +135,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() =>
                 setActiveTab(
                   tab.id as "overview" | "outfits" | "lore" | "gallery",
@@ -310,6 +311,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
+                        <title>No outfits icon</title>
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -395,6 +397,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
+                        <title>No lore icon</title>
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -423,6 +426,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
+                        <title>No gallery icon</title>
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -440,6 +444,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                     {gallery.map((image) => (
                       <button
                         key={image.id}
+                        type="button"
                         onClick={() => setSelectedImage(image)}
                         className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-500 dark:ring-gray-700"
                       >
@@ -462,13 +467,19 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
 
       {/* Gallery Lightbox */}
       {selectedImage && (
-        <div
+        <button
+          type="button"
           className="bg-opacity-95 animate-fadeIn fixed inset-0 z-[60] flex items-center justify-center bg-black p-4"
           onClick={() => setSelectedImage(null)}
         >
           <div
             className="animate-slideUp flex max-h-[95vh] max-w-6xl flex-col"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSelectedImage(null);
+            }}
+            role="dialog"
+            aria-modal="true"
           >
             <div className="relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl">
               <Image
@@ -497,6 +508,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
               )}
             </div>
             <button
+              type="button"
               onClick={() => setSelectedImage(null)}
               className="bg-opacity-60 hover:bg-opacity-80 absolute top-4 right-4 rounded-full bg-black p-3 text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-2xl"
             >
@@ -506,6 +518,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
+                <title>Close gallery image</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -515,7 +528,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
               </svg>
             </button>
           </div>
-        </div>
+        </button>
       )}
     </div>
   );
