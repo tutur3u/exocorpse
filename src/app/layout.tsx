@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "EXOCORPSE",
   description:
-    "Exocorpse is a secret corporation that cleanses humanity's sins by committing them, carrying out missions from heists to assassinations. Its agents are divided into two branches: the physically dominant Pulse and the intellectually cunning Neuro.",
+    "the duo of artist and writer in one vessel: a portfolio and terminal to the works created by the officers - fenrys & morris - who overlook the security and future of exocorpse. exocorpse is a corporation - ran by director lykomedes and surgeon aeveilith - that aims to cleanse the world from all sins by devoting themselves to becoming sinners - saints who taint their hands with blood are luminaries, shining stars that choose to burn out more quickly for the sake of humanity in a twisted manner. if you wish to enlist yourself, register your name within our terminal at any time.",
 };
 
 export default function RootLayout({
