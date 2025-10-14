@@ -11,16 +11,12 @@ import {
   type Story,
   type World,
 } from "@/lib/actions/wiki";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CharacterDetailModal from "./CharacterDetailModal";
 
 type ViewMode = "stories" | "worlds" | "content";
-
-type ContentData = {
-  characters: Character[];
-  factions: Faction[];
-};
 
 type WikiClientProps = {
   stories: Story[];
@@ -34,50 +30,40 @@ export default function WikiClient({
   const [viewMode, setViewMode] = useState<ViewMode>("stories");
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<World | null>(null);
-  const [worlds, setWorlds] = useState<World[]>([]);
-  const [contentData, setContentData] = useState<ContentData>({
-    characters: [],
-    factions: [],
-  });
-  const [loading, setLoading] = useState(false);
   const [viewingCharacter, setViewingCharacter] = useState<Character | null>(
     null,
   );
 
-  // Fetch worlds when a story is selected
-  useEffect(() => {
-    if (selectedStory && viewMode === "worlds") {
-      setLoading(true);
-      getWorldsByStoryId(selectedStory.id)
-        .then((data) => {
-          setWorlds(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error loading worlds:", error);
-          setLoading(false);
-        });
-    }
-  }, [selectedStory, viewMode]);
+  // Worlds query
+  const { data: worlds = [], isLoading: worldsLoading } = useQuery({
+    queryKey: ["worlds", selectedStory?.id],
+    queryFn: () =>
+      selectedStory && viewMode === "worlds"
+        ? getWorldsByStoryId(selectedStory.id)
+        : [],
+    enabled: !!selectedStory && viewMode === "worlds",
+  });
 
-  // Fetch characters and factions when a world is selected
-  useEffect(() => {
-    if (selectedWorld && viewMode === "content") {
-      setLoading(true);
-      Promise.all([
-        getCharactersByWorldId(selectedWorld.id),
-        getFactionsByWorldId(selectedWorld.id),
-      ])
-        .then(([characters, factions]) => {
-          setContentData({ characters, factions });
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error loading content:", error);
-          setLoading(false);
-        });
-    }
-  }, [selectedWorld, viewMode]);
+  // Characters and factions query
+  const {
+    data: contentData = { characters: [], factions: [] },
+    isLoading: contentLoading,
+  } = useQuery({
+    queryKey: ["content", selectedWorld?.id],
+    queryFn: async () => {
+      if (selectedWorld && viewMode === "content") {
+        const [characters, factions] = await Promise.all([
+          getCharactersByWorldId(selectedWorld.id),
+          getFactionsByWorldId(selectedWorld.id),
+        ]);
+        return { characters, factions };
+      }
+      return { characters: [], factions: [] };
+    },
+    enabled: !!selectedWorld && viewMode === "content",
+  });
+
+  const loading = worldsLoading || contentLoading;
 
   // Story items for ListDetail
   const storyItems: Array<ListDetailItem<string, Story>> = stories.map(

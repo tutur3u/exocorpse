@@ -4,8 +4,9 @@ import {
   getCharacterGallery,
   getCharacterOutfits,
 } from "@/lib/actions/wiki";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type CharacterDetailModalProps = {
   character: Character;
@@ -23,25 +24,6 @@ type GalleryImage = {
   tags: string[] | null;
 };
 
-type Outfit = {
-  id: string;
-  name: string;
-  description: string | null;
-  image_url: string | null;
-  color_palette: string | null;
-};
-
-type Membership = {
-  id: string;
-  role: string | null;
-  rank: string | null;
-  is_current: boolean | null;
-  factions?: {
-    id: string;
-    name: string;
-  };
-};
-
 export default function CharacterDetailModal({
   character,
   onClose,
@@ -49,33 +31,24 @@ export default function CharacterDetailModal({
   const [activeTab, setActiveTab] = useState<
     "overview" | "outfits" | "lore" | "gallery"
   >("overview");
-  const [gallery, setGallery] = useState<GalleryImage[]>([]);
-  const [outfits, setOutfits] = useState<Outfit[]>([]);
-  const [factions, setFactions] = useState<Membership[]>([]);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [galleryData, outfitsData, factionsData] = await Promise.all([
-          getCharacterGallery(character.id),
-          getCharacterOutfits(character.id),
-          getCharacterFactions(character.id),
-        ]);
-        setGallery(galleryData);
-        setOutfits(outfitsData);
-        setFactions(factionsData);
-      } catch (error) {
-        console.error("Error fetching character data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: gallery = [], isLoading: galleryLoading } = useQuery({
+    queryKey: ["character-gallery", character.id],
+    queryFn: () => getCharacterGallery(character.id),
+  });
 
-    fetchData();
-  }, [character.id]);
+  const { data: outfits = [], isLoading: outfitsLoading } = useQuery({
+    queryKey: ["character-outfits", character.id],
+    queryFn: () => getCharacterOutfits(character.id),
+  });
+
+  const { data: factions = [], isLoading: factionsLoading } = useQuery({
+    queryKey: ["character-factions", character.id],
+    queryFn: () => getCharacterFactions(character.id),
+  });
+
+  const loading = galleryLoading || outfitsLoading || factionsLoading;
 
   const tabs = [
     { id: "overview", label: "Overview" },
