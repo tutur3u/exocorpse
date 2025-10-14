@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -61,6 +62,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </div>
   );
 }
