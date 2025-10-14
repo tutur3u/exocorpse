@@ -3,45 +3,20 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
-  addCharacterToFaction,
   type Character,
-  createCharacter,
-  createFaction,
-  createStory,
-  createWorld,
-  deleteCharacter,
-  deleteFaction,
-  deleteStory,
-  deleteWorld,
   type Faction,
-  getCharacterFactions,
   getCharactersByWorldId,
-  getFactionMembers,
   getFactionsByWorldId,
   getWorldsByStoryId,
-  removeCharacterFromFaction,
   type Story,
-  updateCharacter,
-  updateFaction,
-  updateStory,
-  updateWorld,
   type World,
 } from "@/lib/actions/wiki";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CharacterDetailModal from "./CharacterDetailModal";
-import FactionManager, { type FactionMembership } from "./FactionManager";
-import CharacterForm from "./forms/CharacterForm";
-import FactionForm from "./forms/FactionForm";
-import StoryForm from "./forms/StoryForm";
-import WorldForm from "./forms/WorldForm";
 
 type ViewMode = "stories" | "worlds" | "content";
-
-type ContentData = {
-  characters: Character[];
-  factions: Faction[];
-};
 
 type WikiClientProps = {
   stories: Story[];
@@ -51,80 +26,46 @@ export default function WikiClient({
   stories: initialStories,
 }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
-  const [stories, setStories] = useState(initialStories);
   const [viewMode, setViewMode] = useState<ViewMode>("stories");
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<World | null>(null);
-  const [worlds, setWorlds] = useState<World[]>([]);
-  const [contentData, setContentData] = useState<ContentData>({
-    characters: [],
-    factions: [],
-  });
-  const [loading, setLoading] = useState(false);
   const [viewingCharacter, setViewingCharacter] = useState<Character | null>(
     null,
   );
 
-  // Form states
-  const [showStoryForm, setShowStoryForm] = useState(false);
-  const [showWorldForm, setShowWorldForm] = useState(false);
-  const [showCharacterForm, setShowCharacterForm] = useState(false);
-  const [showFactionForm, setShowFactionForm] = useState(false);
-  const [editingStory, setEditingStory] = useState<Story | null>(null);
-  const [editingWorld, setEditingWorld] = useState<World | null>(null);
-  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
-    null,
-  );
-  const [editingFaction, setEditingFaction] = useState<Faction | null>(null);
+  // Worlds query
+  const { data: worlds = [], isLoading: worldsLoading } = useQuery({
+    queryKey: ["worlds", selectedStory?.id],
+    queryFn: () =>
+      selectedStory && viewMode === "worlds"
+        ? getWorldsByStoryId(selectedStory.id)
+        : [],
+    enabled: !!selectedStory && viewMode === "worlds",
+  });
 
-  // Faction management states
-  const [showFactionManager, setShowFactionManager] = useState(false);
-  const [managingEntity, setManagingEntity] = useState<{
-    type: "character" | "faction";
-    id: string;
-    name: string;
-  } | null>(null);
-  const [entityMemberships, setEntityMemberships] = useState<
-    FactionMembership[]
-  >([]);
+  // Characters and factions query
+  const {
+    data: contentData = { characters: [], factions: [] },
+    isLoading: contentLoading,
+  } = useQuery({
+    queryKey: ["content", selectedWorld?.id],
+    queryFn: async () => {
+      if (selectedWorld && viewMode === "content") {
+        const [characters, factions] = await Promise.all([
+          getCharactersByWorldId(selectedWorld.id),
+          getFactionsByWorldId(selectedWorld.id),
+        ]);
+        return { characters, factions };
+      }
+      return { characters: [], factions: [] };
+    },
+    enabled: !!selectedWorld && viewMode === "content",
+  });
 
-  // Fetch worlds when a story is selected
-  useEffect(() => {
-    if (selectedStory && viewMode === "worlds") {
-      setLoading(true);
-      getWorldsByStoryId(selectedStory.id)
-        .then((data) => {
-          setWorlds(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error loading worlds:", error);
-          setLoading(false);
-        });
-    }
-  }, [selectedStory, viewMode]);
-
-  // Fetch characters and factions when a world is selected
-  useEffect(() => {
-    if (selectedWorld && viewMode === "content") {
-      setLoading(true);
-      Promise.all([
-        getCharactersByWorldId(selectedWorld.id),
-        getFactionsByWorldId(selectedWorld.id),
-      ])
-        .then(([characters, factions]) => {
-          setContentData({ characters, factions });
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error loading content:", error);
-          setLoading(false);
-        });
-    }
-  }, [selectedWorld, viewMode]);
+  const loading = worldsLoading || contentLoading;
 
   // Story items for ListDetail
-  const storyItems: Array<ListDetailItem<string, Story>> = stories.map(
+  const storyItems: Array<ListDetailItem<string, Story>> = initialStories.map(
     (story) => ({
       id: story.id,
       title: story.title,
@@ -174,209 +115,6 @@ export default function WikiClient({
   const handleWorldSelect = (world: World) => {
     setSelectedWorld(world);
     setViewMode("content");
-  };
-
-  // CRUD Handlers
-  const handleCreateStory = async (data: {
-    title: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    const newStory = await createStory(data);
-    setStories([newStory, ...stories]);
-    setShowStoryForm(false);
-  };
-
-  const handleUpdateStory = async (data: {
-    title: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    if (!editingStory) return;
-    const updated = await updateStory(editingStory.id, data);
-    setStories(stories.map((s) => (s.id === updated.id ? updated : s)));
-    setEditingStory(null);
-    setShowStoryForm(false);
-  };
-
-  const handleDeleteStory = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this story?")) return;
-    await deleteStory(id);
-    setStories(stories.filter((s) => s.id !== id));
-  };
-
-  const handleCreateWorld = async (data: {
-    story_id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    const newWorld = await createWorld(data);
-    setWorlds([newWorld, ...worlds]);
-    setShowWorldForm(false);
-  };
-
-  const handleUpdateWorld = async (data: {
-    story_id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    if (!editingWorld) return;
-    const updated = await updateWorld(editingWorld.id, data);
-    setWorlds(worlds.map((w) => (w.id === updated.id ? updated : w)));
-    setEditingWorld(null);
-    setShowWorldForm(false);
-  };
-
-  const handleDeleteWorld = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this world?")) return;
-    await deleteWorld(id);
-    setWorlds(worlds.filter((w) => w.id !== id));
-  };
-
-  const handleCreateCharacter = async (data: {
-    world_id: string;
-    name: string;
-    slug: string;
-    nickname?: string;
-    personality_summary?: string;
-  }) => {
-    const newChar = await createCharacter(data);
-    setContentData({
-      ...contentData,
-      characters: [newChar, ...contentData.characters],
-    });
-    setShowCharacterForm(false);
-  };
-
-  const handleUpdateCharacter = async (data: {
-    world_id: string;
-    name: string;
-    slug: string;
-    nickname?: string;
-    personality_summary?: string;
-  }) => {
-    if (!editingCharacter) return;
-    const updated = await updateCharacter(editingCharacter.id, data);
-    setContentData({
-      ...contentData,
-      characters: contentData.characters.map((c) =>
-        c.id === updated.id ? updated : c,
-      ),
-    });
-    setEditingCharacter(null);
-    setShowCharacterForm(false);
-  };
-
-  const handleDeleteCharacter = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this character?")) return;
-    await deleteCharacter(id);
-    setContentData({
-      ...contentData,
-      characters: contentData.characters.filter((c) => c.id !== id),
-    });
-  };
-
-  const handleCreateFaction = async (data: {
-    world_id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    const newFaction = await createFaction(data);
-    setContentData({
-      ...contentData,
-      factions: [newFaction, ...contentData.factions],
-    });
-    setShowFactionForm(false);
-  };
-
-  const handleUpdateFaction = async (data: {
-    world_id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    summary?: string;
-  }) => {
-    if (!editingFaction) return;
-    const updated = await updateFaction(editingFaction.id, data);
-    setContentData({
-      ...contentData,
-      factions: contentData.factions.map((f) =>
-        f.id === updated.id ? updated : f,
-      ),
-    });
-    setEditingFaction(null);
-    setShowFactionForm(false);
-  };
-
-  const handleDeleteFaction = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this faction?")) return;
-    await deleteFaction(id);
-    setContentData({
-      ...contentData,
-      factions: contentData.factions.filter((f) => f.id !== id),
-    });
-  };
-
-  // Faction management handlers
-  const handleOpenFactionManager = async (
-    type: "character" | "faction",
-    id: string,
-    name: string,
-  ) => {
-    setManagingEntity({ type, id, name });
-    setShowFactionManager(true);
-
-    // Fetch memberships
-    const memberships =
-      type === "character"
-        ? await getCharacterFactions(id)
-        : await getFactionMembers(id);
-    setEntityMemberships(memberships);
-  };
-
-  const handleAddToFaction = async (targetId: string, role?: string) => {
-    if (!managingEntity) return;
-
-    if (managingEntity.type === "character") {
-      await addCharacterToFaction({
-        character_id: managingEntity.id,
-        faction_id: targetId,
-        role,
-        is_current: true,
-      });
-      // Refresh memberships
-      const memberships = await getCharacterFactions(managingEntity.id);
-      setEntityMemberships(memberships);
-    } else {
-      await addCharacterToFaction({
-        character_id: targetId,
-        faction_id: managingEntity.id,
-        role,
-        is_current: true,
-      });
-      // Refresh memberships
-      const memberships = await getFactionMembers(managingEntity.id);
-      setEntityMemberships(memberships);
-    }
-  };
-
-  const handleRemoveFromFaction = async (membershipId: string) => {
-    await removeCharacterFromFaction(membershipId);
-    // Refresh memberships
-    if (!managingEntity) return;
-    const memberships =
-      managingEntity.type === "character"
-        ? await getCharacterFactions(managingEntity.id)
-        : await getFactionMembers(managingEntity.id);
-    setEntityMemberships(memberships);
   };
 
   // Render breadcrumbs
@@ -470,21 +208,12 @@ export default function WikiClient({
                 Stories
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Explore your creative worlds
+                Explore creative worlds
               </p>
             </div>
-            <button
-              onClick={() => {
-                setEditingStory(null);
-                setShowStoryForm(true);
-              }}
-              className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              + New Story
-            </button>
           </div>
 
-          {stories.length === 0 ? (
+          {initialStories.length === 0 ? (
             <div className="flex flex-1 items-center justify-center p-8">
               <div className="max-w-md text-center">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
@@ -505,19 +234,9 @@ export default function WikiClient({
                 <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   No stories yet
                 </h4>
-                <p className="mb-6 text-gray-600 dark:text-gray-400">
-                  Start your creative journey by creating your first story. Each
-                  story can contain multiple worlds, characters, and factions.
+                <p className="text-gray-600 dark:text-gray-400">
+                  Check back later for new stories
                 </p>
-                <button
-                  onClick={() => {
-                    setEditingStory(null);
-                    setShowStoryForm(true);
-                  }}
-                  className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  Create Your First Story
-                </button>
               </div>
             </div>
           ) : (
@@ -551,55 +270,6 @@ export default function WikiClient({
                         Published
                       </div>
                     )}
-
-                    {/* Quick Actions (visible on hover) */}
-                    <div className="absolute top-2 left-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingStory(item.data);
-                          setShowStoryForm(true);
-                        }}
-                        className="rounded-lg bg-white/90 p-1.5 backdrop-blur-sm transition-colors hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
-                        title="Edit"
-                      >
-                        <svg
-                          className="h-4 w-4 text-gray-700 dark:text-gray-300"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteStory(item.data.id);
-                        }}
-                        className="rounded-lg bg-white/90 p-1.5 backdrop-blur-sm transition-colors hover:bg-red-500 hover:text-white dark:bg-gray-900/90"
-                        title="Delete"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
                   </div>
 
                   {/* Content */}
@@ -684,28 +354,13 @@ export default function WikiClient({
                     </div>
                   )}
 
-                  {/* Actions */}
+                  {/* Action */}
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleStorySelect(item.data)}
                       className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                     >
                       Explore Worlds
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingStory(item.data);
-                        setShowStoryForm(true);
-                      }}
-                      className="rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteStory(item.data.id)}
-                      className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                    >
-                      Delete
                     </button>
                   </div>
                 </div>
@@ -731,15 +386,6 @@ export default function WikiClient({
                   Dive into unique worlds and settings
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setEditingWorld(null);
-                  setShowWorldForm(true);
-                }}
-                className="rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                + New World
-              </button>
             </div>
           </div>
 
@@ -764,19 +410,9 @@ export default function WikiClient({
                 <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   No worlds yet
                 </h4>
-                <p className="mb-6 text-gray-600 dark:text-gray-400">
-                  Build immersive worlds for your story. Each world can have its
-                  own characters, factions, and lore.
+                <p className="text-gray-600 dark:text-gray-400">
+                  This story doesn&apos;t have any worlds yet
                 </p>
-                <button
-                  onClick={() => {
-                    setEditingWorld(null);
-                    setShowWorldForm(true);
-                  }}
-                  className="rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  Create Your First World
-                </button>
               </div>
             </div>
           ) : (
@@ -793,55 +429,6 @@ export default function WikiClient({
                     {/* Decorative Header */}
                     <div className="relative h-24 overflow-hidden bg-gradient-to-br from-indigo-400 via-cyan-400 to-teal-400">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-
-                      {/* Quick Actions (visible on hover) */}
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingWorld(item.data);
-                            setShowWorldForm(true);
-                          }}
-                          className="rounded-lg bg-white/90 p-1.5 backdrop-blur-sm transition-colors hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
-                          title="Edit"
-                        >
-                          <svg
-                            className="h-4 w-4 text-gray-700 dark:text-gray-300"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteWorld(item.data.id);
-                          }}
-                          className="rounded-lg bg-white/90 p-1.5 backdrop-blur-sm transition-colors hover:bg-red-500 hover:text-white dark:bg-gray-900/90"
-                          title="Delete"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
                     </div>
 
                     {/* Content */}
@@ -874,28 +461,13 @@ export default function WikiClient({
                       </div>
                     )}
 
-                    {/* Actions */}
+                    {/* Action */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleWorldSelect(item.data)}
                         className="flex-1 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                       >
                         View Content
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingWorld(item.data);
-                          setShowWorldForm(true);
-                        }}
-                        className="rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteWorld(item.data.id)}
-                        className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                      >
-                        Delete
                       </button>
                     </div>
                   </div>
@@ -922,26 +494,6 @@ export default function WikiClient({
                   Meet the inhabitants and organizations
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setEditingCharacter(null);
-                    setShowCharacterForm(true);
-                  }}
-                  className="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  + Character
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingFaction(null);
-                    setShowFactionForm(true);
-                  }}
-                  className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  + Faction
-                </button>
-              </div>
             </div>
           </div>
 
@@ -966,30 +518,9 @@ export default function WikiClient({
                 <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   No content yet
                 </h4>
-                <p className="mb-6 text-gray-600 dark:text-gray-400">
-                  Populate this world with characters and factions. Characters
-                  can belong to multiple factions and have detailed profiles.
+                <p className="text-gray-600 dark:text-gray-400">
+                  This world doesn&apos;t have any characters or factions yet
                 </p>
-                <div className="flex justify-center gap-3">
-                  <button
-                    onClick={() => {
-                      setEditingCharacter(null);
-                      setShowCharacterForm(true);
-                    }}
-                    className="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    Add Character
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingFaction(null);
-                      setShowFactionForm(true);
-                    }}
-                    className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    Add Faction
-                  </button>
-                </div>
               </div>
             </div>
           ) : (
@@ -1177,65 +708,6 @@ export default function WikiClient({
                           </p>
                         </div>
                       )}
-
-                    {/* Actions */}
-                    <div className="space-y-2">
-                      <button
-                        onClick={() =>
-                          handleOpenFactionManager(
-                            item.data.type,
-                            item.data.id,
-                            item.title,
-                          )
-                        }
-                        className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                      >
-                        {item.data.type === "character"
-                          ? "Manage Factions"
-                          : "Manage Members"}
-                      </button>
-                      <div className="flex gap-2">
-                        {item.data.type === "character" ? (
-                          <>
-                            <button
-                              onClick={() => {
-                                setEditingCharacter(item.data as Character);
-                                setShowCharacterForm(true);
-                              }}
-                              className="flex-1 rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteCharacter(item.data.id)
-                              }
-                              className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => {
-                                setEditingFaction(item.data as Faction);
-                                setShowFactionForm(true);
-                              }}
-                              className="flex-1 rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteFaction(item.data.id)}
-                              className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 )}
               />
@@ -1251,76 +723,6 @@ export default function WikiClient({
   return (
     <>
       {renderContent()}
-
-      {showStoryForm && (
-        <StoryForm
-          story={editingStory || undefined}
-          onSubmit={editingStory ? handleUpdateStory : handleCreateStory}
-          onCancel={() => {
-            setShowStoryForm(false);
-            setEditingStory(null);
-          }}
-        />
-      )}
-
-      {showWorldForm && selectedStory && (
-        <WorldForm
-          world={editingWorld || undefined}
-          storyId={selectedStory.id}
-          onSubmit={editingWorld ? handleUpdateWorld : handleCreateWorld}
-          onCancel={() => {
-            setShowWorldForm(false);
-            setEditingWorld(null);
-          }}
-        />
-      )}
-
-      {showCharacterForm && selectedWorld && (
-        <CharacterForm
-          character={editingCharacter || undefined}
-          worldId={selectedWorld.id}
-          onSubmit={
-            editingCharacter ? handleUpdateCharacter : handleCreateCharacter
-          }
-          onCancel={() => {
-            setShowCharacterForm(false);
-            setEditingCharacter(null);
-          }}
-        />
-      )}
-
-      {showFactionForm && selectedWorld && (
-        <FactionForm
-          faction={editingFaction || undefined}
-          worldId={selectedWorld.id}
-          onSubmit={editingFaction ? handleUpdateFaction : handleCreateFaction}
-          onCancel={() => {
-            setShowFactionForm(false);
-            setEditingFaction(null);
-          }}
-        />
-      )}
-
-      {showFactionManager && managingEntity && (
-        <FactionManager
-          type={managingEntity.type}
-          entityId={managingEntity.id}
-          entityName={managingEntity.name}
-          availableEntities={
-            managingEntity.type === "character"
-              ? contentData.factions
-              : contentData.characters
-          }
-          memberships={entityMemberships}
-          onAdd={handleAddToFaction}
-          onRemove={handleRemoveFromFaction}
-          onClose={() => {
-            setShowFactionManager(false);
-            setManagingEntity(null);
-            setEntityMemberships([]);
-          }}
-        />
-      )}
 
       {viewingCharacter && (
         <CharacterDetailModal
