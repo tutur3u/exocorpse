@@ -12,6 +12,7 @@ import {
   getCharactersByWorldId,
   getFactionMembers,
   getFactionsByWorldId,
+  getPublishedStories,
   getWorldsByStoryId,
   removeCharacterFromFaction,
   type Story,
@@ -46,7 +47,7 @@ export default function FactionsClient({
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: () => initialStories,
+    queryFn: getPublishedStories,
     initialData: initialStories,
   });
 

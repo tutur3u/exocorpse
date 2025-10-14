@@ -26,7 +26,6 @@ export default function WikiClient({
   stories: initialStories,
 }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
-  const [stories] = useState(initialStories);
   const [viewMode, setViewMode] = useState<ViewMode>("stories");
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<World | null>(null);
@@ -66,7 +65,7 @@ export default function WikiClient({
   const loading = worldsLoading || contentLoading;
 
   // Story items for ListDetail
-  const storyItems: Array<ListDetailItem<string, Story>> = stories.map(
+  const storyItems: Array<ListDetailItem<string, Story>> = initialStories.map(
     (story) => ({
       id: story.id,
       title: story.title,
@@ -214,7 +213,7 @@ export default function WikiClient({
             </div>
           </div>
 
-          {stories.length === 0 ? (
+          {initialStories.length === 0 ? (
             <div className="flex flex-1 items-center justify-center p-8">
               <div className="max-w-md text-center">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">

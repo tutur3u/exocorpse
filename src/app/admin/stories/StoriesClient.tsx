@@ -4,6 +4,7 @@ import StoryForm from "@/components/admin/forms/StoryForm";
 import {
   createStory,
   deleteStory,
+  getPublishedStories,
   type Story,
   updateStory,
 } from "@/lib/actions/wiki";
@@ -19,7 +20,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const queryClient = useQueryClient();
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: () => initialStories,
+    queryFn: getPublishedStories,
     initialData: initialStories,
   });
 
