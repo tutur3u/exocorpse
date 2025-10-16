@@ -1,5 +1,6 @@
 "use server";
 
+import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Tables } from "../../../supabase/types";
 
@@ -48,6 +49,9 @@ export async function createStory(story: {
   is_published?: boolean;
   visibility?: "public" | "unlisted" | "private";
 }) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -71,6 +75,9 @@ export async function updateStory(
   id: string,
   updates: Partial<Omit<Story, "id" | "created_at">>,
 ) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -92,6 +99,9 @@ export async function updateStory(
  * Delete a story (soft delete)
  */
 export async function deleteStory(id: string) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -340,6 +350,9 @@ export async function createWorld(world: {
   theme_map_image?: string;
   content?: string;
 }) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -363,6 +376,9 @@ export async function updateWorld(
   id: string,
   updates: Partial<Omit<World, "id" | "created_at">>,
 ) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -384,6 +400,9 @@ export async function updateWorld(
  * Delete a world (soft delete)
  */
 export async function deleteWorld(id: string) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -439,6 +458,9 @@ export async function createCharacter(character: {
   banner_image?: string;
   color_scheme?: string;
 }) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -462,6 +484,9 @@ export async function updateCharacter(
   id: string,
   updates: Partial<Omit<Character, "id" | "created_at">>,
 ) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -483,6 +508,9 @@ export async function updateCharacter(
  * Delete a character (soft delete)
  */
 export async function deleteCharacter(id: string) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -522,6 +550,9 @@ export async function createFaction(faction: {
   banner_image?: string;
   content?: string;
 }) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -545,6 +576,9 @@ export async function updateFaction(
   id: string,
   updates: Partial<Omit<Faction, "id" | "created_at">>,
 ) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -566,6 +600,9 @@ export async function updateFaction(
  * Delete a faction (soft delete)
  */
 export async function deleteFaction(id: string) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
@@ -643,6 +680,9 @@ export async function addCharacterToFaction(data: {
   rank?: string;
   is_current?: boolean;
 }) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data: result, error } = await supabase
@@ -668,6 +708,9 @@ export async function updateCharacterFaction(
     Omit<CharacterFaction, "id" | "created_at" | "character_id" | "faction_id">
   >,
 ) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -689,6 +732,9 @@ export async function updateCharacterFaction(
  * Remove a character from a faction
  */
 export async function removeCharacterFromFaction(id: string) {
+  // Verify authentication
+  await verifyAuth();
+
   const supabase = await getSupabaseServer();
 
   const { error } = await supabase
