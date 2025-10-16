@@ -6,12 +6,14 @@ type ContentViewProps = {
   characters: Character[];
   factions: Faction[];
   onCharacterSelect: (character: Character) => void;
+  onFactionSelect: (faction: Faction) => void;
 };
 
 export default function ContentView({
   characters,
   factions,
   onCharacterSelect,
+  onFactionSelect,
 }: ContentViewProps) {
   const contentItems: Array<
     ListDetailItem<
@@ -44,6 +46,8 @@ export default function ContentView({
             onClick={() => {
               if (item.data.type === "character") {
                 onCharacterSelect(item.data as Character);
+              } else if (item.data.type === "faction") {
+                onFactionSelect(item.data as Faction);
               }
             }}
             className="group relative h-full cursor-pointer overflow-visible rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-gray-700 dark:bg-gray-800"

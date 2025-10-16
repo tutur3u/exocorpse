@@ -1,12 +1,18 @@
-import { type Character, type Story, type World } from "@/lib/actions/wiki";
+import {
+  type Character,
+  type Faction,
+  type Story,
+  type World,
+} from "@/lib/actions/wiki";
 
-type ViewMode = "stories" | "worlds" | "content" | "character";
+type ViewMode = "stories" | "worlds" | "content" | "character" | "faction";
 
 type BreadcrumbsProps = {
   viewMode: ViewMode;
   selectedStory: Story | null;
   selectedWorld: World | null;
   viewingCharacter: Character | null;
+  viewingFaction?: Faction | null;
   onNavigate: (mode: ViewMode) => void;
 };
 
@@ -15,6 +21,7 @@ export default function Breadcrumbs({
   selectedStory,
   selectedWorld,
   viewingCharacter,
+  viewingFaction,
   onNavigate,
 }: BreadcrumbsProps) {
   const crumbs = [];
@@ -22,7 +29,8 @@ export default function Breadcrumbs({
   if (
     viewMode === "worlds" ||
     viewMode === "content" ||
-    viewMode === "character"
+    viewMode === "character" ||
+    viewMode === "faction"
   ) {
     crumbs.push(
       <button
@@ -35,7 +43,12 @@ export default function Breadcrumbs({
     );
   }
 
-  if ((viewMode === "content" || viewMode === "character") && selectedStory) {
+  if (
+    (viewMode === "content" ||
+      viewMode === "character" ||
+      viewMode === "faction") &&
+    selectedStory
+  ) {
     crumbs.push(
       <span key="sep1" className="mx-2 text-gray-400">
         /
@@ -65,7 +78,12 @@ export default function Breadcrumbs({
     );
   }
 
-  if ((viewMode === "content" || viewMode === "character") && selectedWorld) {
+  if (
+    (viewMode === "content" ||
+      viewMode === "character" ||
+      viewMode === "faction") &&
+    selectedWorld
+  ) {
     crumbs.push(
       <span key="sep3" className="mx-2 text-gray-400">
         /
@@ -91,6 +109,19 @@ export default function Breadcrumbs({
     crumbs.push(
       <span key="current" className="text-gray-600 dark:text-gray-400">
         {viewingCharacter.name}
+      </span>,
+    );
+  }
+
+  if (viewMode === "faction" && viewingFaction) {
+    crumbs.push(
+      <span key="sep5" className="mx-2 text-gray-400">
+        /
+      </span>,
+    );
+    crumbs.push(
+      <span key="current" className="text-gray-600 dark:text-gray-400">
+        {viewingFaction.name}
       </span>,
     );
   }

@@ -3,6 +3,7 @@
 import { TASKBAR_HEIGHT } from "@/constants";
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
+import { parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
@@ -24,6 +25,20 @@ export default function Window({ id, title, children }: WindowProps) {
     updateWindowSize,
   } = useWindows();
 
+  // Only set up wiki params clearing if this is the wiki window
+  const [, setParams] = useQueryStates(
+    {
+      story: parseAsString,
+      world: parseAsString,
+      character: parseAsString,
+      faction: parseAsString,
+    },
+    {
+      shallow: true,
+      history: "push",
+    },
+  );
+
   const window = windows.find((w) => w.id === id);
   const rndRef = useRef<Rnd>(null);
   const [isAnimating, setIsAnimating] = useState(true);
@@ -31,6 +46,7 @@ export default function Window({ id, title, children }: WindowProps) {
   const prevStateRef = useRef(window?.state);
   const animationFrameRef = useRef<number>(undefined);
   const hasAnimatedRef = useRef(false);
+  const hasMountedRef = useRef(false);
   const [animatingSize, setAnimatingSize] = useState<{
     width: number;
     height: number;
@@ -112,6 +128,15 @@ export default function Window({ id, title, children }: WindowProps) {
 
   // Handle maximize/restore with animation
   useEffect(() => {
+    // On first mount, initialize prevStateRef and skip animation for initially maximized windows
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      if (window) {
+        prevStateRef.current = window.state;
+      }
+      return;
+    }
+
     if (window && prevStateRef.current !== window.state) {
       if (prevStateRef.current === "normal" && window.state === "maximized") {
         // Animate to maximized
@@ -150,6 +175,15 @@ export default function Window({ id, title, children }: WindowProps) {
   }, []);
 
   const handleClose = () => {
+    // If closing the wiki window, clear wiki search params
+    if (id === "wiki") {
+      setParams({
+        story: null,
+        world: null,
+        character: null,
+        faction: null,
+      });
+    }
     setIsClosing(true);
     setTimeout(() => {
       closeWindow(id);

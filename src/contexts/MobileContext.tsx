@@ -4,6 +4,7 @@ import AboutMe from "@/components/apps/AboutMe";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
+import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId } from "@/types/window";
 import React, { createContext, useCallback, useContext, useState } from "react";
 
@@ -56,9 +57,26 @@ export const MOBILE_APPS: MobileApp[] = [
   },
 ];
 
-export function MobileProvider({ children }: { children: React.ReactNode }) {
-  const [sheetState, setSheetState] = useState<BottomSheetState>("closed");
-  const [selectedApp, setSelectedApp] = useState<AppId | null>(null);
+export function MobileProvider({
+  children,
+  wikiParams,
+}: {
+  children: React.ReactNode;
+  wikiParams: WikiSearchParams;
+}) {
+  const hasWikiParams =
+    wikiParams.story ||
+    wikiParams.world ||
+    wikiParams.character ||
+    wikiParams.faction;
+
+  // Initialize state with wiki app open if params are present
+  const [sheetState, setSheetState] = useState<BottomSheetState>(
+    hasWikiParams ? "full-open" : "closed",
+  );
+  const [selectedApp, setSelectedApp] = useState<AppId | null>(
+    hasWikiParams ? "wiki" : null,
+  );
 
   const openSheet = useCallback(() => {
     setSheetState("half-open");

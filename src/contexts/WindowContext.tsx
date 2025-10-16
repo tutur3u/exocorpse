@@ -4,8 +4,17 @@ import AboutMe from "@/components/apps/AboutMe";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
+import { TASKBAR_HEIGHT } from "@/constants";
+import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface WindowContextType {
   windows: WindowInstance[];
@@ -61,9 +70,50 @@ export const APP_CONFIGS: WindowConfig[] = [
   },
 ];
 
-export function WindowProvider({ children }: { children: React.ReactNode }) {
+export function WindowProvider({
+  children,
+  wikiParams,
+}: {
+  children: React.ReactNode;
+  wikiParams: WikiSearchParams;
+}) {
+  const hasWikiParams =
+    wikiParams.story ||
+    wikiParams.world ||
+    wikiParams.character ||
+    wikiParams.faction;
+
+  // Initialize windows with wiki window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
+  const initializedRef = useRef(false);
+
+  // Initialize wiki window on mount if wiki params are present
+  useEffect(() => {
+    if (hasWikiParams && !initializedRef.current) {
+      initializedRef.current = true;
+      const config = APP_CONFIGS.find((c) => c.id === "wiki");
+      if (config) {
+        setWindows([
+          {
+            id: "wiki",
+            state: "maximized",
+            zIndex: 1000,
+            position: { x: 0, y: 0 },
+            size: {
+              width: window.innerWidth,
+              height: window.innerHeight - TASKBAR_HEIGHT,
+            },
+            previousState: {
+              position: config.defaultPosition,
+              size: config.defaultSize,
+            },
+          },
+        ]);
+        setNextZIndex(1001);
+      }
+    }
+  }, [hasWikiParams]);
 
   const openWindow = useCallback(
     (id: AppId) => {
