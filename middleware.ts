@@ -2,7 +2,7 @@ import { createClient } from "@tuturuuu/supabase/next/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   // Check if the route is an admin route
   if (pathname.startsWith("/admin")) {
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
     // If no user is found, redirect to login
     if (!user) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
+      loginUrl.searchParams.set("redirect", pathname + search);
       return NextResponse.redirect(loginUrl);
     }
   }

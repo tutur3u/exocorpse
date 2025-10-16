@@ -21,19 +21,24 @@ export async function getCurrentUser() {
 }
 
 /**
- * Verify that the user is authenticated
+ * Verify that the user is authenticated and return the user with a Supabase client
  * Throws an error if not authenticated
  */
 export async function verifyAuth() {
-  const user = await getCurrentUser();
+  const supabase = await getSupabaseServer();
 
-  if (!user) {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
     throw new Error(
       "Unauthorized: You must be logged in to perform this action",
     );
   }
 
-  return user;
+  return { user, supabase };
 }
 
 /**
@@ -48,12 +53,4 @@ export async function requireAuth() {
   }
 
   return user;
-}
-
-/**
- * Check if user is authenticated (for client-side checks)
- */
-export async function isAuthenticated() {
-  const user = await getCurrentUser();
-  return !!user;
 }

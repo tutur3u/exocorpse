@@ -49,10 +49,8 @@ export async function createStory(story: {
   is_published?: boolean;
   visibility?: "public" | "unlisted" | "private";
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("stories")
@@ -75,10 +73,8 @@ export async function updateStory(
   id: string,
   updates: Partial<Omit<Story, "id" | "created_at">>,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("stories")
@@ -99,10 +95,8 @@ export async function updateStory(
  * Delete a story (soft delete)
  */
 export async function deleteStory(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("stories")
@@ -350,10 +344,8 @@ export async function createWorld(world: {
   theme_map_image?: string;
   content?: string;
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("worlds")
@@ -376,10 +368,8 @@ export async function updateWorld(
   id: string,
   updates: Partial<Omit<World, "id" | "created_at">>,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("worlds")
@@ -400,10 +390,8 @@ export async function updateWorld(
  * Delete a world (soft delete)
  */
 export async function deleteWorld(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("worlds")
@@ -458,10 +446,8 @@ export async function createCharacter(character: {
   banner_image?: string;
   color_scheme?: string;
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("characters")
@@ -484,10 +470,8 @@ export async function updateCharacter(
   id: string,
   updates: Partial<Omit<Character, "id" | "created_at">>,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("characters")
@@ -508,10 +492,8 @@ export async function updateCharacter(
  * Delete a character (soft delete)
  */
 export async function deleteCharacter(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("characters")
@@ -550,10 +532,8 @@ export async function createFaction(faction: {
   banner_image?: string;
   content?: string;
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("factions")
@@ -576,10 +556,8 @@ export async function updateFaction(
   id: string,
   updates: Partial<Omit<Faction, "id" | "created_at">>,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("factions")
@@ -600,10 +578,8 @@ export async function updateFaction(
  * Delete a faction (soft delete)
  */
 export async function deleteFaction(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("factions")
@@ -680,10 +656,8 @@ export async function addCharacterToFaction(data: {
   rank?: string;
   is_current?: boolean;
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data: result, error } = await supabase
     .from("character_factions")
@@ -708,10 +682,8 @@ export async function updateCharacterFaction(
     Omit<CharacterFaction, "id" | "created_at" | "character_id" | "faction_id">
   >,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("character_factions")
@@ -732,10 +704,8 @@ export async function updateCharacterFaction(
  * Remove a character from a faction
  */
 export async function removeCharacterFromFaction(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("character_factions")
