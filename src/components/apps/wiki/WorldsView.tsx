@@ -1,4 +1,5 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { type World } from "@/lib/actions/wiki";
 
 type WorldsViewProps = {
@@ -56,9 +57,10 @@ export default function WorldsView({ worlds, onWorldSelect }: WorldsViewProps) {
                 <h4 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Description
                 </h4>
-                <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                  {item.data.description}
-                </p>
+                <MarkdownRenderer
+                  content={item.data.description}
+                  className="prose prose-sm dark:prose-invert max-w-none"
+                />
               </div>
             )}
 

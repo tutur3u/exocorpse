@@ -1,3 +1,4 @@
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { Character } from "@/lib/actions/wiki";
 import {
   getCharacterFactions,
@@ -368,11 +369,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                       <span className="h-5 w-1 rounded-full bg-gradient-to-b from-indigo-600 to-purple-600"></span>
                       Backstory
                     </h3>
-                    <div className="prose dark:prose-invert prose-sm max-w-none">
-                      <p className="leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {character.backstory}
-                      </p>
-                    </div>
+                    <MarkdownRenderer content={character.backstory} />
                   </div>
                 )}
                 {character.lore && (
@@ -381,11 +378,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                       <span className="h-5 w-1 rounded-full bg-gradient-to-b from-purple-600 to-pink-600"></span>
                       Additional Lore
                     </h3>
-                    <div className="prose dark:prose-invert prose-sm max-w-none">
-                      <p className="leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {character.lore}
-                      </p>
-                    </div>
+                    <MarkdownRenderer content={character.lore} />
                   </div>
                 )}
                 {!character.backstory && !character.lore && (

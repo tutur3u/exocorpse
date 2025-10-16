@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type MarkdownEditorProps = {
   label: string;
@@ -8,6 +10,127 @@ type MarkdownEditorProps = {
   helpText?: string;
   rows?: number;
   minHeight?: string;
+};
+
+// Reusable markdown components with consistent styling
+export const markdownComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="mt-6 mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="mt-5 mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="mt-4 mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="mt-3 mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h4>
+  ),
+  h5: ({ children }) => (
+    <h5 className="mt-3 mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h5>
+  ),
+  h6: ({ children }) => (
+    <h6 className="mt-2 mb-2 text-sm font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </h6>
+  ),
+  p: ({ children }) => (
+    <p className="mb-3 leading-7 text-gray-700 dark:text-gray-300">
+      {children}
+    </p>
+  ),
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+    >
+      {children}
+    </a>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-bold text-gray-900 dark:text-gray-100">
+      {children}
+    </strong>
+  ),
+  em: ({ children }) => (
+    <em className="text-gray-800 italic dark:text-gray-200">{children}</em>
+  ),
+  code: ({ children, className: codeClassName }) => {
+    const isBlock = codeClassName?.startsWith("language-");
+    return isBlock ? (
+      <code className="block overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100 dark:bg-gray-950">
+        {children}
+      </code>
+    ) : (
+      <code className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-sm text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => (
+    <pre className="mb-4 overflow-x-auto rounded-lg bg-gray-900 p-4 dark:bg-gray-950">
+      {children}
+    </pre>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-1 pr-4 pl-4 text-gray-700 italic dark:border-blue-400 dark:bg-blue-900/20 dark:text-gray-300">
+      {children}
+    </blockquote>
+  ),
+  ul: ({ children }) => (
+    <ul className="mb-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="mb-4 list-inside list-decimal space-y-2 text-gray-700 dark:text-gray-300">
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => <li className="ml-2">{children}</li>,
+  table: ({ children }) => (
+    <table className="mb-4 w-full border-collapse">{children}</table>
+  ),
+  thead: ({ children }) => (
+    <thead className="border-b-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
+      {children}
+    </thead>
+  ),
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tr: ({ children }) => (
+    <tr className="border-b border-gray-200 dark:border-gray-700">
+      {children}
+    </tr>
+  ),
+  th: ({ children }) => (
+    <th className="border border-gray-300 px-4 py-2 text-left font-bold text-gray-900 dark:border-gray-600 dark:text-gray-100">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:border-gray-600 dark:text-gray-300">
+      {children}
+    </td>
+  ),
+  hr: () => (
+    <hr className="my-6 border-t-2 border-gray-300 dark:border-gray-600" />
+  ),
+  img: ({ src, alt }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} className="mb-4 max-w-full rounded-lg shadow-md" />
+  ),
 };
 
 export default function MarkdownEditor({
@@ -20,71 +143,6 @@ export default function MarkdownEditor({
   minHeight = "200px",
 }: MarkdownEditorProps) {
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
-
-  // Simple markdown to HTML converter (basic implementation)
-  const renderMarkdown = (text: string): string => {
-    if (!text)
-      return "<p class='text-gray-500 dark:text-gray-400'>No content to preview</p>";
-
-    let html = text;
-
-    // Headers
-    html = html.replace(
-      /^### (.*$)/gim,
-      "<h3 class='text-xl font-bold mt-4 mb-2'>$1</h3>",
-    );
-    html = html.replace(
-      /^## (.*$)/gim,
-      "<h2 class='text-2xl font-bold mt-6 mb-3'>$1</h2>",
-    );
-    html = html.replace(
-      /^# (.*$)/gim,
-      "<h1 class='text-3xl font-bold mt-8 mb-4'>$1</h1>",
-    );
-
-    // Bold
-    html = html.replace(
-      /\*\*(.*?)\*\*/gim,
-      "<strong class='font-bold'>$1</strong>",
-    );
-
-    // Italic
-    html = html.replace(/\*(.*?)\*/gim, "<em class='italic'>$1</em>");
-
-    // Code blocks
-    html = html.replace(
-      /```([\s\S]*?)```/gim,
-      "<pre class='bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 mb-2 overflow-x-auto'><code>$1</code></pre>",
-    );
-
-    // Inline code
-    html = html.replace(
-      /`(.*?)`/gim,
-      "<code class='bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm'>$1</code>",
-    );
-
-    // Lists
-    html = html.replace(/^\* (.*$)/gim, "<li class='ml-4'>$1</li>");
-    html = html.replace(/^\- (.*$)/gim, "<li class='ml-4'>$1</li>");
-    html = html.replace(/^(\d+)\. (.*$)/gim, "<li class='ml-4'>$2</li>");
-
-    // Links
-    html = html.replace(
-      /\[(.*?)\]\((.*?)\)/gim,
-      "<a href='$2' class='text-blue-600 dark:text-blue-400 underline' target='_blank' rel='noopener noreferrer'>$1</a>",
-    );
-
-    // Line breaks
-    html = html.replace(/\n\n/gim, "</p><p class='mb-2'>");
-    html = html.replace(/\n/gim, "<br/>");
-
-    // Wrap in paragraph
-    if (!html.startsWith("<")) {
-      html = "<p class='mb-2'>" + html + "</p>";
-    }
-
-    return html;
-  };
 
   const insertMarkdown = (before: string, after: string = "") => {
     const textarea = document.getElementById(
@@ -235,8 +293,20 @@ export default function MarkdownEditor({
         <div
           className="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
           style={{ minHeight }}
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
-        />
+        >
+          {value ? (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {value}
+            </ReactMarkdown>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">
+              No content to preview
+            </p>
+          )}
+        </div>
       )}
 
       {/* Help Text */}
