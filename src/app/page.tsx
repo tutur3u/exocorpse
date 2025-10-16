@@ -1,4 +1,5 @@
 import HomeClient from "@/components/HomeClient";
+import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import {
   getCharacterBySlug,
   getFactionBySlug,
@@ -47,7 +48,7 @@ export async function generateMetadata({
         title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
         description:
           characterData.personality_summary ||
-          characterData.backstory?.substring(0, 160) ||
+          characterData.backstory?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           `Character profile for ${characterData.name}`,
         alternates: {
           canonical: serializeWikiSearchParams("/", {
@@ -68,7 +69,7 @@ export async function generateMetadata({
       return {
         title: `${factionData.name} - ${storyData.title} - EXOCORPSE`,
         description:
-          factionData.description?.substring(0, 160) ||
+          factionData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           `Faction information for ${factionData.name}`,
         alternates: {
           canonical: serializeWikiSearchParams("/", {
@@ -89,7 +90,7 @@ export async function generateMetadata({
       return {
         title: `${worldData.name} - ${storyData.title} - EXOCORPSE`,
         description:
-          worldData.description?.substring(0, 160) ||
+          worldData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           `World information for ${worldData.name}`,
         alternates: {
           canonical: serializeWikiSearchParams("/", {
@@ -107,7 +108,7 @@ export async function generateMetadata({
   return {
     title: `${storyData.title} - EXOCORPSE`,
     description:
-      storyData.description?.substring(0, 160) ||
+      storyData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
       storyData.summary ||
       `Explore the ${storyData.title} story`,
     alternates: {
