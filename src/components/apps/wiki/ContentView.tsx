@@ -1,4 +1,5 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { type Character, type Faction } from "@/lib/actions/wiki";
 import Image from "next/image";
 
@@ -217,9 +218,7 @@ export default function ContentView({
                   <h4 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Description
                   </h4>
-                  <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                    {item.data.description}
-                  </p>
+                  <MarkdownRenderer content={item.data.description} className="prose prose-sm dark:prose-invert max-w-none" />
                 </div>
               )}
           </div>

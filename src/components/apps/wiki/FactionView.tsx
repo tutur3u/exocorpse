@@ -1,5 +1,6 @@
 "use client";
 
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { type Faction } from "@/lib/actions/wiki";
 
 type FactionViewProps = {
@@ -81,9 +82,7 @@ export default function FactionView({ faction }: FactionViewProps) {
             <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
               Description
             </h2>
-            <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-              {faction.description}
-            </p>
+            <MarkdownRenderer content={faction.description} className="prose dark:prose-invert prose-sm max-w-none" />
           </div>
         )}
 
@@ -93,9 +92,7 @@ export default function FactionView({ faction }: FactionViewProps) {
             <h2 className="mb-3 text-xl font-semibold text-purple-900 dark:text-purple-100">
               Primary Goal
             </h2>
-            <p className="whitespace-pre-wrap text-purple-800 dark:text-purple-200">
-              {faction.primary_goal}
-            </p>
+            <MarkdownRenderer content={faction.primary_goal} className="prose prose-sm prose-purple dark:prose-invert max-w-none" />
           </div>
         )}
 
@@ -105,9 +102,7 @@ export default function FactionView({ faction }: FactionViewProps) {
             <h2 className="mb-3 text-xl font-semibold text-indigo-900 dark:text-indigo-100">
               Ideology
             </h2>
-            <p className="whitespace-pre-wrap text-indigo-800 dark:text-indigo-200">
-              {faction.ideology}
-            </p>
+            <MarkdownRenderer content={faction.ideology} className="prose prose-sm prose-indigo dark:prose-invert max-w-none" />
           </div>
         )}
 
@@ -117,9 +112,7 @@ export default function FactionView({ faction }: FactionViewProps) {
             <h2 className="mb-3 text-xl font-semibold text-blue-900 dark:text-blue-100">
               Additional Details
             </h2>
-            <p className="whitespace-pre-wrap text-blue-800 dark:text-blue-200">
-              {faction.content}
-            </p>
+            <MarkdownRenderer content={faction.content} className="prose prose-sm prose-blue dark:prose-invert max-w-none" />
           </div>
         )}
       </div>
