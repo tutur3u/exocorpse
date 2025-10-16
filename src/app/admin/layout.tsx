@@ -1,8 +1,16 @@
+import LogoutButton from "@/components/admin/LogoutButton";
+import { requireAuth } from "@/lib/auth/utils";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // Verify authentication at the server component level
+  const user = await requireAuth();
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Admin Header */}
@@ -46,12 +54,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </Link>
               </nav>
             </div>
-            <Link
-              href="/"
-              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              Back to Site
-            </Link>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {user.email}
+              </span>
+              <LogoutButton />
+              <Link
+                href="/"
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Back to Site
+              </Link>
+            </div>
           </div>
         </div>
       </header>
