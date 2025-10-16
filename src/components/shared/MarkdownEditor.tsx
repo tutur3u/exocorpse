@@ -15,32 +15,32 @@ type MarkdownEditorProps = {
 // Reusable markdown components with consistent styling
 export const markdownComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="mb-4 mt-6 text-3xl font-bold text-gray-900 dark:text-gray-100">
+    <h1 className="mt-6 mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mb-3 mt-5 text-2xl font-bold text-gray-900 dark:text-gray-100">
+    <h2 className="mt-5 mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mb-2 mt-4 text-xl font-bold text-gray-900 dark:text-gray-100">
+    <h3 className="mt-4 mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mb-2 mt-3 text-lg font-bold text-gray-900 dark:text-gray-100">
+    <h4 className="mt-3 mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mb-2 mt-3 text-base font-bold text-gray-900 dark:text-gray-100">
+    <h5 className="mt-3 mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mb-2 mt-2 text-sm font-bold text-gray-900 dark:text-gray-100">
+    <h6 className="mt-2 mb-2 text-sm font-bold text-gray-900 dark:text-gray-100">
       {children}
     </h6>
   ),
@@ -65,12 +65,12 @@ export const markdownComponents: Components = {
     </strong>
   ),
   em: ({ children }) => (
-    <em className="italic text-gray-800 dark:text-gray-200">{children}</em>
+    <em className="text-gray-800 italic dark:text-gray-200">{children}</em>
   ),
   code: ({ children, className: codeClassName }) => {
     const isBlock = codeClassName?.startsWith("language-");
     return isBlock ? (
-      <code className="block rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100 dark:bg-gray-950 overflow-x-auto">
+      <code className="block overflow-x-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-100 dark:bg-gray-950">
         {children}
       </code>
     ) : (
@@ -85,7 +85,7 @@ export const markdownComponents: Components = {
     </pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-1 pl-4 pr-4 italic text-gray-700 dark:border-blue-400 dark:bg-blue-900/20 dark:text-gray-300">
+    <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-1 pr-4 pl-4 text-gray-700 italic dark:border-blue-400 dark:bg-blue-900/20 dark:text-gray-300">
       {children}
     </blockquote>
   ),
@@ -99,22 +99,16 @@ export const markdownComponents: Components = {
       {children}
     </ol>
   ),
-  li: ({ children }) => (
-    <li className="ml-2">{children}</li>
-  ),
+  li: ({ children }) => <li className="ml-2">{children}</li>,
   table: ({ children }) => (
-    <table className="mb-4 w-full border-collapse">
-      {children}
-    </table>
+    <table className="mb-4 w-full border-collapse">{children}</table>
   ),
   thead: ({ children }) => (
     <thead className="border-b-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
       {children}
     </thead>
   ),
-  tbody: ({ children }) => (
-    <tbody>{children}</tbody>
-  ),
+  tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: ({ children }) => (
     <tr className="border-b border-gray-200 dark:border-gray-700">
       {children}
@@ -135,11 +129,7 @@ export const markdownComponents: Components = {
   ),
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      className="mb-4 max-w-full rounded-lg shadow-md"
-    />
+    <img src={src} alt={alt} className="mb-4 max-w-full rounded-lg shadow-md" />
   ),
 };
 
@@ -312,7 +302,9 @@ export default function MarkdownEditor({
               {value}
             </ReactMarkdown>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400">No content to preview</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No content to preview
+            </p>
           )}
         </div>
       )}

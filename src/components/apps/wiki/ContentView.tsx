@@ -218,7 +218,10 @@ export default function ContentView({
                   <h4 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Description
                   </h4>
-                  <MarkdownRenderer content={item.data.description} className="prose prose-sm dark:prose-invert max-w-none" />
+                  <MarkdownRenderer
+                    content={item.data.description}
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                  />
                 </div>
               )}
           </div>
