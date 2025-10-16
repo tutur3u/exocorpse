@@ -3,7 +3,7 @@
 import { TASKBAR_HEIGHT } from "@/constants";
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
-import { useQueryStates, parseAsString } from "nuqs";
+import { parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
