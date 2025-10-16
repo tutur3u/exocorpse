@@ -3,21 +3,24 @@
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
   type Character,
-  getCharactersByWorldId,
-  getFactionsByWorldId,
-  getWorldsByStoryId,
+  type Faction,
+  getCharactersByWorldSlug,
+  getFactionsByWorldSlug,
+  getWorldsByStorySlug,
   type Story,
   type World,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { parseAsString, useQueryStates } from "nuqs";
+import { useEffect } from "react";
 import Breadcrumbs from "./wiki/Breadcrumbs";
 import CharacterView from "./wiki/CharacterView";
 import ContentView from "./wiki/ContentView";
+import FactionView from "./wiki/FactionView";
 import StoriesView from "./wiki/StoriesView";
 import WorldsView from "./wiki/WorldsView";
 
-type ViewMode = "stories" | "worlds" | "content" | "character";
+type ViewMode = "stories" | "worlds" | "content" | "character" | "faction";
 
 type WikiClientProps = {
   stories: Story[];
@@ -25,76 +28,153 @@ type WikiClientProps = {
 
 export default function WikiClient({ stories }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
-  const [viewMode, setViewMode] = useState<ViewMode>("stories");
-  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-  const [selectedWorld, setSelectedWorld] = useState<World | null>(null);
-  const [viewingCharacter, setViewingCharacter] = useState<Character | null>(
-    null,
+
+  // Use nuqs for URL state management
+  const [params, setParams] = useQueryStates(
+    {
+      story: parseAsString,
+      world: parseAsString,
+      character: parseAsString,
+      faction: parseAsString,
+    },
+    {
+      shallow: true,
+      history: "push",
+    },
   );
 
-  // Worlds query
+  const {
+    story: storySlug,
+    world: worldSlug,
+    character: characterSlug,
+    faction: factionSlug,
+  } = params;
+
+  // Determine view mode based on URL params
+  const viewMode: ViewMode = characterSlug
+    ? "character"
+    : factionSlug
+      ? "faction"
+      : worldSlug
+        ? "content"
+        : storySlug
+          ? "worlds"
+          : "stories";
+
+  // Find selected story from slug
+  const selectedStory = storySlug
+    ? stories.find((s) => s.slug === storySlug) || null
+    : null;
+
+  // Apply theme when story is selected
+  useEffect(() => {
+    if (selectedStory) {
+      setCurrentStory(selectedStory);
+    }
+  }, [selectedStory, setCurrentStory]);
+
+  // Worlds query - load when we have a story slug (needed for all subsequent views)
   const { data: worlds = [], isLoading: worldsLoading } = useQuery({
-    queryKey: ["worlds", selectedStory?.id],
+    queryKey: ["worlds", storySlug],
     queryFn: () =>
-      selectedStory && viewMode === "worlds"
-        ? getWorldsByStoryId(selectedStory.id)
-        : [],
-    enabled: !!selectedStory && viewMode === "worlds",
+      storySlug ? getWorldsByStorySlug(storySlug) : Promise.resolve([]),
+    enabled: !!storySlug,
   });
 
-  // Characters and factions query
+  // Find selected world from slug
+  const selectedWorld = worldSlug
+    ? worlds.find((w) => w.slug === worldSlug) || null
+    : null;
+
+  // Characters and factions query - load when we have world slug
   const {
     data: contentData = { characters: [], factions: [] },
     isLoading: contentLoading,
   } = useQuery({
-    queryKey: ["content", selectedWorld?.id],
+    queryKey: ["content", storySlug, worldSlug],
     queryFn: async () => {
-      if (selectedWorld && viewMode === "content") {
+      if (storySlug && worldSlug) {
         const [characters, factions] = await Promise.all([
-          getCharactersByWorldId(selectedWorld.id),
-          getFactionsByWorldId(selectedWorld.id),
+          getCharactersByWorldSlug(storySlug, worldSlug),
+          getFactionsByWorldSlug(storySlug, worldSlug),
         ]);
         return { characters, factions };
       }
       return { characters: [], factions: [] };
     },
-    enabled: !!selectedWorld && viewMode === "content",
+    enabled: !!storySlug && !!worldSlug,
   });
+
+  // Find viewing character from slug
+  const viewingCharacter = characterSlug
+    ? contentData.characters.find((c) => c.slug === characterSlug) || null
+    : null;
+
+  // Find viewing faction from slug
+  const viewingFaction = factionSlug
+    ? contentData.factions.find((f) => f.slug === factionSlug) || null
+    : null;
 
   const loading = worldsLoading || contentLoading;
 
   const handleStorySelect = (story: Story) => {
-    setSelectedStory(story);
-    setCurrentStory(story); // Apply theme
-    setViewMode("worlds");
-    setSelectedWorld(null);
-    setViewingCharacter(null);
+    setParams({
+      story: story.slug,
+      world: null,
+      character: null,
+      faction: null,
+    });
   };
 
   const handleWorldSelect = (world: World) => {
-    setSelectedWorld(world);
-    setViewMode("content");
-    setViewingCharacter(null);
+    setParams({
+      story: storySlug,
+      world: world.slug,
+      character: null,
+      faction: null,
+    });
   };
 
   const handleCharacterSelect = (character: Character) => {
-    setViewingCharacter(character);
-    setViewMode("character");
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: character.slug,
+      faction: null,
+    });
+  };
+
+  const handleFactionSelect = (faction: Faction) => {
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: null,
+      faction: faction.slug,
+    });
   };
 
   const handleNavigate = (mode: ViewMode) => {
     if (mode === "stories") {
-      setViewMode("stories");
-      setSelectedStory(null);
-      setSelectedWorld(null);
-      setViewingCharacter(null);
+      setParams({
+        story: null,
+        world: null,
+        character: null,
+        faction: null,
+      });
     } else if (mode === "worlds") {
-      setViewMode("worlds");
-      setSelectedWorld(null);
-      setViewingCharacter(null);
+      setParams({
+        story: storySlug,
+        world: null,
+        character: null,
+        faction: null,
+      });
     } else if (mode === "content") {
-      setViewMode("content");
-      setViewingCharacter(null);
+      setParams({
+        story: storySlug,
+        world: worldSlug,
+        character: null,
+        faction: null,
+      });
     }
   };
 
@@ -230,6 +310,7 @@ export default function WikiClient({ stories }: WikiClientProps) {
               characters={contentData.characters}
               factions={contentData.factions}
               onCharacterSelect={handleCharacterSelect}
+              onFactionSelect={handleFactionSelect}
             />
           )}
         </div>
@@ -250,6 +331,25 @@ export default function WikiClient({ stories }: WikiClientProps) {
             />
           </div>
           <CharacterView character={viewingCharacter} />
+        </div>
+      );
+    }
+
+    // Faction view
+    if (viewMode === "faction" && viewingFaction) {
+      return (
+        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+            <Breadcrumbs
+              viewMode={viewMode}
+              selectedStory={selectedStory}
+              selectedWorld={selectedWorld}
+              viewingCharacter={viewingCharacter}
+              viewingFaction={viewingFaction}
+              onNavigate={handleNavigate}
+            />
+          </div>
+          <FactionView faction={viewingFaction} />
         </div>
       );
     }
