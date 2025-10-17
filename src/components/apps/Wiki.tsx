@@ -1,11 +1,13 @@
 "use client";
 
 import { StoryThemeProvider } from "@/contexts/StoryThemeContext";
+import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useStories } from "@/hooks/useStories";
 import WikiClient from "./WikiClient";
 
 export default function Wiki() {
-  const { data: stories = [], isLoading } = useStories();
+  const initialData = useInitialWikiData();
+  const { data: stories = [], isLoading } = useStories(initialData.stories);
 
   return (
     <StoryThemeProvider>
@@ -16,7 +18,7 @@ export default function Wiki() {
               <div className="text-gray-500 dark:text-gray-400">Loading...</div>
             </div>
           ) : (
-            <WikiClient stories={stories} />
+            <WikiClient stories={stories} initialData={initialData} />
           )}
         </div>
       </div>

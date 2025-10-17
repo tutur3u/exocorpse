@@ -1,6 +1,7 @@
 "use client";
 
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
+import type { InitialWikiData } from "@/app/page";
 import {
   type Character,
   type Faction,
@@ -12,7 +13,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryStates } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Breadcrumbs from "./wiki/Breadcrumbs";
 import CharacterView from "./wiki/CharacterView";
 import ContentView from "./wiki/ContentView";
@@ -24,10 +25,16 @@ type ViewMode = "stories" | "worlds" | "content" | "character" | "faction";
 
 type WikiClientProps = {
   stories: Story[];
+  initialData: InitialWikiData;
 };
 
-export default function WikiClient({ stories }: WikiClientProps) {
+export default function WikiClient({ stories, initialData }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
+  const initialParamsRef = useRef({
+    story: null as string | null,
+    world: null as string | null,
+  });
+  const hasSetInitialParams = useRef(false);
 
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
@@ -49,6 +56,25 @@ export default function WikiClient({ stories }: WikiClientProps) {
     character: characterSlug,
     faction: factionSlug,
   } = params;
+
+  // Store initial params to know if we should use initialData
+  if (!hasSetInitialParams.current) {
+    hasSetInitialParams.current = true;
+    // Determine initial story and world based on loaded initial data
+    if (initialData.worlds.length > 0) {
+      const firstWorld = initialData.worlds[0];
+      const story = stories.find((s) => s.id === firstWorld.story_id);
+      if (story) {
+        initialParamsRef.current.story = story.slug;
+      }
+    }
+    if (initialData.characters.length > 0 || initialData.factions.length > 0) {
+      const world = initialData.worlds[0];
+      if (world) {
+        initialParamsRef.current.world = world.slug;
+      }
+    }
+  }
 
   // Determine view mode based on URL params
   const viewMode: ViewMode = characterSlug
@@ -74,11 +100,17 @@ export default function WikiClient({ stories }: WikiClientProps) {
   }, [selectedStory, setCurrentStory]);
 
   // Worlds query - load when we have a story slug (needed for all subsequent views)
+  // Use initialData only if current storySlug matches the initial params
+  const shouldUseInitialWorlds =
+    initialData.worlds.length > 0 &&
+    storySlug === initialParamsRef.current.story;
+
   const { data: worlds = [], isLoading: worldsLoading } = useQuery({
     queryKey: ["worlds", storySlug],
     queryFn: () =>
       storySlug ? getWorldsByStorySlug(storySlug) : Promise.resolve([]),
     enabled: !!storySlug,
+    initialData: shouldUseInitialWorlds ? initialData.worlds : undefined,
   });
 
   // Find selected world from slug
@@ -87,6 +119,12 @@ export default function WikiClient({ stories }: WikiClientProps) {
     : null;
 
   // Characters and factions query - load when we have world slug
+  // Use initialData only if current params match the initial params
+  const shouldUseInitialContent =
+    (initialData.characters.length > 0 || initialData.factions.length > 0) &&
+    storySlug === initialParamsRef.current.story &&
+    worldSlug === initialParamsRef.current.world;
+
   const {
     data: contentData = { characters: [], factions: [] },
     isLoading: contentLoading,
@@ -103,6 +141,12 @@ export default function WikiClient({ stories }: WikiClientProps) {
       return { characters: [], factions: [] };
     },
     enabled: !!storySlug && !!worldSlug,
+    initialData: shouldUseInitialContent
+      ? {
+          characters: initialData.characters,
+          factions: initialData.factions,
+        }
+      : undefined,
   });
 
   // Find viewing character from slug
