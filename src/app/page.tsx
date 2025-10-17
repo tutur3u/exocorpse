@@ -2,9 +2,17 @@ import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import {
   getCharacterBySlug,
+  getCharactersByWorldSlug,
   getFactionBySlug,
+  getFactionsByWorldSlug,
+  getPublishedStories,
   getStoryBySlug,
   getWorldBySlug,
+  getWorldsByStorySlug,
+  type Character,
+  type Faction,
+  type Story,
+  type World,
 } from "@/lib/actions/wiki";
 import {
   loadWikiSearchParams,
@@ -15,6 +23,17 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export type InitialWikiData = {
+  params: {
+    story: string | null;
+    world: string | null;
+  };
+  stories: Story[];
+  worlds: World[];
+  characters: Character[];
+  factions: Faction[];
 };
 
 export async function generateMetadata({
@@ -125,9 +144,39 @@ export async function generateMetadata({
 export default async function Home({ searchParams }: Props) {
   const params = await loadWikiSearchParams(searchParams);
 
+  // Fetch initial data based on params
+  const initialData: InitialWikiData = {
+    params: {
+      story: params.story,
+      world: params.world,
+    },
+    stories: [],
+    worlds: [],
+    characters: [],
+    factions: [],
+  };
+
+  // Always fetch stories for initial data
+  initialData.stories = await getPublishedStories();
+
+  // Fetch worlds if story is selected
+  if (params.story) {
+    initialData.worlds = await getWorldsByStorySlug(params.story);
+
+    // Fetch characters and factions if world is selected
+    if (params.world) {
+      const [characters, factions] = await Promise.all([
+        getCharactersByWorldSlug(params.story, params.world),
+        getFactionsByWorldSlug(params.story, params.world),
+      ]);
+      initialData.characters = characters;
+      initialData.factions = factions;
+    }
+  }
+
   return (
     <NuqsAdapter>
-      <HomeClient wikiParams={params} />
+      <HomeClient wikiParams={params} initialData={initialData} />
     </NuqsAdapter>
   );
 }
