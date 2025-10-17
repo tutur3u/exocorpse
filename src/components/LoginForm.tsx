@@ -1,9 +1,9 @@
 "use client";
 
 import { login } from "@/lib/actions/auth";
+import toastWithSound from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import toastWithSound from "@/lib/toast";
 
 interface LoginFormProps {
   redirectTo: string;
@@ -23,14 +23,14 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       const result = await login(email, password);
 
       if (result.error) {
-  toastWithSound.error(result.error);
+        toastWithSound.error(result.error);
       } else {
         toastWithSound.success("Logged in successfully!");
         router.push(redirectTo);
         router.refresh();
       }
     } catch (error) {
-  toastWithSound.error("An error occurred. Please try again.");
+      toastWithSound.error("An error occurred. Please try again.");
       console.error(error);
     } finally {
       setIsLoading(false);

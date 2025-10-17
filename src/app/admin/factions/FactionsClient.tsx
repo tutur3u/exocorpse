@@ -18,9 +18,9 @@ import {
   type Story,
   updateFaction,
 } from "@/lib/actions/wiki";
+import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toastWithSound from "@/lib/toast";
 
 interface FactionsClientProps {
   initialStories: Story[];
@@ -79,7 +79,7 @@ export default function FactionsClient({
       toastWithSound.success("Faction created successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to create faction: ${error.message}`);
+      toastWithSound.error(`Failed to create faction: ${error.message}`);
     },
   });
 
@@ -100,7 +100,7 @@ export default function FactionsClient({
       toastWithSound.success("Faction updated successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to update faction: ${error.message}`);
+      toastWithSound.error(`Failed to update faction: ${error.message}`);
     },
   });
 
@@ -113,7 +113,7 @@ export default function FactionsClient({
       toastWithSound.success("Faction deleted successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to delete faction: ${error.message}`);
+      toastWithSound.error(`Failed to delete faction: ${error.message}`);
     },
   });
 
@@ -126,7 +126,7 @@ export default function FactionsClient({
       toastWithSound.success("Member added to faction!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to add member to faction: ${error.message}`);
+      toastWithSound.error(`Failed to add member to faction: ${error.message}`);
     },
   });
 
@@ -139,7 +139,9 @@ export default function FactionsClient({
       toastWithSound.success("Member removed from faction!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to remove member from faction: ${error.message}`);
+      toastWithSound.error(
+        `Failed to remove member from faction: ${error.message}`,
+      );
     },
   });
 

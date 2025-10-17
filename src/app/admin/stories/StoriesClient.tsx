@@ -8,9 +8,9 @@ import {
   type Story,
   updateStory,
 } from "@/lib/actions/wiki";
+import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toastWithSound from "@/lib/toast";
 interface StoriesClientProps {
   initialStories: Story[];
 }
@@ -34,7 +34,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       toastWithSound.success("Story created successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to create story: ${error.message}`);
+      toastWithSound.error(`Failed to create story: ${error.message}`);
     },
   });
 
@@ -53,7 +53,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       toastWithSound.success("Story updated successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to update story: ${error.message}`);
+      toastWithSound.error(`Failed to update story: ${error.message}`);
     },
   });
 
@@ -64,7 +64,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       toastWithSound.success("Story deleted successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to delete story: ${error.message}`);
+      toastWithSound.error(`Failed to delete story: ${error.message}`);
     },
   });
 

@@ -10,9 +10,9 @@ import {
   type Story,
   type World,
 } from "@/lib/actions/wiki";
+import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toastWithSound from "@/lib/toast";
 
 interface WorldsClientProps {
   initialStories: Story[];
@@ -44,7 +44,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
       toastWithSound.success("World created successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to create world: ${error.message}`);
+      toastWithSound.error(`Failed to create world: ${error.message}`);
     },
   });
 
@@ -63,7 +63,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
       toastWithSound.success("World updated successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to update world: ${error.message}`);
+      toastWithSound.error(`Failed to update world: ${error.message}`);
     },
   });
 
@@ -74,7 +74,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
       toastWithSound.success("World deleted successfully!");
     },
     onError: (error) => {
-  toastWithSound.error(`Failed to delete world: ${error.message}`);
+      toastWithSound.error(`Failed to delete world: ${error.message}`);
     },
   });
 
