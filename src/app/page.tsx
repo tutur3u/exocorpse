@@ -26,6 +26,10 @@ type Props = {
 };
 
 export type InitialWikiData = {
+  params: {
+    story: string | null;
+    world: string | null;
+  };
   stories: Story[];
   worlds: World[];
   characters: Character[];
@@ -142,6 +146,10 @@ export default async function Home({ searchParams }: Props) {
 
   // Fetch initial data based on params
   const initialData: InitialWikiData = {
+    params: {
+      story: params.story,
+      world: params.world,
+    },
     stories: [],
     worlds: [],
     characters: [],
