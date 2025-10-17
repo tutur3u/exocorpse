@@ -1,8 +1,8 @@
 "use client";
 
 import { logout } from "@/lib/actions/auth";
+import toastWithSound from "@/lib/toast";
 import { useState } from "react";
-import toast from "react-hot-toast";
 
 export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,12 +12,12 @@ export default function LogoutButton() {
     try {
       const result = await logout();
       if (result?.error) {
-        toast.error(result.error);
+        toastWithSound.error(result.error);
         setIsLoading(false);
       }
       // If successful, logout will redirect to login page
     } catch (error) {
-      toast.error("Failed to logout");
+      toastWithSound.error("Failed to logout");
       console.error(error);
       setIsLoading(false);
     }

@@ -20,7 +20,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import toastWithSound from "@/lib/toast";
 
 interface FactionsClientProps {
   initialStories: Story[];
@@ -76,10 +76,10 @@ export default function FactionsClient({
         queryKey: ["factions", selectedWorldId],
       });
       setShowForm(false);
-      toast.success("Faction created successfully!");
+      toastWithSound.success("Faction created successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to create faction: ${error.message}`);
+  toastWithSound.error(`Failed to create faction: ${error.message}`);
     },
   });
 
@@ -97,10 +97,10 @@ export default function FactionsClient({
       });
       setEditingFaction(null);
       setShowForm(false);
-      toast.success("Faction updated successfully!");
+      toastWithSound.success("Faction updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update faction: ${error.message}`);
+  toastWithSound.error(`Failed to update faction: ${error.message}`);
     },
   });
 
@@ -110,10 +110,10 @@ export default function FactionsClient({
       queryClient.invalidateQueries({
         queryKey: ["factions", selectedWorldId],
       });
-      toast.success("Faction deleted successfully!");
+      toastWithSound.success("Faction deleted successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to delete faction: ${error.message}`);
+  toastWithSound.error(`Failed to delete faction: ${error.message}`);
     },
   });
 
@@ -123,10 +123,10 @@ export default function FactionsClient({
       if (!managingFaction) return;
       const memberships = await getFactionMembers(managingFaction.id);
       setEntityMemberships(memberships);
-      toast.success("Member added to faction!");
+      toastWithSound.success("Member added to faction!");
     },
     onError: (error) => {
-      toast.error(`Failed to add member to faction: ${error.message}`);
+  toastWithSound.error(`Failed to add member to faction: ${error.message}`);
     },
   });
 
@@ -136,10 +136,10 @@ export default function FactionsClient({
       if (!managingFaction) return;
       const memberships = await getFactionMembers(managingFaction.id);
       setEntityMemberships(memberships);
-      toast.success("Member removed from faction!");
+      toastWithSound.success("Member removed from faction!");
     },
     onError: (error) => {
-      toast.error(`Failed to remove member from faction: ${error.message}`);
+  toastWithSound.error(`Failed to remove member from faction: ${error.message}`);
     },
   });
 

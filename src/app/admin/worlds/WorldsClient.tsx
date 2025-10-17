@@ -12,7 +12,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import toastWithSound from "@/lib/toast";
 
 interface WorldsClientProps {
   initialStories: Story[];
@@ -41,10 +41,10 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
       setShowForm(false);
-      toast.success("World created successfully!");
+      toastWithSound.success("World created successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to create world: ${error.message}`);
+  toastWithSound.error(`Failed to create world: ${error.message}`);
     },
   });
 
@@ -60,10 +60,10 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
       queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
       setEditingWorld(null);
       setShowForm(false);
-      toast.success("World updated successfully!");
+      toastWithSound.success("World updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update world: ${error.message}`);
+  toastWithSound.error(`Failed to update world: ${error.message}`);
     },
   });
 
@@ -71,10 +71,10 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
     mutationFn: deleteWorld,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["worlds", selectedStoryId] });
-      toast.success("World deleted successfully!");
+      toastWithSound.success("World deleted successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to delete world: ${error.message}`);
+  toastWithSound.error(`Failed to delete world: ${error.message}`);
     },
   });
 

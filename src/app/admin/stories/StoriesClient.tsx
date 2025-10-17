@@ -10,8 +10,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
-
+import toastWithSound from "@/lib/toast";
 interface StoriesClientProps {
   initialStories: Story[];
 }
@@ -32,10 +31,10 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       setShowForm(false);
-      toast.success("Story created successfully!");
+      toastWithSound.success("Story created successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to create story: ${error.message}`);
+  toastWithSound.error(`Failed to create story: ${error.message}`);
     },
   });
 
@@ -51,10 +50,10 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       setEditingStory(null);
       setShowForm(false);
-      toast.success("Story updated successfully!");
+      toastWithSound.success("Story updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update story: ${error.message}`);
+  toastWithSound.error(`Failed to update story: ${error.message}`);
     },
   });
 
@@ -62,10 +61,10 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
     mutationFn: deleteStory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
-      toast.success("Story deleted successfully!");
+      toastWithSound.success("Story deleted successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to delete story: ${error.message}`);
+  toastWithSound.error(`Failed to delete story: ${error.message}`);
     },
   });
 

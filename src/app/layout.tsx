@@ -1,6 +1,8 @@
+import { SoundProvider } from "@/contexts/SoundContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 import type { Metadata } from "next";
 import { Baskervville } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const baskervvile = Baskervville({
@@ -25,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${baskervvile.variable} antialiased`}>
-        <QueryProvider>{children}</QueryProvider>
+        <SoundProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <Toaster position="top-right" />
+        </SoundProvider>
       </body>
     </html>
   );

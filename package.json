@@ -35,6 +35,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
     "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
+    "howler": "^2.2.4",
     "next": "^15.5.5",
     "nuqs": "^2.7.2",
     "react": "^19.2.0",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.14",
+    "@types/howler": "^2.2.12",
     "@types/node": "^24.8.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
