@@ -96,12 +96,14 @@ class SoundManager {
   private playLoadedSound(
     sound: Howl,
     type: SoundType,
-    options: {
-      volume?: number;
-      onend?: () => void;
-      onplay?: () => void;
-      onplayerror?: () => void;
-    } | undefined,
+    options:
+      | {
+          volume?: number;
+          onend?: () => void;
+          onplay?: () => void;
+          onplayerror?: () => void;
+        }
+      | undefined,
   ) {
     if (options?.volume !== undefined) {
       sound.volume(options.volume);
