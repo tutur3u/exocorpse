@@ -2,7 +2,7 @@
 
 import { useSound } from "@/contexts/SoundContext";
 import { soundManager } from "@/lib/sounds";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function MusicPlayer() {
   const { isBootComplete } = useSound();
@@ -11,10 +11,12 @@ export default function MusicPlayer() {
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [autoplayMuted, setAutoplayMuted] = useState(false);
   const [autoplayAttempted, setAutoplayAttempted] = useState(false);
+  const volumeRef = useRef(0.3);
 
   // Update volume in sound manager when it changes
   useEffect(() => {
     soundManager.setVolume("bgm", volume);
+    volumeRef.current = volume;
   }, [volume]);
 
   // Attempt autoplay after boot is complete
@@ -23,31 +25,39 @@ export default function MusicPlayer() {
     if (!isBootComplete || autoplayAttempted) return;
 
     const attemptAutoplay = () => {
-      try {
-        // Try playing with current volume first
-        soundManager.play("bgm", { volume });
-        setIsPlaying(true);
-        setAutoplayMuted(false);
-      } catch {
-        // Autoplay blocked; try muted autoplay as a graceful fallback
-        try {
-          soundManager.play("bgm", { volume: 0 });
+      // Try playing with current volume first
+      soundManager.play("bgm", {
+        volume: volumeRef.current,
+        onplay: () => {
+          // Play succeeded
           setIsPlaying(true);
-          setAutoplayMuted(true);
-          setVolume(0);
-        } catch {
-          // Still blocked (rare). We'll stay paused and let user interact.
-          setIsPlaying(false);
           setAutoplayMuted(false);
-        }
-      } finally {
-        setAutoplayAttempted(true);
-      }
+          setAutoplayAttempted(true);
+        },
+        onplayerror: () => {
+          // Autoplay blocked; try muted autoplay as a graceful fallback
+          soundManager.play("bgm", {
+            volume: 0,
+            onplay: () => {
+              setIsPlaying(true);
+              setAutoplayMuted(true);
+              setVolume(0);
+              setAutoplayAttempted(true);
+            },
+            onplayerror: () => {
+              // Still blocked (rare). We'll stay paused and let user interact.
+              setIsPlaying(false);
+              setAutoplayMuted(false);
+              setAutoplayAttempted(true);
+            },
+          });
+        },
+      });
     };
 
     // Run after a short delay to ensure the audio element is ready in some environments
     attemptAutoplay();
-  }, [isBootComplete, autoplayAttempted, volume]);
+  }, [isBootComplete, autoplayAttempted]);
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,10 +65,15 @@ export default function MusicPlayer() {
       soundManager.stop("bgm");
       setIsPlaying(false);
     } else {
-      // Stop any existing BGM before playing to prevent overlapping
-      soundManager.stop("bgm");
-      soundManager.play("bgm", { volume });
-      setIsPlaying(true);
+      soundManager.play("bgm", {
+        volume,
+        onplay: () => {
+          setIsPlaying(true);
+        },
+        onplayerror: () => {
+          setIsPlaying(false);
+        },
+      });
     }
   };
 

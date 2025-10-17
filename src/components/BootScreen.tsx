@@ -13,7 +13,7 @@ export default function BootScreen({
 
   useEffect(() => {
     let hasCompleted = false;
-    // Fallback timer - complete after 5 seconds even if audio fails
+    // Fallback timer - complete after 4 seconds even if audio fails
     const fallbackTimer = setTimeout(() => {
       if (!hasCompleted) {
         hasCompleted = true;
