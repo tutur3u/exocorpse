@@ -1,6 +1,7 @@
 "use client";
 
 import { TASKBAR_HEIGHT } from "@/constants";
+import { useSound } from "@/contexts/SoundContext";
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
 import { parseAsString, useQueryStates } from "nuqs";
@@ -24,6 +25,8 @@ export default function Window({ id, title, children }: WindowProps) {
     updateWindowPosition,
     updateWindowSize,
   } = useWindows();
+
+  const { playSound } = useSound();
 
   // Only set up wiki params clearing if this is the wiki window
   const [, setParams] = useQueryStates(
@@ -175,6 +178,9 @@ export default function Window({ id, title, children }: WindowProps) {
   }, []);
 
   const handleClose = () => {
+    // Play window close sound
+    playSound("window-off");
+
     // If closing the wiki window, clear wiki search params
     if (id === "wiki") {
       setParams({

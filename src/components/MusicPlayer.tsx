@@ -1,117 +1,118 @@
 "use client";
 
+import { useSound } from "@/contexts/SoundContext";
+import { soundManager } from "@/lib/sounds";
 import { useEffect, useRef, useState } from "react";
 
 export default function MusicPlayer() {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { isBootComplete } = useSound();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.5);
+  const [volume, setVolume] = useState(0.3);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [autoplayMuted, setAutoplayMuted] = useState(false);
   const [autoplayAttempted, setAutoplayAttempted] = useState(false);
+  const volumeRef = useRef(0.3);
 
+  // Update volume in sound manager when it changes
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
+    soundManager.setVolume("bgm", volume);
+    volumeRef.current = volume;
   }, [volume]);
 
-  // Attempt autoplay on mount. If browser blocks unmuted autoplay,
-  // fallback to muted autoplay so audio starts streaming without user click.
+  // Attempt autoplay after boot is complete
   useEffect(() => {
-    // Guard clause to ensure this only runs once on mount
-    if (autoplayAttempted) return;
+    // Only attempt autoplay after boot and if not already attempted
+    if (!isBootComplete || autoplayAttempted) return;
 
-    const attemptAutoplay = async () => {
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      try {
-        // Try playing unmuted first
-        audio.muted = false;
-        audio.volume = volume;
-        await audio.play();
-        setIsPlaying(true);
-        setAutoplayMuted(false);
-      } catch {
-        // Autoplay blocked; try muted autoplay as a graceful fallback
-        try {
-          audio.muted = true;
-          audio.volume = 0;
-          await audio.play();
+    const attemptAutoplay = () => {
+      // Try playing with current volume first
+      soundManager.play("bgm", {
+        volume: volumeRef.current,
+        onplay: () => {
+          // Play succeeded
           setIsPlaying(true);
-          setAutoplayMuted(true);
-          setVolume(0);
-        } catch {
-          // Still blocked (rare). We'll stay paused and let user interact.
-          setIsPlaying(false);
           setAutoplayMuted(false);
-        }
-      } finally {
-        setAutoplayAttempted(true);
-      }
+          setAutoplayAttempted(true);
+        },
+        onplayerror: () => {
+          // Autoplay blocked; try muted autoplay as a graceful fallback
+          soundManager.play("bgm", {
+            volume: 0,
+            onplay: () => {
+              setIsPlaying(true);
+              setAutoplayMuted(true);
+              setVolume(0);
+              setAutoplayAttempted(true);
+            },
+            onplayerror: () => {
+              // Still blocked (rare). We'll stay paused and let user interact.
+              setIsPlaying(false);
+              setAutoplayMuted(false);
+              setAutoplayAttempted(true);
+            },
+          });
+        },
+      });
     };
 
     // Run after a short delay to ensure the audio element is ready in some environments
-    const t = setTimeout(() => attemptAutoplay(), 0);
-    return () => clearTimeout(t);
-  }, [
-    autoplayAttempted,
-    audioRef,
-    volume,
-    setIsPlaying,
-    setAutoplayMuted,
-    setVolume,
-    setAutoplayAttempted,
-  ]);
+    attemptAutoplay();
+  }, [isBootComplete, autoplayAttempted]);
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isPlaying) {
+      soundManager.stop("bgm");
+      setIsPlaying(false);
+    } else {
+      soundManager.play("bgm", {
+        volume,
+        onplay: () => {
+          setIsPlaying(true);
+        },
+        onplayerror: () => {
+          setIsPlaying(false);
+        },
+      });
     }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.muted = false;
-    }
     setAutoplayMuted(false);
   };
 
   const unmuteAudio = () => {
-    if (!audioRef.current) return;
-
-    audioRef.current.muted = false;
-    const restoredVolume = volume === 0 ? 0.5 : volume;
+    const restoredVolume = volume === 0 ? 0.3 : volume;
     setVolume(restoredVolume);
     setAutoplayMuted(false);
   };
 
-  const toggleMute = () => {
-    if (!audioRef.current) return;
-
-    if (audioRef.current.muted || volume === 0) {
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (volume === 0) {
       // Unmute and restore a sensible volume
       unmuteAudio();
     } else {
-      audioRef.current.muted = true;
       setVolume(0);
       setAutoplayMuted(false);
     }
   };
 
+  const toggleVolumeSlider = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowVolumeSlider(!showVolumeSlider);
+  };
+
+  const handleUnmuteIndicator = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    unmuteAudio();
+    setShowVolumeSlider(true);
+  };
+
   return (
     <div className="relative flex items-center gap-2">
-      {/* Audio element with streaming support */}
-      <audio ref={audioRef} src="/exocorpse.mp3" loop preload="metadata" />
-
       {/* Volume Slider Popup */}
       {showVolumeSlider && (
         <div className="absolute right-0 bottom-full mb-2 rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-600 dark:bg-gray-800">
@@ -155,7 +156,7 @@ export default function MusicPlayer() {
       {/* Volume Button (shows an autoplay-muted indicator if applicable) */}
       <div className="relative">
         <button
-          onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+          onClick={toggleVolumeSlider}
           className="flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
           title="Volume"
         >
@@ -167,10 +168,7 @@ export default function MusicPlayer() {
           <div
             className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-black"
             title="Autoplay started muted — click to unmute"
-            onClick={() => {
-              unmuteAudio();
-              setShowVolumeSlider(true);
-            }}
+            onClick={handleUnmuteIndicator}
           >
             !
           </div>

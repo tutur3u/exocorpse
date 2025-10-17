@@ -18,9 +18,9 @@ import {
   type Story,
   updateCharacter,
 } from "@/lib/actions/wiki";
+import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
 
 interface CharactersClientProps {
   initialStories: Story[];
@@ -78,10 +78,10 @@ export default function CharactersClient({
         queryKey: ["characters", selectedWorldId],
       });
       setShowForm(false);
-      toast.success("Character created successfully!");
+      toastWithSound.success("Character created successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to create character: ${error.message}`);
+      toastWithSound.error(`Failed to create character: ${error.message}`);
     },
   });
 
@@ -99,10 +99,10 @@ export default function CharactersClient({
       });
       setEditingCharacter(null);
       setShowForm(false);
-      toast.success("Character updated successfully!");
+      toastWithSound.success("Character updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update character: ${error.message}`);
+      toastWithSound.error(`Failed to update character: ${error.message}`);
     },
   });
 
@@ -112,10 +112,10 @@ export default function CharactersClient({
       queryClient.invalidateQueries({
         queryKey: ["characters", selectedWorldId],
       });
-      toast.success("Character deleted successfully!");
+      toastWithSound.success("Character deleted successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to delete character: ${error.message}`);
+      toastWithSound.error(`Failed to delete character: ${error.message}`);
     },
   });
 
@@ -125,10 +125,12 @@ export default function CharactersClient({
       if (!managingCharacter) return;
       const memberships = await getCharacterFactions(managingCharacter.id);
       setEntityMemberships(memberships);
-      toast.success("Character added to faction!");
+      toastWithSound.success("Character added to faction!");
     },
     onError: (error) => {
-      toast.error(`Failed to add character to faction: ${error.message}`);
+      toastWithSound.error(
+        `Failed to add character to faction: ${error.message}`,
+      );
     },
   });
 
@@ -138,10 +140,12 @@ export default function CharactersClient({
       if (!managingCharacter) return;
       const memberships = await getCharacterFactions(managingCharacter.id);
       setEntityMemberships(memberships);
-      toast.success("Character removed from faction!");
+      toastWithSound.success("Character removed from faction!");
     },
     onError: (error) => {
-      toast.error(`Failed to remove character from faction: ${error.message}`);
+      toastWithSound.error(
+        `Failed to remove character from faction: ${error.message}`,
+      );
     },
   });
 
