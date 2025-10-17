@@ -69,7 +69,15 @@ class SoundManager {
     );
   }
 
-  play(type: SoundType, options?: { volume?: number; onend?: () => void }) {
+  play(
+    type: SoundType,
+    options?: {
+      volume?: number;
+      onend?: () => void;
+      onplay?: () => void;
+      onplayerror?: () => void;
+    },
+  ) {
     const sound = this.sounds.get(type);
     if (sound) {
       const state = sound.state();
@@ -88,7 +96,12 @@ class SoundManager {
   private playLoadedSound(
     sound: Howl,
     type: SoundType,
-    options: { volume?: number; onend?: () => void } | undefined,
+    options: {
+      volume?: number;
+      onend?: () => void;
+      onplay?: () => void;
+      onplayerror?: () => void;
+    } | undefined,
   ) {
     if (options?.volume !== undefined) {
       sound.volume(options.volume);
@@ -96,6 +109,20 @@ class SoundManager {
     if (options?.onend) {
       sound.once("end", () => {
         options.onend!();
+      });
+    }
+
+    // Set up play success handler
+    if (options?.onplay) {
+      sound.once("play", () => {
+        options.onplay!();
+      });
+    }
+
+    // Set up play error handler (for autoplay blocks, etc.)
+    if (options?.onplayerror) {
+      sound.once("playerror", () => {
+        options.onplayerror!();
       });
     }
 
