@@ -35,6 +35,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
     "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
+    "@vercel/analytics": "^1.5.0",
     "howler": "^2.2.4",
     "next": "^15.5.5",
     "nuqs": "^2.7.2",

@@ -1,5 +1,6 @@
 import { SoundProvider } from "@/contexts/SoundContext";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Baskervville } from "next/font/google";
 import { Toaster } from "react-hot-toast";
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${baskervvile.variable} antialiased`}>
+        <Analytics />
         <SoundProvider>
           <QueryProvider>{children}</QueryProvider>
           <Toaster position="top-right" />
