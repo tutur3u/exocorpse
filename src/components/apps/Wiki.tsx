@@ -1,7 +1,7 @@
 "use client";
 
-import { StoryThemeProvider } from "@/contexts/StoryThemeContext";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
+import { StoryThemeProvider } from "@/contexts/StoryThemeContext";
 import { useStories } from "@/hooks/useStories";
 import WikiClient from "./WikiClient";
 

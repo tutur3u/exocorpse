@@ -1,7 +1,7 @@
 "use client";
 
-import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import type { InitialWikiData } from "@/app/page";
+import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
   type Character,
   type Faction,

@@ -1,14 +1,14 @@
 "use client";
 
+import type { InitialWikiData } from "@/app/page";
 import BootScreen from "@/components/BootScreen";
 import Desktop from "@/components/Desktop";
 import MobileLayout from "@/components/mobile/MobileLayout";
+import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useSound } from "@/contexts/SoundContext";
 import { WindowProvider } from "@/contexts/WindowContext";
-import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
-import type { InitialWikiData } from "@/app/page";
 
 type HomeClientProps = {
   wikiParams: WikiSearchParams;
