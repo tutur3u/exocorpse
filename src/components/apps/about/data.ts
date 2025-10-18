@@ -1,41 +1,41 @@
 // Static data for About Me page - moved outside components for performance
 
 export interface ExperienceItem {
-  icon: string;
-  text: string;
+  readonly icon: string;
+  readonly text: string;
 }
 
 export interface FavoriteItem {
-  label: string;
-  icon: string;
-  items: string;
+  readonly label: string;
+  readonly icon: string;
+  readonly items: string;
 }
 
 export interface SocialMediaLink {
-  id: string;
-  name: string;
-  username: string;
-  url: string;
-  icon: "tumblr" | "twitch" | "vgen" | "bluesky" | "discord";
-  color: "blue" | "purple" | "pink" | "sky" | "indigo";
-  fullWidth?: boolean;
+  readonly id: string;
+  readonly name: string;
+  readonly username: string;
+  readonly url: string;
+  readonly icon: "tumblr" | "twitch" | "vgen" | "bluesky" | "discord";
+  readonly color: "blue" | "purple" | "pink" | "sky" | "indigo";
+  readonly fullWidth?: boolean;
 }
 
 export interface ImportantLink {
-  id: string;
-  title: string;
-  subtitle: string;
-  url: string;
-  icon: "dev" | "canva" | "youtube";
-  gradient: string;
-  iconColor: string;
-  fullWidth?: boolean;
+  readonly id: string;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly url: string;
+  readonly icon: "dev" | "canva" | "youtube";
+  readonly gradient: string;
+  readonly iconColor: string;
+  readonly fullWidth?: boolean;
 }
 
 export interface FaqItem {
-  id: string;
-  question: string;
-  type:
+  readonly id: string;
+  readonly question: string;
+  readonly type:
     | "programs"
     | "brushes"
     | "permissions"
@@ -47,22 +47,32 @@ export interface FaqItem {
     | "alias";
 }
 
-export const experiences: ExperienceItem[] = [
+export interface BrushItem {
+  readonly name: string;
+  readonly url: string | null;
+}
+
+export interface ClipStudioBrushes {
+  readonly inside: ReadonlyArray<BrushItem>;
+  readonly outside: ReadonlyArray<BrushItem>;
+}
+
+export const experiences: ReadonlyArray<ExperienceItem> = [
   { icon: "🎨", text: "Self-taught artist for 10 years" },
   { icon: "✍️", text: "Self-taught writer for 4 years" },
   { icon: "🎮", text: "Undergraduate of RMIT Game Design program" },
   { icon: "💼", text: "Worked on 400+ commissions on VGen" },
   { icon: "📚", text: "Worked as a Merch Artist & Page Artist for 2 fanzines" },
-];
+] as const;
 
-export const moreInfo: ExperienceItem[] = [
+export const moreInfo: ReadonlyArray<ExperienceItem> = [
   { icon: "🇻🇳", text: "I'm fully Vietnamese, but more fluent in English" },
   { icon: "🏳️‍🌈", text: "I'm a queer man (shocker)" },
   { icon: "🎮", text: "I love story-esque games, bonus points if indie!" },
   { icon: "💕", text: "I selfship with fictional characters (not surprising)" },
-];
+] as const;
 
-export const favorites: FavoriteItem[] = [
+export const favorites: ReadonlyArray<FavoriteItem> = [
   {
     label: "Games",
     icon: "🎮",
@@ -86,40 +96,9 @@ export const favorites: FavoriteItem[] = [
     items:
       "Gustave, Maelle; Jayce; Aiba, Mizuki Date; Oguri Cap, Narita Taishin, Narita Brian, Haru Urara; Reaper, Soldier 76, Pharah, Sigma, Moira; Shinjiro Aragaki, Akihiko Sanada, Joker",
   },
-];
+] as const;
 
-export const importantLinks: ImportantLink[] = [
-  {
-    id: "dev-website",
-    title: "Development Website",
-    subtitle: "dev.exocorpse.net",
-    url: "https://dev.exocorpse.net/",
-    icon: "dev",
-    gradient: "from-cyan-50 to-blue-50",
-    iconColor: "text-cyan-600 dark:text-cyan-400",
-  },
-  {
-    id: "canva",
-    title: "Canva Design",
-    subtitle: "Design resources",
-    url: "https://www.canva.com/design/DAG1GXjoP_k/RJsNed_ZA8oWHCFMBLHsAA/edit?utm_content=DAG1GXjoP_k&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
-    icon: "canva",
-    gradient: "from-purple-50 to-pink-50",
-    iconColor: "text-purple-600 dark:text-purple-400",
-  },
-  {
-    id: "youtube",
-    title: "YouTube Introduction",
-    subtitle: "Watch my introduction video",
-    url: "https://www.youtube.com/watch?v=cmq5yUa6e6s",
-    icon: "youtube",
-    gradient: "from-red-50 to-orange-50",
-    iconColor: "text-red-600 dark:text-red-400",
-    fullWidth: true,
-  },
-];
-
-export const socialMediaLinks: SocialMediaLink[] = [
+export const socialMediaLinks: ReadonlyArray<SocialMediaLink> = [
   {
     id: "tumblr",
     name: "Tumblr",
@@ -161,9 +140,9 @@ export const socialMediaLinks: SocialMediaLink[] = [
     color: "indigo",
     fullWidth: true,
   },
-];
+] as const;
 
-export const faqs: FaqItem[] = [
+export const faqs: ReadonlyArray<FaqItem> = [
   {
     id: "programs",
     question: "What programs / devices do you use?",
@@ -201,7 +180,7 @@ export const faqs: FaqItem[] = [
     question: "What alias should we refer to you as?",
     type: "alias",
   },
-];
+] as const;
 
 export const artistInspiration = [
   "Ryuki Ryi",
@@ -210,9 +189,9 @@ export const artistInspiration = [
   "Velinxi",
   "Shigenori Soejima",
   "Zephyo",
-];
+] as const;
 
-export const clipStudioBrushes = {
+export const clipStudioBrushes: ClipStudioBrushes = {
   inside: [
     {
       name: "ggpen",
@@ -247,7 +226,7 @@ export const dniSoft = [
   "You hate any of my favorites",
   "You get mad at my jokes against Americans",
   "You like Kasumi Yoshizawa (Persona) or Iris Sagan (AITSF)",
-];
+] as const;
 
 export const dniHard = [
   "Zionist, nazi, racist, republican, homophobic, xenophobic, proship, pedophilic",
@@ -255,4 +234,4 @@ export const dniHard = [
   "Dream team / Wilbur Soot supporter",
   "Anti-selfship",
   "You hate Maelle from Expedition 33",
-];
+] as const;

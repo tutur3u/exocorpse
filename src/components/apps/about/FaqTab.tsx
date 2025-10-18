@@ -94,7 +94,7 @@ export default function FaqTab() {
                       brush.url ? (
                         <a
                           key={brush.name}
-                          href={brush.url}
+                          href={brush.url ?? undefined}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
@@ -120,7 +120,7 @@ export default function FaqTab() {
                     {clipStudioBrushes.outside.map((brush) => (
                       <a
                         key={brush.name}
-                        href={brush.url}
+                        href={brush.url ?? undefined}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:hover:bg-purple-800"
@@ -325,17 +325,27 @@ export default function FaqTab() {
               type="button"
               onClick={() => toggleFaq(faq.id)}
               className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900"
+              aria-expanded={expandedFaq === faq.id}
+              aria-controls={`faq-panel-${faq.id}`}
             >
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                 {faq.question}
               </h3>
               {expandedFaq === faq.id ? (
-                <FaChevronUp className="h-4 w-4 flex-shrink-0 text-blue-500 transition-transform" />
+                <FaChevronUp
+                  className="h-4 w-4 flex-shrink-0 text-blue-500 transition-transform"
+                  aria-hidden="true"
+                />
               ) : (
-                <FaChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform" />
+                <FaChevronDown
+                  className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                  aria-hidden="true"
+                />
               )}
             </button>
-            <div
+            <section
+              id={`faq-panel-${faq.id}`}
+              aria-hidden={expandedFaq !== faq.id}
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 expandedFaq === faq.id
                   ? "max-h-[1000px] opacity-100"
@@ -345,7 +355,7 @@ export default function FaqTab() {
               <div className="border-t border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
                 {renderFaqAnswer(faq)}
               </div>
-            </div>
+            </section>
           </div>
         ))}
       </div>

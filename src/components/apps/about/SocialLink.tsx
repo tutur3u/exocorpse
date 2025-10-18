@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   FaDiscord,
   FaExternalLinkAlt,
@@ -65,7 +66,9 @@ interface Props {
 }
 
 export default function SocialLink({ link }: Props) {
-  const Icon = iconMap[link.icon];
+  const Icon = iconMap[link.icon] as ComponentType<{
+    className?: string;
+  }> | null;
   const colors = colorMap[link.color];
 
   return (
@@ -83,9 +86,17 @@ export default function SocialLink({ link }: Props) {
           className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${colors.iconBg}`}
         >
           {Icon ? (
-            <Icon className={`h-6 w-6 ${colors.iconColor}`} />
+            <Icon
+              className={`h-6 w-6 ${colors.iconColor}`}
+              aria-hidden="true"
+            />
           ) : (
-            <span className={`font-bold ${colors.iconColor}`}>V</span>
+            <span
+              className={`font-bold ${colors.iconColor}`}
+              aria-hidden="true"
+            >
+              V
+            </span>
           )}
         </div>
         <div className="flex-1">
@@ -98,6 +109,7 @@ export default function SocialLink({ link }: Props) {
         </div>
         <FaExternalLinkAlt
           className={`h-4 w-4 text-gray-400 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${colors.externalLink}`}
+          aria-hidden="true"
         />
       </div>
     </a>

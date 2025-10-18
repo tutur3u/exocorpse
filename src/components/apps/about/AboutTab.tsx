@@ -1,24 +1,13 @@
 import {
   FaBriefcase,
   FaDesktop,
-  FaExternalLinkAlt,
   FaHeart,
   FaInfoCircle,
-  FaLink,
   FaPalette,
   FaPencilAlt,
   FaTools,
-  FaYoutube,
 } from "react-icons/fa";
-import { MdDeveloperMode } from "react-icons/md";
-import { SiCanva } from "react-icons/si";
-import { experiences, favorites, importantLinks, moreInfo } from "./data";
-
-const importantLinkIcons = {
-  dev: MdDeveloperMode,
-  canva: SiCanva,
-  youtube: FaYoutube,
-};
+import { experiences, favorites, moreInfo } from "./data";
 
 export default function AboutTab() {
   return (
@@ -34,51 +23,16 @@ export default function AboutTab() {
         </p>
       </div>
 
-      {/* Important Links */}
-      <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-600">
-        <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          <FaLink className="text-indigo-500" />
-          Important Links
-        </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {importantLinks.map((link) => {
-            const Icon = importantLinkIcons[link.icon];
-            return (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`group/link flex items-center gap-3 rounded-lg bg-gradient-to-r ${link.gradient} p-4 transition-all hover:${link.gradient.replace(/50/g, "100").replace(/950/g, "900")} dark:${link.gradient.replace(/50/g, "950")} dark:hover:${link.gradient.replace(/50/g, "900").replace(/950/g, "800")} ${link.fullWidth ? "sm:col-span-2" : ""}`}
-              >
-                <Icon className={`h-6 w-6 ${link.iconColor}`} />
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">
-                    {link.title}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {link.subtitle}
-                  </p>
-                </div>
-                <FaExternalLinkAlt
-                  className={`h-3 w-3 text-gray-400 transition-all group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 ${link.iconColor.replace("dark:", "dark:group-hover/link:")}`}
-                />
-              </a>
-            );
-          })}
-        </div>
-      </section>
-
       {/* What I Use */}
       <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          <FaTools className="text-blue-500" />
+          <FaTools className="text-blue-500" aria-hidden="true" />
           What I Use
         </h3>
         <div className="space-y-4">
           <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
             <h4 className="mb-2 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
-              <FaPalette className="text-purple-500" />
+              <FaPalette className="text-purple-500" aria-hidden="true" />
               Programs
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -87,7 +41,7 @@ export default function AboutTab() {
           </div>
           <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
             <h4 className="mb-2 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
-              <FaDesktop className="text-green-500" />
+              <FaDesktop className="text-green-500" aria-hidden="true" />
               Tools
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -96,7 +50,7 @@ export default function AboutTab() {
           </div>
           <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
             <h4 className="mb-2 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
-              <FaPencilAlt className="text-orange-500" />
+              <FaPencilAlt className="text-orange-500" aria-hidden="true" />
               Other Stuff
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -109,7 +63,7 @@ export default function AboutTab() {
       {/* Experiences */}
       <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-green-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-green-600">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          <FaBriefcase className="text-green-500" />
+          <FaBriefcase className="text-green-500" aria-hidden="true" />
           Experiences
         </h3>
         <div className="grid gap-2">
@@ -130,7 +84,7 @@ export default function AboutTab() {
       {/* More Information */}
       <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-purple-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-600">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          <FaInfoCircle className="text-purple-500" />
+          <FaInfoCircle className="text-purple-500" aria-hidden="true" />
           More Information
         </h3>
         <div className="grid gap-2">
@@ -151,7 +105,7 @@ export default function AboutTab() {
       {/* Favorites */}
       <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-pink-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-pink-600">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-          <FaHeart className="text-pink-500" />
+          <FaHeart className="text-pink-500" aria-hidden="true" />
           Favorites
         </h3>
         <div className="space-y-4">
