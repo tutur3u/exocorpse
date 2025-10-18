@@ -155,7 +155,8 @@ export default function AboutMe() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:hover:bg-purple-800"
                   >
-                    MINJYE&apos;s Pentagram <FaExternalLinkAlt className="h-2 w-2" />
+                    MINJYE&apos;s Pentagram{" "}
+                    <FaExternalLinkAlt className="h-2 w-2" />
                   </a>
                   <a
                     href="https://www.youtube.com/@nekojira425/featured"
@@ -207,15 +208,22 @@ export default function AboutMe() {
             </p>
             <ul className="ml-4 list-inside list-disc space-y-1 text-sm text-green-800 dark:text-green-200">
               <li>
-                <strong>Profile layouts / video edits / fanfiction, personal printing:</strong> All OK!{" "}
-                <span className="underline">Make sure it has direct credit to me!</span>
+                <strong>
+                  Profile layouts / video edits / fanfiction, personal printing:
+                </strong>{" "}
+                All OK!{" "}
+                <span className="underline">
+                  Make sure it has direct credit to me!
+                </span>
               </li>
               <li>
-                <strong>Material for learning / studying:</strong> All OK! Make sure it has
-                direct credit to me (and tag me too! I&apos;d love to see it)
+                <strong>Material for learning / studying:</strong> All OK! Make
+                sure it has direct credit to me (and tag me too! I&apos;d love
+                to see it)
               </li>
               <li>
-                <strong>Reposting:</strong> Only with direct credit to me, otherwise prohibited
+                <strong>Reposting:</strong> Only with direct credit to me,
+                otherwise prohibited
               </li>
             </ul>
           </div>
@@ -247,7 +255,7 @@ export default function AboutMe() {
             All my usernames are either <strong>exocorpse</strong> or{" "}
             <strong>exocorpsehq</strong>, nothing else.
           </p>
-          <blockquote className="border-l-4 border-blue-500 bg-blue-50 pl-4 py-2 italic text-sm dark:bg-blue-950">
+          <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-2 pl-4 text-sm italic dark:bg-blue-950">
             I only list ones where I&apos;m active on, but if they don&apos;t
             have{" "}
             <code className="rounded bg-gray-200 px-1.5 py-0.5 not-italic dark:bg-gray-700">
@@ -330,7 +338,7 @@ export default function AboutMe() {
             Corpse
           </span>{" "}
           ={" "}
-          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
             Exocorpse
           </span>
         </p>
@@ -383,7 +391,7 @@ export default function AboutMe() {
         {activeTab === "about" && (
           <div className="space-y-6">
             <div className="rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-              <h2 className="mb-3 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+              <h2 className="mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
                 About Me
               </h2>
               <p className="text-lg text-gray-700 dark:text-gray-300">
@@ -438,7 +446,7 @@ export default function AboutMe() {
                   href="https://www.youtube.com/watch?v=cmq5yUa6e6s"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group/link flex items-center gap-3 rounded-lg bg-gradient-to-r from-red-50 to-orange-50 p-4 transition-all hover:from-red-100 hover:to-orange-100 dark:from-red-950 dark:to-orange-950 dark:hover:from-red-900 dark:hover:to-orange-900 sm:col-span-2"
+                  className="group/link flex items-center gap-3 rounded-lg bg-gradient-to-r from-red-50 to-orange-50 p-4 transition-all hover:from-red-100 hover:to-orange-100 sm:col-span-2 dark:from-red-950 dark:to-orange-950 dark:hover:from-red-900 dark:hover:to-orange-900"
                 >
                   <FaYoutube className="h-6 w-6 text-red-600 dark:text-red-400" />
                   <div className="flex-1">
@@ -620,7 +628,7 @@ export default function AboutMe() {
         {activeTab === "faq" && (
           <div className="space-y-4">
             <div className="mb-6 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+              <h2 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
                 Frequently Asked Questions
               </h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -668,7 +676,7 @@ export default function AboutMe() {
         {activeTab === "dni" && (
           <div className="space-y-6">
             <div className="mb-6 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 p-6 dark:from-red-950 dark:to-orange-950">
-              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400">
+              <h2 className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-3xl font-bold text-transparent dark:from-red-400 dark:to-orange-400">
                 Do Not Interact
               </h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -737,7 +745,7 @@ export default function AboutMe() {
         {activeTab === "socials" && (
           <div className="space-y-6">
             <div className="mb-6 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-              <h2 className="mb-3 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+              <h2 className="mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
                 Social Media
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
@@ -855,7 +863,7 @@ export default function AboutMe() {
                 href="https://discord.gg/exocorpse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-400 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500 md:col-span-2"
+                className="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-400 hover:shadow-lg md:col-span-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent opacity-0 transition-opacity group-hover:opacity-100 dark:from-indigo-950" />
                 <div className="relative flex items-center gap-4">
