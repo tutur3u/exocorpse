@@ -89,6 +89,7 @@ export function WindowProvider({
   const initializedRef = useRef(false);
 
   // Initialize wiki window on mount if wiki params are present
+  // Using useEffect with empty deps to ensure it only runs once on mount
   useEffect(() => {
     if (hasWikiParams && !initializedRef.current) {
       initializedRef.current = true;
@@ -113,7 +114,9 @@ export function WindowProvider({
         setNextZIndex(1001);
       }
     }
-  }, [hasWikiParams]);
+    // Empty dependency array - only run once on mount, never again
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openWindow = useCallback(
     (id: AppId) => {
