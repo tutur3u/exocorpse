@@ -60,7 +60,7 @@ export default function FactionManager({
 
   return (
     <div
-      className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black "
+      className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black"
       onClick={onClose}
     >
       <div
