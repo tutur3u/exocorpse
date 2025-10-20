@@ -27,6 +27,8 @@ export function cleanFormData<T extends Record<string, unknown>>(
     } else if (typeof value === "string") {
       const parsed = parseInt(value, 10);
       cleaned[field] = isNaN(parsed) ? undefined : parsed;
+    } else if (typeof value === "number" && Number.isNaN(value)) {
+      cleaned[field] = undefined;
     }
     // If it's already a number, leave it as is
   });

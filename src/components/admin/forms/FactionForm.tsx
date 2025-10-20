@@ -355,7 +355,7 @@ export default function FactionForm({
                       <input
                         type="number"
                         id="faction-member-count"
-                        {...(register("member_count"), { valueAsNumber: true })}
+                        {...register("member_count", { valueAsNumber: true })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="1000"
                         min="0"
@@ -377,6 +377,7 @@ export default function FactionForm({
                     </label>
                     <textarea
                       {...register("primary_goal")}
+                      id="faction-primary-goal"
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="What is this faction trying to achieve?"
