@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type LightboxContent = {
@@ -21,27 +21,44 @@ export default function Lightbox({
   imageAlt = "Lightbox image",
 }: LightboxProps) {
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const prevFocus = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    prevFocus.current = document.activeElement as HTMLElement | null;
+    // lock scroll
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // focus dialog after mount
+    setTimeout(() => dialogRef.current?.focus(), 0);
+    // Esc to close
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      prevFocus.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!content || !mounted) return null;
 
   const lightboxContent = (
-    <button
-      type="button"
+    <div
       className="bg-opacity-95 animate-fadeIn fixed inset-0 z-[10001] flex flex-col bg-black p-4"
       onClick={onClose}
+      aria-hidden="true"
     >
       <div
+        ref={dialogRef}
         className="animate-slideUp flex flex-1 flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onClose();
-        }}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="lightbox-title"
+        tabIndex={-1}
       >
         <div className="relative flex-1 overflow-hidden rounded-2xl bg-gray-900 shadow-2xl">
           <Image
@@ -53,7 +70,10 @@ export default function Lightbox({
           />
         </div>
         <div className="mt-6 max-h-[25vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
-          <h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h3
+            id="lightbox-title"
+            className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100"
+          >
             {content.title}
           </h3>
           {content.description && (
@@ -84,7 +104,7 @@ export default function Lightbox({
           </svg>
         </button>
       </div>
-    </button>
+    </div>
   );
 
   return createPortal(lightboxContent, document.body);
