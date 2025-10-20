@@ -1,10 +1,22 @@
 import LoginForm from "@/components/LoginForm";
+import { createClient } from "@tuturuuu/supabase/next/server";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export default async function LoginPage(props: {
   searchParams: Promise<{ redirect?: string }>;
 }) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    // If user is already logged in, redirect to admin dashboard
+    redirect("/admin");
+  }
+
   const params = await props.searchParams;
   const redirectTo = params.redirect || "/admin";
 
