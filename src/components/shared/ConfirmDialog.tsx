@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 type ConfirmDialogProps = {
   isOpen: boolean;
@@ -24,14 +24,16 @@ export default function ConfirmDialog({
   isDangerous = false,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (isOpen) {
+    if (isOpen && !dialog.open) {
       dialog.showModal();
-    } else {
+    } else if (!isOpen && dialog.open) {
       dialog.close();
     }
   }, [isOpen]);
@@ -63,6 +65,13 @@ export default function ConfirmDialog({
     }
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
   const confirmButtonClass = isDangerous
     ? "rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
     : "rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700";
@@ -71,13 +80,24 @@ export default function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onClick={handleDialogClick}
+      onKeyDown={handleBackdropKeyDown}
+      onCancel={handleCancel}
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       className="fixed inset-0 m-auto w-full max-w-md rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/50 dark:bg-gray-800"
     >
       <div className="w-full p-6">
-        <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+        <h3
+          id={titleId}
+          className="mb-4 text-xl font-bold text-gray-900 dark:text-white"
+        >
           {title}
         </h3>
-        <p className="mb-6 text-gray-700 dark:text-gray-300">{message}</p>
+        <p id={descriptionId} className="mb-6 text-gray-700 dark:text-gray-300">
+          {message}
+        </p>
         <div className="flex justify-end gap-3">
           <button
             type="button"

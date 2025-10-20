@@ -275,9 +275,12 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
           cancelText="Cancel"
           isDangerous={true}
           onConfirm={async () => {
-            setShowDeleteConfirm(false);
-            await deleteMutation.mutateAsync(deleteConfirmId);
-            setDeleteConfirmId(null);
+            try {
+              await deleteMutation.mutateAsync(deleteConfirmId!);
+            } finally {
+              setShowDeleteConfirm(false);
+              setDeleteConfirmId(null);
+            }
           }}
           onCancel={() => {
             setShowDeleteConfirm(false);

@@ -6,6 +6,7 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Character } from "@/lib/actions/wiki";
+import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -123,40 +124,42 @@ export default function CharacterForm({
     setError(null);
 
     try {
-      // Clean up empty strings to undefined
-      const cleanData: CharacterFormData = {
-        ...data,
-        age: data.age || undefined,
-        nickname: data.nickname || undefined,
-        title: data.title || undefined,
-        age_description: data.age_description || undefined,
-        species: data.species || undefined,
-        gender: data.gender || undefined,
-        pronouns: data.pronouns || undefined,
-        height: data.height || undefined,
-        weight: data.weight || undefined,
-        build: data.build || undefined,
-        hair_color: data.hair_color || undefined,
-        eye_color: data.eye_color || undefined,
-        skin_tone: data.skin_tone || undefined,
-        distinguishing_features: data.distinguishing_features || undefined,
-        status: data.status || undefined,
-        occupation: data.occupation || undefined,
-        personality_summary: data.personality_summary || undefined,
-        likes: data.likes || undefined,
-        dislikes: data.dislikes || undefined,
-        fears: data.fears || undefined,
-        goals: data.goals || undefined,
-        backstory: data.backstory || undefined,
-        lore: data.lore || undefined,
-        skills: data.skills || undefined,
-        abilities: data.abilities || undefined,
-        strengths: data.strengths || undefined,
-        weaknesses: data.weaknesses || undefined,
-        profile_image: data.profile_image || undefined,
-        banner_image: data.banner_image || undefined,
-        color_scheme: data.color_scheme || undefined,
-      };
+      // Clean up empty strings to undefined and handle number fields
+      const cleanData: CharacterFormData = cleanFormData(
+        data,
+        [
+          "nickname",
+          "title",
+          "age_description",
+          "species",
+          "gender",
+          "pronouns",
+          "height",
+          "weight",
+          "build",
+          "hair_color",
+          "eye_color",
+          "skin_tone",
+          "distinguishing_features",
+          "status",
+          "occupation",
+          "personality_summary",
+          "likes",
+          "dislikes",
+          "fears",
+          "goals",
+          "backstory",
+          "lore",
+          "skills",
+          "abilities",
+          "strengths",
+          "weaknesses",
+          "profile_image",
+          "banner_image",
+          "color_scheme",
+        ],
+        ["age"],
+      );
 
       await onSubmit(cleanData);
     } catch (err) {
@@ -181,6 +184,13 @@ export default function CharacterForm({
     handleExit(onCancel);
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleExit(onCancel);
+    }
+  };
+
   const handleCancelClick = () => {
     handleExit(onCancel);
   };
@@ -189,14 +199,21 @@ export default function CharacterForm({
     <>
       <div
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+        role="button"
+        tabIndex={0}
+        aria-label="Close and discard changes"
         onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
       >
         <div
           className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="character-form-title"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-6 pt-6 pb-4">
-            <h2 className="text-2xl font-bold">
+            <h2 id="character-form-title" className="text-2xl font-bold">
               {character ? "Edit Character" : "Create New Character"}
             </h2>
           </div>
@@ -281,23 +298,33 @@ export default function CharacterForm({
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-name"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Name *
                       </label>
                       <input
                         type="text"
-                        {...register("name", { required: true })}
-                        onChange={(e) => handleNameChange(e.target.value)}
+                        id="character-name"
+                        {...register("name", {
+                          required: true,
+                          onChange: (e) => handleNameChange(e.target.value),
+                        })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-nickname"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Nickname
                       </label>
                       <input
                         type="text"
+                        id="character-nickname"
                         {...register("nickname")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Johnny"
@@ -307,22 +334,30 @@ export default function CharacterForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-slug"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Slug *
                       </label>
                       <input
                         type="text"
+                        id="character-slug"
                         {...register("slug", { required: true })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="john-doe"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-title"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Title
                       </label>
                       <input
                         type="text"
+                        id="character-title"
                         {...register("title")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Dr., Agent, Commander, etc."
@@ -332,11 +367,15 @@ export default function CharacterForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-age"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Age
                       </label>
                       <input
                         type="number"
+                        id="character-age"
                         {...register("age", { valueAsNumber: true })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="28"
@@ -344,11 +383,15 @@ export default function CharacterForm({
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-age-description"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Age Description
                       </label>
                       <input
                         type="text"
+                        id="character-age-description"
                         {...register("age_description")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="early 20s, ancient, etc."
@@ -358,33 +401,45 @@ export default function CharacterForm({
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-species"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Species
                       </label>
                       <input
                         type="text"
+                        id="character-species"
                         {...register("species")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Human, Elf, etc."
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-gender"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Gender
                       </label>
                       <input
                         type="text"
+                        id="character-gender"
                         {...register("gender")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Male, Female, Non-binary, etc."
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-pronouns"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Pronouns
                       </label>
                       <input
                         type="text"
+                        id="character-pronouns"
                         {...register("pronouns")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="he/him, she/her, they/them"
@@ -394,10 +449,14 @@ export default function CharacterForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-status"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Status
                       </label>
                       <select
+                        id="character-status"
                         {...register("status")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       >
@@ -409,11 +468,15 @@ export default function CharacterForm({
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-occupation"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Occupation
                       </label>
                       <input
                         type="text"
+                        id="character-occupation"
                         {...register("occupation")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Mercenary, Scholar, etc."
@@ -428,33 +491,45 @@ export default function CharacterForm({
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-height"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Height
                       </label>
                       <input
                         type="text"
+                        id="character-height"
                         {...register("height")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="6'2&quot;, 185 cm"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-weight"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Weight
                       </label>
                       <input
                         type="text"
+                        id="character-weight"
                         {...register("weight")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="180 lbs, 80 kg"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-build"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Build
                       </label>
                       <input
                         type="text"
+                        id="character-build"
                         {...register("build")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Athletic, Slender, etc."
@@ -464,33 +539,45 @@ export default function CharacterForm({
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-hair-color"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Hair Color
                       </label>
                       <input
                         type="text"
+                        id="character-hair-color"
                         {...register("hair_color")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Black, Blonde, etc."
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-eye-color"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Eye Color
                       </label>
                       <input
                         type="text"
+                        id="character-eye-color"
                         {...register("eye_color")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Brown, Blue, etc."
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="character-skin-tone"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Skin Tone
                       </label>
                       <input
                         type="text"
+                        id="character-skin-tone"
                         {...register("skin_tone")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Fair, Tan, Dark, etc."
@@ -499,10 +586,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-distinguishing-features"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Distinguishing Features
                     </label>
                     <textarea
+                      id="character-distinguishing-features"
                       {...register("distinguishing_features")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -516,10 +607,14 @@ export default function CharacterForm({
               {activeTab === "personality" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-personality-summary"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Personality Summary
                     </label>
                     <textarea
+                      id="character-personality-summary"
                       {...register("personality_summary")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -528,10 +623,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-likes"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Likes
                     </label>
                     <textarea
+                      id="character-likes"
                       {...register("likes")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -540,10 +639,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-dislikes"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Dislikes
                     </label>
                     <textarea
+                      id="character-dislikes"
                       {...register("dislikes")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -552,10 +655,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-fears"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Fears
                     </label>
                     <textarea
+                      id="character-fears"
                       {...register("fears")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -564,10 +671,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-goals"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Goals
                     </label>
                     <textarea
+                      id="character-goals"
                       {...register("goals")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -608,10 +719,14 @@ export default function CharacterForm({
               {activeTab === "abilities" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-skills"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Skills
                     </label>
                     <textarea
+                      id="character-skills"
                       {...register("skills")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -620,10 +735,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-abilities"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Abilities
                     </label>
                     <textarea
+                      id="character-abilities"
                       {...register("abilities")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -632,10 +751,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-strengths"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Strengths
                     </label>
                     <textarea
+                      id="character-strengths"
                       {...register("strengths")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -644,10 +767,14 @@ export default function CharacterForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="character-weaknesses"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Weaknesses
                     </label>
                     <textarea
+                      id="character-weaknesses"
                       {...register("weaknesses")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"

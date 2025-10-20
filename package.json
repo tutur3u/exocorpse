@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "devx": "bun dev && bun supabase start",
+    "devx": "bun supabase start && bun dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",
