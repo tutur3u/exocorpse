@@ -4,6 +4,7 @@ import FactionManager, {
   type FactionMembership,
 } from "@/components/admin/FactionManager";
 import FactionForm from "@/components/admin/forms/FactionForm";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   addCharacterToFaction,
   createFaction,
@@ -44,6 +45,10 @@ export default function FactionsClient({
   const [entityMemberships, setEntityMemberships] = useState<
     FactionMembership[]
   >([]);
+
+  // Confirm dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
@@ -155,8 +160,8 @@ export default function FactionsClient({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this faction?")) return;
-    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(id);
+    setShowDeleteConfirm(true);
   };
 
   const handleOpenMemberManager = async (id: string, name: string) => {
@@ -396,6 +401,26 @@ export default function FactionsClient({
             setShowMemberManager(false);
             setManagingFaction(null);
             setEntityMemberships([]);
+          }}
+        />
+      )}
+
+      {deleteConfirmId && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Delete Faction"
+          message="Are you sure you want to delete this faction? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDangerous={true}
+          onConfirm={async () => {
+            setShowDeleteConfirm(false);
+            await deleteMutation.mutateAsync(deleteConfirmId);
+            setDeleteConfirmId(null);
+          }}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setDeleteConfirmId(null);
           }}
         />
       )}

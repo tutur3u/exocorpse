@@ -31,7 +31,7 @@ export default function RootLayout({
         <Analytics />
         <SoundProvider>
           <QueryProvider>{children}</QueryProvider>
-          <Toaster position="top-right" />
+          <Toaster position="top-center" />
         </SoundProvider>
       </body>
     </html>

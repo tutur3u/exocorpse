@@ -1,7 +1,7 @@
 "use client";
 
 import ColorPicker from "@/components/shared/ColorPicker";
-import ConfirmExitDialog from "@/components/shared/ConfirmExitDialog";
+import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";

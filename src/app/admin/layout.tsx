@@ -2,7 +2,6 @@ import LogoutButton from "@/components/admin/LogoutButton";
 import { requireAuth } from "@/lib/auth/utils";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Toaster } from "react-hot-toast";
 
 export default async function AdminLayout({
   children,
@@ -19,7 +18,7 @@ export default async function AdminLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Admin Dashboard
+                EXOCORPSE
               </h1>
               <nav className="flex gap-1">
                 <Link
@@ -76,7 +75,6 @@ export default async function AdminLayout({
           {children}
         </div>
       </main>
-      <Toaster position="bottom-right" />
     </div>
   );
 }

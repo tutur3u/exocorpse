@@ -2,21 +2,27 @@
 
 import { useEffect, useRef } from "react";
 
-type ConfirmExitDialogProps = {
+type ConfirmDialogProps = {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   title?: string;
   message?: string;
+  confirmText?: string;
+  cancelText?: string;
+  isDangerous?: boolean;
 };
 
-export default function ConfirmExitDialog({
+export default function ConfirmDialog({
   isOpen,
   onConfirm,
   onCancel,
-  title = "Unsaved Changes",
-  message = "You have unsaved changes. Are you sure you want to exit? All changes will be lost.",
-}: ConfirmExitDialogProps) {
+  title = "Confirm",
+  message = "Are you sure?",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  isDangerous = false,
+}: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -57,6 +63,10 @@ export default function ConfirmExitDialog({
     }
   };
 
+  const confirmButtonClass = isDangerous
+    ? "rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+    : "rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700";
+
   return (
     <dialog
       ref={dialogRef}
@@ -74,17 +84,42 @@ export default function ConfirmExitDialog({
             onClick={handleCancel}
             className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Stay
+            {cancelText}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            className={confirmButtonClass}
           >
-            Exit & Discard
+            {confirmText}
           </button>
         </div>
       </div>
     </dialog>
+  );
+}
+
+/**
+ * @deprecated Use ConfirmDialog instead. It now handles both deletion and exit scenarios.
+ * For exit dialogs, use isDangerous={true} and customize the title/message/buttons.
+ */
+export function ConfirmExitDialog({
+  isOpen,
+  onConfirm,
+  onCancel,
+  title = "Unsaved Changes",
+  message = "You have unsaved changes. Are you sure you want to exit? All changes will be lost.",
+}: Omit<ConfirmDialogProps, "isDangerous" | "confirmText" | "cancelText">) {
+  return (
+    <ConfirmDialog
+      isOpen={isOpen}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+      title={title}
+      message={message}
+      confirmText="Exit & Discard"
+      cancelText="Stay"
+      isDangerous={true}
+    />
   );
 }
