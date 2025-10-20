@@ -1,3 +1,4 @@
+import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { Character } from "@/lib/actions/wiki";
 import {
@@ -13,22 +14,12 @@ type CharacterDetailProps = {
   character: Character;
 };
 
-type GalleryImage = {
-  id: string;
-  title: string;
-  description: string | null;
-  image_url: string;
-  thumbnail_url: string | null;
-  artist_name: string | null;
-  artist_url: string | null;
-  tags: string[] | null;
-};
-
 export default function CharacterDetail({ character }: CharacterDetailProps) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "outfits" | "lore" | "gallery"
   >("overview");
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [lightboxContent, setLightboxContent] =
+    useState<LightboxContent | null>(null);
 
   const { data: gallery = [], isLoading: galleryLoading } = useQuery({
     queryKey: ["character-gallery", character.id],
@@ -333,15 +324,47 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                         className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-800/50"
                       >
                         {outfit.image_url && (
-                          <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setLightboxContent({
+                                imageUrl: outfit.image_url as string,
+                                title: outfit.name,
+                                description: outfit.description,
+                              })
+                            }
+                            className="group relative h-56 w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
+                          >
                             <Image
                               src={outfit.image_url}
                               alt={outfit.name}
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                               width={128}
                               height={128}
                             />
-                          </div>
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30">
+                              <svg
+                                className="h-8 w-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <title>View outfit details</title>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </div>
+                          </button>
                         )}
                         <div className="p-4">
                           <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -438,7 +461,20 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                       <button
                         key={image.id}
                         type="button"
-                        onClick={() => setSelectedImage(image)}
+                        onClick={() =>
+                          setLightboxContent({
+                            imageUrl: image.image_url,
+                            title: image.title,
+                            description: image.description,
+                            footer: image.artist_name && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">
+                                  Artist: {image.artist_name}
+                                </span>
+                              </div>
+                            ),
+                          })
+                        }
                         className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-500 dark:ring-gray-700"
                       >
                         <Image
@@ -458,71 +494,11 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
         )}
       </div>
 
-      {/* Gallery Lightbox */}
-      {selectedImage && (
-        <button
-          type="button"
-          className="bg-opacity-95 animate-fadeIn fixed inset-0 z-[60] flex items-center justify-center bg-black p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div
-            className="animate-slideUp flex max-h-[95vh] max-w-6xl flex-col"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setSelectedImage(null);
-            }}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-gray-900 shadow-2xl">
-              <Image
-                src={selectedImage.image_url}
-                alt={selectedImage.title}
-                className="max-h-[70vh] w-full object-contain"
-                width={1280}
-                height={720}
-              />
-            </div>
-            <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
-              <h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {selectedImage.title}
-              </h3>
-              {selectedImage.description && (
-                <p className="mb-4 leading-relaxed text-gray-600 dark:text-gray-400">
-                  {selectedImage.description}
-                </p>
-              )}
-              {selectedImage.artist_name && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">
-                    Artist: {selectedImage.artist_name}
-                  </span>
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedImage(null)}
-              className="bg-opacity-60 hover:bg-opacity-80 absolute top-4 right-4 rounded-full bg-black p-3 text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-2xl"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <title>Close gallery image</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </button>
-      )}
+      {/* Lightbox */}
+      <Lightbox
+        content={lightboxContent}
+        onClose={() => setLightboxContent(null)}
+      />
     </div>
   );
 }
