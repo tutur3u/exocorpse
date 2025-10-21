@@ -3,6 +3,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Baskervville } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -29,10 +30,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${baskervvile.variable} antialiased`}>
         <Analytics />
-        <SoundProvider>
-          <QueryProvider>{children}</QueryProvider>
-          <Toaster position="top-center" />
-        </SoundProvider>
+        <NuqsAdapter>
+          <SoundProvider>
+            <QueryProvider>{children}</QueryProvider>
+            <Toaster position="top-center" />
+          </SoundProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

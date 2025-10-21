@@ -1,9 +1,11 @@
 "use client";
 
 import AboutMe from "@/components/apps/AboutMe";
+import Blog from "@/components/apps/Blog";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
+import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId } from "@/types/window";
 import React, { createContext, useCallback, useContext, useState } from "react";
@@ -50,6 +52,12 @@ export const MOBILE_APPS: MobileApp[] = [
     component: Commission,
   },
   {
+    id: "blog",
+    title: "Blog",
+    icon: "📝",
+    component: Blog,
+  },
+  {
     id: "wiki",
     title: "Wiki",
     icon: "📚",
@@ -60,9 +68,11 @@ export const MOBILE_APPS: MobileApp[] = [
 export function MobileProvider({
   children,
   wikiParams,
+  blogParams,
 }: {
   children: React.ReactNode;
   wikiParams: WikiSearchParams;
+  blogParams: BlogSearchParams;
 }) {
   const hasWikiParams =
     wikiParams.story ||
@@ -70,12 +80,17 @@ export function MobileProvider({
     wikiParams.character ||
     wikiParams.faction;
 
-  // Initialize state with wiki app open if params are present
+  const hasBlogParams =
+    blogParams["blog-post"] ||
+    blogParams["blog-page"] ||
+    blogParams["blog-page-size"];
+
+  // Initialize state with appropriate app open if params are present
   const [sheetState, setSheetState] = useState<BottomSheetState>(
-    hasWikiParams ? "full-open" : "closed",
+    hasWikiParams || hasBlogParams ? "full-open" : "closed",
   );
   const [selectedApp, setSelectedApp] = useState<AppId | null>(
-    hasWikiParams ? "wiki" : null,
+    hasWikiParams ? "wiki" : hasBlogParams ? "blog" : null,
   );
 
   const openSheet = useCallback(() => {
