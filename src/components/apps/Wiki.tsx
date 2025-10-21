@@ -7,7 +7,9 @@ import WikiClient from "./WikiClient";
 
 export default function Wiki() {
   const initialData = useInitialWikiData();
-  const { data: stories = [], isLoading } = useStories(initialData.stories);
+  const { data: stories = [], isLoading } = useStories(
+    initialData.stories.length > 0 ? initialData.stories : undefined,
+  );
 
   return (
     <StoryThemeProvider>

@@ -7,6 +7,7 @@ import {
   getPublishedBlogPostsPaginated,
   type BlogPost,
 } from "@/lib/actions/blog";
+import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 
@@ -51,7 +52,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
     initialData: shouldUseInitialPost ? initialData.selectedPost : undefined,
   });
 
-  // Query for paginated posts
+  // Query for paginated posts - use initial currentPage before clamping for comparison
   const shouldUseInitialPosts =
     initialData.posts.length > 0 &&
     currentPage === initialData.page &&
@@ -82,7 +83,17 @@ export default function BlogClient({ initialData }: BlogClientProps) {
 
   const posts = paginatedData.data || [];
   const total = paginatedData.total || 0;
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const clampedCurrentPage = Math.min(currentPage, totalPages);
+
+  // Sync router if currentPage was out of bounds
+  if (clampedCurrentPage !== currentPage && !postSlug) {
+    setParams({
+      "blog-post": null,
+      "blog-page": clampedCurrentPage,
+      "blog-page-size": pageSize,
+    });
+  }
 
   const handlePostSelect = (post: BlogPost) => {
     setParams({
@@ -131,6 +142,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
         {/* Post Header */}
         <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
           <button
+            type="button"
             onClick={handleBackToList}
             className="mb-2 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
@@ -139,7 +151,10 @@ export default function BlogClient({ initialData }: BlogClientProps) {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              role="img"
+              aria-labelledby="back-icon-title"
             >
+              <title id="back-icon-title">Back</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -228,7 +243,10 @@ export default function BlogClient({ initialData }: BlogClientProps) {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                role="img"
+                aria-labelledby="empty-blog-title"
               >
+                <title id="empty-blog-title">No posts yet</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -249,6 +267,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
             <div className="space-y-4">
               {posts.map((post) => (
                 <button
+                  type="button"
                   key={post.id}
                   onClick={() => handlePostSelect(post)}
                   className="w-full rounded-lg border border-gray-200 bg-white p-6 text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
@@ -285,30 +304,44 @@ export default function BlogClient({ initialData }: BlogClientProps) {
               <div className="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
                 {/* Results Info */}
                 <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                  Showing {Math.min((currentPage - 1) * pageSize + 1, total)}-
-                  {Math.min(currentPage * pageSize, total)} of {total} posts
+                  Showing{" "}
+                  {Math.min((clampedCurrentPage - 1) * pageSize + 1, total)}-
+                  {Math.min(clampedCurrentPage * pageSize, total)} of {total}{" "}
+                  posts
                 </div>
 
                 {/* Pagination Buttons */}
                 <div className="flex items-center justify-center gap-2">
                   <button
+                    type="button"
                     onClick={() =>
-                      handlePageChange(Math.max(currentPage - 1, 1))
+                      handlePageChange(Math.max(clampedCurrentPage - 1, 1))
                     }
-                    disabled={currentPage === 1}
+                    disabled={clampedCurrentPage === 1}
                     className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
                   >
                     Previous
                   </button>
 
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (pageNum) => (
+                    {generatePaginationRange(
+                      clampedCurrentPage,
+                      totalPages,
+                    ).map((pageNum, idx) =>
+                      pageNum === "..." ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-2 text-gray-500 dark:text-gray-400"
+                        >
+                          ...
+                        </span>
+                      ) : (
                         <button
+                          type="button"
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`min-w-10 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                            currentPage === pageNum
+                            clampedCurrentPage === pageNum
                               ? "bg-blue-600 text-white"
                               : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                           }`}
@@ -320,10 +353,13 @@ export default function BlogClient({ initialData }: BlogClientProps) {
                   </div>
 
                   <button
+                    type="button"
                     onClick={() =>
-                      handlePageChange(Math.min(currentPage + 1, totalPages))
+                      handlePageChange(
+                        Math.min(clampedCurrentPage + 1, totalPages),
+                      )
                     }
-                    disabled={currentPage === totalPages}
+                    disabled={clampedCurrentPage === totalPages}
                     className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
                   >
                     Next

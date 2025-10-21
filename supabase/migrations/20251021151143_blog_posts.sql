@@ -74,11 +74,21 @@ for insert
 to authenticated
 with check (true);
 
-create policy "Enable read access for all users"
+create policy "Enable read access for published posts"
 on "public"."blog_posts"
 as permissive
 for select
 to public
+using (
+  published_at is not null
+  and published_at <= now()
+);
+
+create policy "Enable read access for all posts to authenticated users"
+on "public"."blog_posts"
+as permissive
+for select
+to authenticated
 using (true);
 
 create policy "Enable update for authenticated users"

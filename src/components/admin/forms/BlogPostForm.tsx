@@ -94,9 +94,11 @@ export default function BlogPostForm({
     setValue("title", value, { shouldDirty: true });
     if (!post) {
       const slugValue = value
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
+        .replace(/^-+|-+$/g, "");
       setValue("slug", slugValue, { shouldDirty: true });
     }
   };
@@ -155,7 +157,8 @@ export default function BlogPostForm({
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
         onClick={handleBackdropClick}
         onKeyDown={handleBackdropKeyDown}
-        role="button"
+        role="presentation"
+        aria-hidden="true"
         tabIndex={0}
         aria-label="Close and discard changes"
       >
@@ -207,11 +210,18 @@ export default function BlogPostForm({
                 <input
                   type="text"
                   id="post-slug"
-                  {...register("slug", { required: true })}
+                  {...register("slug", {
+                    required: true,
+                    pattern: {
+                      value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+                      message: "Use lowercase letters, numbers, and hyphens.",
+                    },
+                  })}
+                  aria-describedby="slug-help"
                   className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                   placeholder="my-amazing-blog-post"
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p id="slug-help" className="mt-1 text-xs text-gray-500">
                   URL-friendly identifier (lowercase, hyphens only)
                 </p>
               </div>
@@ -237,7 +247,7 @@ export default function BlogPostForm({
 
               {/* Content */}
               <MarkdownEditor
-                label="Content *"
+                label="Content"
                 value={content || ""}
                 onChange={(value) =>
                   setValue("content", value, { shouldDirty: true })
