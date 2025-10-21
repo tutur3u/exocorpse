@@ -4,6 +4,7 @@ import FactionManager, {
   type FactionMembership,
 } from "@/components/admin/FactionManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   addCharacterToFaction,
   type Character,
@@ -46,6 +47,10 @@ export default function CharactersClient({
   const [entityMemberships, setEntityMemberships] = useState<
     FactionMembership[]
   >([]);
+
+  // Confirm dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
@@ -159,8 +164,8 @@ export default function CharactersClient({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this character?")) return;
-    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(id);
+    setShowDeleteConfirm(true);
   };
 
   const handleOpenFactionManager = async (id: string, name: string) => {
@@ -400,6 +405,29 @@ export default function CharactersClient({
             setShowFactionManager(false);
             setManagingCharacter(null);
             setEntityMemberships([]);
+          }}
+        />
+      )}
+
+      {deleteConfirmId && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Delete Character"
+          message="Are you sure you want to delete this character? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDangerous={true}
+          onConfirm={async () => {
+            try {
+              await deleteMutation.mutateAsync(deleteConfirmId!);
+            } finally {
+              setShowDeleteConfirm(false);
+              setDeleteConfirmId(null);
+            }
+          }}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setDeleteConfirmId(null);
           }}
         />
       )}

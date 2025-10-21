@@ -1,6 +1,7 @@
 "use client";
 
 import WorldForm from "@/components/admin/forms/WorldForm";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   createWorld,
   deleteWorld,
@@ -23,6 +24,10 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
   const [selectedStoryId, setSelectedStoryId] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
+
+  // Confirm dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
@@ -88,8 +93,8 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this world?")) return;
-    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(id);
+    setShowDeleteConfirm(true);
   };
 
   const selectedStory = stories.find((s) => s.id === selectedStoryId);
@@ -257,6 +262,29 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
           onCancel={() => {
             setShowForm(false);
             setEditingWorld(null);
+          }}
+        />
+      )}
+
+      {deleteConfirmId && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Delete World"
+          message="Are you sure you want to delete this world? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDangerous={true}
+          onConfirm={async () => {
+            try {
+              await deleteMutation.mutateAsync(deleteConfirmId!);
+            } finally {
+              setShowDeleteConfirm(false);
+              setDeleteConfirmId(null);
+            }
+          }}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setDeleteConfirmId(null);
           }}
         />
       )}

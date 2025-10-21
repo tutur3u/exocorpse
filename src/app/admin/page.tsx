@@ -5,7 +5,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome to Admin Dashboard
+          EXOCORPSE Admin Dashboard
         </h2>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
           Manage your stories, worlds, characters, and factions

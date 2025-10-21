@@ -1,6 +1,7 @@
 "use client";
 
 import StoryForm from "@/components/admin/forms/StoryForm";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   createStory,
   deleteStory,
@@ -25,6 +26,10 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
 
   const [showForm, setShowForm] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+
+  // Confirm dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const createMutation = useMutation({
     mutationFn: createStory,
@@ -78,8 +83,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this story?")) return;
-    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(id);
+    setShowDeleteConfirm(true);
   };
 
   return (
@@ -211,6 +216,29 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
           onCancel={() => {
             setShowForm(false);
             setEditingStory(null);
+          }}
+        />
+      )}
+
+      {deleteConfirmId && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Delete Story"
+          message="Are you sure you want to delete this story? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDangerous={true}
+          onConfirm={async () => {
+            try {
+              await deleteMutation.mutateAsync(deleteConfirmId!);
+            } finally {
+              setShowDeleteConfirm(false);
+              setDeleteConfirmId(null);
+            }
+          }}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setDeleteConfirmId(null);
           }}
         />
       )}

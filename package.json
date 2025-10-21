@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "devx": "bun dev && bun supabase start",
+    "devx": "bun supabase start && bun dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",
@@ -42,6 +42,7 @@
     "nuqs": "^2.7.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.65.0",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
