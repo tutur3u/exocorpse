@@ -56,10 +56,10 @@ export default function ContentView({
             {item.data.type === "character" ? (
               <>
                 {/* Character Card */}
-                <div className="relative h-32 overflow-hidden rounded-t-xl">
+                <div className="relative h-32 overflow-visible rounded-t-xl">
                   {/* Banner or gradient background */}
                   <div
-                    className="h-full bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400"
+                    className="h-full overflow-hidden rounded-t-xl bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400"
                     style={
                       "banner_image" in item.data && item.data.banner_image
                         ? {
@@ -95,7 +95,7 @@ export default function ContentView({
 
                   {/* Status Badge */}
                   {"status" in item.data && item.data.status && (
-                    <div className="absolute top-2 right-2 rounded-full bg-green-500/90 px-2 py-1 text-xs font-medium text-white capitalize backdrop-blur-sm">
+                    <div className="absolute top-2 right-2 z-10 rounded-full bg-green-500/90 px-2 py-1 text-xs font-medium text-white capitalize backdrop-blur-sm">
                       {item.data.status}
                     </div>
                   )}
