@@ -4,7 +4,7 @@ DROP VIEW IF EXISTS character_details CASCADE;
 
 -- Create the character_worlds junction table
 CREATE TABLE character_worlds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   world_id UUID NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
