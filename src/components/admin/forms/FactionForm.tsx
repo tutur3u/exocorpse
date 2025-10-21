@@ -6,6 +6,7 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Faction } from "@/lib/actions/wiki";
+import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -86,23 +87,26 @@ export default function FactionForm({
     setError(null);
 
     try {
-      // Clean up empty strings to undefined
-      const cleanData: FactionFormData = {
-        ...data,
-        description: data.description || undefined,
-        summary: data.summary || undefined,
-        faction_type: data.faction_type || undefined,
-        founding_date: data.founding_date || undefined,
-        status: data.status || undefined,
-        primary_goal: data.primary_goal || undefined,
-        ideology: data.ideology || undefined,
-        reputation: data.reputation || undefined,
-        power_level: data.power_level || undefined,
-        logo_url: data.logo_url || undefined,
-        color_scheme: data.color_scheme || undefined,
-        banner_image: data.banner_image || undefined,
-        content: data.content || undefined,
-      };
+      // Clean up empty strings to undefined and handle number fields
+      const cleanData: FactionFormData = cleanFormData(
+        data,
+        [
+          "description",
+          "summary",
+          "faction_type",
+          "founding_date",
+          "status",
+          "primary_goal",
+          "ideology",
+          "reputation",
+          "power_level",
+          "logo_url",
+          "color_scheme",
+          "banner_image",
+          "content",
+        ],
+        ["member_count"],
+      );
 
       await onSubmit(cleanData);
     } catch (err) {
@@ -131,18 +135,32 @@ export default function FactionForm({
     handleExit(onCancel);
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleExit(onCancel);
+    }
+  };
+
   return (
     <>
       <div
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+        role="button"
+        tabIndex={0}
+        aria-label="Close and discard changes"
         onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
       >
         <div
           className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="faction-form-title"
         >
           <div className="px-6 pt-6 pb-4">
-            <h2 className="text-2xl font-bold">
+            <h2 id="faction-form-title" className="text-2xl font-bold">
               {faction ? "Edit Faction" : "Create New Faction"}
             </h2>
           </div>
@@ -204,24 +222,34 @@ export default function FactionForm({
               {activeTab === "basic" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-name"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Name *
                     </label>
                     <input
                       type="text"
-                      {...register("name", { required: true })}
-                      onChange={(e) => handleNameChange(e.target.value)}
+                      id="faction-name"
+                      {...register("name", {
+                        required: true,
+                        onChange: (e) => handleNameChange(e.target.value),
+                      })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="Exocorpse"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-slug"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Slug *
                     </label>
                     <input
                       type="text"
+                      id="faction-slug"
                       {...register("slug", { required: true })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="exocorpse"
@@ -232,11 +260,15 @@ export default function FactionForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-summary"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Summary
                     </label>
                     <input
                       type="text"
+                      id="faction-summary"
                       {...register("summary")}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="A brief one-line summary"
@@ -244,10 +276,14 @@ export default function FactionForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-description"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Description
                     </label>
                     <textarea
+                      id="faction-description"
                       {...register("description")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -257,11 +293,15 @@ export default function FactionForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="faction-faction-type"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Faction Type
                       </label>
                       <input
                         type="text"
+                        id="faction-faction-type"
                         {...register("faction_type")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="corporation, government, guild, etc."
@@ -269,10 +309,14 @@ export default function FactionForm({
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="faction-status"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Status
                       </label>
                       <select
+                        id="faction-status"
                         {...register("status")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       >
@@ -286,11 +330,15 @@ export default function FactionForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="faction-founding-date"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Founding Date
                       </label>
                       <input
                         type="text"
+                        id="faction-founding-date"
                         {...register("founding_date")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="2015, 500 years ago, etc."
@@ -298,12 +346,16 @@ export default function FactionForm({
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="faction-member-count"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Member Count
                       </label>
                       <input
                         type="number"
-                        {...register("member_count")}
+                        id="faction-member-count"
+                        {...register("member_count", { valueAsNumber: true })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="1000"
                         min="0"
@@ -317,11 +369,15 @@ export default function FactionForm({
               {activeTab === "details" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-primary-goal"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Primary Goal
                     </label>
                     <textarea
                       {...register("primary_goal")}
+                      id="faction-primary-goal"
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="What is this faction trying to achieve?"
@@ -329,10 +385,14 @@ export default function FactionForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-ideology"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Ideology
                     </label>
                     <textarea
+                      id="faction-ideology"
                       {...register("ideology")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -341,10 +401,14 @@ export default function FactionForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-reputation"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Reputation
                     </label>
                     <textarea
+                      id="faction-reputation"
                       {...register("reputation")}
                       rows={3}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -353,10 +417,14 @@ export default function FactionForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="faction-power-level"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Power Level
                     </label>
                     <select
+                      id="faction-power-level"
                       {...register("power_level")}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                     >

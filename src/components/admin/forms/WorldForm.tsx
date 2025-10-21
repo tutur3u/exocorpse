@@ -6,6 +6,7 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { World } from "@/lib/actions/wiki";
+import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -68,7 +69,6 @@ export default function WorldForm({
   const [error, setError] = useState<string | null>(null);
 
   // Watch form values for components that need them
-  const name = watch("name");
   const themePrimaryColor = watch("theme_primary_color");
   const themeSecondaryColor = watch("theme_secondary_color");
   const themeBackgroundImage = watch("theme_background_image");
@@ -80,19 +80,22 @@ export default function WorldForm({
     setError(null);
 
     try {
-      // Clean up empty strings to undefined
-      const cleanData: WorldFormData = {
-        ...data,
-        description: data.description || undefined,
-        summary: data.summary || undefined,
-        world_type: data.world_type || undefined,
-        size: data.size || undefined,
-        theme_primary_color: data.theme_primary_color || undefined,
-        theme_secondary_color: data.theme_secondary_color || undefined,
-        theme_background_image: data.theme_background_image || undefined,
-        theme_map_image: data.theme_map_image || undefined,
-        content: data.content || undefined,
-      };
+      // Clean up empty strings to undefined and handle number fields
+      const cleanData: WorldFormData = cleanFormData(
+        data,
+        [
+          "description",
+          "summary",
+          "world_type",
+          "size",
+          "theme_primary_color",
+          "theme_secondary_color",
+          "theme_background_image",
+          "theme_map_image",
+          "content",
+        ],
+        ["population"],
+      );
 
       await onSubmit(cleanData);
     } catch (err) {
@@ -121,18 +124,32 @@ export default function WorldForm({
     handleExit(onCancel);
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleExit(onCancel);
+    }
+  };
+
   return (
     <>
       <div
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
         onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-label="Close and discard changes"
       >
         <div
           className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="world-form-title"
         >
           <div className="px-6 pt-6 pb-4">
-            <h2 className="text-2xl font-bold">
+            <h2 id="world-form-title" className="text-2xl font-bold">
               {world ? "Edit World" : "Create New World"}
             </h2>
           </div>
@@ -183,25 +200,34 @@ export default function WorldForm({
               {activeTab === "basic" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="world-name"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Name *
                     </label>
                     <input
                       type="text"
-                      value={name}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      required
+                      id="world-name"
+                      {...register("name", {
+                        required: true,
+                        onChange: (e) => handleNameChange(e.target.value),
+                      })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="Terra Nova"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="world-slug"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Slug *
                     </label>
                     <input
                       type="text"
+                      id="world-slug"
                       {...register("slug", { required: true })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="terra-nova"
@@ -212,11 +238,15 @@ export default function WorldForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="world-summary"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Summary
                     </label>
                     <input
                       type="text"
+                      id="world-summary"
                       {...register("summary")}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="A brief one-line summary"
@@ -224,10 +254,14 @@ export default function WorldForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="world-description"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Description
                     </label>
                     <textarea
+                      id="world-description"
                       {...register("description")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -237,11 +271,15 @@ export default function WorldForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="world-world-type"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         World Type
                       </label>
                       <input
                         type="text"
+                        id="world-world-type"
                         {...register("world_type")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="planet, dimension, realm, etc."
@@ -249,11 +287,15 @@ export default function WorldForm({
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label
+                        htmlFor="world-size"
+                        className="mb-1 block text-sm font-medium"
+                      >
                         Size
                       </label>
                       <input
                         type="text"
+                        id="world-size"
                         {...register("size")}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="Continental, Global, etc."
@@ -262,11 +304,15 @@ export default function WorldForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="world-population"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Population
                     </label>
                     <input
                       type="number"
+                      id="world-population"
                       {...register("population", { valueAsNumber: true })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="450000000"

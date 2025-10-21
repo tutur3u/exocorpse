@@ -6,6 +6,7 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Story } from "@/lib/actions/wiki";
+import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -81,19 +82,18 @@ export default function StoryForm({
     setError(null);
 
     try {
-      // Clean up empty strings to undefined
-      const cleanData: StoryFormData = {
-        ...data,
-        description: data.description || undefined,
-        summary: data.summary || undefined,
-        theme_primary_color: data.theme_primary_color || undefined,
-        theme_secondary_color: data.theme_secondary_color || undefined,
-        theme_background_color: data.theme_background_color || undefined,
-        theme_text_color: data.theme_text_color || undefined,
-        theme_custom_css: data.theme_custom_css || undefined,
-        theme_background_image: data.theme_background_image || undefined,
-        content: data.content || undefined,
-      };
+      // Clean up empty strings to undefined and handle number fields
+      const cleanData: StoryFormData = cleanFormData(data, [
+        "description",
+        "summary",
+        "theme_primary_color",
+        "theme_secondary_color",
+        "theme_background_color",
+        "theme_text_color",
+        "theme_custom_css",
+        "theme_background_image",
+        "content",
+      ]);
 
       await onSubmit(cleanData);
     } catch (err) {
@@ -123,18 +123,32 @@ export default function StoryForm({
     handleExit(onCancel);
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleExit(onCancel);
+    }
+  };
+
   return (
     <>
       <div
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
         onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-label="Close and discard changes"
       >
         <div
           className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="story-form-title"
         >
           <div className="px-6 pt-6 pb-4">
-            <h2 className="text-2xl font-bold">
+            <h2 id="story-form-title" className="text-2xl font-bold">
               {story ? "Edit Story" : "Create New Story"}
             </h2>
           </div>
@@ -196,24 +210,34 @@ export default function StoryForm({
               {activeTab === "basic" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-title"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Title *
                     </label>
                     <input
                       type="text"
-                      {...register("title", { required: true })}
-                      onChange={(e) => handleTitleChange(e.target.value)}
+                      id="story-title"
+                      {...register("title", {
+                        required: true,
+                        onChange: (e) => handleTitleChange(e.target.value),
+                      })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="My Fantasy Story"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-slug"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Slug *
                     </label>
                     <input
                       type="text"
+                      id="story-slug"
                       {...register("slug", { required: true })}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="my-fantasy-story"
@@ -224,11 +248,15 @@ export default function StoryForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-summary"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Summary
                     </label>
                     <input
                       type="text"
+                      id="story-summary"
                       {...register("summary")}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                       placeholder="A brief one-line summary"
@@ -236,10 +264,14 @@ export default function StoryForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-description"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Description
                     </label>
                     <textarea
+                      id="story-description"
                       {...register("description")}
                       rows={4}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
@@ -306,10 +338,14 @@ export default function StoryForm({
                   />
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-custom-css"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Custom CSS
                     </label>
                     <textarea
+                      id="story-custom-css"
                       {...register("theme_custom_css")}
                       rows={6}
                       className="w-full rounded border border-gray-300 px-3 py-2 font-mono text-sm dark:border-gray-600 dark:bg-gray-700"
@@ -342,9 +378,13 @@ export default function StoryForm({
               {activeTab === "publishing" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-2 flex items-center gap-2">
+                    <label
+                      htmlFor="story-is-published"
+                      className="mb-2 flex items-center gap-2"
+                    >
                       <input
                         type="checkbox"
+                        id="story-is-published"
                         {...register("is_published")}
                         className="h-4 w-4 rounded border-gray-300"
                       />
@@ -356,10 +396,14 @@ export default function StoryForm({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label
+                      htmlFor="story-visibility"
+                      className="mb-1 block text-sm font-medium"
+                    >
                       Visibility
                     </label>
                     <select
+                      id="story-visibility"
                       {...register("visibility")}
                       className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                     >
