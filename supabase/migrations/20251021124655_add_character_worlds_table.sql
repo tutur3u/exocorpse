@@ -103,25 +103,52 @@ SELECT c.id,
   WHERE (c.deleted_at IS NULL)
   GROUP BY c.id;
 
--- Recreate story_hierarchy view with updated logic
+-- Recreate story_hierarchy view with optimized aggregation
 CREATE VIEW story_hierarchy AS
+WITH world_aggregates AS (
+  SELECT
+    w.id AS world_id,
+    COALESCE(char_counts.character_count, 0) AS character_count,
+    COALESCE(fac_counts.faction_count, 0) AS faction_count,
+    COALESCE(loc_counts.location_count, 0) AS location_count,
+    COALESCE(evt_counts.event_count, 0) AS event_count
+  FROM worlds w
+  LEFT JOIN (
+    SELECT cw.world_id, COUNT(*) AS character_count
+    FROM characters c
+    INNER JOIN character_worlds cw ON c.id = cw.character_id
+    WHERE c.deleted_at IS NULL
+    GROUP BY cw.world_id
+  ) char_counts ON w.id = char_counts.world_id
+  LEFT JOIN (
+    SELECT world_id, COUNT(*) AS faction_count
+    FROM factions
+    WHERE deleted_at IS NULL
+    GROUP BY world_id
+  ) fac_counts ON w.id = fac_counts.world_id
+  LEFT JOIN (
+    SELECT world_id, COUNT(*) AS location_count
+    FROM locations
+    WHERE deleted_at IS NULL
+    GROUP BY world_id
+  ) loc_counts ON w.id = loc_counts.world_id
+  LEFT JOIN (
+    SELECT world_id, COUNT(*) AS event_count
+    FROM events
+    WHERE deleted_at IS NULL
+    GROUP BY world_id
+  ) evt_counts ON w.id = evt_counts.world_id
+  WHERE w.deleted_at IS NULL
+)
 SELECT s.id AS story_id,
     s.title AS story_title,
     s.slug AS story_slug,
     s.is_published,
     s.visibility,
-    json_agg(jsonb_build_object('world_id', w.id, 'world_name', w.name, 'world_slug', w.slug, 'character_count', ( SELECT count(*) AS count
-           FROM characters c
-           INNER JOIN character_worlds cw ON c.id = cw.character_id
-          WHERE ((cw.world_id = w.id) AND (c.deleted_at IS NULL))), 'faction_count', ( SELECT count(*) AS count
-           FROM factions
-          WHERE ((factions.world_id = w.id) AND (factions.deleted_at IS NULL))), 'location_count', ( SELECT count(*) AS count
-           FROM locations
-          WHERE ((locations.world_id = w.id) AND (locations.deleted_at IS NULL))), 'event_count', ( SELECT count(*) AS count
-           FROM events
-          WHERE ((events.world_id = w.id) AND (events.deleted_at IS NULL))))) FILTER (WHERE (w.id IS NOT NULL)) AS worlds
+    json_agg(jsonb_build_object('world_id', w.id, 'world_name', w.name, 'world_slug', w.slug, 'character_count', COALESCE(wa.character_count, 0), 'faction_count', COALESCE(wa.faction_count, 0), 'location_count', COALESCE(wa.location_count, 0), 'event_count', COALESCE(wa.event_count, 0))) FILTER (WHERE (w.id IS NOT NULL)) AS worlds
    FROM (stories s
-     LEFT JOIN worlds w ON (((s.id = w.story_id) AND (w.deleted_at IS NULL))))
+     LEFT JOIN worlds w ON (((s.id = w.story_id) AND (w.deleted_at IS NULL)))
+     LEFT JOIN world_aggregates wa ON (w.id = wa.world_id))
   WHERE (s.deleted_at IS NULL)
   GROUP BY s.id;
 
@@ -132,6 +159,7 @@ declare
   v_deleted_count int;
   v_inserted_count int;
   v_error_message text;
+  v_world_ids uuid[];
 begin
   begin
     -- Delete existing character world associations
@@ -140,16 +168,19 @@ begin
 
     v_inserted_count := 0;
 
+    -- Normalize inputs: remove nulls and duplicates
+    v_world_ids := (select coalesce(array_agg(DISTINCT x), '{}') from unnest(coalesce(p_world_ids,'{}'::uuid[])) as t(x));
+
     -- Insert new associations if any worlds are provided
-    if array_length(p_world_ids, 1) > 0 then
+    if array_length(v_world_ids, 1) > 0 then
       insert into public.character_worlds (character_id, world_id)
-      select p_character_id, unnest(p_world_ids);
+      select p_character_id, unnest(v_world_ids);
       GET DIAGNOSTICS v_inserted_count = ROW_COUNT;
     end if;
 
     -- Return success with operation details
-    return query select true, 
-      format('Successfully updated character worlds. Removed %s associations, added %s new associations.', v_deleted_count, v_inserted_count),
+    return query select true,
+      format('Updated character worlds: removed %s, added %s.', v_deleted_count, v_inserted_count),
       v_inserted_count;
   exception when others then
     v_error_message := SQLERRM;

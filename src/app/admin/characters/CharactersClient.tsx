@@ -425,16 +425,7 @@ export default function CharactersClient({
         selectedWorldId &&
         (!editingCharacter || !characterWorldsLoading) && (
           <CharacterForm
-            character={
-              editingCharacter
-                ? {
-                    ...editingCharacter,
-                    world_ids: characterWorlds.map((cw) => ({
-                      world_id: cw.world_id,
-                    })),
-                  }
-                : undefined
-            }
+            character={editingCharacter ?? undefined}
             preSelectedWorldIds={
               editingCharacter
                 ? characterWorlds.map((cw) => cw.world_id)

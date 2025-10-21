@@ -181,6 +181,7 @@ export function MultiSelect({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={inputClassName}
+                  aria-label={`Search ${label || "items"}`}
                 />
               </div>
 
@@ -188,17 +189,28 @@ export function MultiSelect({
                 {filteredItems.length > 0 ? (
                   <div className="space-y-1 p-2">
                     {filteredItems.map((item) => (
-                      <label
+                      <div
                         key={item.id}
                         className={optionClassName}
                         role="option"
                         aria-selected={selectedIds.includes(item.id)}
+                        aria-checked={selectedIds.includes(item.id)}
+                        tabIndex={0}
+                        onClick={() => handleToggle(item.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            handleToggle(item.id);
+                          }
+                        }}
                       >
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(item.id)}
                           onChange={() => handleToggle(item.id)}
                           className={checkboxClassName}
+                          aria-hidden="true"
+                          tabIndex={-1}
                         />
                         <span
                           className={
@@ -209,7 +221,7 @@ export function MultiSelect({
                         >
                           {item.name}
                         </span>
-                      </label>
+                      </div>
                     ))}
                   </div>
                 ) : (

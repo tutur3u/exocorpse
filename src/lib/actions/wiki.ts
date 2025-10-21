@@ -304,7 +304,7 @@ export async function getCharacterBySlug(
     return null;
   }
 
-  const characterIds = characterWorldData.map((cw) => cw.character_id);
+  const characterIds = (characterWorldData ?? []).map((cw) => cw.character_id);
 
   if (characterIds.length === 0) return null;
 
@@ -594,14 +594,24 @@ export async function createCharacter(character: {
 
   // Create entries in character_worlds junction table
   if (world_ids && world_ids.length > 0) {
-    const characterWorldsData = world_ids.map((worldId) => ({
+    // Deduplicate world_ids using a Set
+    const uniqueWorldIds = Array.from(new Set(world_ids));
+
+    const characterWorldsData = uniqueWorldIds.map((worldId) => ({
       character_id: data.id,
       world_id: worldId,
     }));
 
+    // Skip DB call if the resulting array is empty
+    if (characterWorldsData.length === 0) {
+      return data;
+    }
+
     const { error: cwError } = await supabase
       .from("character_worlds")
-      .insert(characterWorldsData);
+      .upsert(characterWorldsData, {
+        onConflict: "character_id,world_id",
+      });
 
     if (cwError) {
       console.error("Error creating character-world relationships:", cwError);
@@ -616,6 +626,7 @@ export async function createCharacter(character: {
           rollbackError,
         );
       }
+      throw cwError;
     }
   }
 
@@ -641,12 +652,29 @@ export async function updateCharacter(
   };
 
   // Update the character
-  const { data, error } = await supabase
-    .from("characters")
-    .update(characterUpdates)
-    .eq("id", id)
-    .select()
-    .single();
+  let data: Character | null;
+  let error: unknown;
+
+  if (Object.keys(characterUpdates).length === 0) {
+    // If no character updates, fetch and return the current row
+    const result = await supabase
+      .from("characters")
+      .select()
+      .eq("id", id)
+      .single();
+    data = result.data;
+    error = result.error;
+  } else {
+    // Perform the update
+    const result = await supabase
+      .from("characters")
+      .update(characterUpdates)
+      .eq("id", id)
+      .select()
+      .single();
+    data = result.data;
+    error = result.error;
+  }
 
   if (error) {
     console.error("Error updating character:", error);
@@ -951,7 +979,7 @@ export async function addCharacterToWorld(data: {
 
   const { data: result, error } = await supabase
     .from("character_worlds")
-    .insert(data)
+    .upsert(data, { onConflict: "character_id,world_id" })
     .select()
     .single();
 
