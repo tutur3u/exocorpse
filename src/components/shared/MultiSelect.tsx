@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 interface MultiSelectProps {
   items: Array<{ id: string; name: string }>;
@@ -28,6 +28,9 @@ export function MultiSelect({
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const labelId = useId();
+  const triggerId = useId();
+  const listboxId = useId();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -96,7 +99,11 @@ export function MultiSelect({
   return (
     <div ref={containerRef} className="w-full">
       {label && (
-        <label className="mb-3 block text-sm font-semibold text-foreground">
+        <label
+          id={labelId}
+          htmlFor={triggerId}
+          className="mb-3 block text-sm font-semibold text-foreground"
+        >
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </label>
@@ -124,8 +131,16 @@ export function MultiSelect({
         <div className="relative">
           <button
             type="button"
+            id={triggerId}
+            aria-labelledby={`${labelId} ${triggerId}`}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            aria-controls={listboxId}
             onClick={() => setIsOpen(!isOpen)}
             className={buttonClassName}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setIsOpen(false);
+            }}
           >
             <div className="flex items-center justify-between">
               <span
@@ -146,7 +161,12 @@ export function MultiSelect({
           </button>
 
           {isOpen && (
-            <div className={dropdownClassName}>
+            <div
+              id={listboxId}
+              role="listbox"
+              aria-multiselectable="true"
+              className={dropdownClassName}
+            >
               <div
                 className={
                   isFormVariant
@@ -168,7 +188,12 @@ export function MultiSelect({
                 {filteredItems.length > 0 ? (
                   <div className="space-y-1 p-2">
                     {filteredItems.map((item) => (
-                      <label key={item.id} className={optionClassName}>
+                      <label
+                        key={item.id}
+                        className={optionClassName}
+                        role="option"
+                        aria-selected={selectedIds.includes(item.id)}
+                      >
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(item.id)}

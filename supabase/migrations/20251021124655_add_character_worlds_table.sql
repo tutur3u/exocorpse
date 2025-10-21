@@ -124,3 +124,36 @@ SELECT s.id AS story_id,
      LEFT JOIN worlds w ON (((s.id = w.story_id) AND (w.deleted_at IS NULL))))
   WHERE (s.deleted_at IS NULL)
   GROUP BY s.id;
+
+
+create function update_character_worlds(p_character_id uuid, p_world_ids uuid[])
+returns table(success boolean, message text, updated_count int) as $$
+declare
+  v_deleted_count int;
+  v_inserted_count int;
+  v_error_message text;
+begin
+  begin
+    -- Delete existing character world associations
+    delete from public.character_worlds where character_id = p_character_id;
+    GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
+
+    v_inserted_count := 0;
+
+    -- Insert new associations if any worlds are provided
+    if array_length(p_world_ids, 1) > 0 then
+      insert into public.character_worlds (character_id, world_id)
+      select p_character_id, unnest(p_world_ids);
+      GET DIAGNOSTICS v_inserted_count = ROW_COUNT;
+    end if;
+
+    -- Return success with operation details
+    return query select true, 
+      format('Successfully updated character worlds. Removed %s associations, added %s new associations.', v_deleted_count, v_inserted_count),
+      v_inserted_count;
+  exception when others then
+    v_error_message := SQLERRM;
+    return query select false, v_error_message, 0;
+  end;
+end;
+$$ language plpgsql security invoker;

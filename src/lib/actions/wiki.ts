@@ -240,7 +240,7 @@ export async function getCharactersByWorldSlug(
     .select("characters(*)")
     .eq("world_id", world.id)
     .is("characters.deleted_at", null)
-    .order("characters(name)", { ascending: true });
+    .order("name", { ascending: true, referencedTable: "characters" });
 
   if (error) {
     console.error("Error fetching characters:", error);
@@ -263,19 +263,20 @@ export async function getCharactersByWorldId(worldId: string) {
     .from("character_worlds")
     .select("characters(*)")
     .eq("world_id", worldId)
-    .is("characters.deleted_at", null);
+    .is("characters.deleted_at", null)
+    .order("name", { referencedTable: "characters", ascending: true });
 
   if (error) {
     console.error("Error fetching characters:", error);
     return [];
   }
 
-  // Extract character data from the join result and sort
+  // Extract character data from the join result
   const characters = (data || [])
     .map((cw) => (cw as { characters: Character }).characters)
     .filter((c: Character | null) => c !== null) as Character[];
 
-  return characters.sort((a, b) => a.name.localeCompare(b.name));
+  return characters;
 }
 
 /**
@@ -605,8 +606,16 @@ export async function createCharacter(character: {
     if (cwError) {
       console.error("Error creating character-world relationships:", cwError);
       // Optionally rollback by deleting the character
-      await supabase.from("characters").delete().eq("id", data.id);
-      throw cwError;
+      const { error: rollbackError } = await supabase
+        .from("characters")
+        .delete()
+        .eq("id", data.id);
+      if (rollbackError) {
+        console.error(
+          "Rollback failed: could not delete character after character-world relationship creation failed:",
+          rollbackError,
+        );
+      }
     }
   }
 
@@ -644,26 +653,26 @@ export async function updateCharacter(
     throw error;
   }
 
-  // If world_ids is provided, update the character_worlds relationships
+  // If world_ids is provided, update the character_worlds relationships using the database function
   if (world_ids !== undefined) {
-    // Delete existing relationships
-    await supabase.from("character_worlds").delete().eq("character_id", id);
+    const { data: result, error: cwError } = await supabase.rpc(
+      "update_character_worlds",
+      {
+        p_character_id: id,
+        p_world_ids: world_ids,
+      },
+    );
 
-    // Create new relationships
-    if (world_ids.length > 0) {
-      const characterWorldsData = world_ids.map((worldId) => ({
-        character_id: id,
-        world_id: worldId,
-      }));
+    if (cwError) {
+      console.error("Error updating character-world relationships:", cwError);
+      throw cwError;
+    }
 
-      const { error: cwError } = await supabase
-        .from("character_worlds")
-        .insert(characterWorldsData);
-
-      if (cwError) {
-        console.error("Error updating character-world relationships:", cwError);
-        throw cwError;
-      }
+    if (!result || !result[0]?.success) {
+      const errorMessage =
+        result?.[0]?.message || "Failed to update character worlds";
+      console.error("Character world update failed:", errorMessage);
+      throw new Error(errorMessage);
     }
   }
 

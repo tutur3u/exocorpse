@@ -106,17 +106,17 @@ export default function CharactersClient({
     }: {
       id: string;
       data: Parameters<typeof updateCharacter>[1];
+      worldIds: string[];
     }) => updateCharacter(id, data),
-    onSuccess: () => {
-      // Collect all world IDs to invalidate (avoid duplicates)
+    onSuccess: async (_data, variables) => {
       const worldsToInvalidate = new Set<string>();
 
-      // Add current selected world
-      if (selectedWorldId) {
-        worldsToInvalidate.add(selectedWorldId);
-      }
+      // Invalidate queries for all worlds the character is now in (from form submission)
+      variables.worldIds.forEach((worldId) => {
+        worldsToInvalidate.add(worldId);
+      });
 
-      // Add all worlds the character belongs to
+      // Also invalidate the character's old worlds to ensure consistency
       characterWorlds.forEach((cw) => {
         worldsToInvalidate.add(cw.world_id);
       });
@@ -129,6 +129,12 @@ export default function CharactersClient({
           }),
         ),
       );
+
+      if (editingCharacter) {
+        await queryClient.invalidateQueries({
+          queryKey: ["characterWorlds", editingCharacter.id],
+        });
+      }
 
       setEditingCharacter(null);
       setShowForm(false);
@@ -188,7 +194,12 @@ export default function CharactersClient({
 
   const handleUpdate = async (data: Parameters<typeof updateCharacter>[1]) => {
     if (!editingCharacter) return;
-    await updateMutation.mutateAsync({ id: editingCharacter.id, data });
+    const worldIds = data.world_ids || [];
+    await updateMutation.mutateAsync({
+      id: editingCharacter.id,
+      data,
+      worldIds,
+    });
   };
 
   const handleDelete = async (id: string) => {

@@ -1639,6 +1639,14 @@ export type Database = {
         Args: { "": string };
         Returns: string[];
       };
+      update_character_worlds: {
+        Args: { p_character_id: string; p_world_ids: string[] };
+        Returns: {
+          message: string;
+          success: boolean;
+          updated_count: number;
+        }[];
+      };
     };
     Enums: {
       character_status:

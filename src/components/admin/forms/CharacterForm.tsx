@@ -72,39 +72,13 @@ export default function CharacterForm({
 
   // Extract world_ids from character if editing
   const getInitialWorldIds = (): string[] => {
-    // If pre-selected world IDs are provided (from parent during edit), use those
-    if (preSelectedWorldIds.length > 0) {
+    // If editing a character, use the preSelectedWorldIds from the query
+    // (which correctly represents the character's worlds, even if empty)
+    if (character) {
       return preSelectedWorldIds;
     }
 
     // For new characters, use the current worldId
-    if (!character) return [worldId];
-
-    // Fallback: try to extract from character data
-    if ("world_ids" in character && character.world_ids) {
-      try {
-        const worldIds = character.world_ids as unknown;
-        if (Array.isArray(worldIds)) {
-          // Extract world_id from each object in the array
-          return worldIds
-            .map((item) => {
-              if (
-                typeof item === "object" &&
-                item !== null &&
-                "world_id" in item
-              ) {
-                return (item as { world_id: string }).world_id;
-              }
-              return null;
-            })
-            .filter((id): id is string => id !== null);
-        }
-      } catch (e) {
-        console.error("Error parsing world_ids:", e);
-      }
-    }
-
-    // Default to current worldId for editing existing characters
     return [worldId];
   };
 
