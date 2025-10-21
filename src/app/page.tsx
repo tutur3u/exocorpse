@@ -214,7 +214,7 @@ export default async function Home({ searchParams }: Props) {
   const pageSize = Math.max(1, Math.min(rawPageSize, 50)); // cap at 50
   const initialBlogData: InitialBlogData = {
     posts: [],
-    total: 0, 
+    total: 0,
     page: 1,
     pageSize: pageSize,
     selectedPost: null,
