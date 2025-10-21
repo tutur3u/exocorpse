@@ -508,10 +508,9 @@ Disguised as a tech startup office, this facility houses some of Exocorpse''s mo
   -- ============================================================================
 
   -- Character 1: Pulse Operative
-  INSERT INTO characters (id, world_id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
-      v_world_id,
       'Kazuki Yamamoto',
       'kazuki-yamamoto',
       'Cardiac',
@@ -543,10 +542,9 @@ Kazuki believes that by eliminating threats before they can harm innocents, he''
   RETURNING id INTO v_char1_id;
 
   -- Character 2: Neuro Operative
-  INSERT INTO characters (id, world_id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
-      v_world_id,
       'Dr. Aisha Rahman',
       'aisha-rahman',
       'Synaptic',
@@ -578,10 +576,9 @@ Aisha believes that by understanding and manipulating the minds of those in powe
   RETURNING id INTO v_char2_id;
 
   -- Character 3: Dual-Type (rare)
-  INSERT INTO characters (id, world_id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, likes, dislikes, fears, goals, backstory, skills, abilities, strengths, weaknesses, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, likes, dislikes, fears, goals, backstory, skills, abilities, strengths, weaknesses, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
-      v_world_id,
       'Viktor Sokolov',
       'viktor-sokolov',
       'Apex',
@@ -625,6 +622,15 @@ Among Pulse operatives, he''s respected for his combat prowess. Among Neuros, he
       '#8b5cf6'
     )
   RETURNING id INTO v_char3_id;
+
+  -- ============================================================================
+  -- CHARACTER-WORLD ASSOCIATIONS
+  -- ============================================================================
+
+  INSERT INTO character_worlds (character_id, world_id) VALUES
+    (v_char1_id, v_world_id),
+    (v_char2_id, v_world_id),
+    (v_char3_id, v_world_id);
 
   -- ============================================================================
   -- CHARACTER-FACTION ASSOCIATIONS

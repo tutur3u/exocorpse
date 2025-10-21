@@ -236,18 +236,21 @@ export async function getCharactersByWorldSlug(
   if (!world) return [];
 
   const { data, error } = await supabase
-    .from("characters")
-    .select("*")
+    .from("character_worlds")
+    .select("characters(*)")
     .eq("world_id", world.id)
-    .is("deleted_at", null)
-    .order("name", { ascending: true });
+    .is("characters.deleted_at", null)
+    .order("characters(name)", { ascending: true });
 
   if (error) {
     console.error("Error fetching characters:", error);
     return [];
   }
 
-  return data || [];
+  // Extract character data from the join result
+  return (data || [])
+    .map((cw) => (cw as { characters: Character }).characters)
+    .filter((c: Character | null) => c !== null) as Character[];
 }
 
 /**
@@ -257,18 +260,22 @@ export async function getCharactersByWorldId(worldId: string) {
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
-    .from("characters")
-    .select("*")
+    .from("character_worlds")
+    .select("characters(*)")
     .eq("world_id", worldId)
-    .is("deleted_at", null)
-    .order("name", { ascending: true });
+    .is("characters.deleted_at", null);
 
   if (error) {
     console.error("Error fetching characters:", error);
     return [];
   }
 
-  return data || [];
+  // Extract character data from the join result and sort
+  const characters = (data || [])
+    .map((cw) => (cw as { characters: Character }).characters)
+    .filter((c: Character | null) => c !== null) as Character[];
+
+  return characters.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -285,11 +292,26 @@ export async function getCharacterBySlug(
   const world = await getWorldBySlug(storySlug, worldSlug);
   if (!world) return null;
 
+  // Get character through the character_worlds junction table
+  const { data: characterWorldData, error: cwError } = await supabase
+    .from("character_worlds")
+    .select("character_id")
+    .eq("world_id", world.id);
+
+  if (cwError) {
+    console.error("Error fetching character-world relationships:", cwError);
+    return null;
+  }
+
+  const characterIds = characterWorldData.map((cw) => cw.character_id);
+
+  if (characterIds.length === 0) return null;
+
   const { data, error } = await supabase
     .from("character_details")
     .select("*")
     .eq("slug", characterSlug)
-    .eq("world_id", world.id)
+    .in("id", characterIds)
     .is("deleted_at", null)
     .single();
 
@@ -517,7 +539,7 @@ export async function deleteWorld(id: string) {
  * Create a new character
  */
 export async function createCharacter(character: {
-  world_id: string;
+  world_ids: string[]; // Changed from world_id to world_ids array
   name: string;
   slug: string;
   nickname?: string;
@@ -554,15 +576,38 @@ export async function createCharacter(character: {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // Extract world_ids from the character data
+  const { world_ids, ...characterData } = character;
+
+  // Insert the character without world_ids
   const { data, error } = await supabase
     .from("characters")
-    .insert(character)
+    .insert(characterData)
     .select()
     .single();
 
   if (error) {
     console.error("Error creating character:", error);
     throw error;
+  }
+
+  // Create entries in character_worlds junction table
+  if (world_ids && world_ids.length > 0) {
+    const characterWorldsData = world_ids.map((worldId) => ({
+      character_id: data.id,
+      world_id: worldId,
+    }));
+
+    const { error: cwError } = await supabase
+      .from("character_worlds")
+      .insert(characterWorldsData);
+
+    if (cwError) {
+      console.error("Error creating character-world relationships:", cwError);
+      // Optionally rollback by deleting the character
+      await supabase.from("characters").delete().eq("id", data.id);
+      throw cwError;
+    }
   }
 
   return data;
@@ -573,14 +618,23 @@ export async function createCharacter(character: {
  */
 export async function updateCharacter(
   id: string,
-  updates: Partial<Omit<Character, "id" | "created_at">>,
+  updates: Partial<
+    Omit<Character, "id" | "created_at"> & { world_ids?: string[] }
+  >,
 ) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // Extract world_ids if present
+  const { world_ids, ...characterUpdates } = updates as {
+    world_ids?: string[];
+    [key: string]: unknown;
+  };
+
+  // Update the character
   const { data, error } = await supabase
     .from("characters")
-    .update(updates)
+    .update(characterUpdates)
     .eq("id", id)
     .select()
     .single();
@@ -588,6 +642,29 @@ export async function updateCharacter(
   if (error) {
     console.error("Error updating character:", error);
     throw error;
+  }
+
+  // If world_ids is provided, update the character_worlds relationships
+  if (world_ids !== undefined) {
+    // Delete existing relationships
+    await supabase.from("character_worlds").delete().eq("character_id", id);
+
+    // Create new relationships
+    if (world_ids.length > 0) {
+      const characterWorldsData = world_ids.map((worldId) => ({
+        character_id: id,
+        world_id: worldId,
+      }));
+
+      const { error: cwError } = await supabase
+        .from("character_worlds")
+        .insert(characterWorldsData);
+
+      if (cwError) {
+        console.error("Error updating character-world relationships:", cwError);
+        throw cwError;
+      }
+    }
   }
 
   return data;
@@ -819,6 +896,78 @@ export async function removeCharacterFromFaction(id: string) {
 
   if (error) {
     console.error("Error removing character from faction:", error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// CHARACTER-WORLD RELATIONSHIP OPERATIONS
+// ============================================================================
+
+/**
+ * Get all worlds a character belongs to
+ */
+export async function getCharacterWorlds(characterId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_worlds")
+    .select(
+      `
+      *,
+      worlds (*)
+    `,
+    )
+    .eq("character_id", characterId)
+    .is("worlds.deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching character worlds:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Add a character to a world
+ */
+export async function addCharacterToWorld(data: {
+  character_id: string;
+  world_id: string;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("character_worlds")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding character to world:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Remove a character from a world
+ */
+export async function removeCharacterFromWorld(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { error } = await supabase
+    .from("character_worlds")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error removing character from world:", error);
     throw error;
   }
 }
