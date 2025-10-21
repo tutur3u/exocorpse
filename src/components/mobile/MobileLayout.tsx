@@ -1,17 +1,22 @@
 "use client";
 
 import { MobileProvider } from "@/contexts/MobileContext";
+import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import DesktopNoticeBanner from "./DesktopNoticeBanner";
 import MobileBottomSheet from "./MobileBottomSheet";
 
 type MobileLayoutProps = {
   wikiParams: WikiSearchParams;
+  blogParams: BlogSearchParams;
 };
 
-export default function MobileLayout({ wikiParams }: MobileLayoutProps) {
+export default function MobileLayout({
+  wikiParams,
+  blogParams,
+}: MobileLayoutProps) {
   return (
-    <MobileProvider wikiParams={wikiParams}>
+    <MobileProvider wikiParams={wikiParams} blogParams={blogParams}>
       <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         {/* Desktop Notice Banner */}
         <DesktopNoticeBanner />

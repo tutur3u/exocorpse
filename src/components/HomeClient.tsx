@@ -1,33 +1,42 @@
 "use client";
 
-import type { InitialWikiData } from "@/app/page";
+import type { InitialBlogData, InitialWikiData } from "@/app/page";
 import BootScreen from "@/components/BootScreen";
 import Desktop from "@/components/Desktop";
 import MobileLayout from "@/components/mobile/MobileLayout";
+import { InitialBlogDataProvider } from "@/contexts/InitialBlogDataContext";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useSound } from "@/contexts/SoundContext";
 import { WindowProvider } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
+import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 
 type HomeClientProps = {
   wikiParams: WikiSearchParams;
-  initialData: InitialWikiData;
+  blogParams: BlogSearchParams;
+  initialWikiData: InitialWikiData;
+  initialBlogData: InitialBlogData;
 };
 
 export default function HomeClient({
   wikiParams,
-  initialData,
+  blogParams,
+  initialWikiData,
+  initialBlogData,
 }: HomeClientProps) {
   const isMobile = useMobileDetection();
   const { isBootComplete, setBootComplete } = useSound();
 
-  // Check if we have any wiki params (content)
+  // Check if we have any wiki or blog params (content)
   const hasContent = !!(
     wikiParams.story ||
     wikiParams.world ||
     wikiParams.character ||
-    wikiParams.faction
+    wikiParams.faction ||
+    blogParams["blog-post"] ||
+    blogParams["blog-page"] ||
+    blogParams["blog-page-size"]
   );
 
   // Show boot screen only on first visit to root index (no content params)
@@ -37,17 +46,21 @@ export default function HomeClient({
 
   if (isMobile) {
     return (
-      <InitialWikiDataProvider initialData={initialData}>
-        <MobileLayout wikiParams={wikiParams} />
-      </InitialWikiDataProvider>
+      <InitialBlogDataProvider initialData={initialBlogData}>
+        <InitialWikiDataProvider initialData={initialWikiData}>
+          <MobileLayout wikiParams={wikiParams} blogParams={blogParams} />
+        </InitialWikiDataProvider>
+      </InitialBlogDataProvider>
     );
   }
 
   return (
-    <InitialWikiDataProvider initialData={initialData}>
-      <WindowProvider wikiParams={wikiParams}>
-        <Desktop />
-      </WindowProvider>
-    </InitialWikiDataProvider>
+    <InitialBlogDataProvider initialData={initialBlogData}>
+      <InitialWikiDataProvider initialData={initialWikiData}>
+        <WindowProvider wikiParams={wikiParams} blogParams={blogParams}>
+          <Desktop />
+        </WindowProvider>
+      </InitialWikiDataProvider>
+    </InitialBlogDataProvider>
   );
 }

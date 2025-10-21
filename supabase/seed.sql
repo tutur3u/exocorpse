@@ -770,6 +770,389 @@ The operation required precision timing, with multiple simultaneous strikes acro
 
 END $$;
 
+
+-- ============================================================================
+-- SEED DATA: Blog Posts
+-- ============================================================================
+
+INSERT INTO blog_posts (slug, title, content, excerpt, published_at) VALUES
+  (
+    'welcome-to-exocorpse',
+    'Welcome to Exocorpse',
+    '# Welcome to Exocorpse
+
+Welcome to the official wiki for the Exocorpse universe. This is a comprehensive resource documenting the underground corporation that strives to cleanse humanity''s sins through unconventional means.
+
+## About This Wiki
+
+This wiki serves as the primary source for information about:
+
+- **The Organization**: Structure, divisions, and operations
+- **Characters**: Operatives, commanders, and key figures
+- **Locations**: Facilities, safe houses, and operational bases
+- **Events**: Missions, pivotal moments, and timeline events
+- **Factions**: Prototype Pulse and Prototype Neuro divisions
+
+## Getting Started
+
+If you''re new to Exocorpse, we recommend starting with:
+
+1. **The Story Overview** - Get a high-level understanding of the universe
+2. **The Characters** - Meet the operatives at the heart of Exocorpse
+3. **The Prototypes** - Learn about Pulse and Neuro specializations
+
+## Community Contributions
+
+This wiki is maintained by fans of the Exocorpse universe. If you have content to contribute, please reach out through the contact form.
+
+---
+
+*Last updated: Today*
+
+*"Someone must bear the burden of sin so that others may live in the light."*',
+    'Discover the world of Exocorpse, an underground corporation operating in the shadows of modern society.',
+    '2025-10-21 08:00:00+00'
+  ),
+  (
+    'understanding-the-prototypes',
+    'Understanding the Prototypes: Pulse vs Neuro',
+    '# Understanding the Prototypes: Pulse vs Neuro
+
+One of the most fundamental aspects of Exocorpse is the Prototype system—a classification that divides operatives into two primary branches based on their aptitudes and specializations.
+
+## The Philosophy Behind Prototypes
+
+The founders of Exocorpse believed that human potential comes in distinct forms. Rather than forcing all recruits into a single mold, they developed a system that identifies, nurtures, and specializes individuals according to their natural strengths.
+
+## Prototype: Pulse
+
+**Pulse operatives** are the physical embodiment of Exocorpse''s direct action capabilities. They are warriors, athletes, and tacticians.
+
+### Selection Criteria
+- Exceptional physical conditioning
+- Combat proficiency (any discipline)
+- Quick decision-making under pressure
+- High pain tolerance
+- Tactical thinking and adaptability
+
+### Training Program
+The Pulse training program lasts 2 years and is one of the most rigorous on Earth. Only 40% of applicants complete it.
+
+### Specializations
+- **Combat Operative**: Direct action, infiltration, extraction
+- **Tactical Commander**: Planning and coordination
+- **Close Protection**: VIP security and bodyguard services
+
+### Notable Traits
+- Exceptional physical conditioning
+- Enhanced reflexes through training
+- Superior pain tolerance
+- Tactical analysis capabilities
+
+## Prototype: Neuro
+
+**Neuro operatives** are the architects of Exocorpse''s most complex operations, working in the shadows and pulling strings from behind the scenes.
+
+### Selection Criteria
+- Exceptional intelligence (typically IQ 140+)
+- Advanced psychological understanding
+- Pattern recognition abilities
+- Social engineering skills
+- Information synthesis capabilities
+
+### Training Program
+The Neuro training program lasts 3 years and focuses on psychology, cryptography, sociology, and manipulation techniques.
+
+### Specializations
+- **Intelligence Analyst**: Information gathering and analysis
+- **Psychologist**: Interrogation and psychological profiling
+- **Information Warfare Specialist**: Data manipulation and misinformation
+
+### Notable Traits
+- Eidetic memory
+- Rapid pattern recognition
+- Psychological profiling ability
+- Advanced threat assessment
+
+## Dual-Type Operatives (Rare)
+
+In exceptional cases, an individual may demonstrate aptitude in both Pulse and Neuro disciplines. These dual-type operatives are extraordinarily rare—fewer than 10 are currently active.
+
+Viktor Sokolov is one of the most famous examples of a dual-type operative, commanding joint operations between both divisions.
+
+## Comparison Table
+
+| Aspect | Pulse | Neuro |
+|--------|-------|-------|
+| Primary Focus | Physical Action | Information & Psychology |
+| Training Duration | 2 years | 3 years |
+| Completion Rate | 40% | 60% |
+| Typical Role | Field Operations | Analysis & Planning |
+| Strength | Direct Execution | Strategic Manipulation |
+| Key Skill | Combat | Psychology |
+
+---
+
+*"The heart beats and the mind thinks. Both are essential to Exocorpse."*',
+    'Learn how Exocorpse identifies and specializes its operatives into two distinct prototype systems.',
+    '2025-10-21 10:30:00+00'
+  ),
+  (
+    'the-marrow-headquarters',
+    'The Marrow: Exocorpse''s Hidden Heart',
+    '# The Marrow: Exocorpse''s Hidden Heart
+
+The Marrow is more than just a building—it''s the beating heart of the entire Exocorpse organization. Located 200 meters beneath Tokyo, this state-of-the-art facility represents decades of planning, construction, and refinement.
+
+## Historical Background
+
+Construction of The Marrow began in 2008, two years before Exocorpse''s official founding. The project required:
+
+- 847 workers sworn to secrecy
+- $2.3 billion in funding
+- 18 months of continuous construction
+- Complete destruction of all records after completion
+
+The facility was first occupied in March 2010, just months after Exocorpse''s founding.
+
+## Facility Overview
+
+### Size and Capacity
+- **Total Area**: 145,000 square meters
+- **Personnel Capacity**: 2,000 (current occupancy: ~1,500)
+- **Depth**: 200 meters below street level
+- **Levels**: 7 operational levels
+
+### The Seven Levels
+
+**Level 1: Reception & Cover Operations**
+- Legitimate business fronts
+- Public-facing administrative offices
+- Visitor reception areas
+- Identity verification stations
+
+**Level 2: Administration & Mission Planning**
+- Executive offices
+- Strategic planning rooms
+- Secure communication centers
+- Archive storage
+
+**Level 3: Training Facilities**
+- Combat training grounds (Pulse)
+- Psychological training labs (Neuro)
+- Simulation chambers
+- Physical conditioning areas
+
+**Level 4: Medical & Research Division**
+- Advanced medical facilities
+- Surgical suites
+- Psychological evaluation rooms
+- Genetic research labs (classified)
+
+**Level 5: Armory & Equipment Storage**
+- Weapons storage and maintenance
+- Tactical gear inventory
+- Technology and gadget development
+- Ammunition and explosives storage
+
+**Level 6: Command Center & Archives**
+- Central command operations
+- Real-time mission monitoring
+- Historical records and documents
+- Strategic intelligence storage
+
+**Level 7: High-Security Detention & Interrogation**
+- Secure holding cells
+- Advanced interrogation rooms
+- Psychological manipulation chambers
+- Medical extraction facilities
+
+## Security Systems
+
+### Physical Security
+- Biometric identification at all entry points
+- Neural pattern recognition technology
+- Pressure-sensitive flooring in sensitive areas
+- Automated security response systems
+
+### Cybersecurity
+- Air-gapped networks for critical systems
+- Quantum encryption for communications
+- AI-assisted threat detection
+- 247 redundant backup systems
+
+### Access Control
+- 32 separate security zones
+- Retinal scanning at critical junctures
+- Voice pattern verification
+- Temporal access restrictions (time-based access)
+
+## Notable Achievements
+
+The Marrow has never been breached in its 15-year operational history. It has weathered:
+
+- 47 attempted infiltrations (all neutralized)
+- 3 close calls with government investigations
+- Hundreds of cyber attacks (none successful)
+- Natural disasters that would have destroyed lesser facilities
+
+---
+
+*"The Marrow is not just our headquarters. It is our statement. It is our promise that Exocorpse is built to last."*
+— Viktor Sokolov, Commander',
+    'Explore the architecture, layout, and security systems of The Marrow, Exocorpse''s secret headquarters beneath Tokyo.',
+    '2025-10-21 14:15:00+00'
+  ),
+  (
+    'operatic-cardiac-arrest-breakdown',
+    'Operation Cardiac Arrest: A Tactical Breakdown',
+    '# Operation Cardiac Arrest: A Tactical Breakdown
+
+Operation Cardiac Arrest stands as one of the most successful and complex missions in Exocorpse history. Executed in March 2020, it eliminated a terrorist threat before it could claim countless civilian lives.
+
+## Mission Objectives
+
+1. Locate and neutralize 8 key terrorist operatives
+2. Secure classified intelligence documents
+3. Prevent scheduled terrorist attack
+4. Maintain operational secrecy (zero collateral damage)
+
+## Pre-Mission Intelligence
+
+Through months of Neuro-division analysis, Exocorpse identified:
+
+- 8 terrorist cells coordinating an attack
+- Planning to execute simultaneous strikes across Singapore
+- Target: Civilian entertainment districts
+- Timeline: 72 hours from mission start
+- Estimated casualties: 3,000-5,000 civilians
+
+## The Execution
+
+### Phase 1: Insertion (00:00 - 02:30)
+Kazuki Yamamoto led a team of 8 Pulse operatives across Singapore using pre-positioned safe houses and disguises. Each operative was equipped with:
+
+- Advanced communication systems
+- Non-lethal and lethal options
+- Thermal imaging technology
+- Backup extraction routes
+
+### Phase 2: Simultaneous Strikes (03:00 - 04:30)
+All 8 targets were neutralized within a 90-minute window across the city:
+
+- Marina Bay Sands penthouse: 2 operatives eliminated
+- Sentosa underground bunker: 3 operatives eliminated
+- Changi Business Park warehouse: 1 operative eliminated
+- Bukit Timah Nature Reserve safe house: 2 operatives eliminated
+
+**Execution Time**: 87 minutes
+**Casualties on Exocorpse side**: 0
+**Civilian injuries**: 0
+**Mission status**: COMPLETE
+
+### Phase 3: Intelligence Recovery (04:45 - 06:00)
+Neuro operatives remotely accessed terrorist communications and financial records, securing:
+
+- Attack blueprints
+- Funding sources
+- International contact information
+- Future operation plans
+
+### Phase 4: Extraction (06:15 - 08:00)
+All Exocorpse operatives extracted via pre-arranged transport, leaving no trace of their involvement.
+
+## Impact
+
+- Prevented estimated 3,500+ civilian deaths
+- Disrupted international terrorist networks
+- Enhanced Exocorpse''s reputation internally
+- Established Kazuki Yamamoto as elite-tier operative
+- Demonstrated seamless Pulse-Neuro coordination
+
+## Lessons Learned
+
+1. **Precision Planning Pays Off**: Months of intelligence work enabled flawless execution
+2. **Team Cohesion**: Perfect coordination between operatives
+3. **Technology Advantage**: Advanced equipment made the difference
+4. **Neuro Support**: Psychological operations intel was critical
+
+---
+
+*"The heart stopped beating. The threat was eliminated. Civilians went to bed that night, never knowing how close death came."*
+— Mission report, Operation Cardiac Arrest',
+    'A detailed tactical analysis of Operation Cardiac Arrest, one of Exocorpse''s most successful missions.',
+    '2025-10-21 16:45:00+00'
+  ),
+  (
+    'philosophy-of-exocorpse',
+    'The Philosophy of Exocorpse: Sin for Salvation',
+    '# The Philosophy of Exocorpse: Sin for Salvation
+
+At its core, Exocorpse is built on a singular, controversial philosophy: **Someone must bear the burden of sin so that others may live in the light.**
+
+## The Founding Principle
+
+In 2010, seven disillusioned operatives gathered beneath Tokyo with a radical idea. They believed that:
+
+1. **Governments are inefficient** - Bureaucracy prevents necessary action
+2. **Morality is a luxury** - When lives are at stake, rules must bend
+3. **The greater good justifies the means** - Sometimes dirty work prevents greater harm
+4. **Shadow work is noble** - Those who do it sacrifice their souls for civilization
+
+## Core Tenets
+
+### Tenet 1: Necessary Evil
+
+Not all targets deserve death. Not all means are justified. But when the choice is between one murder and a genocide, Exocorpse believes in the murder.
+
+The organization operates in the moral gray zone, accepting contracts that governments cannot acknowledge but desperately need executed.
+
+### Tenet 2: The Sacrifice
+
+Members of Exocorpse understand they are sacrificing their souls for the greater good. Each mission taken, each life ended, each psyche manipulated—all are burdens the operative bears so civilians need not.
+
+### Tenet 3: Purpose Over Profit
+
+While Exocorpse is well-funded, its primary motivation is not money. It is the belief that their work matters, that their sacrifices have meaning.
+
+### Tenet 4: Perfection in Execution
+
+If you must sin, sin perfectly. Sloppy work causes collateral damage. Precise work achieves objectives cleanly. Exocorpse demands excellence.
+
+### Tenet 5: Selective Recruitment
+
+Not everyone can bear the weight of this work. Exocorpse recruits only the strongest—physically and psychologically—understanding that weak links lead to mission failure and innocent deaths.
+
+## The Criticism
+
+Of course, this philosophy is controversial. Critics argue:
+
+- **It''s moral relativism**: Who decides what counts as "necessary"?
+- **It breeds corruption**: Power to decide who lives and dies is inherently corrupting
+- **It''s cult-like**: The philosophy asks for absolute belief and sacrifice
+- **It justifies atrocity**: Any evil can be justified as "necessary"
+
+Exocorpse members acknowledge these criticisms but maintain their conviction that perfect isn''t possible in a broken world.
+
+## In Practice
+
+This philosophy manifests as:
+
+- **Surgical precision**: Kill only the target, never the innocent
+- **Psychological fortitude**: Accept the weight of your actions
+- **Mission before self**: Personal wants mean nothing compared to objectives
+- **Loyalty above all**: Trust your team completely or don''t work
+- **Constant questioning**: Never become comfortable; always question if you''re on the right side
+
+---
+
+*"We are not heroes. We are not villains. We are the necessary shadow between light and darkness. And we bear the weight so you don''t have to."*
+— Exocorpse Operative Creed',
+    'Explore the philosophical foundation that drives Exocorpse operatives and justifies their morally ambiguous work.',
+    '2025-10-20 09:00:00+00'
+  );
+
+
 -- ============================================================================
 -- VERIFICATION QUERIES
 -- ============================================================================

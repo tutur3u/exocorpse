@@ -1,10 +1,12 @@
 "use client";
 
 import AboutMe from "@/components/apps/AboutMe";
+import Blog from "@/components/apps/Blog";
 import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
 import { TASKBAR_HEIGHT } from "@/constants";
+import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
 import React, {
@@ -68,14 +70,24 @@ export const APP_CONFIGS: WindowConfig[] = [
     defaultSize: { width: 600, height: 500 },
     defaultPosition: { x: 250, y: 150 },
   },
+  {
+    id: "blog",
+    title: "Blog",
+    icon: "📝",
+    component: Blog,
+    defaultSize: { width: 700, height: 600 },
+    defaultPosition: { x: 150, y: 100 },
+  },
 ];
 
 export function WindowProvider({
   children,
   wikiParams,
+  blogParams,
 }: {
   children: React.ReactNode;
   wikiParams: WikiSearchParams;
+  blogParams: BlogSearchParams;
 }) {
   const hasWikiParams =
     wikiParams.story ||
@@ -83,21 +95,27 @@ export function WindowProvider({
     wikiParams.character ||
     wikiParams.faction;
 
-  // Initialize windows with wiki window if params are present
+  const hasBlogParams =
+    blogParams["blog-post"] ||
+    blogParams["blog-page"] ||
+    blogParams["blog-page-size"];
+
+  // Initialize windows with appropriate window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
   const initializedRef = useRef(false);
 
-  // Initialize wiki window on mount if wiki params are present
+  // Initialize wiki or blog window on mount if params are present
   // Using useEffect with empty deps to ensure it only runs once on mount
   useEffect(() => {
-    if (hasWikiParams && !initializedRef.current) {
+    if ((hasWikiParams || hasBlogParams) && !initializedRef.current) {
       initializedRef.current = true;
-      const config = APP_CONFIGS.find((c) => c.id === "wiki");
+      const appId = hasWikiParams ? "wiki" : "blog";
+      const config = APP_CONFIGS.find((c) => c.id === appId);
       if (config) {
         setWindows([
           {
-            id: "wiki",
+            id: appId,
             state: "maximized",
             zIndex: 1000,
             position: { x: 0, y: 0 },

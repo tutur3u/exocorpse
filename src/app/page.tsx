@@ -1,6 +1,11 @@
 import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import {
+  getBlogPostBySlug,
+  getPublishedBlogPostsPaginated,
+  type BlogPost,
+} from "@/lib/actions/blog";
+import {
   getCharacterBySlug,
   getCharactersByWorldSlug,
   getFactionBySlug,
@@ -15,11 +20,14 @@ import {
   type World,
 } from "@/lib/actions/wiki";
 import {
+  loadBlogSearchParams,
+  serializeBlogSearchParams,
+} from "@/lib/blog-search-params";
+import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
 import type { Metadata } from "next";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,9 +44,42 @@ export type InitialWikiData = {
   factions: Faction[];
 };
 
+export type InitialBlogData = {
+  posts: BlogPost[];
+  total: number;
+  page: number;
+  pageSize: number;
+  selectedPost: BlogPost | null;
+};
+
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
+  // Check for blog params first
+  const blogParams = await loadBlogSearchParams(searchParams);
+  const { "blog-post": blogPostSlug } = blogParams;
+
+  // Blog post view
+  if (blogPostSlug) {
+    const blogPost = await getBlogPostBySlug(blogPostSlug);
+    if (blogPost) {
+      return {
+        title: `${blogPost.title} - EXOCORPSE Blog`,
+        description:
+          blogPost.excerpt ||
+          blogPost.content.substring(0, MAX_DESCRIPTION_LENGTH) ||
+          "Blog post from EXOCORPSE",
+        alternates: {
+          canonical: serializeBlogSearchParams("/", {
+            "blog-post": blogPostSlug,
+            "blog-page": null,
+          }),
+        },
+      };
+    }
+  }
+
+  // Check for wiki params
   const params = await loadWikiSearchParams(searchParams);
   const { story, world, character, faction } = params;
 
@@ -142,13 +183,17 @@ export async function generateMetadata({
 }
 
 export default async function Home({ searchParams }: Props) {
-  const params = await loadWikiSearchParams(searchParams);
+  const DEFAULT_PAGE_SIZE = 10;
 
-  // Fetch initial data based on params
-  const initialData: InitialWikiData = {
+  // Load both wiki and blog params
+  const wikiParams = await loadWikiSearchParams(searchParams);
+  const blogParams = await loadBlogSearchParams(searchParams);
+
+  // Fetch initial wiki data based on params
+  const initialWikiData: InitialWikiData = {
     params: {
-      story: params.story,
-      world: params.world,
+      story: wikiParams.story,
+      world: wikiParams.world,
     },
     stories: [],
     worlds: [],
@@ -157,26 +202,55 @@ export default async function Home({ searchParams }: Props) {
   };
 
   // Always fetch stories for initial data
-  initialData.stories = await getPublishedStories();
+  initialWikiData.stories = await getPublishedStories();
 
   // Fetch worlds if story is selected
-  if (params.story) {
-    initialData.worlds = await getWorldsByStorySlug(params.story);
+  if (wikiParams.story) {
+    initialWikiData.worlds = await getWorldsByStorySlug(wikiParams.story);
 
     // Fetch characters and factions if world is selected
-    if (params.world) {
+    if (wikiParams.world) {
       const [characters, factions] = await Promise.all([
-        getCharactersByWorldSlug(params.story, params.world),
-        getFactionsByWorldSlug(params.story, params.world),
+        getCharactersByWorldSlug(wikiParams.story, wikiParams.world),
+        getFactionsByWorldSlug(wikiParams.story, wikiParams.world),
       ]);
-      initialData.characters = characters;
-      initialData.factions = factions;
+      initialWikiData.characters = characters;
+      initialWikiData.factions = factions;
     }
   }
 
+  // Fetch initial blog data based on params
+  const pageSize = blogParams["blog-page-size"] || DEFAULT_PAGE_SIZE;
+  const initialBlogData: InitialBlogData = {
+    posts: [],
+    total: 0,
+    page: 1,
+    pageSize: pageSize,
+    selectedPost: null,
+  };
+
+  // If a specific blog post is selected
+  if (blogParams["blog-post"]) {
+    const post = await getBlogPostBySlug(blogParams["blog-post"]);
+    if (post) {
+      initialBlogData.selectedPost = post;
+    }
+  } else {
+    // Otherwise, fetch paginated posts for the current page
+    const page = blogParams["blog-page"] || 1;
+    const paginatedData = await getPublishedBlogPostsPaginated(page, pageSize);
+    initialBlogData.posts = paginatedData.data;
+    initialBlogData.total = paginatedData.total;
+    initialBlogData.page = paginatedData.page;
+    initialBlogData.pageSize = paginatedData.pageSize;
+  }
+
   return (
-    <NuqsAdapter>
-      <HomeClient wikiParams={params} initialData={initialData} />
-    </NuqsAdapter>
+    <HomeClient
+      wikiParams={wikiParams}
+      blogParams={blogParams}
+      initialWikiData={initialWikiData}
+      initialBlogData={initialBlogData}
+    />
   );
 }
