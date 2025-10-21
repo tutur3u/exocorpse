@@ -342,6 +342,49 @@ export type Database = {
           },
         ];
       };
+      character_worlds: {
+        Row: {
+          character_id: string;
+          created_at: string | null;
+          id: string;
+          world_id: string;
+        };
+        Insert: {
+          character_id: string;
+          created_at?: string | null;
+          id?: string;
+          world_id: string;
+        };
+        Update: {
+          character_id?: string;
+          created_at?: string | null;
+          id?: string;
+          world_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "character_worlds_character_id_fkey";
+            columns: ["character_id"];
+            isOneToOne: false;
+            referencedRelation: "character_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "character_worlds_character_id_fkey";
+            columns: ["character_id"];
+            isOneToOne: false;
+            referencedRelation: "characters";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "character_worlds_world_id_fkey";
+            columns: ["world_id"];
+            isOneToOne: false;
+            referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       characters: {
         Row: {
           abilities: string | null;
@@ -383,7 +426,6 @@ export type Database = {
           view_count: number | null;
           weaknesses: string | null;
           weight: string | null;
-          world_id: string | null;
         };
         Insert: {
           abilities?: string | null;
@@ -425,7 +467,6 @@ export type Database = {
           view_count?: number | null;
           weaknesses?: string | null;
           weight?: string | null;
-          world_id?: string | null;
         };
         Update: {
           abilities?: string | null;
@@ -467,17 +508,8 @@ export type Database = {
           view_count?: number | null;
           weaknesses?: string | null;
           weight?: string | null;
-          world_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "characters_world_id_fkey";
-            columns: ["world_id"];
-            isOneToOne: false;
-            referencedRelation: "worlds";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       entity_tags: {
         Row: {
@@ -1477,17 +1509,9 @@ export type Database = {
           view_count: number | null;
           weaknesses: string | null;
           weight: string | null;
-          world_id: string | null;
+          world_ids: Json | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "characters_world_id_fkey";
-            columns: ["world_id"];
-            isOneToOne: false;
-            referencedRelation: "worlds";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       event_details: {
         Row: {
