@@ -122,7 +122,7 @@ export default function CharactersClient({
       });
 
       // Invalidate all relevant world queries in parallel
-      Promise.all(
+      await Promise.all(
         Array.from(worldsToInvalidate).map((worldId) =>
           queryClient.invalidateQueries({
             queryKey: ["characters", worldId],
