@@ -4,14 +4,15 @@ import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
+import { MultiSelect } from "@/components/shared/MultiSelect";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
-import type { Character } from "@/lib/actions/wiki";
+import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 type CharacterFormData = {
-  world_id: string;
+  world_ids: string[]; // Changed from world_id to world_ids
   name: string;
   slug: string;
   nickname?: string;
@@ -47,8 +48,11 @@ type CharacterFormData = {
 };
 
 type CharacterFormProps = {
-  character?: Character;
+  character?: Character | CharacterDetail;
   worldId: string;
+  preSelectedWorldIds?: string[]; // Pre-selected world IDs when editing
+  availableWorlds?: World[]; // Add available worlds for multi-select
+  worldsLoading?: boolean; // Loading state for worlds query
   onSubmit: (data: CharacterFormData) => Promise<void>;
   onCancel: () => void;
 };
@@ -56,6 +60,9 @@ type CharacterFormProps = {
 export default function CharacterForm({
   character,
   worldId,
+  preSelectedWorldIds = [],
+  availableWorlds = [],
+  worldsLoading = false,
   onSubmit,
   onCancel,
 }: CharacterFormProps) {
@@ -63,9 +70,21 @@ export default function CharacterForm({
     "basic" | "physical" | "personality" | "history" | "abilities" | "visuals"
   >("basic");
 
+  // Extract world_ids from character if editing
+  const getInitialWorldIds = (): string[] => {
+    // If editing a character, use the preSelectedWorldIds from the query
+    // (which correctly represents the character's worlds, even if empty)
+    if (character) {
+      return preSelectedWorldIds;
+    }
+
+    // For new characters, use the current worldId
+    return [worldId];
+  };
+
   const form = useForm<CharacterFormData>({
     defaultValues: {
-      world_id: worldId,
+      world_ids: getInitialWorldIds(),
       name: character?.name || "",
       slug: character?.slug || "",
       nickname: character?.nickname || "",
@@ -118,12 +137,20 @@ export default function CharacterForm({
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
   const colorScheme = watch("color_scheme");
+  const selectedWorldIds = watch("world_ids");
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
 
     try {
+      // Ensure at least one world is selected
+      if (!data.world_ids || data.world_ids.length === 0) {
+        setError("Please select at least one world for this character");
+        setLoading(false);
+        return;
+      }
+
       // Clean up empty strings to undefined and handle number fields
       const cleanData: CharacterFormData = cleanFormData(
         data,
@@ -296,6 +323,35 @@ export default function CharacterForm({
               {/* Basic Info Tab */}
               {activeTab === "basic" && (
                 <div className="space-y-4">
+                  {/* World Selection */}
+                  {availableWorlds.length > 0 && (
+                    <div>
+                      {worldsLoading ? (
+                        <div className="rounded border border-gray-300 px-4 py-3 dark:border-gray-600">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Loading worlds...
+                          </p>
+                        </div>
+                      ) : (
+                        <MultiSelect
+                          items={availableWorlds.map((world) => ({
+                            id: world.id,
+                            name: world.name,
+                          }))}
+                          selectedIds={selectedWorldIds || []}
+                          onChange={(ids) =>
+                            setValue("world_ids", ids, { shouldDirty: true })
+                          }
+                          label="Worlds"
+                          placeholder="Search or select worlds..."
+                          helperText="This character can exist in multiple worlds"
+                          required
+                          variant="form"
+                        />
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label

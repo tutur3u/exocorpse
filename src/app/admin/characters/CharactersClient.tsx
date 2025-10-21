@@ -12,6 +12,7 @@ import {
   deleteCharacter,
   getCharacterFactions,
   getCharactersByWorldId,
+  getCharacterWorlds,
   getFactionsByWorldId,
   getPublishedStories,
   getWorldsByStoryId,
@@ -76,6 +77,14 @@ export default function CharactersClient({
     enabled: !!selectedWorldId,
   });
 
+  // Query for character worlds when editing
+  const { data: characterWorlds = [], isLoading: characterWorldsLoading } =
+    useQuery({
+      queryKey: ["characterWorlds", editingCharacter?.id],
+      queryFn: () => getCharacterWorlds(editingCharacter!.id),
+      enabled: !!editingCharacter?.id,
+    });
+
   const createMutation = useMutation({
     mutationFn: createCharacter,
     onSuccess: () => {
@@ -97,11 +106,36 @@ export default function CharactersClient({
     }: {
       id: string;
       data: Parameters<typeof updateCharacter>[1];
+      worldIds: string[];
     }) => updateCharacter(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["characters", selectedWorldId],
+    onSuccess: async (_data, variables) => {
+      const worldsToInvalidate = new Set<string>();
+
+      // Invalidate queries for all worlds the character is now in (from form submission)
+      variables.worldIds.forEach((worldId) => {
+        worldsToInvalidate.add(worldId);
       });
+
+      // Also invalidate the character's old worlds to ensure consistency
+      characterWorlds.forEach((cw) => {
+        worldsToInvalidate.add(cw.world_id);
+      });
+
+      // Invalidate all relevant world queries in parallel
+      await Promise.all(
+        Array.from(worldsToInvalidate).map((worldId) =>
+          queryClient.invalidateQueries({
+            queryKey: ["characters", worldId],
+          }),
+        ),
+      );
+
+      if (editingCharacter) {
+        await queryClient.invalidateQueries({
+          queryKey: ["characterWorlds", editingCharacter.id],
+        });
+      }
+
       setEditingCharacter(null);
       setShowForm(false);
       toastWithSound.success("Character updated successfully!");
@@ -160,12 +194,22 @@ export default function CharactersClient({
 
   const handleUpdate = async (data: Parameters<typeof updateCharacter>[1]) => {
     if (!editingCharacter) return;
-    await updateMutation.mutateAsync({ id: editingCharacter.id, data });
+    const worldIds = data.world_ids || [];
+    await updateMutation.mutateAsync({
+      id: editingCharacter.id,
+      data,
+      worldIds,
+    });
   };
 
   const handleDelete = async (id: string) => {
     setDeleteConfirmId(id);
     setShowDeleteConfirm(true);
+  };
+
+  const handleEdit = async (character: Character) => {
+    setEditingCharacter(character);
+    setShowForm(true);
   };
 
   const handleOpenFactionManager = async (id: string, name: string) => {
@@ -359,10 +403,7 @@ export default function CharactersClient({
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setEditingCharacter(character);
-                      setShowForm(true);
-                    }}
+                    onClick={() => handleEdit(character)}
                     className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                   >
                     Edit
@@ -380,17 +421,26 @@ export default function CharactersClient({
         </div>
       )}
 
-      {showForm && selectedWorldId && (
-        <CharacterForm
-          character={editingCharacter || undefined}
-          worldId={selectedWorldId}
-          onSubmit={editingCharacter ? handleUpdate : handleCreate}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingCharacter(null);
-          }}
-        />
-      )}
+      {showForm &&
+        selectedWorldId &&
+        (!editingCharacter || !characterWorldsLoading) && (
+          <CharacterForm
+            character={editingCharacter ?? undefined}
+            preSelectedWorldIds={
+              editingCharacter
+                ? characterWorlds.map((cw) => cw.world_id)
+                : [selectedWorldId]
+            }
+            worldId={selectedWorldId}
+            availableWorlds={worlds}
+            worldsLoading={editingCharacter ? characterWorldsLoading : false}
+            onSubmit={editingCharacter ? handleUpdate : handleCreate}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingCharacter(null);
+            }}
+          />
+        )}
 
       {showFactionManager && managingCharacter && (
         <FactionManager
