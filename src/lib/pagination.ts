@@ -46,14 +46,26 @@ export function generatePaginationRange(
 
   // Adjust if we're near the start
   if (current <= sidePages + 2) {
-    endPage = Math.min(total - 1, max - 1);
     startPage = 2;
+    // No ellipsis before, so we have more space for middle pages
+    const availableSpace = max - 3; // -3 for first, ellipsis after, and last
+    endPage = Math.min(total - 1, startPage + availableSpace - 1);
   }
-
   // Adjust if we're near the end
-  if (current >= total - sidePages - 1) {
-    startPage = Math.max(2, total - max + 2);
+  else if (current >= total - sidePages - 1) {
     endPage = total - 1;
+    // No ellipsis after, so we have more space for middle pages
+    const availableSpace = max - 3; // -3 for first, ellipsis before, and last
+    startPage = Math.max(2, endPage - availableSpace + 1);
+  }
+  // Middle range: both ellipses present
+  else {
+    // Recalculate with proper constraints
+    // max = first + "..." + middle + "..." + last = 1 + 1 + middle + 1 + 1 = middle + 4
+    // So middle = max - 4
+    const middleSpace = max - 4;
+    endPage = Math.min(total - 1, startPage + middleSpace - 1);
+    startPage = Math.max(2, endPage - middleSpace + 1);
   }
 
   // Add ellipsis before middle range if needed
