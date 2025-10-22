@@ -89,7 +89,7 @@ export async function getPublishedBlogPostsPaginated(
 
   return {
     data: data || [],
-    total: count || 0,
+    total: count ?? 0,
     page: validatedPage,
     pageSize: validatedPageSize,
   };

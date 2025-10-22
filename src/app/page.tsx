@@ -1,6 +1,7 @@
 import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import { InitialBlogData } from "@/contexts/InitialBlogDataContext";
+import { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
@@ -14,10 +15,7 @@ import {
   getStoryBySlug,
   getWorldBySlug,
   getWorldsByStorySlug,
-  type Character,
-  type Faction,
   type Story,
-  type World,
 } from "@/lib/actions/wiki";
 import {
   loadBlogSearchParams,
@@ -31,17 +29,6 @@ import type { Metadata } from "next";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export type InitialWikiData = {
-  params: {
-    story: string | null;
-    world: string | null;
-  };
-  stories: Story[];
-  worlds: World[];
-  characters: Character[];
-  factions: Faction[];
 };
 
 export async function generateMetadata({
@@ -82,6 +69,7 @@ export async function generateMetadata({
         canonical: serializeBlogSearchParams("/", {
           "blog-post": null,
           "blog-page": blogParams["blog-page"] ?? 1,
+          "blog-page-size": blogParams["blog-page-size"] ?? undefined,
         }),
       },
     };

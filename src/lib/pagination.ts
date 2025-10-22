@@ -21,31 +21,39 @@ export function generatePaginationRange(
   totalPages: number,
   maxVisible: number = 7,
 ): (number | "...")[] {
-  // If total pages is less than or equal to maxVisible, show all pages
-  if (totalPages <= maxVisible) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  // Normalize inputs
+  const total = Math.max(0, Math.floor(Number(totalPages) || 0));
+  const max = Math.max(5, Math.floor(Number(maxVisible) || 7));
+  const current = Math.min(
+    Math.max(1, Math.floor(Number(currentPage) || 1)),
+    Math.max(1, total),
+  );
+
+  if (total <= 1) return total === 1 ? ([1] as (number | "...")[]) : [];
+  if (total <= max) {
+    return Array.from({ length: total }, (_, i) => i + 1);
   }
 
   // Calculate how many pages to show on each side of current page
-  const sidePages = Math.floor((maxVisible - 3) / 2); // -3 for first, last, and current page
+  const sidePages = Math.floor((max - 3) / 2); // -3 for first, last, and current page
 
   // Always show first page
   const pages: (number | "...")[] = [1];
 
   // Calculate start and end of the middle range
-  let startPage = Math.max(2, currentPage - sidePages);
-  let endPage = Math.min(totalPages - 1, currentPage + sidePages);
+  let startPage = Math.max(2, current - sidePages);
+  let endPage = Math.min(total - 1, current + sidePages);
 
   // Adjust if we're near the start
-  if (currentPage <= sidePages + 2) {
-    endPage = Math.min(totalPages - 1, maxVisible - 2);
+  if (current <= sidePages + 2) {
+    endPage = Math.min(total - 1, max - 1);
     startPage = 2;
   }
 
   // Adjust if we're near the end
-  if (currentPage >= totalPages - sidePages - 1) {
-    startPage = Math.max(2, totalPages - maxVisible + 2);
-    endPage = totalPages - 1;
+  if (current >= total - sidePages - 1) {
+    startPage = Math.max(2, total - max + 2);
+    endPage = total - 1;
   }
 
   // Add ellipsis before middle range if needed
@@ -59,13 +67,13 @@ export function generatePaginationRange(
   }
 
   // Add ellipsis after middle range if needed
-  if (endPage < totalPages - 1) {
+  if (endPage < total - 1) {
     pages.push("...");
   }
 
   // Always show last page if there's more than one page
-  if (totalPages > 1) {
-    pages.push(totalPages);
+  if (total > 1) {
+    pages.push(total);
   }
 
   return pages;

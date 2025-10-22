@@ -99,7 +99,8 @@ export default function BlogPostForm({
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
-      setValue("slug", slugValue, { shouldDirty: true });
+      const finalSlug = slugValue || `post-${Date.now()}`;
+      setValue("slug", finalSlug, { shouldDirty: true });
     }
   };
 
@@ -155,12 +156,11 @@ export default function BlogPostForm({
     <>
       <div
         className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
-        onClick={handleBackdropClick}
-        onKeyDown={handleBackdropKeyDown}
-        role="presentation"
-        aria-hidden="true"
+        role="button"
         tabIndex={0}
         aria-label="Close and discard changes"
+        onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
       >
         <div
           className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
@@ -213,7 +213,7 @@ export default function BlogPostForm({
                   {...register("slug", {
                     required: true,
                     pattern: {
-                      value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+                      value: /^[a-z0-9](-?[a-z0-9])*$/,
                       message: "Use lowercase letters, numbers, and hyphens.",
                     },
                   })}

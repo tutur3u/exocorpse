@@ -10,6 +10,7 @@ import {
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import { useEffect } from "react";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -87,13 +88,15 @@ export default function BlogClient({ initialData }: BlogClientProps) {
   const clampedCurrentPage = Math.min(currentPage, totalPages);
 
   // Sync router if currentPage was out of bounds
-  if (clampedCurrentPage !== currentPage && !postSlug) {
-    setParams({
-      "blog-post": null,
-      "blog-page": clampedCurrentPage,
-      "blog-page-size": pageSize,
-    });
-  }
+  useEffect(() => {
+    if (clampedCurrentPage !== currentPage && !postSlug) {
+      setParams({
+        "blog-post": null,
+        "blog-page": clampedCurrentPage,
+        "blog-page-size": pageSize,
+      });
+    }
+  }, [clampedCurrentPage, currentPage, postSlug, pageSize, setParams]);
 
   const handlePostSelect = (post: BlogPost) => {
     setParams({

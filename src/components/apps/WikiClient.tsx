@@ -1,6 +1,6 @@
 "use client";
 
-import type { InitialWikiData } from "@/app/page";
+import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
   type Character,
