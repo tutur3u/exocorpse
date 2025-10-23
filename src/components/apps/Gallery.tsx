@@ -10,8 +10,6 @@ const isDevelopment = process.env.NODE_ENV === "development";
 export interface GalleryImage {
   id: string;
   url: string;
-  thumbnailUrl?: string;
-  fullUrl?: string;
   width?: number;
   height?: number;
   alt?: string;
@@ -58,7 +56,7 @@ export function MasonryGallery({
     }
 
     setSelectedContent({
-      imageUrl: image.fullUrl || image.url,
+      imageUrl: image.url,
       title: image.title || image.alt || `Image ${index + 1}`,
       description: image.description || image.metadata?.author || undefined,
     });
@@ -74,7 +72,7 @@ export function MasonryGallery({
     setSelectedIndex(nextIndex);
     const nextImage = images[nextIndex];
     setSelectedContent({
-      imageUrl: nextImage.fullUrl || nextImage.url,
+      imageUrl: nextImage.url,
       title: nextImage.title || nextImage.alt || `Image ${nextIndex + 1}`,
       description:
         nextImage.description || nextImage.metadata?.author || undefined,
@@ -86,7 +84,7 @@ export function MasonryGallery({
     setSelectedIndex(prevIndex);
     const prevImage = images[prevIndex];
     setSelectedContent({
-      imageUrl: prevImage.fullUrl || prevImage.url,
+      imageUrl: prevImage.url,
       title: prevImage.title || prevImage.alt || `Image ${prevIndex + 1}`,
       description:
         prevImage.description || prevImage.metadata?.author || undefined,
@@ -135,7 +133,7 @@ export function MasonryGallery({
                 onClick={() => handleImageClick(image, index)}
               >
                 <img
-                  src={image.thumbnailUrl || image.url}
+                  src={image.url}
                   alt={image.alt || image.title || `Gallery image ${index + 1}`}
                   className="block w-full"
                   loading="lazy"
@@ -188,8 +186,6 @@ const generatePlaceholderImages = (): GalleryImage[] => {
     return {
       id: `placeholder-${i}`,
       url: `https://picsum.photos/${ratio.w}/${ratio.h}?random=${i}`,
-      thumbnailUrl: `https://picsum.photos/${ratio.w}/${ratio.h}?random=${i}`,
-      fullUrl: `https://picsum.photos/${ratio.w * 2}/${ratio.h * 2}?random=${i}`,
       width: ratio.w,
       height: ratio.h,
       alt: `Placeholder image ${i + 1}`,
