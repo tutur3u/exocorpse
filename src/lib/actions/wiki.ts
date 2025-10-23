@@ -607,6 +607,68 @@ export async function getFactionsByWorldId(worldId: string) {
 }
 
 /**
+ * Fetch all unique factions for a story (from all worlds in that story) in a single query
+ * This replaces the N+1 pattern of fetching factions for each world individually
+ */
+export async function getFactionsByStoryId(storyId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*")
+    .eq("worlds!inner(story_id)", storyId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching factions by story:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch all factions from only the worlds that a character belongs to
+ * This ensures characters can only be assigned to factions in compatible worlds
+ */
+export async function getFactionsByCharacterWorldIds(characterId: string) {
+  const supabase = await getSupabaseServer();
+
+  // First, get the world IDs that this character belongs to
+  const { data: characterWorldsData, error: cwError } = await supabase
+    .from("character_worlds")
+    .select("world_id")
+    .eq("character_id", characterId);
+
+  if (cwError) {
+    console.error("Error fetching character worlds:", cwError);
+    return [];
+  }
+
+  const worldIds = (characterWorldsData || []).map((cw) => cw.world_id);
+
+  if (worldIds.length === 0) {
+    return [];
+  }
+
+  // Then fetch factions only from those worlds
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*")
+    .in("world_id", worldIds)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching factions by character worlds:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Fetch a faction by slug
  */
 /**

@@ -14,7 +14,7 @@ import {
   getCharactersByStoryId,
   getCharactersByWorldId,
   getCharacterWorlds,
-  getFactionsByWorldId,
+  getFactionsByCharacterWorldIds,
   getPublishedStories,
   getWorldsByStoryId,
   removeCharacterFromFaction,
@@ -75,24 +75,12 @@ export default function CharactersClient({
   });
 
   const { data: factions = [] } = useQuery({
-    queryKey: ["factions", selectedStoryId],
+    queryKey: ["factions", managingCharacter?.id],
     queryFn: () => {
-      // Fetch factions from all worlds in the story
-      return Promise.all(worlds.map((w) => getFactionsByWorldId(w.id))).then(
-        (results) => {
-          const factionMap = new Map();
-          results.forEach((worldFactions) => {
-            worldFactions.forEach((f) => {
-              if (!factionMap.has(f.id)) {
-                factionMap.set(f.id, f);
-              }
-            });
-          });
-          return Array.from(factionMap.values());
-        },
-      );
+      if (!managingCharacter) return [];
+      return getFactionsByCharacterWorldIds(managingCharacter.id);
     },
-    enabled: !!selectedStoryId && worlds.length > 0,
+    enabled: !!managingCharacter?.id,
   });
 
   // Query for character worlds when editing
