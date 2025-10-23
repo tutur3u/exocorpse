@@ -6,7 +6,7 @@ import { Howl } from "howler"; // Make sure you have 'howler' installed
 export default function MusicPlayer() {
   // A ref to hold the Howl instance
   const soundRef = useRef<Howl | null>(null);
-  
+
   // A ref to store the volume before muting
   const lastVolumeRef = useRef(0.5);
 
@@ -17,12 +17,12 @@ export default function MusicPlayer() {
   // Initialize Howler on component mount
   useEffect(() => {
     const sound = new Howl({
-      src: ['/audio/bgm.mp3'], // Howler accepts an array of sources
+      src: ["/audio/bgm.mp3"], // Howler accepts an array of sources
       loop: true,
       volume: volume,
       html5: true, // Use HTML5 Audio for streaming BGM
-      preload: 'metadata', // Don't load the whole file immediately
-      
+      preload: "metadata", // Don't load the whole file immediately
+
       // Set state based on Howler's internal events
       onplay: () => setIsPlaying(true),
       onpause: () => setIsPlaying(false),
@@ -35,7 +35,7 @@ export default function MusicPlayer() {
     // We manually call play() and listen for an error on this specific ID
     const soundId = sound.play();
 
-    sound.once('playerror', (id, err) => {
+    sound.once("playerror", (id, err) => {
       if (id === soundId) {
         console.warn("Autoplay was blocked by the browser.", err);
         // The 'onplay' event won't fire, so ensure state is false
