@@ -5,6 +5,7 @@ import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
   type Character,
   type Faction,
+  getCharacterBySlugInStory,
   getCharactersByWorldSlug,
   getFactionBySlugInStory,
   getFactionsByWorldSlug,
@@ -115,11 +116,6 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     },
   );
 
-  // Find viewing character from slug
-  const viewingCharacter = characterSlug
-    ? worldCharacters.find((c) => c.slug === characterSlug) || null
-    : null;
-
   // Factions query for world view - load when we have world slug
   const shouldUseInitialFactions =
     initialData.factions.length > 0 &&
@@ -140,19 +136,17 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
 
   // Find viewing faction from slug
   // If faction is specified without world, fetch it to get the world info
-  const {
-    data: factionWithWorld,
-    isLoading: factionWithWorldLoading,
-  } = useQuery({
-    queryKey: ["faction-with-world", storySlug, factionSlug],
-    queryFn: async () => {
-      if (storySlug && factionSlug && !worldSlug) {
-        return getFactionBySlugInStory(storySlug, factionSlug);
-      }
-      return null;
-    },
-    enabled: !!storySlug && !!factionSlug && !worldSlug,
-  });
+  const { data: factionWithWorld, isLoading: factionWithWorldLoading } =
+    useQuery({
+      queryKey: ["faction-with-world", storySlug, factionSlug],
+      queryFn: async () => {
+        if (storySlug && factionSlug && !worldSlug) {
+          return getFactionBySlugInStory(storySlug, factionSlug);
+        }
+        return null;
+      },
+      enabled: !!storySlug && !!factionSlug && !worldSlug,
+    });
 
   // Auto-redirect to include world slug if faction is accessed without it
   useEffect(() => {
@@ -172,15 +166,51 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     }
   }, [factionWithWorld, factionSlug, worldSlug, storySlug, setParams]);
 
+  // Character query for story view (without world)
+  // If character is specified without world, fetch it
+  const { data: characterWithWorlds, isLoading: characterWithWorldsLoading } =
+    useQuery({
+      queryKey: ["character-with-worlds", storySlug, characterSlug],
+      queryFn: async () => {
+        if (storySlug && characterSlug && !worldSlug) {
+          return getCharacterBySlugInStory(storySlug, characterSlug);
+        }
+        return null;
+      },
+      enabled: !!storySlug && !!characterSlug && !worldSlug,
+    });
+
+  // Note: We could optionally auto-redirect character to a specific world,
+  // but unlike faction, we'll allow character to be viewed without world
+  // since characters can exist in multiple worlds and the view should show that
+
+  // Find viewing character from slug
+  let viewingCharacter: Character | null = characterSlug
+    ? worldCharacters.find((c) => c.slug === characterSlug) || null
+    : null;
+
+  // If no world is selected and we have a character, use the character from story-level fetch
+  if (!worldSlug && characterSlug && !viewingCharacter && characterWithWorlds) {
+    viewingCharacter = characterWithWorlds as Character;
+  }
+
   const viewingFaction = factionSlug
     ? worldFactions.find((f) => f.slug === factionSlug) || null
     : null;
 
+  // Only show loading if we're actually fetching and don't have the core data needed for the current view
+  // Character/faction detail views will handle their own loading states for additional data
   const loading =
-    worldsLoading ||
-    charactersLoading ||
-    factionsLoading ||
-    factionWithWorldLoading;
+    (viewMode === "story" && worldsLoading && worlds.length === 0) ||
+    (viewMode === "world" &&
+      ((charactersLoading && worldCharacters.length === 0) ||
+        (factionsLoading && worldFactions.length === 0))) ||
+    (viewMode === "character" &&
+      !viewingCharacter &&
+      (characterWithWorldsLoading || (charactersLoading && worldSlug))) ||
+    (viewMode === "faction" &&
+      !viewingFaction &&
+      (factionWithWorldLoading || (factionsLoading && worldSlug)));
 
   const handleStorySelect = (story: Story) => {
     setParams({
@@ -227,6 +257,15 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     });
   };
 
+  const handleFactionClickFromCharacter = (factionSlug: string) => {
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: null,
+      faction: factionSlug,
+    });
+  };
+
   const handleNavigate = (mode: ViewMode) => {
     if (mode === "stories") {
       setParams({
@@ -254,7 +293,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
 
   // Render main content based on view mode
   const renderContent = () => {
-    if (loading && viewMode !== "stories") {
+    if (loading) {
       return (
         <div className="flex h-full items-center justify-center">
           <div className="text-gray-500 dark:text-gray-400">Loading...</div>
@@ -333,6 +372,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
           <CharacterView
             character={viewingCharacter}
             onWorldClick={handleWorldClickFromCharacter}
+            onFactionClick={handleFactionClickFromCharacter}
           />
         </div>
       );

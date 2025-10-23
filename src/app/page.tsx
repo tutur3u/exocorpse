@@ -8,7 +8,13 @@ import {
 } from "@/lib/actions/blog";
 import {
   getCharacterBySlug,
+  getCharacterBySlugInStory,
+  getCharacterFactions,
+  getCharacterGallery,
+  getCharacterOutfits,
+  getCharactersByStorySlug,
   getCharactersByWorldSlug,
+  getCharacterWorlds,
   getFactionBySlug,
   getFactionsByWorldSlug,
   getPublishedStories,
@@ -118,6 +124,28 @@ export async function generateMetadata({
     }
   }
 
+  // Character view (without world - find character across all worlds in story)
+  if (character && !world) {
+    const characterData = await getCharacterBySlugInStory(story, character);
+    if (characterData) {
+      return {
+        title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
+        description:
+          characterData.personality_summary ||
+          characterData.backstory?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+          `Character profile for ${characterData.name}`,
+        alternates: {
+          canonical: serializeWikiSearchParams("/", {
+            story,
+            world: null,
+            character,
+            faction: null,
+          }),
+        },
+      };
+    }
+  }
+
   // Faction view
   if (world && faction) {
     const factionData = await getFactionBySlug(story, world, faction);
@@ -195,6 +223,7 @@ export default async function Home({ searchParams }: Props) {
     worlds: [],
     characters: [],
     factions: [],
+    characterDetail: null,
   };
 
   // Fetch initial blog data based on params
@@ -300,6 +329,53 @@ export default async function Home({ searchParams }: Props) {
       ]);
       initialWikiData.characters = characters;
       initialWikiData.factions = factions;
+
+      // If a specific character is selected, pre-fetch all its detail data
+      if (wikiParams.character) {
+        const selectedCharacter = characters.find(
+          (c) => c.slug === wikiParams.character,
+        );
+        if (selectedCharacter) {
+          const [gallery, outfits, factions, worlds] = await Promise.all([
+            getCharacterGallery(selectedCharacter.id),
+            getCharacterOutfits(selectedCharacter.id),
+            getCharacterFactions(selectedCharacter.id),
+            getCharacterWorlds(selectedCharacter.id),
+          ]);
+          initialWikiData.characterDetail = {
+            characterId: selectedCharacter.id,
+            gallery,
+            outfits,
+            factions,
+            worlds,
+          };
+        }
+      }
+    } else if (wikiParams.character) {
+      // Fetch all characters in story if character is selected without world
+      initialWikiData.characters = await getCharactersByStorySlug(
+        wikiParams.story,
+      );
+      
+      // Pre-fetch character detail data for character viewed without world
+      const selectedCharacter = initialWikiData.characters.find(
+        (c) => c.slug === wikiParams.character,
+      );
+      if (selectedCharacter) {
+        const [gallery, outfits, factions, worlds] = await Promise.all([
+          getCharacterGallery(selectedCharacter.id),
+          getCharacterOutfits(selectedCharacter.id),
+          getCharacterFactions(selectedCharacter.id),
+          getCharacterWorlds(selectedCharacter.id),
+        ]);
+        initialWikiData.characterDetail = {
+          characterId: selectedCharacter.id,
+          gallery,
+          outfits,
+          factions,
+          worlds,
+        };
+      }
     }
   }
 

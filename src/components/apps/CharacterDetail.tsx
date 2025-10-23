@@ -1,5 +1,6 @@
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import type { Character } from "@/lib/actions/wiki";
 import {
   getCharacterFactions,
@@ -14,11 +15,13 @@ import { useState } from "react";
 type CharacterDetailProps = {
   character: Character;
   onWorldClick?: (worldSlug: string) => void;
+  onFactionClick?: (factionSlug: string) => void;
 };
 
 export default function CharacterDetail({
   character,
   onWorldClick,
+  onFactionClick,
 }: CharacterDetailProps) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "outfits" | "lore" | "gallery"
@@ -26,28 +29,48 @@ export default function CharacterDetail({
   const [lightboxContent, setLightboxContent] =
     useState<LightboxContent | null>(null);
 
+  const initialData = useInitialWikiData();
+  const hasInitialDetailData =
+    initialData.characterDetail?.characterId === character.id;
+
   const { data: gallery = [], isLoading: galleryLoading } = useQuery({
     queryKey: ["character-gallery", character.id],
     queryFn: () => getCharacterGallery(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.gallery
+      : undefined,
   });
 
   const { data: outfits = [], isLoading: outfitsLoading } = useQuery({
     queryKey: ["character-outfits", character.id],
     queryFn: () => getCharacterOutfits(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.outfits
+      : undefined,
   });
 
   const { data: factions = [], isLoading: factionsLoading } = useQuery({
     queryKey: ["character-factions", character.id],
     queryFn: () => getCharacterFactions(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.factions
+      : undefined,
   });
 
   const { data: characterWorlds = [], isLoading: worldsLoading } = useQuery({
     queryKey: ["character-worlds", character.id],
     queryFn: () => getCharacterWorlds(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.worlds
+      : undefined,
   });
 
+  // Only show loading if we're fetching AND don't have any data yet
   const loading =
-    galleryLoading || outfitsLoading || factionsLoading || worldsLoading;
+    (galleryLoading && gallery.length === 0) ||
+    (outfitsLoading && outfits.length === 0) ||
+    (factionsLoading && factions.length === 0) ||
+    (worldsLoading && characterWorlds.length === 0);
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -300,12 +323,32 @@ export default function CharacterDetail({
                     </h3>
                     <div className="space-y-2">
                       {factions.map((membership) => (
-                        <div
+                        <button
                           key={membership.id}
-                          className="rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-3 dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20"
+                          type="button"
+                          onClick={() =>
+                            onFactionClick?.(membership.factions?.slug || "")
+                          }
+                          className="w-full rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
                         >
-                          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {membership.factions?.name}
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              {membership.factions?.name}
+                            </div>
+                            <svg
+                              className="h-4 w-4 text-purple-600 dark:text-purple-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <title>Go to faction</title>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"
+                              />
+                            </svg>
                           </div>
                           {membership.role && (
                             <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
@@ -313,7 +356,7 @@ export default function CharacterDetail({
                               {membership.rank && ` • ${membership.rank}`}
                             </div>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>

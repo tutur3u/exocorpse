@@ -49,7 +49,7 @@ type CharacterFormData = {
 
 type CharacterFormProps = {
   character?: Character | CharacterDetail;
-  worldId: string;
+  worldId?: string;
   preSelectedWorldIds?: string[]; // Pre-selected world IDs when editing
   availableWorlds?: World[]; // Add available worlds for multi-select
   worldsLoading?: boolean; // Loading state for worlds query
@@ -78,8 +78,8 @@ export default function CharacterForm({
       return preSelectedWorldIds;
     }
 
-    // For new characters, use the current worldId
-    return [worldId];
+    // For new characters, use the current worldId if provided
+    return worldId ? [worldId] : [];
   };
 
   const form = useForm<CharacterFormData>({

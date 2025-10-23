@@ -3,6 +3,14 @@
 import type { Character, Faction, Story, World } from "@/lib/actions/wiki";
 import { createContext, useContext, type ReactNode } from "react";
 
+export type CharacterDetailData = {
+  characterId: string;
+  gallery: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterGallery>>;
+  outfits: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterOutfits>>;
+  factions: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterFactions>>;
+  worlds: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterWorlds>>;
+};
+
 export type InitialWikiData = {
   params: {
     story: string | null;
@@ -12,6 +20,7 @@ export type InitialWikiData = {
   worlds: World[];
   characters: Character[];
   factions: Faction[];
+  characterDetail: CharacterDetailData | null;
 };
 
 const InitialWikiDataContext = createContext<InitialWikiData | undefined>(

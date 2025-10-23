@@ -306,6 +306,36 @@ export async function getCharactersByWorldSlug(
 }
 
 /**
+ * Fetch all characters for a story (from all worlds in that story)
+ */
+export async function getCharactersByStoryId(storyId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_worlds")
+    .select("characters(*), world_id, worlds!inner(story_id)")
+    .eq("worlds.story_id", storyId)
+    .is("characters.deleted_at", null)
+    .order("name", { referencedTable: "characters", ascending: true });
+
+  if (error) {
+    console.error("Error fetching characters by story:", error);
+    return [];
+  }
+
+  // Extract unique characters from the join result
+  const characterMap = new Map<string, Character>();
+  (data || []).forEach((cw) => {
+    const character = (cw as { characters: Character }).characters;
+    if (character && !characterMap.has(character.id)) {
+      characterMap.set(character.id, character);
+    }
+  });
+
+  return Array.from(characterMap.values());
+}
+
+/**
  * Fetch all characters for a world
  */
 export async function getCharactersByWorldId(worldId: string) {
@@ -350,6 +380,67 @@ export async function getCharacterBySlug(
     .from("character_worlds")
     .select("character_id")
     .eq("world_id", world.id);
+
+  if (cwError) {
+    console.error("Error fetching character-world relationships:", cwError);
+    return null;
+  }
+
+  const characterIds = (characterWorldData ?? []).map((cw) => cw.character_id);
+
+  if (characterIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from("character_details")
+    .select("*")
+    .eq("slug", characterSlug)
+    .in("id", characterIds)
+    .is("deleted_at", null)
+    .single();
+
+  if (error) {
+    console.error("Error fetching character:", error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Fetch character by slug within a story (across all worlds)
+ */
+export async function getCharacterBySlugInStory(
+  storySlug: string,
+  characterSlug: string,
+) {
+  const supabase = await getSupabaseServer();
+
+  // First get the story
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("slug", storySlug)
+    .is("deleted_at", null)
+    .single();
+
+  if (!story) return null;
+
+  // Get all worlds for this story
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("story_id", story.id)
+    .is("deleted_at", null);
+
+  if (!worlds || worlds.length === 0) return null;
+
+  const worldIds = worlds.map((w) => w.id);
+
+  // Get character through the character_worlds junction table
+  const { data: characterWorldData, error: cwError } = await supabase
+    .from("character_worlds")
+    .select("character_id")
+    .in("world_id", worldIds);
 
   if (cwError) {
     console.error("Error fetching character-world relationships:", cwError);
