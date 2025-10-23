@@ -223,6 +223,58 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
 }
 
 /**
+ * Fetch all characters for a story by story slug (across all worlds)
+ */
+export async function getCharactersByStorySlug(storySlug: string) {
+  const supabase = await getSupabaseServer();
+
+  // First get the story
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("slug", storySlug)
+    .is("deleted_at", null)
+    .single();
+
+  if (!story) return [];
+
+  // Get all worlds for this story
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("story_id", story.id)
+    .is("deleted_at", null);
+
+  if (!worlds || worlds.length === 0) return [];
+
+  const worldIds = worlds.map((w) => w.id);
+
+  // Get all characters across all worlds
+  const { data, error } = await supabase
+    .from("character_worlds")
+    .select("characters(*)")
+    .in("world_id", worldIds)
+    .is("characters.deleted_at", null)
+    .order("name", { ascending: true, referencedTable: "characters" });
+
+  if (error) {
+    console.error("Error fetching characters:", error);
+    return [];
+  }
+
+  // Extract character data and remove duplicates (since a character can be in multiple worlds)
+  const characterMap = new Map<string, Character>();
+  (data || []).forEach((cw) => {
+    const character = (cw as { characters: Character }).characters;
+    if (character && !characterMap.has(character.id)) {
+      characterMap.set(character.id, character);
+    }
+  });
+
+  return Array.from(characterMap.values());
+}
+
+/**
  * Fetch all characters for a world by world slug
  */
 export async function getCharactersByWorldSlug(
@@ -251,6 +303,36 @@ export async function getCharactersByWorldSlug(
   return (data || [])
     .map((cw) => (cw as { characters: Character }).characters)
     .filter((c: Character | null) => c !== null) as Character[];
+}
+
+/**
+ * Fetch all characters for a story (from all worlds in that story)
+ */
+export async function getCharactersByStoryId(storyId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_worlds")
+    .select("characters(*), world_id, worlds!inner(story_id)")
+    .eq("worlds.story_id", storyId)
+    .is("characters.deleted_at", null)
+    .order("name", { referencedTable: "characters", ascending: true });
+
+  if (error) {
+    console.error("Error fetching characters by story:", error);
+    return [];
+  }
+
+  // Extract unique characters from the join result
+  const characterMap = new Map<string, Character>();
+  (data || []).forEach((cw) => {
+    const character = (cw as { characters: Character }).characters;
+    if (character && !characterMap.has(character.id)) {
+      characterMap.set(character.id, character);
+    }
+  });
+
+  return Array.from(characterMap.values());
 }
 
 /**
@@ -325,6 +407,67 @@ export async function getCharacterBySlug(
 }
 
 /**
+ * Fetch character by slug within a story (across all worlds)
+ */
+export async function getCharacterBySlugInStory(
+  storySlug: string,
+  characterSlug: string,
+) {
+  const supabase = await getSupabaseServer();
+
+  // First get the story
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("slug", storySlug)
+    .is("deleted_at", null)
+    .single();
+
+  if (!story) return null;
+
+  // Get all worlds for this story
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("story_id", story.id)
+    .is("deleted_at", null);
+
+  if (!worlds || worlds.length === 0) return null;
+
+  const worldIds = worlds.map((w) => w.id);
+
+  // Get character through the character_worlds junction table
+  const { data: characterWorldData, error: cwError } = await supabase
+    .from("character_worlds")
+    .select("character_id")
+    .in("world_id", worldIds);
+
+  if (cwError) {
+    console.error("Error fetching character-world relationships:", cwError);
+    return null;
+  }
+
+  const characterIds = (characterWorldData ?? []).map((cw) => cw.character_id);
+
+  if (characterIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from("character_details")
+    .select("*")
+    .eq("slug", characterSlug)
+    .in("id", characterIds)
+    .is("deleted_at", null)
+    .single();
+
+  if (error) {
+    console.error("Error fetching character:", error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
  * Fetch character gallery images
  */
 export async function getCharacterGallery(characterId: string) {
@@ -365,6 +508,49 @@ export async function getCharacterOutfits(characterId: string) {
 
   if (error) {
     console.error("Error fetching character outfits:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch all factions for a story by story slug (across all worlds)
+ */
+export async function getFactionsByStorySlug(storySlug: string) {
+  const supabase = await getSupabaseServer();
+
+  // First get the story
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("slug", storySlug)
+    .is("deleted_at", null)
+    .single();
+
+  if (!story) return [];
+
+  // Get all worlds for this story
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id")
+    .eq("story_id", story.id)
+    .is("deleted_at", null);
+
+  if (!worlds || worlds.length === 0) return [];
+
+  const worldIds = worlds.map((w) => w.id);
+
+  // Get all factions across all worlds
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*")
+    .in("world_id", worldIds)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching factions:", error);
     return [];
   }
 
@@ -421,8 +607,118 @@ export async function getFactionsByWorldId(worldId: string) {
 }
 
 /**
+ * Fetch all unique factions for a story (from all worlds in that story) in a single query
+ * This replaces the N+1 pattern of fetching factions for each world individually
+ */
+export async function getFactionsByStoryId(storyId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*")
+    .eq("worlds!inner(story_id)", storyId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching factions by story:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch all factions from only the worlds that a character belongs to
+ * This ensures characters can only be assigned to factions in compatible worlds
+ */
+export async function getFactionsByCharacterWorldIds(characterId: string) {
+  const supabase = await getSupabaseServer();
+
+  // First, get the world IDs that this character belongs to
+  const { data: characterWorldsData, error: cwError } = await supabase
+    .from("character_worlds")
+    .select("world_id")
+    .eq("character_id", characterId);
+
+  if (cwError) {
+    console.error("Error fetching character worlds:", cwError);
+    return [];
+  }
+
+  const worldIds = (characterWorldsData || []).map((cw) => cw.world_id);
+
+  if (worldIds.length === 0) {
+    return [];
+  }
+
+  // Then fetch factions only from those worlds
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*")
+    .in("world_id", worldIds)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching factions by character worlds:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Fetch a faction by slug
  */
+/**
+ * Fetch faction by story and faction slug (without requiring world slug)
+ * Returns faction with its world information
+ */
+export async function getFactionBySlugInStory(
+  storySlug: string,
+  factionSlug: string,
+) {
+  const supabase = await getSupabaseServer();
+
+  // First get the story
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("slug", storySlug)
+    .is("deleted_at", null)
+    .single();
+
+  if (!story) return null;
+
+  // Get all worlds for this story
+  const { data: worlds } = await supabase
+    .from("worlds")
+    .select("id, slug")
+    .eq("story_id", story.id)
+    .is("deleted_at", null);
+
+  if (!worlds || worlds.length === 0) return null;
+
+  const worldIds = worlds.map((w) => w.id);
+
+  // Find the faction in any of these worlds
+  const { data, error } = await supabase
+    .from("factions")
+    .select("*, worlds(*)")
+    .eq("slug", factionSlug)
+    .in("world_id", worldIds)
+    .is("deleted_at", null)
+    .single();
+
+  if (error) {
+    console.error("Error fetching faction:", error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function getFactionBySlug(
   storySlug: string,
   worldSlug: string,

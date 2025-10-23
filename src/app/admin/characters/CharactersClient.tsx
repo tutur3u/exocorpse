@@ -11,9 +11,10 @@ import {
   createCharacter,
   deleteCharacter,
   getCharacterFactions,
+  getCharactersByStoryId,
   getCharactersByWorldId,
   getCharacterWorlds,
-  getFactionsByWorldId,
+  getFactionsByCharacterWorldIds,
   getPublishedStories,
   getWorldsByStoryId,
   removeCharacterFromFaction,
@@ -33,7 +34,9 @@ export default function CharactersClient({
 }: CharactersClientProps) {
   const queryClient = useQueryClient();
   const [selectedStoryId, setSelectedStoryId] = useState<string>("");
-  const [selectedWorldId, setSelectedWorldId] = useState<string>("");
+  const [selectedWorldFilters, setSelectedWorldFilters] = useState<Set<string>>(
+    new Set(),
+  );
   const [showForm, setShowForm] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(
     null,
@@ -66,15 +69,18 @@ export default function CharactersClient({
   });
 
   const { data: characters = [], isLoading: charactersLoading } = useQuery({
-    queryKey: ["characters", selectedWorldId],
-    queryFn: () => getCharactersByWorldId(selectedWorldId),
-    enabled: !!selectedWorldId,
+    queryKey: ["characters", selectedStoryId],
+    queryFn: () => getCharactersByStoryId(selectedStoryId),
+    enabled: !!selectedStoryId,
   });
 
   const { data: factions = [] } = useQuery({
-    queryKey: ["factions", selectedWorldId],
-    queryFn: () => getFactionsByWorldId(selectedWorldId),
-    enabled: !!selectedWorldId,
+    queryKey: ["factions", managingCharacter?.id],
+    queryFn: () => {
+      if (!managingCharacter) return [];
+      return getFactionsByCharacterWorldIds(managingCharacter.id);
+    },
+    enabled: !!managingCharacter?.id,
   });
 
   // Query for character worlds when editing
@@ -85,11 +91,45 @@ export default function CharactersClient({
       enabled: !!editingCharacter?.id,
     });
 
+  // Get all character-world relationships for the story
+  const { data: characterWorldMappings = [] } = useQuery({
+    queryKey: ["characterWorldMappings", selectedStoryId],
+    queryFn: async () => {
+      if (!selectedStoryId) return [];
+      // Fetch all character-world relationships for worlds in this story
+      const storyWorlds = await getWorldsByStoryId(selectedStoryId);
+      const mappings: { characterId: string; worldId: string }[] = [];
+
+      for (const world of storyWorlds) {
+        const chars = await getCharactersByWorldId(world.id);
+        chars.forEach((char: Character) => {
+          mappings.push({ characterId: char.id, worldId: world.id });
+        });
+      }
+
+      return mappings;
+    },
+    enabled: !!selectedStoryId,
+  });
+
+  // Filter characters based on selected worlds
+  const filteredCharacters =
+    selectedWorldFilters.size === 0
+      ? characters
+      : characters.filter((character) => {
+          // Check if character belongs to any selected world
+          return characterWorldMappings.some(
+            (mapping) =>
+              mapping.characterId === character.id &&
+              selectedWorldFilters.has(mapping.worldId),
+          );
+        });
+
   const createMutation = useMutation({
     mutationFn: createCharacter,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["characters", selectedWorldId],
+        queryKey: ["characters", selectedStoryId],
       });
       setShowForm(false);
       toastWithSound.success("Character created successfully!");
@@ -108,28 +148,13 @@ export default function CharactersClient({
       data: Parameters<typeof updateCharacter>[1];
       worldIds: string[];
     }) => updateCharacter(id, data),
-    onSuccess: async (_data, variables) => {
-      const worldsToInvalidate = new Set<string>();
-
-      // Invalidate queries for all worlds the character is now in (from form submission)
-      variables.worldIds.forEach((worldId) => {
-        worldsToInvalidate.add(worldId);
+    onSuccess: async () => {
+      // Invalidate the characters query for the selected story
+      await queryClient.invalidateQueries({
+        queryKey: ["characters", selectedStoryId],
       });
 
-      // Also invalidate the character's old worlds to ensure consistency
-      characterWorlds.forEach((cw) => {
-        worldsToInvalidate.add(cw.world_id);
-      });
-
-      // Invalidate all relevant world queries in parallel
-      await Promise.all(
-        Array.from(worldsToInvalidate).map((worldId) =>
-          queryClient.invalidateQueries({
-            queryKey: ["characters", worldId],
-          }),
-        ),
-      );
-
+      // Also invalidate the character's worlds data
       if (editingCharacter) {
         await queryClient.invalidateQueries({
           queryKey: ["characterWorlds", editingCharacter.id],
@@ -149,7 +174,7 @@ export default function CharactersClient({
     mutationFn: deleteCharacter,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["characters", selectedWorldId],
+        queryKey: ["characters", selectedStoryId],
       });
       toastWithSound.success("Character deleted successfully!");
     },
@@ -233,8 +258,6 @@ export default function CharactersClient({
     await removeFromFactionMutation.mutateAsync(membershipId);
   };
 
-  const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -246,7 +269,7 @@ export default function CharactersClient({
             Manage characters within your worlds
           </p>
         </div>
-        {selectedWorldId && (
+        {selectedStoryId && (
           <button
             onClick={() => {
               setEditingCharacter(null);
@@ -260,49 +283,72 @@ export default function CharactersClient({
       </div>
 
       {/* Story & World Selector */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Select a Story
-          </label>
-          <select
-            value={selectedStoryId}
-            onChange={(e) => {
-              setSelectedStoryId(e.target.value);
-              setSelectedWorldId("");
-            }}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">-- Choose a story --</option>
-            {stories.map((story) => (
-              <option key={story.id} value={story.id}>
-                {story.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Select a World
-          </label>
-          <select
-            value={selectedWorldId}
-            onChange={(e) => setSelectedWorldId(e.target.value)}
-            disabled={!selectedStoryId}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="">-- Choose a world --</option>
-            {worlds.map((world) => (
-              <option key={world.id} value={world.id}>
-                {world.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Select a Story
+        </label>
+        <select
+          value={selectedStoryId}
+          onChange={(e) => {
+            setSelectedStoryId(e.target.value);
+            setSelectedWorldFilters(new Set()); // Reset world filters when story changes
+          }}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        >
+          <option value="">-- Choose a story --</option>
+          {stories.map((story) => (
+            <option key={story.id} value={story.id}>
+              {story.title}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {!selectedWorldId ? (
+      {/* World Filter */}
+      {selectedStoryId && worlds.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
+          <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Filter by Worlds (
+            {selectedWorldFilters.size > 0
+              ? `${selectedWorldFilters.size} selected`
+              : "All worlds"}
+            )
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {worlds.map((world) => (
+              <button
+                key={world.id}
+                onClick={() => {
+                  const newFilters = new Set(selectedWorldFilters);
+                  if (newFilters.has(world.id)) {
+                    newFilters.delete(world.id);
+                  } else {
+                    newFilters.add(world.id);
+                  }
+                  setSelectedWorldFilters(newFilters);
+                }}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                  selectedWorldFilters.has(world.id)
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md"
+                    : "border border-gray-300 bg-white text-gray-700 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-500"
+                }`}
+              >
+                {world.name}
+              </button>
+            ))}
+            {selectedWorldFilters.size > 0 && (
+              <button
+                onClick={() => setSelectedWorldFilters(new Set())}
+                className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all duration-200 hover:bg-red-100 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!selectedStoryId ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
             <svg
@@ -320,10 +366,10 @@ export default function CharactersClient({
             </svg>
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Select a world to manage characters
+            Select a story to manage characters
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            Choose a story and world from the dropdowns above
+            Choose a story from the dropdown above
           </p>
         </div>
       ) : charactersLoading ? (
@@ -350,10 +396,10 @@ export default function CharactersClient({
             </svg>
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            No characters in {selectedWorld?.name}
+            No characters in this story
           </h3>
           <p className="mb-6 text-gray-600 dark:text-gray-400">
-            Create your first character for this world
+            Create your first character for this story
           </p>
           <button
             onClick={() => {
@@ -365,9 +411,39 @@ export default function CharactersClient({
             Create First Character
           </button>
         </div>
+      ) : filteredCharacters.length === 0 ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30">
+            <svg
+              className="h-8 w-8 text-yellow-600 dark:text-yellow-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4v2m0 4v2M6.343 3.665c-.966-.322-1.641-.56-2.513-.56C2.622 3.105 1 4.727 1 6.757c0 .997.142 1.926.41 2.816.267.89.663 1.668 1.184 2.333.52.665 1.166 1.23 1.945 1.697"
+              />
+            </svg>
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+            No characters match the selected filters
+          </h3>
+          <p className="mb-6 text-gray-600 dark:text-gray-400">
+            Try clearing the world filters to see all characters
+          </p>
+          <button
+            onClick={() => setSelectedWorldFilters(new Set())}
+            className="rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            Clear Filters
+          </button>
+        </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {characters.map((character) => (
+          {filteredCharacters.map((character) => (
             <div
               key={character.id}
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
@@ -422,16 +498,13 @@ export default function CharactersClient({
       )}
 
       {showForm &&
-        selectedWorldId &&
+        selectedStoryId &&
         (!editingCharacter || !characterWorldsLoading) && (
           <CharacterForm
             character={editingCharacter ?? undefined}
             preSelectedWorldIds={
-              editingCharacter
-                ? characterWorlds.map((cw) => cw.world_id)
-                : [selectedWorldId]
+              editingCharacter ? characterWorlds.map((cw) => cw.world_id) : []
             }
-            worldId={selectedWorldId}
             availableWorlds={worlds}
             worldsLoading={editingCharacter ? characterWorldsLoading : false}
             onSubmit={editingCharacter ? handleUpdate : handleCreate}

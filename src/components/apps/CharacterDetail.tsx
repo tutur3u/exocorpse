@@ -1,10 +1,12 @@
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import type { Character } from "@/lib/actions/wiki";
 import {
   getCharacterFactions,
   getCharacterGallery,
   getCharacterOutfits,
+  getCharacterWorlds,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
@@ -12,31 +14,63 @@ import { useState } from "react";
 
 type CharacterDetailProps = {
   character: Character;
+  onWorldClick?: (worldSlug: string) => void;
+  onFactionClick?: (factionSlug: string) => void;
 };
 
-export default function CharacterDetail({ character }: CharacterDetailProps) {
+export default function CharacterDetail({
+  character,
+  onWorldClick,
+  onFactionClick,
+}: CharacterDetailProps) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "outfits" | "lore" | "gallery"
   >("overview");
   const [lightboxContent, setLightboxContent] =
     useState<LightboxContent | null>(null);
 
+  const initialData = useInitialWikiData();
+  const hasInitialDetailData =
+    initialData.characterDetail?.characterId === character.id;
+
   const { data: gallery = [], isLoading: galleryLoading } = useQuery({
     queryKey: ["character-gallery", character.id],
     queryFn: () => getCharacterGallery(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.gallery
+      : undefined,
   });
 
   const { data: outfits = [], isLoading: outfitsLoading } = useQuery({
     queryKey: ["character-outfits", character.id],
     queryFn: () => getCharacterOutfits(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.outfits
+      : undefined,
   });
 
   const { data: factions = [], isLoading: factionsLoading } = useQuery({
     queryKey: ["character-factions", character.id],
     queryFn: () => getCharacterFactions(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.factions
+      : undefined,
   });
 
-  const loading = galleryLoading || outfitsLoading || factionsLoading;
+  const { data: characterWorlds = [], isLoading: worldsLoading } = useQuery({
+    queryKey: ["character-worlds", character.id],
+    queryFn: () => getCharacterWorlds(character.id),
+    initialData: hasInitialDetailData
+      ? initialData.characterDetail?.worlds
+      : undefined,
+  });
+
+  // Only show loading if we're fetching AND don't have any data yet
+  const loading =
+    (galleryLoading && gallery.length === 0) ||
+    (outfitsLoading && outfits.length === 0) ||
+    (factionsLoading && factions.length === 0) ||
+    (worldsLoading && characterWorlds.length === 0);
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -231,6 +265,55 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                   </div>
                 )}
 
+                {/* Worlds */}
+                {characterWorlds.length > 0 && (
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-indigo-600 to-cyan-600"></span>
+                      Worlds
+                    </h3>
+                    <div className="space-y-2">
+                      {characterWorlds.map((cw) => {
+                        const world = cw.worlds;
+                        if (!world) return null;
+                        return (
+                          <button
+                            key={cw.id}
+                            type="button"
+                            onClick={() => onWorldClick?.(world.slug)}
+                            className="w-full rounded-lg border border-indigo-100 bg-gradient-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {world.name}
+                              </div>
+                              <svg
+                                className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <title>Go to world</title>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                />
+                              </svg>
+                            </div>
+                            {world.summary && (
+                              <div className="mt-1 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+                                {world.summary}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Factions */}
                 {factions.length > 0 && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
@@ -240,12 +323,32 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                     </h3>
                     <div className="space-y-2">
                       {factions.map((membership) => (
-                        <div
+                        <button
                           key={membership.id}
-                          className="rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-3 dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20"
+                          type="button"
+                          onClick={() =>
+                            onFactionClick?.(membership.factions?.slug || "")
+                          }
+                          className="w-full rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
                         >
-                          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {membership.factions?.name}
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              {membership.factions?.name}
+                            </div>
+                            <svg
+                              className="h-4 w-4 text-purple-600 dark:text-purple-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <title>Go to faction</title>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"
+                              />
+                            </svg>
                           </div>
                           {membership.role && (
                             <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
@@ -253,7 +356,7 @@ export default function CharacterDetail({ character }: CharacterDetailProps) {
                               {membership.rank && ` • ${membership.rank}`}
                             </div>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
