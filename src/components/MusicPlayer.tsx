@@ -1,119 +1,101 @@
 "use client";
 
-import { useSound } from "@/contexts/SoundContext";
-import { soundManager } from "@/lib/sounds";
 import { useEffect, useRef, useState } from "react";
+import { Howl } from "howler"; // Make sure you have 'howler' installed
 
 export default function MusicPlayer() {
-  const { isBootComplete } = useSound();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.3);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [autoplayMuted, setAutoplayMuted] = useState(false);
-  const [autoplayAttempted, setAutoplayAttempted] = useState(false);
-  const volumeRef = useRef(0.3);
+  // A ref to hold the Howl instance
+  const soundRef = useRef<Howl | null>(null);
 
-  // Update volume in sound manager when it changes
+  // A ref to store the volume before muting
+  const lastVolumeRef = useRef(0.5);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.5); // Howler's volume is 0.0 to 1.0
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
+  // Initialize Howler on component mount
   useEffect(() => {
-    soundManager.setVolume("bgm", volume);
-    volumeRef.current = volume;
+    const sound = new Howl({
+      src: ["/audio/bgm.mp3"], // Howler accepts an array of sources
+      loop: true,
+      volume: volume,
+      html5: true, // Use HTML5 Audio for streaming BGM
+      preload: "metadata", // Don't load the whole file immediately
+
+      // Set state based on Howler's internal events
+      onplay: () => setIsPlaying(true),
+      onpause: () => setIsPlaying(false),
+      onend: () => setIsPlaying(false), // Just in case loop is turned off
+    });
+
+    soundRef.current = sound;
+
+    // --- Attempt Autoplay ---
+    // We manually call play() and listen for an error on this specific ID
+    const soundId = sound.play();
+
+    sound.once("playerror", (id, err) => {
+      if (id === soundId) {
+        console.warn("Autoplay was blocked by the browser.", err);
+        // The 'onplay' event won't fire, so ensure state is false
+        setIsPlaying(false);
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      sound.unload();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty array ensures this runs only once
+
+  // Update Howler's volume when the state changes
+  useEffect(() => {
+    if (soundRef.current) {
+      soundRef.current.volume(volume);
+    }
   }, [volume]);
 
-  // Attempt autoplay after boot is complete
-  useEffect(() => {
-    // Only attempt autoplay after boot and if not already attempted
-    if (!isBootComplete || autoplayAttempted) return;
+  const togglePlay = () => {
+    const sound = soundRef.current;
+    if (!sound) return;
 
-    const attemptAutoplay = () => {
-      // Try playing with current volume first
-      soundManager.play("bgm", {
-        volume: volumeRef.current,
-        onplay: () => {
-          // Play succeeded
-          setIsPlaying(true);
-          setAutoplayMuted(false);
-          setAutoplayAttempted(true);
-        },
-        onplayerror: () => {
-          // Autoplay blocked; try muted autoplay as a graceful fallback
-          soundManager.play("bgm", {
-            volume: 0,
-            onplay: () => {
-              setIsPlaying(true);
-              setAutoplayMuted(true);
-              setVolume(0);
-              setAutoplayAttempted(true);
-            },
-            onplayerror: () => {
-              // Still blocked (rare). We'll stay paused and let user interact.
-              setIsPlaying(false);
-              setAutoplayMuted(false);
-              setAutoplayAttempted(true);
-            },
-          });
-        },
-      });
-    };
-
-    // Run after a short delay to ensure the audio element is ready in some environments
-    attemptAutoplay();
-  }, [isBootComplete, autoplayAttempted]);
-
-  const togglePlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isPlaying) {
-      soundManager.stop("bgm");
-      setIsPlaying(false);
+    if (sound.playing()) {
+      sound.pause();
     } else {
-      soundManager.play("bgm", {
-        volume,
-        onplay: () => {
-          setIsPlaying(true);
-        },
-        onplayerror: () => {
-          setIsPlaying(false);
-        },
-      });
+      sound.play();
     }
+    // We don't need setIsPlaying here; the 'onplay'/'onpause' listeners do it.
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    setAutoplayMuted(false);
-  };
-
-  const unmuteAudio = () => {
-    const restoredVolume = volume === 0 ? 0.3 : volume;
-    setVolume(restoredVolume);
-    setAutoplayMuted(false);
-  };
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (volume === 0) {
-      // Unmute and restore a sensible volume
-      unmuteAudio();
-    } else {
-      setVolume(0);
-      setAutoplayMuted(false);
+    // If we're dragging the slider and it's not 0, update the "last" volume
+    if (newVolume > 0) {
+      lastVolumeRef.current = newVolume;
     }
   };
 
-  const toggleVolumeSlider = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowVolumeSlider(!showVolumeSlider);
-  };
-
-  const handleUnmuteIndicator = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    unmuteAudio();
-    setShowVolumeSlider(true);
+  const toggleMute = () => {
+    if (volume > 0) {
+      // Store the current volume before muting
+      lastVolumeRef.current = volume;
+      setVolume(0);
+    } else {
+      // Restore to the last known volume (or 0.5 as a default)
+      setVolume(lastVolumeRef.current > 0 ? lastVolumeRef.current : 0.5);
+    }
   };
 
   return (
     <div className="relative flex items-center gap-2">
-      {/* Volume Slider Popup */}
+      {/* The <audio> element is no longer needed! 
+        Howler manages the audio context internally.
+      */}
+
+      {/* Volume Slider Popup (No changes needed) */}
       {showVolumeSlider && (
         <div className="absolute right-0 bottom-full mb-2 rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-600 dark:bg-gray-800">
           <div className="flex flex-col items-center gap-2">
@@ -144,7 +126,7 @@ export default function MusicPlayer() {
         </div>
       )}
 
-      {/* Play/Pause Button */}
+      {/* Play/Pause Button (No changes needed) */}
       <button
         onClick={togglePlay}
         className="flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
@@ -153,26 +135,16 @@ export default function MusicPlayer() {
         {isPlaying ? "⏸️" : "▶️"}
       </button>
 
-      {/* Volume Button (shows an autoplay-muted indicator if applicable) */}
+      {/* Volume Button (No changes needed) */}
       <div className="relative">
         <button
-          onClick={toggleVolumeSlider}
+          onClick={() => setShowVolumeSlider(!showVolumeSlider)}
           className="flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
           title="Volume"
         >
           {volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
         </button>
-
-        {/* Small indicator when autoplay started muted to prompt user to unmute */}
-        {autoplayAttempted && autoplayMuted && (
-          <div
-            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-black"
-            title="Autoplay started muted — click to unmute"
-            onClick={handleUnmuteIndicator}
-          >
-            !
-          </div>
-        )}
+        {/* The complex autoplay-muted logic is removed, as Howler simplifies this. */}
       </div>
     </div>
   );
