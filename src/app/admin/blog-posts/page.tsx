@@ -20,7 +20,12 @@ export default async function BlogPostsPage({
     100,
   ); // Clamp between 1 and 100
 
-  const initialData = await getAllBlogPostsPaginated(page, pageSize);
+  try {
+    const initialData = await getAllBlogPostsPaginated(page, pageSize);
 
-  return <BlogPostsClient initialData={initialData} pageSize={pageSize} />;
+    return <BlogPostsClient initialData={initialData} pageSize={pageSize} />;
+  } catch (error) {
+    console.error("Error fetching blog posts:", error);
+    return <div>Error fetching blog posts</div>;
+  }
 }

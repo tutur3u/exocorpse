@@ -1,10 +1,11 @@
 "use client";
 
-import type { InitialBlogData, InitialWikiData } from "@/app/page";
 import BootScreen from "@/components/BootScreen";
 import Desktop from "@/components/Desktop";
 import MobileLayout from "@/components/mobile/MobileLayout";
+import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import { InitialBlogDataProvider } from "@/contexts/InitialBlogDataContext";
+import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useSound } from "@/contexts/SoundContext";
 import { WindowProvider } from "@/contexts/WindowContext";

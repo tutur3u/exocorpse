@@ -9,10 +9,11 @@ import {
   updateBlogPost,
   type BlogPost,
 } from "@/lib/actions/blog";
+import { generatePaginationRange } from "@/lib/pagination";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type BlogPostsClientProps = {
   initialData: {
@@ -53,6 +54,15 @@ export default function BlogPostsClient({
   const posts = paginatedData?.data || [];
   const total = paginatedData?.total || 0;
   const totalPages = Math.ceil(total / currentPageSize);
+
+  // Clamp currentPage to valid range after deletions shrink totalPages
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage, setCurrentPage]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -156,6 +166,7 @@ export default function BlogPostsClient({
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setEditingPost(null);
             setShowForm(true);
@@ -207,7 +218,10 @@ export default function BlogPostsClient({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              role="img"
+              aria-labelledby="empty-posts-title"
             >
+              <title id="empty-posts-title">No blog posts yet</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -223,6 +237,7 @@ export default function BlogPostsClient({
             Create your first blog post to get started
           </p>
           <button
+            type="button"
             onClick={() => {
               setEditingPost(null);
               setShowForm(true);
@@ -276,6 +291,7 @@ export default function BlogPostsClient({
                     {/* Actions */}
                     <div className="flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
                       <button
+                        type="button"
                         onClick={() => {
                           setEditingPost(post);
                           setShowForm(true);
@@ -285,6 +301,7 @@ export default function BlogPostsClient({
                         Edit
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(post.id)}
                         className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                       >
@@ -299,42 +316,67 @@ export default function BlogPostsClient({
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-6">
-              <button
-                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-                disabled={currentPage === 1}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
-              >
-                Previous
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`min-w-10 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                        currentPage === pageNum
-                          ? "bg-blue-600 text-white"
-                          : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ),
-                )}
+            <div className="space-y-4 pt-6">
+              {/* Results Info */}
+              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                Showing{" "}
+                {Math.min((currentPage - 1) * currentPageSize + 1, total)}-
+                {Math.min(currentPage * currentPageSize, total)} of {total}{" "}
+                posts
               </div>
 
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(currentPage + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
-              >
-                Next
-              </button>
+              {/* Pagination Buttons */}
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
+                >
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {generatePaginationRange(currentPage, totalPages).map(
+                    (pageNum, idx) =>
+                      pageNum === "..." ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-2 text-gray-500 dark:text-gray-400"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`min-w-10 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                            currentPage === pageNum
+                              ? "bg-blue-600 text-white"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                          }`}
+                          aria-current={
+                            currentPage === pageNum ? "page" : undefined
+                          }
+                        >
+                          {pageNum}
+                        </button>
+                      ),
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage(Math.min(currentPage + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:enabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:enabled:bg-gray-700"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -360,8 +402,9 @@ export default function BlogPostsClient({
           cancelText="Cancel"
           isDangerous={true}
           onConfirm={async () => {
+            if (!deleteConfirmId) return;
             try {
-              await deleteMutation.mutateAsync(deleteConfirmId!);
+              await deleteMutation.mutateAsync(deleteConfirmId);
             } finally {
               setShowDeleteConfirm(false);
               setDeleteConfirmId(null);

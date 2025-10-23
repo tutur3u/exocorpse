@@ -1,7 +1,18 @@
 "use client";
 
-import type { InitialWikiData } from "@/app/page";
+import type { Character, Faction, Story, World } from "@/lib/actions/wiki";
 import { createContext, useContext, type ReactNode } from "react";
+
+export type InitialWikiData = {
+  params: {
+    story: string | null;
+    world: string | null;
+  };
+  stories: Story[];
+  worlds: World[];
+  characters: Character[];
+  factions: Faction[];
+};
 
 const InitialWikiDataContext = createContext<InitialWikiData | undefined>(
   undefined,

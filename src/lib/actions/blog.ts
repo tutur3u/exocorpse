@@ -36,38 +36,62 @@ export async function getPublishedBlogPostsPaginated(
 ) {
   const supabase = await getSupabaseServer();
 
+  // Validate and clamp inputs
+  const validatedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const validatedPageSize = Math.max(
+    1,
+    Math.min(100, Math.floor(Number(pageSize) || 10)),
+  );
+
+  // Capture current timestamp once for consistent snapshot across queries
+  const now = new Date().toISOString();
+
   // Get total count
   const { count, error: countError } = await supabase
     .from("blog_posts")
     .select("*", { count: "exact", head: true })
-    .lte("published_at", new Date().toISOString())
+    .lte("published_at", now)
     .not("published_at", "is", null);
 
   if (countError) {
     console.error("Error counting published blog posts:", countError);
-    return { data: [], total: 0, page, pageSize };
+    return {
+      data: [],
+      total: 0,
+      page: validatedPage,
+      pageSize: validatedPageSize,
+    };
   }
 
-  // Get paginated data
-  const start = (page - 1) * pageSize;
+  // Calculate start position with clamping
+  let start = (validatedPage - 1) * validatedPageSize;
+  start = Math.max(0, start);
+
+  // Get paginated data with deterministic ordering (tiebreaker on id)
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
-    .lte("published_at", new Date().toISOString())
+    .lte("published_at", now)
     .not("published_at", "is", null)
     .order("published_at", { ascending: false })
-    .range(start, start + pageSize - 1);
+    .order("id", { ascending: false })
+    .range(start, start + validatedPageSize - 1);
 
   if (error) {
     console.error("Error fetching published blog posts:", error);
-    return { data: [], total: 0, page, pageSize };
+    return {
+      data: [],
+      total: 0,
+      page: validatedPage,
+      pageSize: validatedPageSize,
+    };
   }
 
   return {
     data: data || [],
-    total: count || 0,
-    page,
-    pageSize,
+    total: count ?? 0,
+    page: validatedPage,
+    pageSize: validatedPageSize,
   };
 }
 
@@ -101,6 +125,13 @@ export async function getAllBlogPostsPaginated(
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // Validate and clamp inputs
+  const validatedPage = Math.max(1, Math.floor(Number(page) || 1));
+  const validatedPageSize = Math.max(
+    1,
+    Math.min(100, Math.floor(Number(pageSize) || 9)),
+  );
+
   // Get total count
   const { count, error: countError } = await supabase
     .from("blog_posts")
@@ -108,16 +139,20 @@ export async function getAllBlogPostsPaginated(
 
   if (countError) {
     console.error("Error counting blog posts:", countError);
-    return { data: [], total: 0, page, pageSize };
+    throw countError;
   }
 
-  // Get paginated data
-  const start = (page - 1) * pageSize;
+  // Calculate start position with clamping
+  let start = (validatedPage - 1) * validatedPageSize;
+  start = Math.max(0, start);
+
+  // Get paginated data with deterministic ordering (tiebreaker on id)
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
     .order("created_at", { ascending: false })
-    .range(start, start + pageSize - 1);
+    .order("id", { ascending: false })
+    .range(start, start + validatedPageSize - 1);
 
   if (error) {
     console.error("Error fetching blog posts:", error);
@@ -126,9 +161,9 @@ export async function getAllBlogPostsPaginated(
 
   return {
     data: data || [],
-    total: count || 0,
-    page,
-    pageSize,
+    total: count ?? 0,
+    page: validatedPage,
+    pageSize: validatedPageSize,
   };
 }
 
