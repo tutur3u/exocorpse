@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      blacklisted_users: {
+        Row: {
+          id: string;
+          reasoning: string | null;
+          timestamp: string | null;
+          username: string;
+        };
+        Insert: {
+          id?: string;
+          reasoning?: string | null;
+          timestamp?: string | null;
+          username: string;
+        };
+        Update: {
+          id?: string;
+          reasoning?: string | null;
+          timestamp?: string | null;
+          username?: string;
+        };
+        Relationships: [];
+      };
       blog_posts: {
         Row: {
           content: string;

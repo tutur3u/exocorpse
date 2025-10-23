@@ -5,26 +5,33 @@ import Desktop from "@/components/Desktop";
 import MobileLayout from "@/components/mobile/MobileLayout";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import { InitialBlogDataProvider } from "@/contexts/InitialBlogDataContext";
+import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
+import { InitialCommissionDataProvider } from "@/contexts/InitialCommissionDataContext";
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useSound } from "@/contexts/SoundContext";
 import { WindowProvider } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
+import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 
 type HomeClientProps = {
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
+  commissionParams: CommissionSearchParams;
   initialWikiData: InitialWikiData;
   initialBlogData: InitialBlogData;
+  initialCommissionData: InitialCommissionData;
 };
 
 export default function HomeClient({
   wikiParams,
   blogParams,
+  commissionParams,
   initialWikiData,
   initialBlogData,
+  initialCommissionData,
 }: HomeClientProps) {
   const isMobile = useMobileDetection();
   const { isBootComplete, setBootComplete } = useSound();
@@ -37,7 +44,10 @@ export default function HomeClient({
     wikiParams.faction ||
     blogParams["blog-post"] ||
     blogParams["blog-page"] ||
-    blogParams["blog-page-size"]
+    blogParams["blog-page-size"] ||
+    commissionParams["commission-tab"] ||
+    commissionParams["blacklist-page"] ||
+    commissionParams["blacklist-page-size"]
   );
 
   // Show boot screen only on first visit to root index (no content params)
@@ -47,21 +57,29 @@ export default function HomeClient({
 
   if (isMobile) {
     return (
-      <InitialBlogDataProvider initialData={initialBlogData}>
-        <InitialWikiDataProvider initialData={initialWikiData}>
-          <MobileLayout wikiParams={wikiParams} blogParams={blogParams} />
-        </InitialWikiDataProvider>
-      </InitialBlogDataProvider>
+      <InitialCommissionDataProvider value={initialCommissionData}>
+        <InitialBlogDataProvider initialData={initialBlogData}>
+          <InitialWikiDataProvider initialData={initialWikiData}>
+            <MobileLayout wikiParams={wikiParams} blogParams={blogParams} />
+          </InitialWikiDataProvider>
+        </InitialBlogDataProvider>
+      </InitialCommissionDataProvider>
     );
   }
 
   return (
-    <InitialBlogDataProvider initialData={initialBlogData}>
-      <InitialWikiDataProvider initialData={initialWikiData}>
-        <WindowProvider wikiParams={wikiParams} blogParams={blogParams}>
-          <Desktop />
-        </WindowProvider>
-      </InitialWikiDataProvider>
-    </InitialBlogDataProvider>
+    <InitialCommissionDataProvider value={initialCommissionData}>
+      <InitialBlogDataProvider initialData={initialBlogData}>
+        <InitialWikiDataProvider initialData={initialWikiData}>
+          <WindowProvider
+            wikiParams={wikiParams}
+            blogParams={blogParams}
+            commissionParams={commissionParams}
+          >
+            <Desktop />
+          </WindowProvider>
+        </InitialWikiDataProvider>
+      </InitialBlogDataProvider>
+    </InitialCommissionDataProvider>
   );
 }

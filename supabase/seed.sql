@@ -1153,6 +1153,38 @@ This philosophy manifests as:
   );
 
 
+--
+-- Seed Data for table `blacklisted_users`
+--
+
+INSERT INTO blacklisted_users (username, reasoning, timestamp) VALUES
+(
+    'spam_bot_42',
+    'Persistent commercial spamming across multiple public channels.',
+    '2025-10-22 10:00:00-04' -- Yesterday at 10 AM (adjust timezone as needed)
+),
+(
+    'troll_king_99',
+    'Repeated harassment and targeted abusive behavior toward other users.',
+    '2025-10-23 03:15:22-04' -- Early this morning
+),
+(
+    'phish_attempt',
+    'Attempted to share malicious links and harvest login credentials.',
+    '2025-10-23 15:40:05-04' -- Just a moment ago
+),
+(
+    'cheater_joe',
+    'Exploited a known game bug for unfair advantage, disrupting competitive play.',
+    '2025-10-20 18:30:00-04' -- A few days ago
+),
+(
+    'duplicate_acct',
+    'Created a secondary account to evade a temporary ban on their main profile.',
+    '2025-10-15 12:00:00-04' -- Oldest entry
+);
+
+
 -- ============================================================================
 -- VERIFICATION QUERIES
 -- ============================================================================
