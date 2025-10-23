@@ -2,7 +2,7 @@
 
 import { MobileProvider } from "@/contexts/MobileContext";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
-import { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import DesktopNoticeBanner from "./DesktopNoticeBanner";
 import MobileBottomSheet from "./MobileBottomSheet";

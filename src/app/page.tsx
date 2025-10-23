@@ -1,8 +1,8 @@
 import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
-import { InitialBlogData } from "@/contexts/InitialBlogDataContext";
-import { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
-import { InitialWikiData } from "@/contexts/InitialWikiDataContext";
+import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
+import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
+import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
 import {
   getBlogPostBySlug,

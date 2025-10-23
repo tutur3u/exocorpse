@@ -6,7 +6,7 @@ import Commission from "@/components/apps/Commission";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
-import { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId } from "@/types/window";
 import React, { createContext, useCallback, useContext, useState } from "react";
