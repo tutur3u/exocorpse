@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
-  getBlacklistedUsersPaginated,
   addBlacklistedUser,
-  updateBlacklistedUser,
+  getBlacklistedUsersPaginated,
   removeBlacklistedUser,
+  updateBlacklistedUser,
   type BlacklistedUser,
 } from "@/lib/actions/blacklist";
 import toastWithSound from "@/lib/toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import BlacklistForm from "./BlacklistForm";
-import ConfirmDialog from "@/components/shared/ConfirmDialog";
 
 const PAGE_SIZE = 10;
 
@@ -37,7 +37,15 @@ export default function BlacklistClient({
     queryKey: ["blacklistedUsers", page],
     queryFn: () => getBlacklistedUsersPaginated(page, PAGE_SIZE),
     // Use initial data for first page
-    initialData: page === 1 ? { data: initialUsers, total: initialTotal, page: 1, pageSize: PAGE_SIZE } : undefined,
+    initialData:
+      page === 1
+        ? {
+            data: initialUsers,
+            total: initialTotal,
+            page: 1,
+            pageSize: PAGE_SIZE,
+          }
+        : undefined,
     staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
   });
 
@@ -58,7 +66,7 @@ export default function BlacklistClient({
         toastWithSound.error("Failed to add user to blacklist");
       }
     },
-    [queryClient]
+    [queryClient],
   );
 
   const handleUpdateUser = useCallback(
@@ -69,13 +77,15 @@ export default function BlacklistClient({
         setEditingUser(null);
         setShowForm(false);
         // Invalidate current page data
-        await queryClient.invalidateQueries({ queryKey: ["blacklistedUsers", page] });
+        await queryClient.invalidateQueries({
+          queryKey: ["blacklistedUsers", page],
+        });
       } catch (error) {
         console.error("Error updating user:", error);
         toastWithSound.error("Failed to update blacklist entry");
       }
     },
-    [queryClient, page]
+    [queryClient, page],
   );
 
   const handleDeleteClick = (id: string) => {
@@ -95,11 +105,11 @@ export default function BlacklistClient({
         toastWithSound.error("Failed to remove user from blacklist");
       }
     },
-    [queryClient]
+    [queryClient],
   );
 
   const filteredUsers = users.filter((user) =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
