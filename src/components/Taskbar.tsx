@@ -3,6 +3,7 @@
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import MusicPlayer from "./MusicPlayer";
 
 export default function Taskbar() {
@@ -14,6 +15,59 @@ export default function Taskbar() {
     focusWindow,
     minimizeAllWindows,
   } = useWindows();
+
+  const [currentTime, setCurrentTime] = useState<string>("");
+  const [isLocalTime, setIsLocalTime] = useState<boolean>(true);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const DateTimeFormat = "en-GB";
+
+      if (isLocalTime) {
+        // Local time - time only
+        const timeFormatter = new Intl.DateTimeFormat(DateTimeFormat, {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+        const time = timeFormatter.format(now);
+
+        // Date only
+        const dateFormatter = new Intl.DateTimeFormat(DateTimeFormat, {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        });
+        const date = dateFormatter.format(now);
+
+        setCurrentTime(`${time}\n${date}`);
+      } else {
+        // Artist time (GMT +7 Hanoi)
+        const timeFormatter = new Intl.DateTimeFormat(DateTimeFormat, {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+          timeZone: "Asia/Bangkok",
+        });
+        const time = timeFormatter.format(now);
+
+        const dateFormatter = new Intl.DateTimeFormat(DateTimeFormat, {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+          timeZone: "Asia/Bangkok",
+        });
+        const date = dateFormatter.format(now);
+
+        setCurrentTime(`${time}\n${date}`);
+      }
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, [isLocalTime]);
 
   const handleTaskbarClick = (id: AppId) => {
     const window = windows.find((w) => w.id === id);
@@ -91,9 +145,25 @@ export default function Taskbar() {
 
       {/* Spacer to push music player to the right */}
       <div className="flex-1" />
+      <MusicPlayer />
+
+      {/* Date/Time with Toggle - Windows Style (time on top, date on bottom) */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setIsLocalTime(!isLocalTime)}
+          className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+          title="Toggle between local time and Vietnam time (GMT +7)"
+        >
+          {isLocalTime ? "Local" : "Vietnam"}
+        </button>
+        <div className="flex flex-col items-center rounded px-2 py-1 font-mono text-sm leading-tight">
+          {currentTime.split("\n").map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </div>
+      </div>
 
       {/* Music Player */}
-      <MusicPlayer />
     </div>
   );
 }
