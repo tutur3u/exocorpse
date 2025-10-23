@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Gallery from "./Gallery";
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<"writing" | "art">("writing");
@@ -52,18 +53,7 @@ export default function Portfolio() {
             <p className="text-gray-600 dark:text-gray-400">
               Artwork and visual designs will be displayed here.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="aspect-square rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800">
-                <div className="flex h-full items-center justify-center text-gray-400">
-                  Artwork 1
-                </div>
-              </div>
-              <div className="aspect-square rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800">
-                <div className="flex h-full items-center justify-center text-gray-400">
-                  Artwork 2
-                </div>
-              </div>
-            </div>
+            <Gallery />
           </div>
         )}
       </div>

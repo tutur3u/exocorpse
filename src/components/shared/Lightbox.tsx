@@ -13,12 +13,16 @@ type LightboxProps = {
   content: LightboxContent | null;
   onClose: () => void;
   imageAlt?: string;
+  onNext?: () => void;
+  onPrevious?: () => void;
 };
 
 export default function Lightbox({
   content,
   onClose,
   imageAlt = "Lightbox image",
+  onNext,
+  onPrevious,
 }: LightboxProps) {
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -33,7 +37,11 @@ export default function Lightbox({
     // focus dialog after mount
     setTimeout(() => dialogRef.current?.focus(), 0);
     // Esc to close
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && onPrevious) onPrevious();
+      if (e.key === "ArrowRight" && onNext) onNext();
+    };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
@@ -83,6 +91,56 @@ export default function Lightbox({
           )}
           {content.footer && <div>{content.footer}</div>}
         </div>
+        {onPrevious && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrevious();
+            }}
+            className="bg-opacity-60 hover:bg-opacity-80 absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-black p-3 text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-2xl"
+            aria-label="Previous image"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+        {onNext && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="bg-opacity-60 hover:bg-opacity-80 absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-black p-3 text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-2xl"
+            aria-label="Next image"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           onClick={onClose}

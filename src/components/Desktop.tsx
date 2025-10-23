@@ -2,6 +2,7 @@
 
 import { useWindows } from "@/contexts/WindowContext";
 import type { AppId } from "@/types/window";
+import Image from "next/image";
 import { useState } from "react";
 import DesktopIcon from "./DesktopIcon";
 import Taskbar from "./Taskbar";
@@ -16,18 +17,35 @@ export default function Desktop() {
       className="relative h-screen w-screen overflow-hidden"
       onClick={() => setSelectedIconId(null)}
     >
-      {/* Desktop Icons */}
-      <div className="absolute top-4 left-4 grid gap-4">
-        {appConfigs.map((app) => (
-          <DesktopIcon
-            key={app.id}
-            id={app.id}
-            title={app.title}
-            icon={app.icon}
-            selected={selectedIconId === app.id}
-            onSelect={(id) => setSelectedIconId(id)}
+      {/* Desktop Icons - Logo at Top, Icons Centered */}
+      <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center gap-6">
+        {/* Logo - Top of screen */}
+        <div className="pointer-events-auto relative h-20 w-48">
+          <Image
+            src="/exocorpse.png"
+            alt="EXOCORPSE & MORS Logo"
+            fill
+            className="object-contain"
           />
-        ))}
+        </div>
+        <div>
+          <p className="text-center text-xl">
+            the duo of artist & writer in one vessel
+          </p>
+        </div>
+        {/* Icons - Just below logo */}
+        <div className="pointer-events-auto flex gap-8">
+          {appConfigs.map((app) => (
+            <DesktopIcon
+              key={app.id}
+              id={app.id}
+              title={app.title}
+              icon={app.icon}
+              selected={selectedIconId === app.id}
+              onSelect={(id) => setSelectedIconId(id)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Windows (non-interactive layer; windows themselves re-enable events) */}
