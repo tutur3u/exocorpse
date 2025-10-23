@@ -60,7 +60,11 @@ export default function HomeClient({
       <InitialCommissionDataProvider value={initialCommissionData}>
         <InitialBlogDataProvider initialData={initialBlogData}>
           <InitialWikiDataProvider initialData={initialWikiData}>
-            <MobileLayout wikiParams={wikiParams} blogParams={blogParams} commissionParams={commissionParams} />
+            <MobileLayout
+              wikiParams={wikiParams}
+              blogParams={blogParams}
+              commissionParams={commissionParams}
+            />
           </InitialWikiDataProvider>
         </InitialBlogDataProvider>
       </InitialCommissionDataProvider>
