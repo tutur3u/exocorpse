@@ -5,7 +5,7 @@ import {
   type World,
 } from "@/lib/actions/wiki";
 
-type ViewMode = "stories" | "worlds" | "content" | "character" | "faction";
+type ViewMode = "stories" | "story" | "world" | "character" | "faction";
 
 type BreadcrumbsProps = {
   viewMode: ViewMode;
@@ -26,9 +26,10 @@ export default function Breadcrumbs({
 }: BreadcrumbsProps) {
   const crumbs = [];
 
+  // Add Stories link (except when we're on the stories page)
   if (
-    viewMode === "worlds" ||
-    viewMode === "content" ||
+    viewMode === "story" ||
+    viewMode === "world" ||
     viewMode === "character" ||
     viewMode === "faction"
   ) {
@@ -43,8 +44,9 @@ export default function Breadcrumbs({
     );
   }
 
+  // Add Story link
   if (
-    (viewMode === "content" ||
+    (viewMode === "world" ||
       viewMode === "character" ||
       viewMode === "faction") &&
     selectedStory
@@ -57,7 +59,7 @@ export default function Breadcrumbs({
     crumbs.push(
       <button
         key="story"
-        onClick={() => onNavigate("worlds")}
+        onClick={() => onNavigate("story")}
         className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
       >
         {selectedStory.title}
@@ -65,7 +67,8 @@ export default function Breadcrumbs({
     );
   }
 
-  if (viewMode === "worlds" && selectedStory) {
+  // Show current story name (when on story page)
+  if (viewMode === "story" && selectedStory) {
     crumbs.push(
       <span key="sep2" className="mx-2 text-gray-400">
         /
@@ -78,12 +81,8 @@ export default function Breadcrumbs({
     );
   }
 
-  if (
-    (viewMode === "content" ||
-      viewMode === "character" ||
-      viewMode === "faction") &&
-    selectedWorld
-  ) {
+  // Add World link
+  if ((viewMode === "character" || viewMode === "faction") && selectedWorld) {
     crumbs.push(
       <span key="sep3" className="mx-2 text-gray-400">
         /
@@ -92,7 +91,7 @@ export default function Breadcrumbs({
     crumbs.push(
       <button
         key="world"
-        onClick={() => onNavigate("content")}
+        onClick={() => onNavigate("world")}
         className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
       >
         {selectedWorld.name}
@@ -100,6 +99,21 @@ export default function Breadcrumbs({
     );
   }
 
+  // Show current world name (when on world page)
+  if (viewMode === "world" && selectedWorld) {
+    crumbs.push(
+      <span key="sep3b" className="mx-2 text-gray-400">
+        /
+      </span>,
+    );
+    crumbs.push(
+      <span key="current-world" className="text-gray-600 dark:text-gray-400">
+        {selectedWorld.name}
+      </span>,
+    );
+  }
+
+  // Show current character name
   if (viewMode === "character" && viewingCharacter) {
     crumbs.push(
       <span key="sep4" className="mx-2 text-gray-400">
@@ -113,6 +127,7 @@ export default function Breadcrumbs({
     );
   }
 
+  // Show current faction name
   if (viewMode === "faction" && viewingFaction) {
     crumbs.push(
       <span key="sep5" className="mx-2 text-gray-400">
