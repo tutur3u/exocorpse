@@ -1,7 +1,7 @@
 import { createClient } from "@tuturuuu/supabase/next/server";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // Check if the route is an admin route
