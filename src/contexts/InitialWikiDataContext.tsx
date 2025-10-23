@@ -5,10 +5,18 @@ import { createContext, useContext, type ReactNode } from "react";
 
 export type CharacterDetailData = {
   characterId: string;
-  gallery: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterGallery>>;
-  outfits: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterOutfits>>;
-  factions: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterFactions>>;
-  worlds: Awaited<ReturnType<typeof import("@/lib/actions/wiki").getCharacterWorlds>>;
+  gallery: Awaited<
+    ReturnType<typeof import("@/lib/actions/wiki").getCharacterGallery>
+  >;
+  outfits: Awaited<
+    ReturnType<typeof import("@/lib/actions/wiki").getCharacterOutfits>
+  >;
+  factions: Awaited<
+    ReturnType<typeof import("@/lib/actions/wiki").getCharacterFactions>
+  >;
+  worlds: Awaited<
+    ReturnType<typeof import("@/lib/actions/wiki").getCharacterWorlds>
+  >;
 };
 
 export type InitialWikiData = {

@@ -356,7 +356,7 @@ export default async function Home({ searchParams }: Props) {
       initialWikiData.characters = await getCharactersByStorySlug(
         wikiParams.story,
       );
-      
+
       // Pre-fetch character detail data for character viewed without world
       const selectedCharacter = initialWikiData.characters.find(
         (c) => c.slug === wikiParams.character,
