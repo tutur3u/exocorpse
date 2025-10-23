@@ -28,13 +28,16 @@ export default function Window({ id, title, children }: WindowProps) {
 
   const { playSound } = useSound();
 
-  // Only set up wiki params clearing if this is the wiki window
+  // Set up params clearing for wiki and commission windows
   const [, setParams] = useQueryStates(
     {
       story: parseAsString,
       world: parseAsString,
       character: parseAsString,
       faction: parseAsString,
+      "commission-tab": parseAsString,
+      "blacklist-page": parseAsString,
+      "blacklist-page-size": parseAsString,
     },
     {
       shallow: true,
@@ -190,6 +193,16 @@ export default function Window({ id, title, children }: WindowProps) {
         faction: null,
       });
     }
+
+    // If closing the commission window, clear commission search params
+    if (id === "commission") {
+      setParams({
+        "commission-tab": null,
+        "blacklist-page": null,
+        "blacklist-page-size": null,
+      });
+    }
+
     setIsClosing(true);
     setTimeout(() => {
       closeWindow(id);

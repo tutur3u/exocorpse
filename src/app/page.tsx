@@ -1,7 +1,9 @@
 import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
-import { InitialBlogData } from "@/contexts/InitialBlogDataContext";
-import { InitialWikiData } from "@/contexts/InitialWikiDataContext";
+import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
+import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
+import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
+import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
 import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
@@ -27,6 +29,7 @@ import {
   loadBlogSearchParams,
   serializeBlogSearchParams,
 } from "@/lib/blog-search-params";
+import { loadCommissionSearchParams } from "@/lib/commission-search-params";
 import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
@@ -212,6 +215,7 @@ export default async function Home({ searchParams }: Props) {
   // Load both wiki and blog params
   const wikiParams = await loadWikiSearchParams(searchParams);
   const blogParams = await loadBlogSearchParams(searchParams);
+  const commissionParams = await loadCommissionSearchParams(searchParams);
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -235,6 +239,24 @@ export default async function Home({ searchParams }: Props) {
     page: 1,
     pageSize: pageSize,
     selectedPost: null,
+  };
+
+  // Fetch initial commission data based on params
+  const commissionTab = commissionParams["commission-tab"] ?? "info";
+  const blacklistPage = commissionParams["blacklist-page"] ?? 1;
+  const blacklistPageSize =
+    commissionParams["blacklist-page-size"] ?? DEFAULT_PAGE_SIZE;
+
+  const blacklistData =
+    commissionTab === "blacklist"
+      ? await getBlacklistedUsersPaginated(blacklistPage, blacklistPageSize)
+      : { data: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE };
+
+  const initialCommissionData: InitialCommissionData = {
+    blacklistedUsers: blacklistData.data,
+    blacklistTotal: blacklistData.total,
+    blacklistPage: blacklistData.page,
+    blacklistPageSize: blacklistData.pageSize,
   };
 
   // Only fetch data server-side if user has params (navigating to content)
@@ -383,8 +405,10 @@ export default async function Home({ searchParams }: Props) {
     <HomeClient
       wikiParams={wikiParams}
       blogParams={blogParams}
+      commissionParams={commissionParams}
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
+      initialCommissionData={initialCommissionData}
     />
   );
 }

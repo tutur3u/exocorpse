@@ -124,6 +124,34 @@ export default function AdminDashboard() {
             Organize groups and organizations
           </p>
         </Link>
+
+        {/* Blacklist Card */}
+        <Link
+          href="/admin/blacklist"
+          className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
+        >
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-orange-500">
+            <svg
+              className="h-6 w-6 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4v2m0 5v1m0-17v1M7.08 4.23l.707.707m3.536-3.536l.707.707m3.536 3.536l.707-.707m3.536 3.536l.707-.707M4.929 4.929l.707.707m3.536 3.536l.707-.707m-3.536 3.536l.707-.707m3.536-3.536l.707.707"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Blacklist
+          </h3>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Manage blacklisted users
+          </p>
+        </Link>
       </div>
     </div>
   );

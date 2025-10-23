@@ -7,6 +7,7 @@ import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
 import { TASKBAR_HEIGHT } from "@/constants";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
+import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
 import React, {
@@ -84,10 +85,12 @@ export function WindowProvider({
   children,
   wikiParams,
   blogParams,
+  commissionParams,
 }: {
   children: React.ReactNode;
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
+  commissionParams: CommissionSearchParams;
 }) {
   const hasWikiParams =
     wikiParams.story ||
@@ -100,17 +103,32 @@ export function WindowProvider({
     blogParams["blog-page"] ||
     blogParams["blog-page-size"];
 
+  const hasCommissionParams =
+    commissionParams["commission-tab"] ||
+    commissionParams["blacklist-page"] ||
+    commissionParams["blacklist-page-size"];
+
   // Initialize windows with appropriate window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
   const initializedRef = useRef(false);
 
-  // Initialize wiki or blog window on mount if params are present
+  // Initialize wiki, blog, or commission window on mount if params are present
   // Using useEffect with empty deps to ensure it only runs once on mount
   useEffect(() => {
-    if ((hasWikiParams || hasBlogParams) && !initializedRef.current) {
+    if (
+      (hasWikiParams || hasBlogParams || hasCommissionParams) &&
+      !initializedRef.current
+    ) {
       initializedRef.current = true;
-      const appId = hasWikiParams ? "wiki" : "blog";
+      let appId: "wiki" | "blog" | "commission" = "blog";
+
+      if (hasWikiParams) {
+        appId = "wiki";
+      } else if (hasCommissionParams) {
+        appId = "commission";
+      }
+
       const config = APP_CONFIGS.find((c) => c.id === appId);
       if (config) {
         setWindows([
