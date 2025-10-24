@@ -6,6 +6,7 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
+import { deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
@@ -220,6 +221,28 @@ export default function CharacterForm({
 
   const handleCancelClick = () => {
     handleExit(onCancel);
+  };
+
+  // Helper function to delete old image from storage
+  const handleDeleteOldImage = async (oldValue: string, newValue: string) => {
+    // Only delete if:
+    // 1. The old value exists and is a storage path (not a URL or data URL)
+    // 2. The new value is different from the old value
+    // 3. The old value is not a full URL (starts with http/https) or data URL
+    if (
+      oldValue &&
+      oldValue !== newValue &&
+      !oldValue.startsWith("http://") &&
+      !oldValue.startsWith("https://") &&
+      !oldValue.startsWith("data:")
+    ) {
+      try {
+        await deleteFile(oldValue);
+      } catch (error) {
+        console.error("Failed to delete old image:", error);
+        // Don't throw - we still want to allow the new image to be set
+      }
+    }
   };
 
   return (
@@ -849,7 +872,18 @@ export default function CharacterForm({
                     onChange={(value) =>
                       setValue("profile_image", value, { shouldDirty: true })
                     }
-                    helpText="Main character portrait"
+                    uploadPath={
+                      character
+                        ? `characters/${character.id}/profile`
+                        : undefined
+                    }
+                    enableUpload={!!character}
+                    onBeforeChange={handleDeleteOldImage}
+                    helpText={
+                      character
+                        ? "Main character portrait - uploads to secure storage"
+                        : "Save character first to enable image uploads"
+                    }
                   />
 
                   <ImageUploader
@@ -858,7 +892,18 @@ export default function CharacterForm({
                     onChange={(value) =>
                       setValue("banner_image", value, { shouldDirty: true })
                     }
-                    helpText="Banner image for character page"
+                    uploadPath={
+                      character
+                        ? `characters/${character.id}/banner`
+                        : undefined
+                    }
+                    enableUpload={!!character}
+                    onBeforeChange={handleDeleteOldImage}
+                    helpText={
+                      character
+                        ? "Banner image for character page - uploads to secure storage"
+                        : "Save character first to enable image uploads"
+                    }
                   />
 
                   <ColorPicker

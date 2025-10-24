@@ -49,11 +49,13 @@
     "react-markdown": "^10.1.0",
     "react-responsive-masonry": "^2.7.1",
     "react-rnd": "^10.5.2",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "tuturuuu": "0.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.16",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@types/howler": "^2.2.12",
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",

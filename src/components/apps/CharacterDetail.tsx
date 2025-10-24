@@ -1,5 +1,6 @@
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import StorageImage from "@/components/shared/StorageImage";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import type { Character } from "@/lib/actions/wiki";
 import {
@@ -82,16 +83,26 @@ export default function CharacterDetail({
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-gray-900">
       {/* Banner Image - Only visible on larger screens */}
-      <div
-        className="relative hidden h-32 bg-cover bg-center lg:block"
-        style={{
-          backgroundImage: character.banner_image
-            ? `url(${character.banner_image})`
-            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        }}
-      >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+      <div className="relative hidden h-64 overflow-hidden lg:block">
+        {character.banner_image ? (
+          <>
+            <StorageImage
+              src={character.banner_image}
+              alt={`${character.name} banner`}
+              className="h-full w-full object-cover"
+              width={1200}
+              height={128}
+            />
+            {/* Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+          </>
+        ) : (
+          <>
+            <div className="h-full w-full bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500" />
+            {/* Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+          </>
+        )}
       </div>
 
       {/* Compact Header */}
@@ -100,12 +111,17 @@ export default function CharacterDetail({
           {/* Profile Image */}
           <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
             {character.profile_image ? (
-              <Image
+              <StorageImage
                 src={character.profile_image}
                 alt={character.name}
                 className="h-full w-full object-cover"
                 width={64}
                 height={64}
+                fallback={
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+                    {character.name.charAt(0)}
+                  </div>
+                }
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">

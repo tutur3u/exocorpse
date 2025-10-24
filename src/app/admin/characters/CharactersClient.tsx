@@ -275,7 +275,7 @@ export default function CharactersClient({
               setEditingCharacter(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             + New Character
           </button>
@@ -329,7 +329,7 @@ export default function CharactersClient({
                 }}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   selectedWorldFilters.has(world.id)
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md"
+                    ? "bg-linear-to-r from-blue-600 to-cyan-600 text-white shadow-md"
                     : "border border-gray-300 bg-white text-gray-700 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-500"
                 }`}
               >
@@ -350,7 +350,7 @@ export default function CharactersClient({
 
       {!selectedStoryId ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
             <svg
               className="h-8 w-8 text-green-600 dark:text-green-400"
               fill="none"
@@ -380,7 +380,7 @@ export default function CharactersClient({
         </div>
       ) : characters.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
             <svg
               className="h-8 w-8 text-green-600 dark:text-green-400"
               fill="none"
@@ -406,14 +406,14 @@ export default function CharactersClient({
               setEditingCharacter(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-green-600 to-emerald-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             Create First Character
           </button>
         </div>
       ) : filteredCharacters.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30">
             <svg
               className="h-8 w-8 text-yellow-600 dark:text-yellow-400"
               fill="none"
@@ -436,7 +436,7 @@ export default function CharactersClient({
           </p>
           <button
             onClick={() => setSelectedWorldFilters(new Set())}
-            className="rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-yellow-600 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             Clear Filters
           </button>
@@ -449,8 +449,8 @@ export default function CharactersClient({
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Character Header */}
-              <div className="relative h-32 overflow-hidden bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="relative h-32 overflow-hidden bg-linear-to-br from-green-400 via-emerald-400 to-teal-400">
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
               </div>
 
               {/* Content */}

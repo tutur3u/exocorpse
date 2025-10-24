@@ -5,6 +5,7 @@ import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
+import { deleteFile } from "@/lib/actions/storage";
 import type { Story } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
@@ -127,6 +128,28 @@ export default function StoryForm({
     if (e.key === "Escape") {
       e.preventDefault();
       handleExit(onCancel);
+    }
+  };
+
+  // Helper function to delete old image from storage
+  const handleDeleteOldImage = async (oldValue: string, newValue: string) => {
+    // Only delete if:
+    // 1. The old value exists and is a storage path (not a URL or data URL)
+    // 2. The new value is different from the old value
+    // 3. The old value is not a full URL (starts with http/https) or data URL
+    if (
+      oldValue &&
+      oldValue !== newValue &&
+      !oldValue.startsWith("http://") &&
+      !oldValue.startsWith("https://") &&
+      !oldValue.startsWith("data:")
+    ) {
+      try {
+        await deleteFile(oldValue);
+      } catch (error) {
+        console.error("Failed to delete old image:", error);
+        // Don't throw - we still want to allow the new image to be set
+      }
     }
   };
 
@@ -334,7 +357,16 @@ export default function StoryForm({
                         shouldDirty: true,
                       })
                     }
-                    helpText="Optional background image for story pages"
+                    uploadPath={
+                      story ? `stories/${story.id}/background` : undefined
+                    }
+                    enableUpload={!!story}
+                    onBeforeChange={handleDeleteOldImage}
+                    helpText={
+                      story
+                        ? "Optional background image for story pages - uploads to secure storage"
+                        : "Save story first to enable image uploads"
+                    }
                   />
 
                   <div>

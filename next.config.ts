@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+      },
     ],
   },
 };
