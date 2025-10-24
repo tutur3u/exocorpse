@@ -849,7 +849,17 @@ export default function CharacterForm({
                     onChange={(value) =>
                       setValue("profile_image", value, { shouldDirty: true })
                     }
-                    helpText="Main character portrait"
+                    uploadPath={
+                      character
+                        ? `characters/${character.id}/profile`
+                        : undefined
+                    }
+                    enableUpload={!!character}
+                    helpText={
+                      character
+                        ? "Main character portrait - uploads to secure storage"
+                        : "Save character first to enable image uploads"
+                    }
                   />
 
                   <ImageUploader
@@ -858,7 +868,17 @@ export default function CharacterForm({
                     onChange={(value) =>
                       setValue("banner_image", value, { shouldDirty: true })
                     }
-                    helpText="Banner image for character page"
+                    uploadPath={
+                      character
+                        ? `characters/${character.id}/banner`
+                        : undefined
+                    }
+                    enableUpload={!!character}
+                    helpText={
+                      character
+                        ? "Banner image for character page - uploads to secure storage"
+                        : "Save character first to enable image uploads"
+                    }
                   />
 
                   <ColorPicker

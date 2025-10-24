@@ -1,5 +1,6 @@
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import StorageImage from "@/components/shared/StorageImage";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import type { Character } from "@/lib/actions/wiki";
 import {
@@ -100,12 +101,17 @@ export default function CharacterDetail({
           {/* Profile Image */}
           <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
             {character.profile_image ? (
-              <Image
+              <StorageImage
                 src={character.profile_image}
                 alt={character.name}
                 className="h-full w-full object-cover"
                 width={64}
                 height={64}
+                fallback={
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+                    {character.name.charAt(0)}
+                  </div>
+                }
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
