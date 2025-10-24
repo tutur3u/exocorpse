@@ -6,7 +6,7 @@ import {
   REVALIDATE_TIME,
 } from "@/constants";
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdminServer, getSupabaseServer } from "@/lib/supabase/server";
 import { TuturuuuClient } from "tuturuuu";
 
 // Initialize the Tuturuuu client with API key from environment
@@ -223,8 +223,10 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     // Calculate the expiration timestamp
     const expiresAt = new Date(now.getTime() + expiresIn * 1000);
 
+    const sbAdmin = await getSupabaseAdminServer();
+
     // Upsert the new URL into the cache
-    await supabase.from("resource_urls").upsert(
+    await sbAdmin.from("resource_urls").upsert(
       {
         resource_path: path,
         url: result.data.signedUrl,

@@ -31,3 +31,39 @@ CREATE TRIGGER trigger_update_resource_urls_updated_at
     BEFORE UPDATE ON resource_urls
     FOR EACH ROW
     EXECUTE FUNCTION update_resource_urls_updated_at();
+
+
+    -- 1. Enable RLS on the table
+ALTER TABLE resource_urls ENABLE ROW LEVEL SECURITY;
+--
+-- Policies
+--
+
+create policy "Enable delete for authenticated users"
+on "public"."resource_urls"
+as permissive
+for delete
+to authenticated
+using (true);
+
+create policy "Enable insert for authenticated users only"
+on "public"."resource_urls"
+as permissive
+for insert
+to authenticated
+with check (true);
+
+create policy "Enable read access for all users"
+on "public"."resource_urls"
+as permissive
+for select
+to public
+using (true);
+
+create policy "Enable update for authenticated users"
+on "public"."resource_urls"
+as permissive
+for update
+to authenticated
+using (true)
+with check (true);
