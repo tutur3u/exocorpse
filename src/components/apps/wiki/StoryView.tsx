@@ -1,6 +1,8 @@
 "use client";
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   type Character,
   type Faction,
@@ -10,7 +12,6 @@ import {
   getFactionsByStorySlug,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { useState } from "react";
 
 type StoryViewProps = {
@@ -43,6 +44,20 @@ export default function StoryView({
     queryKey: ["story-factions", story.slug],
     queryFn: () => getFactionsByStorySlug(story.slug),
   });
+
+  // Batch fetch all character profile images at once
+  const characterImagePaths = characters
+    .map((c) => c.profile_image)
+    .filter((path): path is string => !!path);
+  const { signedUrls: characterImageUrls, loading: imageUrlsLoading } =
+    useBatchStorageUrls(characterImagePaths);
+
+  // Batch fetch all faction logos at once
+  const factionLogoPaths = factions
+    .map((f) => f.logo_url)
+    .filter((path): path is string => !!path);
+  const { signedUrls: factionLogoUrls, loading: logoUrlsLoading } =
+    useBatchStorageUrls(factionLogoPaths);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
@@ -253,12 +268,14 @@ export default function StoryView({
         {/* Characters Tab */}
         {activeTab === "characters" && (
           <div className="animate-fadeIn">
-            {charactersLoading ? (
+            {charactersLoading || imageUrlsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
                   <div className="font-medium text-gray-500 dark:text-gray-400">
-                    Loading characters...
+                    {charactersLoading
+                      ? "Loading characters..."
+                      : "Loading images..."}
                   </div>
                 </div>
               </div>
@@ -301,11 +318,19 @@ export default function StoryView({
                     {/* Character Image */}
                     <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
                       {character.profile_image ? (
-                        <Image
+                        <StorageImage
                           src={character.profile_image}
+                          signedUrl={characterImageUrls.get(
+                            character.profile_image,
+                          )}
                           alt={character.name}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
+                          fallback={
+                            <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
+                              {character.name.charAt(0)}
+                            </div>
+                          }
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
@@ -340,12 +365,14 @@ export default function StoryView({
         {/* Factions Tab */}
         {activeTab === "factions" && (
           <div className="animate-fadeIn">
-            {factionsLoading ? (
+            {factionsLoading || logoUrlsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
                   <div className="font-medium text-gray-500 dark:text-gray-400">
-                    Loading factions...
+                    {factionsLoading
+                      ? "Loading factions..."
+                      : "Loading logos..."}
                   </div>
                 </div>
               </div>
@@ -388,8 +415,9 @@ export default function StoryView({
                     {/* Faction Logo/Image */}
                     {faction.logo_url ? (
                       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-red-500">
-                        <Image
+                        <StorageImage
                           src={faction.logo_url}
+                          signedUrl={factionLogoUrls.get(faction.logo_url)}
                           alt={faction.name}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"

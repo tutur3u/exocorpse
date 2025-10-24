@@ -1280,6 +1280,30 @@ export type Database = {
           },
         ];
       };
+      resource_urls: {
+        Row: {
+          created_at: string | null;
+          expired_at: string;
+          resource_path: string;
+          updated_at: string | null;
+          url: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          expired_at: string;
+          resource_path: string;
+          updated_at?: string | null;
+          url: string;
+        };
+        Update: {
+          created_at?: string | null;
+          expired_at?: string;
+          resource_path?: string;
+          updated_at?: string | null;
+          url?: string;
+        };
+        Relationships: [];
+      };
       stories: {
         Row: {
           content: string | null;
@@ -1651,26 +1675,6 @@ export type Database = {
           relationship_type_name: string;
         }[];
       };
-      gtrgm_compress: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
-      gtrgm_decompress: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
-      gtrgm_in: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
-      gtrgm_options: {
-        Args: { "": unknown };
-        Returns: undefined;
-      };
-      gtrgm_out: {
-        Args: { "": unknown };
-        Returns: unknown;
-      };
       search_entities: {
         Args: { search_query: string };
         Returns: {
@@ -1681,18 +1685,8 @@ export type Database = {
           rank: number;
         }[];
       };
-      set_limit: {
-        Args: { "": number };
-        Returns: number;
-      };
-      show_limit: {
-        Args: Record<PropertyKey, never>;
-        Returns: number;
-      };
-      show_trgm: {
-        Args: { "": string };
-        Returns: string[];
-      };
+      show_limit: { Args: never; Returns: number };
+      show_trgm: { Args: { "": string }; Returns: string[] };
       update_character_worlds: {
         Args: { p_character_id: string; p_world_ids: string[] };
         Returns: {

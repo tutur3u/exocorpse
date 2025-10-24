@@ -1,3 +1,6 @@
+import { useStorageUrl } from "@/hooks/useStorageUrl";
+import { uploadFile } from "@/lib/actions/storage";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
@@ -8,6 +11,9 @@ type ImageUploaderProps = {
   helpText?: string;
   accept?: string;
   maxSizeMB?: number;
+  uploadPath?: string; // Optional: storage path for uploads (e.g., "characters/123/profile")
+  enableUpload?: boolean; // Whether to enable file uploads to storage (default: true)
+  onBeforeChange?: (oldValue: string, newValue: string) => Promise<void>; // Optional: callback before changing value (e.g., to delete old image)
 };
 
 export default function ImageUploader({
@@ -17,11 +23,31 @@ export default function ImageUploader({
   helpText = "Enter image URL or upload a file",
   accept = "image/*",
   maxSizeMB = 5,
+  uploadPath,
+  enableUpload = true,
+  onBeforeChange,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(value || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  // Check if the value is a relative storage path (not a full URL or data URL)
+  const isStoragePath =
+    value &&
+    !value.startsWith("http://") &&
+    !value.startsWith("https://") &&
+    !value.startsWith("data:");
+
+  // Use the hook to get the signed URL if it's a storage path
+  const { signedUrl: displayUrl, loading: urlLoading } = useStorageUrl(
+    isStoragePath ? value : null,
+  );
+
+  // Determine which URL to display
+  const imagePreviewUrl =
+    displayUrl || preview || (isStoragePath ? null : value) || null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,30 +69,65 @@ export default function ImageUploader({
     setUploading(true);
 
     try {
-      // For now, create a local preview URL
-      // In production, you'd upload to a CDN/S3/Supabase Storage here
+      // Read file as data URL for preview and upload
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setPreview(result);
-        onChange(result);
-        setUploading(false);
+      reader.onloadend = async () => {
+        const dataUrl = reader.result as string;
+        setPreview(dataUrl);
+
+        // If upload is enabled and uploadPath is provided, upload to storage
+        if (enableUpload && uploadPath) {
+          try {
+            const result = await uploadFile(dataUrl, uploadPath, file.name);
+            if (result.success) {
+              // Call onBeforeChange to delete the old image if it exists
+              if (onBeforeChange && value) {
+                try {
+                  await onBeforeChange(value, result.path);
+                } catch (deleteError) {
+                  console.error("Error deleting old image:", deleteError);
+                  // Continue with the upload even if deletion fails
+                }
+              }
+
+              // Store the storage path (not the signed URL)
+              // We'll generate signed URLs when displaying
+              onChange(result.path);
+
+              // Invalidate the query cache for this path to fetch the new signed URL
+              await queryClient.invalidateQueries({
+                queryKey: ["storage-url", result.path],
+              });
+
+              // Also invalidate any batch queries that might include this path
+              await queryClient.invalidateQueries({
+                queryKey: ["storage-urls-batch"],
+                exact: false,
+              });
+
+              setUploading(false);
+            } else {
+              throw new Error("Upload failed");
+            }
+          } catch (uploadError) {
+            setError(
+              uploadError instanceof Error
+                ? uploadError.message
+                : "Upload failed",
+            );
+            setUploading(false);
+          }
+        } else {
+          // If upload is disabled, just use the data URL (for backwards compatibility)
+          onChange(dataUrl);
+          setUploading(false);
+        }
       };
       reader.onerror = () => {
         setError("Failed to read file");
         setUploading(false);
       };
       reader.readAsDataURL(file);
-
-      // TODO: In production, upload to storage service
-      // const formData = new FormData();
-      // formData.append('file', file);
-      // const response = await fetch('/api/upload', {
-      //   method: 'POST',
-      //   body: formData
-      // });
-      // const data = await response.json();
-      // onChange(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
       setUploading(false);
@@ -79,7 +140,18 @@ export default function ImageUploader({
     setError(null);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
+    // Call onBeforeChange to delete the old image if it exists
+    if (onBeforeChange && value) {
+      try {
+        await onBeforeChange(value, "");
+      } catch (deleteError) {
+        console.error("Error deleting old image:", deleteError);
+        setError("Failed to delete old image");
+        return;
+      }
+    }
+
     setPreview(null);
     onChange("");
     setError(null);
@@ -141,20 +213,26 @@ export default function ImageUploader({
       )}
 
       {/* Image Preview */}
-      {preview && (
+      {imagePreviewUrl && (
         <div className="animate-fadeIn mt-3">
           <p className="mb-2 text-sm font-medium">Preview:</p>
           <div className="relative h-48 w-full overflow-hidden rounded-lg border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-            <Image
-              src={preview}
-              alt="Preview"
-              fill
-              className="object-contain"
-              onError={() => {
-                setError("Failed to load image");
-                setPreview(null);
-              }}
-            />
+            {urlLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-gray-500">Loading image...</p>
+              </div>
+            ) : (
+              <Image
+                src={imagePreviewUrl}
+                alt="Preview"
+                fill
+                className="object-contain"
+                onError={() => {
+                  setError("Failed to load image");
+                  setPreview(null);
+                }}
+              />
+            )}
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 import LogoutButton from "@/components/admin/LogoutButton";
 import { requireAuth } from "@/lib/auth/utils";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 export default async function AdminLayout({
   children,

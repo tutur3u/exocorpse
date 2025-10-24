@@ -8,6 +8,7 @@ import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import type { Character, Story } from "@/lib/actions/wiki";
 import {
   getCharacterBySlug,
   getCharacterBySlugInStory,
@@ -23,7 +24,6 @@ import {
   getStoryBySlug,
   getWorldBySlug,
   getWorldsByStorySlug,
-  type Story,
 } from "@/lib/actions/wiki";
 import {
   loadBlogSearchParams,
@@ -209,13 +209,20 @@ export async function generateMetadata({
   };
 }
 
-export default async function Home({ searchParams }: Props) {
+async function HomeContent({
+  wikiParamsData,
+  blogParamsData,
+  commissionParamsData,
+}: {
+  wikiParamsData: Awaited<ReturnType<typeof loadWikiSearchParams>>;
+  blogParamsData: Awaited<ReturnType<typeof loadBlogSearchParams>>;
+  commissionParamsData: Awaited<ReturnType<typeof loadCommissionSearchParams>>;
+}) {
   const DEFAULT_PAGE_SIZE = 10;
 
-  // Load both wiki and blog params
-  const wikiParams = await loadWikiSearchParams(searchParams);
-  const blogParams = await loadBlogSearchParams(searchParams);
-  const commissionParams = await loadCommissionSearchParams(searchParams);
+  const wikiParams = wikiParamsData;
+  const blogParams = blogParamsData;
+  const commissionParams = commissionParamsData;
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -355,7 +362,7 @@ export default async function Home({ searchParams }: Props) {
       // If a specific character is selected, pre-fetch all its detail data
       if (wikiParams.character) {
         const selectedCharacter = characters.find(
-          (c) => c.slug === wikiParams.character,
+          (c: Character) => c.slug === wikiParams.character,
         );
         if (selectedCharacter) {
           const [gallery, outfits, factions, worlds] = await Promise.all([
@@ -381,7 +388,7 @@ export default async function Home({ searchParams }: Props) {
 
       // Pre-fetch character detail data for character viewed without world
       const selectedCharacter = initialWikiData.characters.find(
-        (c) => c.slug === wikiParams.character,
+        (c: Character) => c.slug === wikiParams.character,
       );
       if (selectedCharacter) {
         const [gallery, outfits, factions, worlds] = await Promise.all([
@@ -409,6 +416,30 @@ export default async function Home({ searchParams }: Props) {
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
+    />
+  );
+}
+
+export default async function Home({ searchParams }: Props) {
+  return <HomeContentWrapper searchParams={searchParams} />;
+}
+
+async function HomeContentWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // Await searchParams inside Suspense boundary
+  const wikiParamsData = await loadWikiSearchParams(searchParams);
+  const blogParamsData = await loadBlogSearchParams(searchParams);
+  const commissionParamsData = await loadCommissionSearchParams(searchParams);
+
+  // Pass resolved params to cached component
+  return (
+    <HomeContent
+      wikiParamsData={wikiParamsData}
+      blogParamsData={blogParamsData}
+      commissionParamsData={commissionParamsData}
     />
   );
 }
