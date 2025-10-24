@@ -131,17 +131,20 @@ export default function BootScreen({
   }, [playSound, onBootComplete, stopSound, currentTime]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-black">
+    <div
+      className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-black bg-cover bg-center"
+      style={{ backgroundImage: "url('/background-image.png')" }}
+    >
       {/* Animated background pattern (optional subtle effect) */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-900/20 via-transparent to-blue-900/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-red-900/20 via-transparent to-blue-900/20" />
       </div>
 
       {/* Content container */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-8">
         {/* User Avatar */}
         <div className="animate-fadeIn">
-          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-gray-300 to-gray-400 shadow-lg">
+          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-linear-to-br from-gray-300 to-gray-400 shadow-lg">
             <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gray-400 bg-gray-200">
               {/* Simple user icon */}
               <svg

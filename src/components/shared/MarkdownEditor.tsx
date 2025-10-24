@@ -90,16 +90,16 @@ export const markdownComponents: Components = {
     </blockquote>
   ),
   ul: ({ children }) => (
-    <ul className="mb-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+    <ul className="mb-4 ml-6 list-disc space-y-2 text-gray-700 dark:text-gray-300">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-4 list-inside list-decimal space-y-2 text-gray-700 dark:text-gray-300">
+    <ol className="mb-4 ml-6 list-decimal space-y-2 text-gray-700 dark:text-gray-300">
       {children}
     </ol>
   ),
-  li: ({ children }) => <li className="ml-2">{children}</li>,
+  li: ({ children }) => <li>{children}</li>,
   table: ({ children }) => (
     <table className="mb-4 w-full border-collapse">{children}</table>
   ),
