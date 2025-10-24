@@ -14,15 +14,18 @@ export default function Desktop() {
 
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden"
+      className="relative h-screen w-screen overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url('/background-image.png')",
+      }}
       onClick={() => setSelectedIconId(null)}
     >
       {/* Desktop Icons - Logo at Top, Icons Centered */}
       <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center gap-6">
         {/* Logo - Top of screen */}
-        <div className="pointer-events-auto relative h-20 w-48">
+        <div className="pointer-events-auto relative h-40 w-96">
           <Image
-            src="/exocorpse.png"
+            src="/desktop-logo.png"
             alt="EXOCORPSE & MORS Logo"
             fill
             className="object-contain"
