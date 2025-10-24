@@ -1,9 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { CACHE_TAGS } from "@/lib/cached-data";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { revalidateTag } from "next/cache";
 import type { Tables } from "../../../supabase/types";
 
 export type BlogPost = Tables<"blog_posts">;
@@ -236,9 +234,6 @@ export async function createBlogPost(post: {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.BLOG_POSTS, "page");
-
   return data;
 }
 
@@ -264,9 +259,6 @@ export async function updateBlogPost(
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.BLOG_POSTS, "page");
-
   return data;
 }
 
@@ -283,7 +275,4 @@ export async function deleteBlogPost(id: string) {
     console.error("Error deleting blog post:", error);
     throw error;
   }
-
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.BLOG_POSTS, "page");
 }

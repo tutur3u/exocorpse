@@ -8,15 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+      },
     ],
-  },
-  cacheComponents: true,
-  cacheLife: {
-    page: {
-      stale: 43200, // 12 hour
-      revalidate: 86400, // 1 day
-      expire: 259200, // 3 days
-    },
   },
 };
 

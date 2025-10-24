@@ -1,9 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { CACHE_TAGS } from "@/lib/cached-data";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { revalidateTag } from "next/cache";
 import type { Tables } from "../../../supabase/types";
 
 export type Story = Tables<"stories">;
@@ -65,8 +63,6 @@ export async function createStory(story: {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_STORIES, "page");
 
   return data;
 }
@@ -93,8 +89,6 @@ export async function updateStory(
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_STORIES, "page");
 
   return data;
 }
@@ -116,8 +110,6 @@ export async function deleteStory(id: string) {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_STORIES, "page");
 }
 
 /**
@@ -793,8 +785,7 @@ export async function createWorld(world: {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_WORLDS, "page");
+  
 
   return data;
 }
@@ -821,8 +812,6 @@ export async function updateWorld(
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_WORLDS, "page");
 
   return data;
 }
@@ -844,8 +833,7 @@ export async function deleteWorld(id: string) {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_WORLDS, "page");
+  
 }
 
 // ============================================================================
@@ -946,9 +934,8 @@ export async function createCharacter(character: {
     }
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTERS, "page");
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTER_WORLDS, "page");
+  
+  
 
   return data;
 }
@@ -1024,9 +1011,8 @@ export async function updateCharacter(
     }
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTERS, "page");
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTER_WORLDS, "page");
+  
+  
 
   return data;
 }
@@ -1048,9 +1034,8 @@ export async function deleteCharacter(id: string) {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTERS, "page");
-  revalidateTag(CACHE_TAGS.WIKI_CHARACTER_WORLDS, "page");
+  
+  
 }
 
 // ============================================================================
@@ -1093,8 +1078,7 @@ export async function createFaction(faction: {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_FACTIONS, "page");
+  
 
   return data;
 }
@@ -1121,8 +1105,7 @@ export async function updateFaction(
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_FACTIONS, "page");
+  
 
   return data;
 }
@@ -1144,8 +1127,7 @@ export async function deleteFaction(id: string) {
     throw error;
   }
 
-  // Invalidate cache
-  revalidateTag(CACHE_TAGS.WIKI_FACTIONS, "page");
+  
 }
 
 // ============================================================================

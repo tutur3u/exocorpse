@@ -4,6 +4,20 @@ import { batchGetSignedUrls, getSignedUrl } from "@/lib/actions/storage";
 import { useQueries, useQuery } from "@tanstack/react-query";
 
 /**
+ * Extract the relative path from a full storage path
+ * Full paths are in format: "{bucketId}/relative/path/to/file"
+ * This extracts just "relative/path/to/file"
+ */
+function extractRelativePath(fullPath: string): string {
+  // If it starts with a UUID (e.g., "e0ac1f6a-a275-432e-be3d-75d8ba92e6d5/"), extract after first slash
+  const uuidPattern = /^[a-f0-9\-]{36}\//;
+  if (uuidPattern.test(fullPath)) {
+    return fullPath.substring(37); // 36 chars for UUID + 1 for slash
+  }
+  return fullPath;
+}
+
+/**
  * Hook to get a signed URL for a storage file with automatic caching via React Query
  *
  * NOTE: For Server Components, use `fetchStorageUrl` from @/lib/storage-fetch instead
@@ -18,16 +32,33 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
     queryKey: ["storage-url", path],
     queryFn: async () => {
       if (!path) return null;
-      const result = await getSignedUrl(path, 21600); // 6 hour expiration
-      return result.success ? result.signedUrl : null;
+      try {
+        // Extract relative path in case full path is provided
+        const relativePath = extractRelativePath(path);
+        const result = await getSignedUrl(relativePath, 21600); // 6 hour expiration
+        return result.success ? result.signedUrl : null;
+      } catch (error) {
+        // Handle file not found and other errors gracefully
+        console.warn(`Failed to get signed URL for ${path}:`, error);
+        return null;
+      }
     },
     enabled: !!path && enabled,
     // Cache for 50 minutes (before the 6 hour signed URL expires)
     staleTime: 50 * 60 * 1000,
     // Keep in cache for 6 hours
     gcTime: 6 * 60 * 60 * 1000,
-    // Retry once on failure
-    retry: 1,
+    // Don't retry on file not found errors
+    retry: (failureCount, error) => {
+      const errorMsg = String(error);
+      if (
+        errorMsg.includes("FILE_NOT_FOUND") ||
+        errorMsg.includes("File not found")
+      ) {
+        return false; // Don't retry
+      }
+      return failureCount < 1; // Retry once for other errors
+    },
   });
 
   return {
@@ -61,7 +92,9 @@ export function useBatchStorageUrls(
     queryFn: async () => {
       if (validPaths.length === 0) return new Map<string, string>();
 
-      const results = await batchGetSignedUrls(validPaths, 21600); // 6 hour expiration
+      // Extract relative paths in case full paths are provided
+      const relativePaths = validPaths.map(extractRelativePath);
+      const results = await batchGetSignedUrls(relativePaths, 21600); // 6 hour expiration
       const urlMap = new Map<string, string>();
 
       for (const result of results) {
@@ -103,8 +136,14 @@ export function useIndividualStorageUrls(
     queries: validPaths.map((path) => ({
       queryKey: ["storage-url", path],
       queryFn: async () => {
-        const result = await getSignedUrl(path, 3600);
-        return result.success ? result.signedUrl : null;
+        try {
+          const relativePath = extractRelativePath(path);
+          const result = await getSignedUrl(relativePath, 3600);
+          return result.success ? result.signedUrl : null;
+        } catch (error) {
+          console.warn(`Failed to get signed URL for ${path}:`, error);
+          return null;
+        }
       },
       enabled,
       staleTime: 50 * 60 * 1000,

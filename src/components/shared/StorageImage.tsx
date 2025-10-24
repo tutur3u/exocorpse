@@ -14,6 +14,11 @@ type StorageImageProps = Omit<ImageProps, "src"> & {
    * Fallback component to render while loading or on error
    */
   fallback?: React.ReactNode;
+  /**
+   * Pre-fetched signed URL to use instead of fetching it
+   * This is useful when batch fetching URLs for better performance
+   */
+  signedUrl?: string | null;
 };
 
 /**
@@ -24,6 +29,7 @@ export default function StorageImage({
   src,
   fallback,
   alt,
+  signedUrl: preFetchedSignedUrl,
   ...imageProps
 }: StorageImageProps) {
   // Determine if this is a storage path (not a http/https URL or data URL)
@@ -33,17 +39,21 @@ export default function StorageImage({
     !src.startsWith("https://") &&
     !src.startsWith("data:");
 
-  // Only fetch signed URL if it's a storage path
-  const { signedUrl, loading, error } = useStorageUrl(
-    isStoragePath ? src : null,
-    !!src,
-  );
+  // Only fetch signed URL if it's a storage path AND no pre-fetched URL was provided
+  const shouldFetchUrl = isStoragePath && !preFetchedSignedUrl;
+  const {
+    signedUrl: fetchedSignedUrl,
+    loading,
+    error,
+  } = useStorageUrl(shouldFetchUrl ? src : null, !!src);
 
-  // Use signed URL for storage paths, otherwise use src directly
-  const imageUrl = isStoragePath ? signedUrl : src;
+  // Use pre-fetched URL first, then fetched URL, then src directly
+  const imageUrl =
+    preFetchedSignedUrl || (isStoragePath ? fetchedSignedUrl : src);
 
-  // Show fallback while loading or if there's an error
-  if (loading || error || !imageUrl) {
+  // Show fallback while loading (only if we're actually fetching) or if there's an error or no URL
+  const isLoading = shouldFetchUrl && loading;
+  if (isLoading || error || !imageUrl) {
     return (
       <>
         {fallback || (
@@ -53,5 +63,5 @@ export default function StorageImage({
     );
   }
 
-  return <Image {...imageProps} src={imageUrl} alt={alt} />;
+  return <Image {...imageProps} src={imageUrl} alt={alt} unoptimized={true} />;
 }

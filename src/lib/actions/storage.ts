@@ -47,7 +47,6 @@ export async function uploadFile(
     return {
       success: true,
       path: result.data.path,
-      fullPath: result.data.fullPath,
     };
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -147,43 +146,29 @@ export async function deleteFile(path: string) {
 }
 
 /**
- * Batch generate signed URLs for multiple files
- * This helps with rate limiting by reducing the number of API calls
- * @param paths - Array of file paths
+ * Batch generate signed URLs for multiple files using the SDK's batch method
+ * This is more efficient than individual calls as it fetches all URLs in one request
+ * @param paths - Array of file paths (max 100)
  * @param expiresIn - Expiration time in seconds for all URLs
  */
 export async function batchGetSignedUrls(paths: string[], expiresIn = 3600) {
   try {
     const client = getTuturuuuClient();
 
-    // Use Promise.all to fetch all URLs in parallel
-    // The SDK handles rate limiting internally
-    const results = await Promise.all(
-      paths.map(async (path) => {
-        try {
-          const result = await client.storage.share(path, {
-            expiresIn: Math.min(expiresIn, 604800),
-          });
-          return {
-            path,
-            signedUrl: result.data.signedUrl,
-            expiresAt: result.data.expiresAt,
-            success: true,
-          };
-        } catch (error) {
-          console.error(`Error generating signed URL for ${path}:`, error);
-          return {
-            path,
-            signedUrl: null,
-            expiresAt: null,
-            success: false,
-            error: error instanceof Error ? error.message : "Failed to get URL",
-          };
-        }
-      }),
+    // Use the SDK's createSignedUrls batch method for optimal performance
+    const result = await client.storage.createSignedUrls(
+      paths,
+      Math.min(expiresIn, 604800),
     );
 
-    return results;
+    // Transform the response to match our expected format
+    return result.data.map((item) => ({
+      path: item.path,
+      signedUrl: item.signedUrl || null,
+      expiresAt: item.expiresAt || null,
+      success: !item.error,
+      error: item.error,
+    }));
   } catch (error) {
     console.error("Error in batch signed URL generation:", error);
     throw new Error(

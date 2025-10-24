@@ -3,30 +3,32 @@ import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
-import type { Story } from "@/lib/actions/wiki";
+import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
+import {
+  getBlogPostBySlug,
+  getPublishedBlogPostsPaginated,
+} from "@/lib/actions/blog";
+import type { Character, Story } from "@/lib/actions/wiki";
+import {
+  getCharacterBySlug,
+  getCharacterBySlugInStory,
+  getCharacterFactions,
+  getCharacterGallery,
+  getCharacterOutfits,
+  getCharactersByStorySlug,
+  getCharactersByWorldSlug,
+  getCharacterWorlds,
+  getFactionBySlug,
+  getFactionsByWorldSlug,
+  getPublishedStories,
+  getStoryBySlug,
+  getWorldBySlug,
+  getWorldsByStorySlug,
+} from "@/lib/actions/wiki";
 import {
   loadBlogSearchParams,
   serializeBlogSearchParams,
 } from "@/lib/blog-search-params";
-import {
-  getCachedBlacklistedUsers,
-  getCachedBlogPostBySlug,
-  getCachedBlogPostsPaginated,
-  getCachedCharacterBySlug,
-  getCachedCharacterBySlugInStory,
-  getCachedCharacterFactions,
-  getCachedCharacterGallery,
-  getCachedCharacterOutfits,
-  getCachedCharactersByStory,
-  getCachedCharactersByWorld,
-  getCachedCharacterWorlds,
-  getCachedFactionBySlug,
-  getCachedFactionsByWorld,
-  getCachedStories,
-  getCachedStoryBySlug,
-  getCachedWorldBySlug,
-  getCachedWorldsByStory,
-} from "@/lib/cached-data";
 import { loadCommissionSearchParams } from "@/lib/commission-search-params";
 import {
   loadWikiSearchParams,
@@ -46,7 +48,7 @@ export async function generateMetadata({
   const { "blog-post": blogPostSlug } = blogParams;
   // Blog post view
   if (blogPostSlug) {
-    const blogPost = await getCachedBlogPostBySlug(blogPostSlug);
+    const blogPost = await getBlogPostBySlug(blogPostSlug);
     if (blogPost) {
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
@@ -95,7 +97,7 @@ export async function generateMetadata({
   }
 
   // Get story data
-  const storyData = await getCachedStoryBySlug(story);
+  const storyData = await getStoryBySlug(story);
   if (!storyData) {
     return {
       title: "Story Not Found - EXOCORPSE",
@@ -105,11 +107,7 @@ export async function generateMetadata({
 
   // Character view
   if (world && character) {
-    const characterData = await getCachedCharacterBySlug(
-      story,
-      world,
-      character,
-    );
+    const characterData = await getCharacterBySlug(story, world, character);
     if (characterData) {
       return {
         title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
@@ -131,10 +129,7 @@ export async function generateMetadata({
 
   // Character view (without world - find character across all worlds in story)
   if (character && !world) {
-    const characterData = await getCachedCharacterBySlugInStory(
-      story,
-      character,
-    );
+    const characterData = await getCharacterBySlugInStory(story, character);
     if (characterData) {
       return {
         title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
@@ -156,7 +151,7 @@ export async function generateMetadata({
 
   // Faction view
   if (world && faction) {
-    const factionData = await getCachedFactionBySlug(story, world, faction);
+    const factionData = await getFactionBySlug(story, world, faction);
     if (factionData) {
       return {
         title: `${factionData.name} - ${storyData.title} - EXOCORPSE`,
@@ -177,7 +172,7 @@ export async function generateMetadata({
 
   // World view
   if (world) {
-    const worldData = await getCachedWorldBySlug(story, world);
+    const worldData = await getWorldBySlug(story, world);
     if (worldData) {
       return {
         title: `${worldData.name} - ${storyData.title} - EXOCORPSE`,
@@ -214,13 +209,20 @@ export async function generateMetadata({
   };
 }
 
-export default async function Home({ searchParams }: Props) {
+async function HomeContent({
+  wikiParamsData,
+  blogParamsData,
+  commissionParamsData,
+}: {
+  wikiParamsData: Awaited<ReturnType<typeof loadWikiSearchParams>>;
+  blogParamsData: Awaited<ReturnType<typeof loadBlogSearchParams>>;
+  commissionParamsData: Awaited<ReturnType<typeof loadCommissionSearchParams>>;
+}) {
   const DEFAULT_PAGE_SIZE = 10;
 
-  // Load both wiki and blog params
-  const wikiParams = await loadWikiSearchParams(searchParams);
-  const blogParams = await loadBlogSearchParams(searchParams);
-  const commissionParams = await loadCommissionSearchParams(searchParams);
+  const wikiParams = wikiParamsData;
+  const blogParams = blogParamsData;
+  const commissionParams = commissionParamsData;
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -254,7 +256,7 @@ export default async function Home({ searchParams }: Props) {
 
   const blacklistData =
     commissionTab === "blacklist"
-      ? await getCachedBlacklistedUsers(blacklistPage, blacklistPageSize)
+      ? await getBlacklistedUsersPaginated(blacklistPage, blacklistPageSize)
       : { data: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE };
 
   const initialCommissionData: InitialCommissionData = {
@@ -281,25 +283,25 @@ export default async function Home({ searchParams }: Props) {
   // Only fetch stories if visiting wiki (not blog-only)
   if (hasWikiParams) {
     // Fetch stories + blog data in parallel if blog params also exist
-    const storiesPromise = getCachedStories();
+    const storiesPromise = getPublishedStories();
 
     // Determine which blog fetch to start and await both in parallel
     let stories: Story[];
     let blogPost: typeof initialBlogData.selectedPost = null;
     let paginatedBlogData: Awaited<
-      ReturnType<typeof getCachedBlogPostsPaginated>
+      ReturnType<typeof getPublishedBlogPostsPaginated>
     > | null = null;
 
     if (hasBlogParams && blogParams["blog-post"]) {
       [stories, blogPost] = await Promise.all([
         storiesPromise,
-        getCachedBlogPostBySlug(blogParams["blog-post"]),
+        getBlogPostBySlug(blogParams["blog-post"]),
       ]);
     } else if (hasBlogParams) {
       const page = Math.max(1, blogParams["blog-page"] ?? 1);
       [stories, paginatedBlogData] = await Promise.all([
         storiesPromise,
-        getCachedBlogPostsPaginated(page, pageSize),
+        getPublishedBlogPostsPaginated(page, pageSize),
       ]);
     } else {
       // Wiki only, no blog params
@@ -327,13 +329,16 @@ export default async function Home({ searchParams }: Props) {
   } else if (hasBlogParams) {
     // Blog only, no wiki params - fetch blog data without stories
     if (blogParams["blog-post"]) {
-      const blogPost = await getCachedBlogPostBySlug(blogParams["blog-post"]);
+      const blogPost = await getBlogPostBySlug(blogParams["blog-post"]);
       if (blogPost) {
         initialBlogData.selectedPost = blogPost;
       }
     } else {
       const page = Math.max(1, blogParams["blog-page"] ?? 1);
-      const paginatedData = await getCachedBlogPostsPaginated(page, pageSize);
+      const paginatedData = await getPublishedBlogPostsPaginated(
+        page,
+        pageSize,
+      );
       initialBlogData.posts = paginatedData.data;
       initialBlogData.total = paginatedData.total;
       initialBlogData.page = paginatedData.page;
@@ -343,13 +348,13 @@ export default async function Home({ searchParams }: Props) {
 
   // Fetch worlds if story is selected
   if (wikiParams.story) {
-    initialWikiData.worlds = await getCachedWorldsByStory(wikiParams.story);
+    initialWikiData.worlds = await getWorldsByStorySlug(wikiParams.story);
 
     // Fetch characters and factions if world is selected
     if (wikiParams.world) {
       const [characters, factions] = await Promise.all([
-        getCachedCharactersByWorld(wikiParams.story, wikiParams.world),
-        getCachedFactionsByWorld(wikiParams.story, wikiParams.world),
+        getCharactersByWorldSlug(wikiParams.story, wikiParams.world),
+        getFactionsByWorldSlug(wikiParams.story, wikiParams.world),
       ]);
       initialWikiData.characters = characters;
       initialWikiData.factions = factions;
@@ -357,14 +362,14 @@ export default async function Home({ searchParams }: Props) {
       // If a specific character is selected, pre-fetch all its detail data
       if (wikiParams.character) {
         const selectedCharacter = characters.find(
-          (c) => c.slug === wikiParams.character,
+          (c: Character) => c.slug === wikiParams.character,
         );
         if (selectedCharacter) {
           const [gallery, outfits, factions, worlds] = await Promise.all([
-            getCachedCharacterGallery(selectedCharacter.id),
-            getCachedCharacterOutfits(selectedCharacter.id),
-            getCachedCharacterFactions(selectedCharacter.id),
-            getCachedCharacterWorlds(selectedCharacter.id),
+            getCharacterGallery(selectedCharacter.id),
+            getCharacterOutfits(selectedCharacter.id),
+            getCharacterFactions(selectedCharacter.id),
+            getCharacterWorlds(selectedCharacter.id),
           ]);
           initialWikiData.characterDetail = {
             characterId: selectedCharacter.id,
@@ -377,20 +382,20 @@ export default async function Home({ searchParams }: Props) {
       }
     } else if (wikiParams.character) {
       // Fetch all characters in story if character is selected without world
-      initialWikiData.characters = await getCachedCharactersByStory(
+      initialWikiData.characters = await getCharactersByStorySlug(
         wikiParams.story,
       );
 
       // Pre-fetch character detail data for character viewed without world
       const selectedCharacter = initialWikiData.characters.find(
-        (c) => c.slug === wikiParams.character,
+        (c: Character) => c.slug === wikiParams.character,
       );
       if (selectedCharacter) {
         const [gallery, outfits, factions, worlds] = await Promise.all([
-          getCachedCharacterGallery(selectedCharacter.id),
-          getCachedCharacterOutfits(selectedCharacter.id),
-          getCachedCharacterFactions(selectedCharacter.id),
-          getCachedCharacterWorlds(selectedCharacter.id),
+          getCharacterGallery(selectedCharacter.id),
+          getCharacterOutfits(selectedCharacter.id),
+          getCharacterFactions(selectedCharacter.id),
+          getCharacterWorlds(selectedCharacter.id),
         ]);
         initialWikiData.characterDetail = {
           characterId: selectedCharacter.id,
@@ -411,6 +416,30 @@ export default async function Home({ searchParams }: Props) {
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
+    />
+  );
+}
+
+export default async function Home({ searchParams }: Props) {
+  return <HomeContentWrapper searchParams={searchParams} />;
+}
+
+async function HomeContentWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // Await searchParams inside Suspense boundary
+  const wikiParamsData = await loadWikiSearchParams(searchParams);
+  const blogParamsData = await loadBlogSearchParams(searchParams);
+  const commissionParamsData = await loadCommissionSearchParams(searchParams);
+
+  // Pass resolved params to cached component
+  return (
+    <HomeContent
+      wikiParamsData={wikiParamsData}
+      blogParamsData={blogParamsData}
+      commissionParamsData={commissionParamsData}
     />
   );
 }

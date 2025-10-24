@@ -1,4 +1,6 @@
+import { useStorageUrl } from "@/hooks/useStorageUrl";
 import { uploadFile } from "@/lib/actions/storage";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
@@ -27,6 +29,23 @@ export default function ImageUploader({
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(value || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  // Check if the value is a relative storage path (not a full URL or data URL)
+  const isStoragePath =
+    value &&
+    !value.startsWith("http://") &&
+    !value.startsWith("https://") &&
+    !value.startsWith("data:");
+
+  // Use the hook to get the signed URL if it's a storage path
+  const { signedUrl: displayUrl, loading: urlLoading } = useStorageUrl(
+    isStoragePath ? value : null,
+  );
+
+  // Determine which URL to display
+  const imagePreviewUrl =
+    displayUrl || preview || (isStoragePath ? null : value) || null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +80,19 @@ export default function ImageUploader({
             if (result.success) {
               // Store the storage path (not the signed URL)
               // We'll generate signed URLs when displaying
-              onChange(result.fullPath);
+              onChange(result.path);
+
+              // Invalidate the query cache for this path to fetch the new signed URL
+              await queryClient.invalidateQueries({
+                queryKey: ["storage-url", result.path],
+              });
+
+              // Also invalidate any batch queries that might include this path
+              await queryClient.invalidateQueries({
+                queryKey: ["storage-urls-batch"],
+                exact: false,
+              });
+
               setUploading(false);
             } else {
               throw new Error("Upload failed");
@@ -159,20 +190,26 @@ export default function ImageUploader({
       )}
 
       {/* Image Preview */}
-      {preview && (
+      {imagePreviewUrl && (
         <div className="animate-fadeIn mt-3">
           <p className="mb-2 text-sm font-medium">Preview:</p>
           <div className="relative h-48 w-full overflow-hidden rounded-lg border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-            <Image
-              src={preview}
-              alt="Preview"
-              fill
-              className="object-contain"
-              onError={() => {
-                setError("Failed to load image");
-                setPreview(null);
-              }}
-            />
+            {urlLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-gray-500">Loading image...</p>
+              </div>
+            ) : (
+              <Image
+                src={imagePreviewUrl}
+                alt="Preview"
+                fill
+                className="object-contain"
+                onError={() => {
+                  setError("Failed to load image");
+                  setPreview(null);
+                }}
+              />
+            )}
           </div>
         </div>
       )}
