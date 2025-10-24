@@ -6,7 +6,10 @@ import {
   REVALIDATE_TIME,
 } from "@/constants";
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseAdminServer, getSupabaseServer } from "@/lib/supabase/server";
+import {
+  getSupabaseAdminServer,
+  getSupabaseServer,
+} from "@/lib/supabase/server";
 import { TuturuuuClient } from "tuturuuu";
 
 // Initialize the Tuturuuu client with API key from environment
