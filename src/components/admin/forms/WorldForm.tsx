@@ -386,7 +386,9 @@ export default function WorldForm({
                         shouldDirty: true,
                       })
                     }
-                    uploadPath={world ? `worlds/${world.id}/background` : undefined}
+                    uploadPath={
+                      world ? `worlds/${world.id}/background` : undefined
+                    }
                     enableUpload={!!world}
                     onBeforeChange={handleDeleteOldImage}
                     helpText={
