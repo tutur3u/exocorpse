@@ -1,6 +1,10 @@
 "use client";
 
-import { batchGetSignedUrls, getSignedUrl } from "@/lib/actions/storage";
+import { STORAGE_URL_GC_TIME, STORAGE_URL_STALE_TIME } from "@/constants";
+import {
+  batchGetCachedSignedUrls,
+  getCachedSignedUrl,
+} from "@/lib/actions/storage";
 import { useQueries, useQuery } from "@tanstack/react-query";
 
 /**
@@ -19,6 +23,7 @@ function extractRelativePath(fullPath: string): string {
 
 /**
  * Hook to get a signed URL for a storage file with automatic caching via React Query
+ * Uses database-level caching to reduce SDK API calls
  *
  * NOTE: For Server Components, use `fetchStorageUrl` from @/lib/storage-fetch instead
  * which leverages Next.js ISR caching with unstable_cache
@@ -35,8 +40,8 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
       try {
         // Extract relative path in case full path is provided
         const relativePath = extractRelativePath(path);
-        const result = await getSignedUrl(relativePath, 21600); // 6 hour expiration
-        return result.success ? result.signedUrl : null;
+        // Use cached function which checks DB first, then fetches from SDK if needed
+        return await getCachedSignedUrl(relativePath);
       } catch (error) {
         // Handle file not found and other errors gracefully
         console.warn(`Failed to get signed URL for ${path}:`, error);
@@ -44,10 +49,10 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
       }
     },
     enabled: !!path && enabled,
-    // Cache for 50 minutes (before the 6 hour signed URL expires)
-    staleTime: 50 * 60 * 1000,
-    // Keep in cache for 6 hours
-    gcTime: 6 * 60 * 60 * 1000,
+    // Cache for 23 hours (just before 1 day revalidation)
+    staleTime: STORAGE_URL_STALE_TIME,
+    // Keep in cache for 1 day (matches REVALIDATE_TIME)
+    gcTime: STORAGE_URL_GC_TIME,
     // Don't retry on file not found errors
     retry: (failureCount, error) => {
       const errorMsg = String(error);
@@ -71,7 +76,7 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
 
 /**
  * Hook to get signed URLs for multiple storage files with batch fetching and caching
- * Uses React Query's batch capabilities for optimal performance
+ * Uses database-level caching to reduce SDK API calls
  *
  * NOTE: For Server Components, use `fetchStorageUrls` from @/lib/storage-fetch instead
  *
@@ -94,22 +99,14 @@ export function useBatchStorageUrls(
 
       // Extract relative paths in case full paths are provided
       const relativePaths = validPaths.map(extractRelativePath);
-      const results = await batchGetSignedUrls(relativePaths, 21600); // 6 hour expiration
-      const urlMap = new Map<string, string>();
-
-      for (const result of results) {
-        if (result.success && result.signedUrl) {
-          urlMap.set(result.path, result.signedUrl);
-        }
-      }
-
-      return urlMap;
+      // Use cached batch function which checks DB first, then batch-fetches from SDK if needed
+      return await batchGetCachedSignedUrls(relativePaths);
     },
     enabled: validPaths.length > 0 && enabled,
-    // Cache for 50 minutes (before the 6 hour signed URL expires)
-    staleTime: 50 * 60 * 1000,
-    // Keep in cache for 6 hours
-    gcTime: 6 * 60 * 60 * 1000,
+    // Cache for 23 hours (just before 1 day revalidation)
+    staleTime: STORAGE_URL_STALE_TIME,
+    // Keep in cache for 1 day (matches REVALIDATE_TIME)
+    gcTime: STORAGE_URL_GC_TIME,
     // Retry once on failure
     retry: 1,
   });
@@ -125,6 +122,7 @@ export function useBatchStorageUrls(
 /**
  * Alternative: Hook using individual queries for each path (useful when paths change frequently)
  * React Query will dedupe and batch these automatically
+ * Uses database-level caching to reduce SDK API calls
  */
 export function useIndividualStorageUrls(
   paths: (string | null | undefined)[],
@@ -138,16 +136,16 @@ export function useIndividualStorageUrls(
       queryFn: async () => {
         try {
           const relativePath = extractRelativePath(path);
-          const result = await getSignedUrl(relativePath, 3600);
-          return result.success ? result.signedUrl : null;
+          // Use cached function which checks DB first, then fetches from SDK if needed
+          return await getCachedSignedUrl(relativePath);
         } catch (error) {
           console.warn(`Failed to get signed URL for ${path}:`, error);
           return null;
         }
       },
       enabled,
-      staleTime: 50 * 60 * 1000,
-      gcTime: 60 * 60 * 1000,
+      staleTime: STORAGE_URL_STALE_TIME,
+      gcTime: STORAGE_URL_GC_TIME,
       retry: 1,
     })),
   });

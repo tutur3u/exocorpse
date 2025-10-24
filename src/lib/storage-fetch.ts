@@ -1,10 +1,12 @@
 import { REVALIDATE_TIME } from "@/constants";
 import { unstable_cache } from "next/cache";
-import { getSignedUrl } from "./actions/storage";
+import { getCachedSignedUrl } from "./actions/storage";
 
 /**
- * Fetch a signed URL with Next.js ISR caching using unstable_cache
- * This provides automatic cache management and revalidation
+ * Fetch a signed URL with database-level caching and Next.js ISR caching
+ * This provides two layers of caching:
+ * 1. Database cache (via resource_urls table) - reduces SDK calls
+ * 2. Next.js cache (unstable_cache) - reduces database calls
  *
  * @param path - Storage path
  * @returns Signed URL or null
@@ -14,11 +16,8 @@ export const fetchStorageUrl = unstable_cache(
     if (!path) return null;
 
     try {
-      const signedUrlRevalidateTime = REVALIDATE_TIME - 100; // Revalidate 10 minutes before expiry
-      // Call our server action to get the signed URL
-      const result = await getSignedUrl(path, signedUrlRevalidateTime); // 6 hour expiration
-
-      return result.success ? result.signedUrl : null;
+      // This function checks the DB cache first, then fetches from SDK if needed
+      return await getCachedSignedUrl(path);
     } catch (error) {
       console.error("Error fetching storage URL:", error);
       return null;
@@ -26,36 +25,28 @@ export const fetchStorageUrl = unstable_cache(
   },
   ["storage-url"], // Cache key prefix
   {
-    revalidate: REVALIDATE_TIME, // Revalidate before 6-hour expiry
+    revalidate: REVALIDATE_TIME, // Revalidate to check DB cache
     tags: ["storage-urls"], // Tag for on-demand revalidation
   },
 );
 
 /**
- * Batch fetch signed URLs with ISR caching
- * More efficient than fetching individually
+ * Batch fetch signed URLs with database-level and ISR caching
+ * More efficient than fetching individually - uses batch operations at both levels
  */
 export async function fetchStorageUrls(
   paths: (string | null | undefined)[],
 ): Promise<Map<string, string>> {
   const validPaths = paths.filter((p): p is string => !!p);
-  const urlMap = new Map<string, string>();
 
-  // Fetch all URLs in parallel - each will be cached individually
-  const results = await Promise.all(
-    validPaths.map(async (path) => {
-      const url = await fetchStorageUrl(path);
-      return { path, url };
-    }),
-  );
-
-  for (const { path, url } of results) {
-    if (url) {
-      urlMap.set(path, url);
-    }
+  if (validPaths.length === 0) {
+    return new Map<string, string>();
   }
 
-  return urlMap;
+  // Use the batch cached function for better performance
+  // This will check DB cache for all paths, then batch-fetch missing ones from SDK
+  const { batchGetCachedSignedUrls } = await import("./actions/storage");
+  return await batchGetCachedSignedUrls(validPaths);
 }
 
 /**
