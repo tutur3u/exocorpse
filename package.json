@@ -50,7 +50,7 @@
     "react-responsive-masonry": "^2.7.1",
     "react-rnd": "^10.5.2",
     "remark-gfm": "^4.0.1",
-    "tuturuuu": "^0.1.0"
+    "tuturuuu": "0.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
