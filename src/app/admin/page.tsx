@@ -18,7 +18,7 @@ export default function AdminDashboard() {
           href="/admin/stories"
           className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-500">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-purple-500">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
           href="/admin/worlds"
           className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-cyan-500">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
           href="/admin/characters"
           className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-br from-green-500 to-emerald-500">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
           href="/admin/factions"
           className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-br from-purple-500 to-pink-500">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
           href="/admin/blacklist"
           className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-950"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-orange-500">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-br from-red-500 to-orange-500">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
