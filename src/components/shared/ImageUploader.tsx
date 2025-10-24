@@ -13,6 +13,7 @@ type ImageUploaderProps = {
   maxSizeMB?: number;
   uploadPath?: string; // Optional: storage path for uploads (e.g., "characters/123/profile")
   enableUpload?: boolean; // Whether to enable file uploads to storage (default: true)
+  onBeforeChange?: (oldValue: string, newValue: string) => Promise<void>; // Optional: callback before changing value (e.g., to delete old image)
 };
 
 export default function ImageUploader({
@@ -24,6 +25,7 @@ export default function ImageUploader({
   maxSizeMB = 5,
   uploadPath,
   enableUpload = true,
+  onBeforeChange,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +80,16 @@ export default function ImageUploader({
           try {
             const result = await uploadFile(dataUrl, uploadPath, file.name);
             if (result.success) {
+              // Call onBeforeChange to delete the old image if it exists
+              if (onBeforeChange && value) {
+                try {
+                  await onBeforeChange(value, result.path);
+                } catch (deleteError) {
+                  console.error("Error deleting old image:", deleteError);
+                  // Continue with the upload even if deletion fails
+                }
+              }
+
               // Store the storage path (not the signed URL)
               // We'll generate signed URLs when displaying
               onChange(result.path);
@@ -128,7 +140,18 @@ export default function ImageUploader({
     setError(null);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
+    // Call onBeforeChange to delete the old image if it exists
+    if (onBeforeChange && value) {
+      try {
+        await onBeforeChange(value, "");
+      } catch (deleteError) {
+        console.error("Error deleting old image:", deleteError);
+        setError("Failed to delete old image");
+        return;
+      }
+    }
+
     setPreview(null);
     onChange("");
     setError(null);
