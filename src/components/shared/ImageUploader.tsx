@@ -4,6 +4,7 @@ import {
   formatBytes,
   getDataUrlSize,
 } from "@/lib/imageCompression";
+import { sanitizeFilename } from "@/lib/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
@@ -132,10 +133,13 @@ export default function ImageUploader({
           setUploadProgress("Uploading...");
         }
 
-        // Convert data URL back to File for FormData upload
+        // Convert data URL back to File for FormData upload with sanitized filename
         const response = await fetch(compressedDataUrl);
         const blob = await response.blob();
-        const compressedFile = new File([blob], file.name, { type: blob.type });
+        const sanitizedName = sanitizeFilename(file.name);
+        const compressedFile = new File([blob], sanitizedName, {
+          type: blob.type,
+        });
 
         // Upload via FormData API route
         const formData = new FormData();

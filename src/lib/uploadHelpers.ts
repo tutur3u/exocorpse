@@ -3,6 +3,7 @@
  */
 
 import { compressImage } from "./imageCompression";
+import { sanitizeFilename } from "./fileUtils";
 
 export interface PendingUpload {
   file: File;
@@ -29,10 +30,11 @@ export async function uploadPendingFile(
     skipCompressionUnder: 500 * 1024,
   });
 
-  // Convert data URL back to File
+  // Convert data URL back to File with sanitized filename
   const response = await fetch(compressedDataUrl);
   const blob = await response.blob();
-  const compressedFile = new File([blob], file.name, { type: blob.type });
+  const sanitizedName = sanitizeFilename(file.name);
+  const compressedFile = new File([blob], sanitizedName, { type: blob.type });
 
   // Upload via FormData API route
   const formData = new FormData();
