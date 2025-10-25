@@ -272,6 +272,8 @@ export async function createWritingPiece(writingPiece: {
   title: string;
   excerpt?: string;
   content: string;
+  cover_image?: string;
+  thumbnail_url?: string;
   year?: number;
   created_date?: string;
   tags?: string[];

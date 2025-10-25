@@ -1,9 +1,11 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { WritingPiece } from "@/lib/actions/portfolio";
+import { deleteWritingImage } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,6 +15,8 @@ type WritingPieceFormData = {
   slug: string;
   excerpt?: string;
   content: string;
+  cover_image?: string;
+  thumbnail_url?: string;
   year?: number;
   created_date?: string;
   tags?: string;
@@ -62,6 +66,8 @@ export default function WritingPieceForm({
     slug: writingPiece?.slug ?? "",
     excerpt: writingPiece?.excerpt ?? "",
     content: writingPiece?.content ?? "",
+    cover_image: writingPiece?.cover_image ?? "",
+    thumbnail_url: writingPiece?.thumbnail_url ?? "",
     year: writingPiece?.year ?? undefined,
     created_date: formatDate(writingPiece?.created_date) ?? "",
     tags: writingPiece?.tags?.join(", ") ?? "",
@@ -87,6 +93,18 @@ export default function WritingPieceForm({
   const [error, setError] = useState<string | null>(null);
 
   const content = watch("content");
+  const coverImage = watch("cover_image");
+
+  // Handle image deletion when replacing with a new one
+  const handleDeleteOldImage = async (oldImagePath: string) => {
+    if (!oldImagePath || oldImagePath.startsWith("http")) return;
+
+    try {
+      await deleteWritingImage(oldImagePath);
+    } catch (err) {
+      console.error("Failed to delete old image:", err);
+    }
+  };
 
   // Reset form when writing piece changes to clear dirty state
   useEffect(() => {
@@ -102,7 +120,7 @@ export default function WritingPieceForm({
       // Clean up empty strings to undefined
       const cleanData: WritingPieceFormData = cleanFormData(
         data,
-        ["excerpt", "created_date", "tags"],
+        ["excerpt", "created_date", "tags", "cover_image", "thumbnail_url"],
         ["year", "word_count"],
       );
 
@@ -263,6 +281,32 @@ export default function WritingPieceForm({
                     ? "Slug cannot be changed after creation"
                     : "Auto-generated from title"}
                 </p>
+              </div>
+
+              {/* Cover Image */}
+              <div>
+                <ImageUploader
+                  label="Cover Image (Optional)"
+                  value={coverImage || ""}
+                  onChange={(value) =>
+                    setValue("cover_image", value, { shouldDirty: true })
+                  }
+                  onBeforeChange={async (oldValue, newValue) => {
+                    if (oldValue) await handleDeleteOldImage(oldValue);
+                  }}
+                  enableUpload={!!writingPiece}
+                  uploadPath={
+                    writingPiece
+                      ? `portfolio/writing/${writingPiece.id}`
+                      : undefined
+                  }
+                  disableUrlInput={!!writingPiece}
+                  helpText={
+                    writingPiece
+                      ? "Upload a cover image for this writing piece"
+                      : "Enter an image URL. Upload will be available after creation."
+                  }
+                />
               </div>
 
               {/* Excerpt */}

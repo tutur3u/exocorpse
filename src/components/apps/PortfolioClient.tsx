@@ -1,9 +1,10 @@
 "use client";
 
-import { MasonryGallery } from "./Gallery";
-import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 import { useState } from "react";
+import { MasonryGallery } from "./Gallery";
 
 type PortfolioClientProps = {
   artPieces: ArtPiece[];
@@ -18,6 +19,7 @@ export default function PortfolioClient({
   const [selectedWriting, setSelectedWriting] = useState<WritingPiece | null>(
     null,
   );
+  const [selectedArt, setSelectedArt] = useState<ArtPiece | null>(null);
 
   // Filter controls
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -54,10 +56,34 @@ export default function PortfolioClient({
   const filteredArtPieces = filterItems(artPieces);
   const filteredWritingPieces = filterItems(writingPieces);
 
-  // Convert art pieces to gallery format
+  // Batch fetch signed URLs for art images
+  const artImagePaths = artPieces.flatMap((art) => [
+    art.image_url,
+    art.thumbnail_url,
+  ]);
+  const filteredArtImagePaths = artImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: artImageUrls } = useBatchStorageUrls(
+    filteredArtImagePaths,
+  );
+
+  // Batch fetch signed URLs for writing cover images
+  const writingImagePaths = writingPieces.flatMap((writing) => [
+    writing.cover_image,
+    writing.thumbnail_url,
+  ]);
+  const filteredWritingImagePaths = writingImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: writingImageUrls } = useBatchStorageUrls(
+    filteredWritingImagePaths,
+  );
+
+  // Convert art pieces to gallery format with signed URLs
   const galleryImages = filteredArtPieces.map((art) => ({
     id: art.id,
-    url: art.image_url,
+    url: artImageUrls.get(art.image_url) || art.image_url,
     title: art.title,
     description: art.description || undefined,
     metadata: {
@@ -78,7 +104,10 @@ export default function PortfolioClient({
               ? "border-b-2 border-blue-500 bg-gray-100 dark:bg-gray-800"
               : "hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
-          onClick={() => setActiveTab("art")}
+          onClick={() => {
+            setActiveTab("art");
+            setSelectedWriting(null);
+          }}
         >
           Art ({artPieces.length})
         </button>
@@ -88,80 +117,164 @@ export default function PortfolioClient({
               ? "border-b-2 border-blue-500 bg-gray-100 dark:bg-gray-800"
               : "hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
-          onClick={() => setActiveTab("writing")}
+          onClick={() => {
+            setActiveTab("writing");
+            setSelectedArt(null);
+          }}
         >
           Writing ({writingPieces.length})
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
-        <div className="flex flex-wrap gap-4">
-          {/* Year Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Year:</label>
-            <select
-              value={selectedYear || ""}
-              onChange={(e) =>
-                setSelectedYear(e.target.value ? Number(e.target.value) : null)
-              }
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
-            >
-              <option value="">All Years</option>
-              {allYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tag Filters */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Tags:</label>
-            <div className="flex flex-wrap gap-2">
-              {allTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => {
-                    setSelectedTags((prev) =>
-                      prev.includes(tag)
-                        ? prev.filter((t) => t !== tag)
-                        : [...prev, tag],
-                    );
-                  }}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                    selectedTags.includes(tag)
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+      {/* Filters - Hide when viewing detail */}
+      {!selectedArt && !selectedWriting && (
+        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+          <div className="flex flex-wrap gap-4">
+            {/* Year Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Year:</label>
+              <select
+                value={selectedYear || ""}
+                onChange={(e) =>
+                  setSelectedYear(
+                    e.target.value ? Number(e.target.value) : null,
+                  )
+                }
+                className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+              >
+                <option value="">All Years</option>
+                {allYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Clear Filters */}
-          {(selectedYear || selectedTags.length > 0) && (
-            <button
-              onClick={() => {
-                setSelectedYear(null);
-                setSelectedTags([]);
-              }}
-              className="ml-auto text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
-            >
-              Clear Filters
-            </button>
-          )}
+            {/* Tag Filters */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Tags:</label>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      setSelectedTags((prev) =>
+                        prev.includes(tag)
+                          ? prev.filter((t) => t !== tag)
+                          : [...prev, tag],
+                      );
+                    }}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      selectedTags.includes(tag)
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Clear Filters */}
+            {(selectedYear || selectedTags.length > 0) && (
+              <button
+                onClick={() => {
+                  setSelectedYear(null);
+                  setSelectedTags([]);
+                }}
+                className="ml-auto text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
         {activeTab === "art" ? (
           <div className="space-y-4">
-            {filteredArtPieces.length === 0 ? (
+            {selectedArt ? (
+              /* Artwork Detail View */
+              <div className="space-y-4">
+                <button
+                  onClick={() => setSelectedArt(null)}
+                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  Back to Gallery
+                </button>
+                <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-center rounded-t-lg bg-gray-100 p-8 dark:bg-gray-900">
+                    <img
+                      src={
+                        artImageUrls.get(selectedArt.image_url) ||
+                        selectedArt.image_url
+                      }
+                      alt={selectedArt.title}
+                      className="max-h-[70vh] w-auto rounded-lg object-contain"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-700">
+                      <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {selectedArt.title}
+                      </h2>
+                      {selectedArt.description && (
+                        <p className="mb-3 text-gray-600 dark:text-gray-400">
+                          {selectedArt.description}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        {selectedArt.artist_name && (
+                          <span>
+                            Artist:{" "}
+                            {selectedArt.artist_url ? (
+                              <a
+                                href={selectedArt.artist_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline dark:text-blue-400"
+                              >
+                                {selectedArt.artist_name}
+                              </a>
+                            ) : (
+                              selectedArt.artist_name
+                            )}
+                          </span>
+                        )}
+                        {selectedArt.year && <span>{selectedArt.year}</span>}
+                        {selectedArt.tags &&
+                          selectedArt.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : filteredArtPieces.length === 0 ? (
+              /* Empty State */
               <div className="py-12 text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   {artPieces.length === 0
@@ -170,12 +283,84 @@ export default function PortfolioClient({
                 </p>
               </div>
             ) : (
-              <MasonryGallery images={galleryImages} />
+              /* Gallery Grid */
+              <MasonryGallery
+                images={galleryImages}
+                onImageClick={(image) => {
+                  const art = filteredArtPieces.find((a) => a.id === image.id);
+                  if (art) setSelectedArt(art);
+                }}
+              />
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredWritingPieces.length === 0 ? (
+            {selectedWriting ? (
+              /* Writing Detail View */
+              <div className="space-y-4">
+                <button
+                  onClick={() => setSelectedWriting(null)}
+                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  Back to Writing List
+                </button>
+                <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                  {selectedWriting.cover_image && (
+                    <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-gray-100 dark:bg-gray-700">
+                      <img
+                        src={
+                          writingImageUrls.get(selectedWriting.cover_image) ||
+                          selectedWriting.cover_image
+                        }
+                        alt={selectedWriting.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-700">
+                      <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                        {selectedWriting.title}
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        {selectedWriting.year && (
+                          <span>{selectedWriting.year}</span>
+                        )}
+                        {selectedWriting.word_count && (
+                          <span>{selectedWriting.word_count} words</span>
+                        )}
+                        {selectedWriting.tags &&
+                          selectedWriting.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                    <div className="prose prose-gray dark:prose-invert max-w-none">
+                      <MarkdownRenderer content={selectedWriting.content} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : filteredWritingPieces.length === 0 ? (
+              /* Empty State */
               <div className="py-12 text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   {writingPieces.length === 0
@@ -184,35 +369,50 @@ export default function PortfolioClient({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              /* Writing List View */
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredWritingPieces.map((writing) => (
                   <div
                     key={writing.id}
-                    className="cursor-pointer rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                    className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                     onClick={() => setSelectedWriting(writing)}
                   >
-                    <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
-                      {writing.title}
-                    </h3>
-                    {writing.excerpt && (
-                      <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                        {writing.excerpt}
-                      </p>
+                    {writing.cover_image && (
+                      <div className="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <img
+                          src={
+                            writingImageUrls.get(writing.cover_image) ||
+                            writing.cover_image
+                          }
+                          alt={writing.title}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      </div>
                     )}
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                      {writing.year && <span>{writing.year}</span>}
-                      {writing.word_count && (
-                        <span>{writing.word_count} words</span>
+                    <div className="p-4">
+                      <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
+                        {writing.title}
+                      </h3>
+                      {writing.excerpt && (
+                        <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                          {writing.excerpt}
+                        </p>
                       )}
-                      {writing.tags &&
-                        writing.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        {writing.year && <span>{writing.year}</span>}
+                        {writing.word_count && (
+                          <span>{writing.word_count} words</span>
+                        )}
+                        {writing.tags &&
+                          writing.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -221,46 +421,6 @@ export default function PortfolioClient({
           </div>
         )}
       </div>
-
-      {/* Writing Modal */}
-      {selectedWriting && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          onClick={() => setSelectedWriting(null)}
-        >
-          <div
-            className="relative flex h-full max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {selectedWriting.title}
-              </h2>
-              <button
-                onClick={() => setSelectedWriting(null)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <MarkdownRenderer content={selectedWriting.content} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

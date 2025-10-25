@@ -57,6 +57,18 @@ export default function PortfolioClient({
     filteredArtImagePaths,
   );
 
+  // Batch fetch all writing piece cover images
+  const writingImagePaths = writingPieces.flatMap((writing) => [
+    writing.cover_image,
+    writing.thumbnail_url,
+  ]);
+  const filteredWritingImagePaths = writingImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: writingImageUrls } = useBatchStorageUrls(
+    filteredWritingImagePaths,
+  );
+
   // Art handlers
   const handleAddArt = () => {
     setEditingArt(null);
@@ -367,52 +379,66 @@ export default function PortfolioClient({
                   {writingPieces.map((writing) => (
                     <div
                       key={writing.id}
-                      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                      className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            {writing.title}
-                          </h3>
-                          {writing.excerpt && (
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                              {writing.excerpt}
-                            </p>
-                          )}
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                            {writing.year && <span>{writing.year}</span>}
-                            {writing.word_count && (
-                              <span>{writing.word_count} words</span>
-                            )}
-                            {writing.tags && writing.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {writing.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                      <div className="flex items-start gap-4 p-4">
+                        {writing.cover_image && (
+                          <div className="shrink-0">
+                            <img
+                              src={
+                                writingImageUrls.get(writing.cover_image) ||
+                                writing.cover_image
+                              }
+                              alt={writing.title}
+                              className="h-24 w-32 rounded object-cover"
+                            />
                           </div>
-                        </div>
-                        <div className="ml-4 flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEditWriting(writing)}
-                            className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingWriting(writing)}
-                            className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
+                        )}
+                        <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-gray-900 dark:text-white">
+                              {writing.title}
+                            </h3>
+                            {writing.excerpt && (
+                              <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                                {writing.excerpt}
+                              </p>
+                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                              {writing.year && <span>{writing.year}</span>}
+                              {writing.word_count && (
+                                <span>{writing.word_count} words</span>
+                              )}
+                              {writing.tags && writing.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {writing.tags.map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEditWriting(writing)}
+                              className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingWriting(writing)}
+                              className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
