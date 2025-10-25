@@ -5,8 +5,10 @@ import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { WritingPiece } from "@/lib/actions/portfolio";
+import { updateWritingPiece } from "@/lib/actions/portfolio";
 import { deleteWritingImage } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
+import { uploadPendingFile } from "@/lib/uploadHelpers";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -30,13 +32,15 @@ type WritingPieceSubmitData = Omit<WritingPieceFormData, "tags"> & {
 
 type WritingPieceFormProps = {
   writingPiece?: WritingPiece;
-  onSubmit: (data: WritingPieceSubmitData) => Promise<void>;
+  onSubmit: (data: WritingPieceSubmitData) => Promise<WritingPiece | void>;
+  onComplete: () => void; // Called when everything is done (including uploads)
   onCancel: () => void;
 };
 
 export default function WritingPieceForm({
   writingPiece,
   onSubmit,
+  onComplete,
   onCancel,
 }: WritingPieceFormProps) {
   // Format date from database to YYYY-MM-DD
@@ -90,14 +94,21 @@ export default function WritingPieceForm({
     useFormDirtyState(form);
 
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCoverImage, setPendingCoverImage] = useState<File | null>(null);
 
   const content = watch("content");
   const coverImage = watch("cover_image");
 
   // Handle image deletion when replacing with a new one
   const handleDeleteOldImage = async (oldImagePath: string) => {
-    if (!oldImagePath || oldImagePath.startsWith("http")) return;
+    if (
+      !oldImagePath ||
+      oldImagePath.startsWith("http") ||
+      oldImagePath.startsWith("pending:")
+    )
+      return;
 
     try {
       await deleteWritingImage(oldImagePath);
@@ -114,6 +125,7 @@ export default function WritingPieceForm({
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
+    setUploadProgress(null);
     setError(null);
 
     try {
@@ -141,12 +153,51 @@ export default function WritingPieceForm({
         cleanData.word_count = wordCount;
       }
 
-      await onSubmit({
+      // Submit the writing piece data (without pending images)
+      const submitData = {
         ...cleanData,
         tags: tagsArray,
-      });
+        cover_image: cleanData.cover_image?.startsWith("pending:")
+          ? undefined
+          : cleanData.cover_image,
+      };
+
+      setUploadProgress("Saving writing piece...");
+      const result = await onSubmit(submitData);
+
+      // If we got a result (created/updated entity) and have a pending cover image, upload it
+      if (result && pendingCoverImage) {
+        try {
+          setUploadProgress("Uploading cover image...");
+          const uploadedPath = await uploadPendingFile(
+            pendingCoverImage,
+            `portfolio/writing/${result.id}`,
+          );
+
+          // Update the writing piece with the uploaded image path
+          setUploadProgress("Updating writing piece...");
+          await updateWritingPiece(result.id, {
+            cover_image: uploadedPath,
+          });
+
+          setUploadProgress("Complete!");
+          setPendingCoverImage(null);
+        } catch (uploadError) {
+          console.error("Failed to upload cover image:", uploadError);
+          setError(
+            "Writing saved, but cover image upload failed. Please edit to upload.",
+          );
+          setLoading(false);
+          return; // Don't close the form, let user see the error
+        }
+      }
+
+      // Everything succeeded, close the form
+      setUploadProgress(null);
+      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
+      setUploadProgress(null);
     } finally {
       setLoading(false);
     }
@@ -230,6 +281,35 @@ export default function WritingPieceForm({
             className="flex min-h-0 flex-1 flex-col"
           >
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+              {uploadProgress && (
+                <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      {uploadProgress}
+                    </p>
+                  </div>
+                </div>
+              )}
               {error && (
                 <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
                   <p className="text-sm text-red-800 dark:text-red-200">
@@ -291,6 +371,7 @@ export default function WritingPieceForm({
                   onChange={(value) =>
                     setValue("cover_image", value, { shouldDirty: true })
                   }
+                  onFileSelect={(file) => setPendingCoverImage(file)}
                   onBeforeChange={async (oldValue, newValue) => {
                     if (oldValue) await handleDeleteOldImage(oldValue);
                   }}
@@ -300,13 +381,18 @@ export default function WritingPieceForm({
                       ? `portfolio/writing/${writingPiece.id}`
                       : undefined
                   }
-                  disableUrlInput={!!writingPiece}
+                  disableUrlInput={!writingPiece}
                   helpText={
                     writingPiece
                       ? "Upload a cover image for this writing piece"
-                      : "Enter an image URL. Upload will be available after creation."
+                      : "Select an image. It will be uploaded after creating the writing piece."
                   }
                 />
+                {!writingPiece && pendingCoverImage && (
+                  <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                    ✓ Image ready to upload: {pendingCoverImage.name}
+                  </p>
+                )}
               </div>
 
               {/* Excerpt */}

@@ -103,12 +103,22 @@ export default function WorldsClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createWorld>[0]) => {
-    await createMutation.mutateAsync(data);
+    const newWorld = await createMutation.mutateAsync(data);
+    return newWorld;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateWorld>[1]) => {
-    if (!editingWorld) return;
-    await updateMutation.mutateAsync({ id: editingWorld.id, data });
+    if (!editingWorld) return undefined;
+    const updated = await updateMutation.mutateAsync({
+      id: editingWorld.id,
+      data,
+    });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    setShowForm(false);
+    setEditingWorld(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -278,6 +288,7 @@ export default function WorldsClient({
           world={editingWorld || undefined}
           storyId={editingWorld?.story_id || selectedStoryId}
           onSubmit={editingWorld ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingWorld(null);

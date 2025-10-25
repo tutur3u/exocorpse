@@ -7,12 +7,14 @@ import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
+import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { deleteCharacterGalleryImage, deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import {
   createCharacterGalleryItem,
   deleteCharacterGalleryItem,
   getCharacterGallery,
+  updateCharacter,
   updateCharacterGalleryItem,
 } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
@@ -66,7 +68,8 @@ type CharacterFormProps = {
   preSelectedWorldIds?: string[]; // Pre-selected world IDs when editing
   availableWorlds?: World[]; // Add available worlds for multi-select
   worldsLoading?: boolean; // Loading state for worlds query
-  onSubmit: (data: CharacterFormData) => Promise<void>;
+  onSubmit: (data: CharacterFormData) => Promise<Character | void>;
+  onComplete: () => void;
   onCancel: () => void;
 };
 
@@ -77,8 +80,16 @@ export default function CharacterForm({
   availableWorlds = [],
   worldsLoading = false,
   onSubmit,
+  onComplete,
   onCancel,
 }: CharacterFormProps) {
+  const {
+    setPendingFile,
+    uploadPendingFiles,
+    uploadProgress,
+    hasPendingFiles,
+  } = usePendingUploads();
+
   const [activeTab, setActiveTab] = useState<
     "basic" | "physical" | "personality" | "history" | "abilities" | "visuals"
   >("basic");
@@ -237,7 +248,28 @@ export default function CharacterForm({
         ["age"],
       );
 
-      await onSubmit(cleanData);
+      // Submit the character data
+      const result = await onSubmit(cleanData);
+
+      // If we got a result and have pending files, upload them
+      if (result && hasPendingFiles) {
+        const uploadSuccess = await uploadPendingFiles(
+          result.id,
+          `characters/${result.id}`,
+          async (updates) => {
+            await updateCharacter(result.id, updates);
+          },
+        );
+
+        if (!uploadSuccess) {
+          setError("Failed to upload images. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // All done - close the form and refresh
+      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -319,7 +351,7 @@ export default function CharacterForm({
       toast.error(
         "Please save the character first before adding gallery items",
       );
-      return;
+      return undefined;
     }
 
     try {
@@ -344,6 +376,7 @@ export default function CharacterForm({
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         toast.success("Gallery item updated");
+        return updated;
       } else {
         // Create new item
         const newItem = await createCharacterGalleryItem({
@@ -354,15 +387,18 @@ export default function CharacterForm({
         });
         setGalleryItems((prev) => [...prev, newItem]);
         toast.success("Gallery item added");
+        return newItem;
       }
-
-      setShowGalleryForm(false);
-      setEditingGalleryItem(null);
     } catch (err) {
       console.error("Failed to save gallery item:", err);
       toast.error("Failed to save gallery item");
       throw err;
     }
+  };
+
+  const handleGalleryComplete = () => {
+    setShowGalleryForm(false);
+    setEditingGalleryItem(null);
   };
 
   const handleDeleteGalleryItem = async (item: CharacterGalleryItem) => {
@@ -515,6 +551,46 @@ export default function CharacterForm({
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto px-6 py-4">
+              {/* Error Display */}
+              {error && (
+                <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              {/* Upload Progress */}
+              {uploadProgress && (
+                <div className="mb-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      {uploadProgress}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Basic Info Tab */}
               {activeTab === "basic" && (
                 <div className="space-y-4">
@@ -1044,6 +1120,9 @@ export default function CharacterForm({
                     onChange={(value) =>
                       setValue("profile_image", value, { shouldDirty: true })
                     }
+                    onFileSelect={(file) =>
+                      setPendingFile("profile_image", file)
+                    }
                     uploadPath={
                       character
                         ? `characters/${character.id}/profile`
@@ -1064,6 +1143,9 @@ export default function CharacterForm({
                     value={bannerImage || ""}
                     onChange={(value) =>
                       setValue("banner_image", value, { shouldDirty: true })
+                    }
+                    onFileSelect={(file) =>
+                      setPendingFile("banner_image", file)
                     }
                     uploadPath={
                       character
@@ -1229,6 +1311,7 @@ export default function CharacterForm({
           characterId={character.id}
           galleryItem={editingGalleryItem || undefined}
           onSubmit={handleGalleryFormSubmit}
+          onComplete={handleGalleryComplete}
           onCancel={() => {
             setShowGalleryForm(false);
             setEditingGalleryItem(null);

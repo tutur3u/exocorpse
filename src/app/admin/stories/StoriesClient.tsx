@@ -84,12 +84,22 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   });
 
   const handleCreate = async (data: Parameters<typeof createStory>[0]) => {
-    await createMutation.mutateAsync(data);
+    const newStory = await createMutation.mutateAsync(data);
+    return newStory;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateStory>[1]) => {
-    if (!editingStory) return;
-    await updateMutation.mutateAsync({ id: editingStory.id, data });
+    if (!editingStory) return undefined;
+    const updated = await updateMutation.mutateAsync({
+      id: editingStory.id,
+      data,
+    });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    setShowForm(false);
+    setEditingStory(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -228,6 +238,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
         <StoryForm
           story={editingStory || undefined}
           onSubmit={editingStory ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingStory(null);

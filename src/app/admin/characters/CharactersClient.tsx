@@ -368,89 +368,29 @@ export default function CharactersClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createCharacter>[0]) => {
-    // Extract images from the data (they might be base64 data URLs at this point)
-    const { profile_image, banner_image, ...characterDataWithoutImages } = data;
-
-    // Check if images are base64 data URLs (not uploaded yet)
-    const hasProfileImageToUpload =
-      profile_image &&
-      (profile_image.startsWith("data:") || profile_image.startsWith("blob:"));
-    const hasBannerImageToUpload =
-      banner_image &&
-      (banner_image.startsWith("data:") || banner_image.startsWith("blob:"));
-
-    // Create character first (without images or with storage paths if already uploaded)
-    const newCharacter = await createMutation.mutateAsync({
-      ...characterDataWithoutImages,
-      profile_image: hasProfileImageToUpload ? undefined : profile_image,
-      banner_image: hasBannerImageToUpload ? undefined : banner_image,
-    });
-
-    // If images need to be uploaded, upload them now using the new character ID
-    if (newCharacter && (hasProfileImageToUpload || hasBannerImageToUpload)) {
-      // Show loading toast for image upload
-      const uploadToastId = toastWithSound.loading("Uploading images...");
-
-      try {
-        const updateData: Partial<typeof data> = {};
-
-        // Upload profile image if it's a data URL
-        if (hasProfileImageToUpload && profile_image) {
-          const profileResult = await uploadCharacterProfileImage(
-            newCharacter.id,
-            profile_image,
-            "profile.jpg",
-          );
-          if (profileResult.success) {
-            updateData.profile_image = profileResult.path;
-          }
-        }
-
-        // Upload banner image if it's a data URL
-        if (hasBannerImageToUpload && banner_image) {
-          const bannerResult = await uploadCharacterBannerImage(
-            newCharacter.id,
-            banner_image,
-            "banner.jpg",
-          );
-          if (bannerResult.success) {
-            updateData.banner_image = bannerResult.path;
-          }
-        }
-
-        // Update character with uploaded image paths
-        if (Object.keys(updateData).length > 0) {
-          await updateCharacter(newCharacter.id, updateData);
-
-          // Refresh the character list to show updated images
-          queryClient.invalidateQueries({
-            queryKey: ["characters", selectedStoryId],
-          });
-        }
-
-        // Dismiss loading toast and show success
-        toastWithSound.dismiss(uploadToastId);
-        toastWithSound.success("Images uploaded successfully!");
-      } catch (uploadError) {
-        // Dismiss loading toast and show error
-        toastWithSound.dismiss(uploadToastId);
-        // Log error but don't fail the character creation
-        console.error("Failed to upload images:", uploadError);
-        toastWithSound.error(
-          "Character created but image upload failed. You can edit the character to upload images.",
-        );
-      }
-    }
+    // Create character - images will be handled by the form's deferred upload
+    const newCharacter = await createMutation.mutateAsync(data);
+    return newCharacter;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateCharacter>[1]) => {
-    if (!editingCharacter) return;
+    if (!editingCharacter) return undefined;
     const worldIds = data.world_ids || [];
-    await updateMutation.mutateAsync({
+    const updated = await updateMutation.mutateAsync({
       id: editingCharacter.id,
       data,
       worldIds,
     });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({
+      queryKey: ["characters", selectedStoryId],
+    });
+    setShowForm(false);
+    setEditingCharacter(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -683,6 +623,7 @@ export default function CharactersClient({
             editingCharacter ? characterWorldsLoading : allWorldsLoading
           }
           onSubmit={editingCharacter ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingCharacter(null);

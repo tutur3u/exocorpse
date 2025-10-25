@@ -13,6 +13,8 @@ import {
   deleteWritingPiece,
   updateArtPiece,
   updateWritingPiece,
+  getAllArtPiecesAdmin,
+  getAllWritingPiecesAdmin,
 } from "@/lib/actions/portfolio";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -102,6 +104,7 @@ export default function PortfolioClient({
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         toast.success("Artwork updated successfully");
+        return updated;
       } else {
         const newArt = await createArtPiece({
           ...data,
@@ -109,15 +112,25 @@ export default function PortfolioClient({
         });
         setArtPieces((prev) => [newArt, ...prev]);
         toast.success("Artwork created successfully");
+        return newArt;
       }
-
-      setShowArtForm(false);
-      setEditingArt(null);
     } catch (error) {
       console.error("Failed to save artwork:", error);
       toast.error("Failed to save artwork");
       throw error;
     }
+  };
+
+  const handleArtComplete = async () => {
+    // Refresh to show uploaded images
+    try {
+      const refreshedArt = await getAllArtPiecesAdmin();
+      setArtPieces(refreshedArt);
+    } catch (error) {
+      console.error("Failed to refresh art pieces:", error);
+    }
+    setShowArtForm(false);
+    setEditingArt(null);
   };
 
   const handleDeleteArt = async () => {
@@ -151,6 +164,8 @@ export default function PortfolioClient({
     slug: string;
     excerpt?: string;
     content: string;
+    cover_image?: string;
+    thumbnail_url?: string;
     year?: number;
     created_date?: string;
     tags?: string[];
@@ -166,6 +181,7 @@ export default function PortfolioClient({
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         toast.success("Writing updated successfully");
+        return updated; // Return the updated piece
       } else {
         const newWriting = await createWritingPiece({
           ...data,
@@ -173,15 +189,27 @@ export default function PortfolioClient({
         });
         setWritingPieces((prev) => [newWriting, ...prev]);
         toast.success("Writing created successfully");
+        return newWriting; // Return the new piece so form can upload images
       }
-
-      setShowWritingForm(false);
-      setEditingWriting(null);
     } catch (error) {
       console.error("Failed to save writing:", error);
       toast.error("Failed to save writing");
       throw error;
     }
+  };
+
+  const handleWritingComplete = async () => {
+    // Refresh the writing list to show uploaded images
+    try {
+      const refreshedWriting = await getAllWritingPiecesAdmin();
+      setWritingPieces(refreshedWriting);
+    } catch (error) {
+      console.error("Failed to refresh writing pieces:", error);
+      // Not critical, just log it
+    }
+
+    setShowWritingForm(false);
+    setEditingWriting(null);
   };
 
   const handleDeleteWriting = async () => {
@@ -455,6 +483,7 @@ export default function PortfolioClient({
         <ArtPieceForm
           artPiece={editingArt || undefined}
           onSubmit={handleArtSubmit}
+          onComplete={handleArtComplete}
           onCancel={() => {
             setShowArtForm(false);
             setEditingArt(null);
@@ -466,6 +495,7 @@ export default function PortfolioClient({
         <WritingPieceForm
           writingPiece={editingWriting || undefined}
           onSubmit={handleWritingSubmit}
+          onComplete={handleWritingComplete}
           onCancel={() => {
             setShowWritingForm(false);
             setEditingWriting(null);
