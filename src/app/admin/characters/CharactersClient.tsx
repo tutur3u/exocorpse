@@ -4,8 +4,11 @@ import FactionManager, {
   type FactionMembership,
 } from "@/components/admin/FactionManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
+import CharacterDetail from "@/components/apps/CharacterDetail";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import { useStorageUrl } from "@/hooks/useStorageUrl";
+import PreviewModal from "@/components/shared/PreviewModal";
+import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   uploadCharacterBannerImage,
   uploadCharacterProfileImage,
@@ -43,24 +46,23 @@ function CharacterCard({
   onEdit,
   onDelete,
   onManageFactions,
+  onPreview,
+  profileUrl,
+  bannerUrl,
 }: {
   character: Character;
   onEdit: (character: Character) => void;
   onDelete: (id: string) => void;
   onManageFactions: (id: string, name: string) => void;
+  onPreview: (character: Character) => void;
+  profileUrl: string | null;
+  bannerUrl: string | null;
 }) {
-  const { signedUrl: profileUrl, loading: profileLoading } = useStorageUrl(
-    character.profile_image,
-  );
-  const { signedUrl: bannerUrl, loading: bannerLoading } = useStorageUrl(
-    character.banner_image,
-  );
-
   return (
     <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
       {/* Character Banner/Header */}
       <div className="relative h-32 overflow-hidden rounded-t-xl bg-linear-to-br from-green-400 via-emerald-400 to-teal-400">
-        {bannerUrl && !bannerLoading ? (
+        {bannerUrl ? (
           <Image
             src={bannerUrl}
             alt={`${character.name} banner`}
@@ -78,7 +80,7 @@ function CharacterCard({
       <div className="relative px-4">
         <div className="absolute -top-10 left-4">
           <div className="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-gray-200 dark:border-gray-800 dark:bg-gray-700">
-            {profileUrl && !profileLoading ? (
+            {profileUrl ? (
               <Image
                 src={profileUrl}
                 alt={character.name}
@@ -121,7 +123,14 @@ function CharacterCard({
 
       {/* Actions */}
       <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-        <div className="mb-2">
+        <div className="mb-2 space-y-2">
+          <button
+            type="button"
+            onClick={() => onPreview(character)}
+            className="w-full rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+          >
+            Preview
+          </button>
           <button
             type="button"
             onClick={() => onManageFactions(character.id, character.name)}
@@ -177,6 +186,11 @@ export default function CharactersClient({
   // Confirm dialog states
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Preview states
+  const [previewCharacter, setPreviewCharacter] = useState<Character | null>(
+    null,
+  );
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
@@ -256,6 +270,14 @@ export default function CharactersClient({
               selectedWorldFilters.has(mapping.worldId),
           );
         });
+
+  // Batch fetch all character images
+  const imagePaths = filteredCharacters.flatMap((character) => [
+    character.profile_image,
+    character.banner_image,
+  ]);
+  const { signedUrls: imageUrls, loading: imagesLoading } =
+    useBatchStorageUrls(imagePaths);
 
   const createMutation = useMutation({
     mutationFn: createCharacter,
@@ -551,10 +573,15 @@ export default function CharactersClient({
         </div>
       )}
 
-      {charactersLoading ? (
+      {charactersLoading || imagesLoading ? (
         <div className="flex h-64 items-center justify-center">
-          <div className="text-gray-500 dark:text-gray-400">
-            Loading characters...
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent"></div>
+            <div className="text-gray-500 dark:text-gray-400">
+              {charactersLoading
+                ? "Loading characters..."
+                : "Loading images..."}
+            </div>
           </div>
         </div>
       ) : characters.length === 0 ? (
@@ -629,6 +656,17 @@ export default function CharactersClient({
               onEdit={handleEdit}
               onDelete={handleDelete}
               onManageFactions={handleOpenFactionManager}
+              onPreview={setPreviewCharacter}
+              profileUrl={
+                character.profile_image
+                  ? (imageUrls.get(character.profile_image) ?? null)
+                  : null
+              }
+              bannerUrl={
+                character.banner_image
+                  ? (imageUrls.get(character.banner_image) ?? null)
+                  : null
+              }
             />
           ))}
         </div>
@@ -690,6 +728,27 @@ export default function CharactersClient({
             setDeleteConfirmId(null);
           }}
         />
+      )}
+
+      {previewCharacter && (
+        <PreviewModal
+          isOpen={!!previewCharacter}
+          onCloseAction={() => setPreviewCharacter(null)}
+          title={`Preview: ${previewCharacter.name}`}
+        >
+          <InitialWikiDataProvider
+            initialData={{
+              params: { story: null, world: null },
+              stories: [],
+              worlds: [],
+              characters: [],
+              factions: [],
+              characterDetail: null,
+            }}
+          >
+            <CharacterDetail character={previewCharacter} />
+          </InitialWikiDataProvider>
+        </PreviewModal>
       )}
     </div>
   );
