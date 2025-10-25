@@ -25,10 +25,24 @@ type GalleryItemFormData = {
   is_featured?: boolean;
 };
 
+type GalleryItemSubmitData = {
+  title: string;
+  description?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  artist_name?: string;
+  artist_url?: string;
+  commission_date?: string;
+  tags?: string[];
+  is_featured?: boolean;
+};
+
 type GalleryItemFormProps = {
   characterId: string;
   galleryItem?: CharacterGalleryItem;
-  onSubmit: (data: GalleryItemFormData) => Promise<CharacterGalleryItem | void>;
+  onSubmit: (
+    data: GalleryItemSubmitData,
+  ) => Promise<CharacterGalleryItem | void>;
   onComplete: () => void;
   onCancel: () => void;
 };
@@ -134,9 +148,9 @@ export default function GalleryItemForm({
             .filter((tag) => tag.length > 0)
         : undefined;
 
-      const submitData = {
+      const submitData: GalleryItemSubmitData = {
         ...cleanData,
-        tags: tagsArray?.join(", "),
+        tags: tagsArray,
       };
 
       // Submit the gallery item data

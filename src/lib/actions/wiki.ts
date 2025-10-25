@@ -20,7 +20,6 @@ export async function getPublishedStories() {
   const { data, error } = await supabase
     .from("stories")
     .select("*")
-    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -92,7 +91,7 @@ export async function updateStory(
 }
 
 /**
- * Delete a story (soft delete)
+ * Delete a story (hard delete)
  */
 export async function deleteStory(id: string) {
   // Verify authentication and get supabase client
@@ -105,10 +104,8 @@ export async function deleteStory(id: string) {
     .eq("id", id)
     .single();
 
-  const { error } = await supabase
-    .from("stories")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+  // Hard delete the story
+  const { error } = await supabase.from("stories").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting story:", error);
@@ -151,7 +148,6 @@ export async function getStoryBySlug(slug: string) {
     .eq("slug", slug)
     .eq("is_published", true)
     .eq("visibility", "public")
-    .is("deleted_at", null)
     .single();
 
   if (storyError) {
@@ -173,7 +169,6 @@ export async function getWorldsByStorySlug(storySlug: string) {
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .is("deleted_at", null)
     .single();
 
   if (!story) return [];
@@ -182,7 +177,6 @@ export async function getWorldsByStorySlug(storySlug: string) {
     .from("worlds")
     .select("*")
     .eq("story_id", story.id)
-    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -205,7 +199,6 @@ export async function getAllWorlds() {
   const { data, error } = await supabase
     .from("worlds")
     .select("*")
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -223,7 +216,6 @@ export async function getWorldsByStoryId(storyId: string) {
     .from("worlds")
     .select("*")
     .eq("story_id", storyId)
-    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -254,7 +246,6 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
     .select("*")
     .eq("story_id", story.id)
     .eq("slug", worldSlug)
-    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -276,7 +267,6 @@ export async function getCharactersByStorySlug(storySlug: string) {
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .is("deleted_at", null)
     .single();
 
   if (!story) return [];
@@ -360,7 +350,6 @@ export async function getAllCharacters() {
   const { data, error } = await supabase
     .from("characters")
     .select("*")
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -458,7 +447,6 @@ export async function getCharacterBySlug(
     .select("*")
     .eq("slug", characterSlug)
     .in("id", characterIds)
-    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -483,7 +471,6 @@ export async function getCharacterBySlugInStory(
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .is("deleted_at", null)
     .single();
 
   if (!story) return null;
@@ -519,7 +506,6 @@ export async function getCharacterBySlugInStory(
     .select("*")
     .eq("slug", characterSlug)
     .in("id", characterIds)
-    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -540,7 +526,6 @@ export async function getCharacterGallery(characterId: string) {
     .from("character_gallery")
     .select("*")
     .eq("character_id", characterId)
-    .is("deleted_at", null)
     .order("display_order", { ascending: true });
 
   if (error) {
@@ -621,7 +606,7 @@ export async function updateCharacterGalleryItem(
 }
 
 /**
- * Delete a character gallery item (soft delete)
+ * Delete a character gallery item (hard delete)
  */
 export async function deleteCharacterGalleryItem(id: string) {
   // Verify authentication and get supabase client
@@ -634,9 +619,10 @@ export async function deleteCharacterGalleryItem(id: string) {
     .eq("id", id)
     .single();
 
+  // Hard delete the gallery item
   const { error } = await supabase
     .from("character_gallery")
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq("id", id);
 
   if (error) {
@@ -709,7 +695,6 @@ export async function getCharacterOutfits(characterId: string) {
     `,
     )
     .eq("character_id", characterId)
-    .is("deleted_at", null)
     .order("display_order", { ascending: true });
 
   if (error) {
@@ -731,7 +716,6 @@ export async function getFactionsByStorySlug(storySlug: string) {
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .is("deleted_at", null)
     .single();
 
   if (!story) return [];
@@ -752,7 +736,6 @@ export async function getFactionsByStorySlug(storySlug: string) {
     .from("factions")
     .select("*")
     .in("world_id", worldIds)
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -780,7 +763,6 @@ export async function getFactionsByWorldSlug(
     .from("factions")
     .select("*")
     .eq("world_id", world.id)
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -801,7 +783,6 @@ export async function getFactionsByWorldId(worldId: string) {
     .from("factions")
     .select("*")
     .eq("world_id", worldId)
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -823,7 +804,6 @@ export async function getFactionsByStoryId(storyId: string) {
     .from("factions")
     .select("*")
     .eq("worlds!inner(story_id)", storyId)
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -863,7 +843,6 @@ export async function getFactionsByCharacterWorldIds(characterId: string) {
     .from("factions")
     .select("*")
     .in("world_id", worldIds)
-    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -892,7 +871,6 @@ export async function getFactionBySlugInStory(
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .is("deleted_at", null)
     .single();
 
   if (!story) return null;
@@ -914,7 +892,6 @@ export async function getFactionBySlugInStory(
     .select("*, worlds(*)")
     .eq("slug", factionSlug)
     .in("world_id", worldIds)
-    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -941,7 +918,6 @@ export async function getFactionBySlug(
     .select("*")
     .eq("slug", factionSlug)
     .eq("world_id", world.id)
-    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -1017,7 +993,7 @@ export async function updateWorld(
 }
 
 /**
- * Delete a world (soft delete)
+ * Delete a world (hard delete)
  */
 export async function deleteWorld(id: string) {
   // Verify authentication and get supabase client
@@ -1030,10 +1006,8 @@ export async function deleteWorld(id: string) {
     .eq("id", id)
     .single();
 
-  const { error } = await supabase
-    .from("worlds")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+  // Hard delete the world
+  const { error } = await supabase.from("worlds").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting world:", error);
@@ -1239,7 +1213,7 @@ export async function updateCharacter(
 }
 
 /**
- * Delete a character (soft delete)
+ * Delete a character (hard delete)
  */
 export async function deleteCharacter(id: string) {
   // Verify authentication and get supabase client
@@ -1255,13 +1229,10 @@ export async function deleteCharacter(id: string) {
   const { data: galleryItems } = await supabase
     .from("character_gallery")
     .select("image_url, thumbnail_url")
-    .eq("character_id", id)
-    .is("deleted_at", null);
+    .eq("character_id", id);
 
-  const { error } = await supabase
-    .from("characters")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+  // Hard delete the character (cascades to gallery items via foreign key)
+  const { error } = await supabase.from("characters").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting character:", error);
@@ -1368,7 +1339,7 @@ export async function updateFaction(
 }
 
 /**
- * Delete a faction (soft delete)
+ * Delete a faction (hard delete)
  */
 export async function deleteFaction(id: string) {
   // Verify authentication and get supabase client
@@ -1381,10 +1352,8 @@ export async function deleteFaction(id: string) {
     .eq("id", id)
     .single();
 
-  const { error } = await supabase
-    .from("factions")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+  // Hard delete the faction
+  const { error } = await supabase.from("factions").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting faction:", error);

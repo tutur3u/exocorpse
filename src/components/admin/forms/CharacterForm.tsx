@@ -344,7 +344,7 @@ export default function CharacterForm({
     artist_name?: string;
     artist_url?: string;
     commission_date?: string;
-    tags?: string;
+    tags?: string[];
     is_featured?: boolean;
   }) => {
     if (!character?.id) {
@@ -355,22 +355,11 @@ export default function CharacterForm({
     }
 
     try {
-      // Convert tags string to array
-      const tagsArray = data.tags
-        ? data.tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag.length > 0)
-        : undefined;
-
       if (editingGalleryItem) {
         // Update existing item
         const updated = await updateCharacterGalleryItem(
           editingGalleryItem.id,
-          {
-            ...data,
-            tags: tagsArray,
-          },
+          data,
         );
         setGalleryItems((prev) =>
           prev.map((item) => (item.id === updated.id ? updated : item)),
@@ -382,7 +371,6 @@ export default function CharacterForm({
         const newItem = await createCharacterGalleryItem({
           character_id: character.id,
           ...data,
-          tags: tagsArray,
           display_order: galleryItems.length,
         });
         setGalleryItems((prev) => [...prev, newItem]);
@@ -399,6 +387,10 @@ export default function CharacterForm({
   const handleGalleryComplete = () => {
     setShowGalleryForm(false);
     setEditingGalleryItem(null);
+    // Refetch gallery items to get updated image paths after deferred upload
+    if (character?.id) {
+      getCharacterGallery(character.id).then(setGalleryItems);
+    }
   };
 
   const handleDeleteGalleryItem = async (item: CharacterGalleryItem) => {
