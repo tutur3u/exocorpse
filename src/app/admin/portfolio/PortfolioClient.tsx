@@ -4,6 +4,7 @@ import ArtPieceForm from "@/components/admin/forms/ArtPieceForm";
 import WritingPieceForm from "@/components/admin/forms/WritingPieceForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 import {
   createArtPiece,
@@ -41,6 +42,19 @@ export default function PortfolioClient({
   );
   const [deletingWriting, setDeletingWriting] = useState<WritingPiece | null>(
     null,
+  );
+
+  // Batch fetch all art piece images for optimal performance
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
+  const artImagePaths = artPieces.flatMap((art) => [
+    art.image_url,
+    art.thumbnail_url,
+  ]);
+  const filteredArtImagePaths = artImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: artImageUrls } = useBatchStorageUrls(
+    filteredArtImagePaths,
   );
 
   // Art handlers
@@ -257,6 +271,7 @@ export default function PortfolioClient({
                       <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <StorageImage
                           src={art.image_url}
+                          signedUrl={artImageUrls.get(art.image_url)}
                           alt={art.title}
                           width={400}
                           height={400}

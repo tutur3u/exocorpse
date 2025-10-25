@@ -29,16 +29,18 @@ export default function WorldView({
   );
 
   // Batch fetch all character profile images
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
   const characterImagePaths = characters
     .map((c) => c.profile_image)
-    .filter((p): p is string => !!p);
+    .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: characterImageUrls, loading: characterImagesLoading } =
     useBatchStorageUrls(characterImagePaths);
 
   // Batch fetch all faction logos
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
   const factionLogoPaths = factions
     .map((f) => f.logo_url)
-    .filter((p): p is string => !!p);
+    .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: factionLogoUrls, loading: factionLogosLoading } =
     useBatchStorageUrls(factionLogoPaths);
 
@@ -46,12 +48,13 @@ export default function WorldView({
     <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* World Header with Banner */}
       {world.theme_background_image && (
-        <div
-          className="relative h-48 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${world.theme_background_image})`,
-          }}
-        >
+        <div className="relative h-48 overflow-hidden">
+          <StorageImage
+            src={world.theme_background_image}
+            alt={world.name}
+            fill
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
             <h1 className="mb-2 text-4xl font-bold text-white drop-shadow-lg">

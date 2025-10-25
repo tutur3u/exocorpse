@@ -2,6 +2,8 @@
 
 import StoryForm from "@/components/admin/forms/StoryForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   createStory,
   deleteStory,
@@ -24,6 +26,13 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
     queryFn: getPublishedStories,
     initialData: initialStories,
   });
+
+  // Batch fetch all story background images for optimal performance
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
+  const storyImagePaths = stories
+    .map((s) => s.theme_background_image)
+    .filter((p): p is string => !!p && !p.startsWith("http"));
+  const { signedUrls: storyImageUrls } = useBatchStorageUrls(storyImagePaths);
 
   const [showForm, setShowForm] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
@@ -151,19 +160,24 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Cover Image / Gradient */}
-              <div
-                className="relative h-32 overflow-hidden bg-linear-to-br from-blue-500 via-purple-500 to-pink-500"
-                style={
-                  story.theme_background_image
-                    ? {
-                        backgroundImage: `url(${story.theme_background_image})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : {}
-                }
-              >
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
+                {story.theme_background_image ? (
+                  <>
+                    <StorageImage
+                      src={story.theme_background_image}
+                      signedUrl={storyImageUrls.get(
+                        story.theme_background_image,
+                      )}
+                      alt={story.title}
+                      width={400}
+                      height={192}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                )}
 
                 {/* Status Badge */}
                 {story.is_published && (
