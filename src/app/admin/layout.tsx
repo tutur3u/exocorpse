@@ -1,7 +1,8 @@
+import AdminNav from "@/components/admin/AdminNav";
 import LogoutButton from "@/components/admin/LogoutButton";
 import { requireAuth } from "@/lib/auth/utils";
 import Link from "next/link";
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export default async function AdminLayout({
   children,
@@ -17,47 +18,13 @@ export default async function AdminLayout({
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <Link
+                href="/admin"
+                className="text-2xl font-bold text-gray-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+              >
                 EXOCORPSE
-              </h1>
-              <nav className="flex gap-1">
-                <Link
-                  href="/admin"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/stories"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Stories
-                </Link>
-                <Link
-                  href="/admin/worlds"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Worlds
-                </Link>
-                <Link
-                  href="/admin/characters"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Characters
-                </Link>
-                <Link
-                  href="/admin/factions"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Factions
-                </Link>
-                <Link
-                  href="/admin/blog-posts"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  Blog
-                </Link>
-              </nav>
+              </Link>
+              <AdminNav />
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600 dark:text-gray-400">

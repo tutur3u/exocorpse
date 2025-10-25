@@ -14,6 +14,7 @@ type ImageUploaderProps = {
   uploadPath?: string; // Optional: storage path for uploads (e.g., "characters/123/profile")
   enableUpload?: boolean; // Whether to enable file uploads to storage (default: true)
   onBeforeChange?: (oldValue: string, newValue: string) => Promise<void>; // Optional: callback before changing value (e.g., to delete old image)
+  disableUrlInput?: boolean; // Whether to disable the URL input field (default: false)
 };
 
 export default function ImageUploader({
@@ -26,6 +27,7 @@ export default function ImageUploader({
   uploadPath,
   enableUpload = true,
   onBeforeChange,
+  disableUrlInput = false,
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,20 +143,31 @@ export default function ImageUploader({
   };
 
   const handleClear = async () => {
-    // Call onBeforeChange to delete the old image if it exists
+    // Show loading state while deleting
+    setUploading(true);
+    setError(null);
+
+    // Call onBeforeChange to delete the old image from storage if it exists
     if (onBeforeChange && value) {
       try {
         await onBeforeChange(value, "");
       } catch (deleteError) {
-        console.error("Error deleting old image:", deleteError);
-        setError("Failed to delete old image");
-        return;
+        console.error("Error deleting image from storage:", deleteError);
+        setError(
+          deleteError instanceof Error
+            ? deleteError.message
+            : "Failed to delete image from storage. Please try again.",
+        );
+        setUploading(false);
+        return; // Don't clear the field if deletion failed
       }
     }
 
+    // Only clear the field after successful deletion
     setPreview(null);
     onChange("");
     setError(null);
+    setUploading(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -171,16 +184,18 @@ export default function ImageUploader({
           value={value}
           onChange={(e) => handleUrlChange(e.target.value)}
           placeholder="https://example.com/image.jpg"
-          className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700"
+          disabled={disableUrlInput}
+          className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700"
         />
         {value && (
           <button
             type="button"
             onClick={handleClear}
-            className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-            title="Clear image"
+            disabled={uploading}
+            className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
+            title="Clear image and delete from storage"
           >
-            Clear
+            {uploading ? "Deleting..." : "Clear"}
           </button>
         )}
       </div>

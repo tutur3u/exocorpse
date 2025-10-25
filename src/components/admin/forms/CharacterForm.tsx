@@ -5,12 +5,24 @@ import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
+import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
+import {
+  createCharacterGalleryItem,
+  deleteCharacterGalleryItem,
+  getCharacterGallery,
+  updateCharacterGalleryItem,
+} from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import type { Tables } from "../../../../supabase/types";
+import GalleryItemForm from "./GalleryItemForm";
+
+type CharacterGalleryItem = Tables<"character_gallery">;
 
 type CharacterFormData = {
   world_ids: string[]; // Changed from world_id to world_ids
@@ -83,62 +95,92 @@ export default function CharacterForm({
     return worldId ? [worldId] : [];
   };
 
-  const form = useForm<CharacterFormData>({
-    defaultValues: {
-      world_ids: getInitialWorldIds(),
-      name: character?.name || "",
-      slug: character?.slug || "",
-      nickname: character?.nickname || "",
-      title: character?.title || "",
-      age: character?.age ?? undefined,
-      age_description: character?.age_description || "",
-      species: character?.species || "",
-      gender: character?.gender || "",
-      pronouns: character?.pronouns || "",
-      height: character?.height || "",
-      weight: character?.weight || "",
-      build: character?.build || "",
-      hair_color: character?.hair_color || "",
-      eye_color: character?.eye_color || "",
-      skin_tone: character?.skin_tone || "",
-      distinguishing_features: character?.distinguishing_features || "",
-      status:
-        (character?.status as
-          | "alive"
-          | "deceased"
-          | "unknown"
-          | "missing"
-          | "imprisoned") || "alive",
-      occupation: character?.occupation || "",
-      personality_summary: character?.personality_summary || "",
-      likes: character?.likes || "",
-      dislikes: character?.dislikes || "",
-      fears: character?.fears || "",
-      goals: character?.goals || "",
-      backstory: character?.backstory || "",
-      lore: character?.lore || "",
-      skills: character?.skills || "",
-      abilities: character?.abilities || "",
-      strengths: character?.strengths || "",
-      weaknesses: character?.weaknesses || "",
-      profile_image: character?.profile_image || "",
-      banner_image: character?.banner_image || "",
-      color_scheme: character?.color_scheme || "#3b82f6",
-    },
+  // Get form values from character data
+  const getFormValues = (): CharacterFormData => ({
+    world_ids: getInitialWorldIds(),
+    name: character?.name ?? "",
+    slug: character?.slug ?? "",
+    nickname: character?.nickname ?? "",
+    title: character?.title ?? "",
+    age: character?.age ?? undefined,
+    age_description: character?.age_description ?? "",
+    species: character?.species ?? "",
+    gender: character?.gender ?? "",
+    pronouns: character?.pronouns ?? "",
+    height: character?.height ?? "",
+    weight: character?.weight ?? "",
+    build: character?.build ?? "",
+    hair_color: character?.hair_color ?? "",
+    eye_color: character?.eye_color ?? "",
+    skin_tone: character?.skin_tone ?? "",
+    distinguishing_features: character?.distinguishing_features ?? "",
+    status:
+      (character?.status as
+        | "alive"
+        | "deceased"
+        | "unknown"
+        | "missing"
+        | "imprisoned") ?? "alive",
+    occupation: character?.occupation ?? "",
+    personality_summary: character?.personality_summary ?? "",
+    likes: character?.likes ?? "",
+    dislikes: character?.dislikes ?? "",
+    fears: character?.fears ?? "",
+    goals: character?.goals ?? "",
+    backstory: character?.backstory ?? "",
+    lore: character?.lore ?? "",
+    skills: character?.skills ?? "",
+    abilities: character?.abilities ?? "",
+    strengths: character?.strengths ?? "",
+    weaknesses: character?.weaknesses ?? "",
+    profile_image: character?.profile_image ?? "",
+    banner_image: character?.banner_image ?? "",
+    color_scheme: character?.color_scheme ?? "#3b82f6",
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
+  const form = useForm<CharacterFormData>({
+    defaultValues: getFormValues(),
+  });
+
+  const { register, handleSubmit: formHandleSubmit, setValue, watch, reset } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset form when character changes to clear dirty state
+  useEffect(() => {
+    reset(getFormValues());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character?.id, reset]);
+
+  // Gallery state
+  const [galleryItems, setGalleryItems] = useState<CharacterGalleryItem[]>([]);
+  const [showGalleryForm, setShowGalleryForm] = useState(false);
+  const [editingGalleryItem, setEditingGalleryItem] =
+    useState<CharacterGalleryItem | null>(null);
+  const [loadingGallery, setLoadingGallery] = useState(false);
+
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
   const colorScheme = watch("color_scheme");
   const selectedWorldIds = watch("world_ids");
+
+  // Load gallery items when editing a character
+  useEffect(() => {
+    if (character?.id) {
+      setLoadingGallery(true);
+      getCharacterGallery(character.id)
+        .then(setGalleryItems)
+        .catch((err) => {
+          console.error("Failed to load gallery:", err);
+          toast.error("Failed to load character gallery");
+        })
+        .finally(() => setLoadingGallery(false));
+    }
+  }, [character?.id]);
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
@@ -245,10 +287,92 @@ export default function CharacterForm({
     }
   };
 
+  // Gallery handlers
+  const handleAddGalleryItem = () => {
+    setEditingGalleryItem(null);
+    setShowGalleryForm(true);
+  };
+
+  const handleEditGalleryItem = (item: CharacterGalleryItem) => {
+    setEditingGalleryItem(item);
+    setShowGalleryForm(true);
+  };
+
+  const handleGalleryFormSubmit = async (data: {
+    title: string;
+    description?: string;
+    image_url: string;
+    thumbnail_url?: string;
+    artist_name?: string;
+    artist_url?: string;
+    commission_date?: string;
+    tags?: string;
+    is_featured?: boolean;
+  }) => {
+    if (!character?.id) {
+      toast.error("Please save the character first before adding gallery items");
+      return;
+    }
+
+    try {
+      // Convert tags string to array
+      const tagsArray = data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0)
+        : undefined;
+
+      if (editingGalleryItem) {
+        // Update existing item
+        const updated = await updateCharacterGalleryItem(editingGalleryItem.id, {
+          ...data,
+          tags: tagsArray,
+        });
+        setGalleryItems((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item)),
+        );
+        toast.success("Gallery item updated");
+      } else {
+        // Create new item
+        const newItem = await createCharacterGalleryItem({
+          character_id: character.id,
+          ...data,
+          tags: tagsArray,
+          display_order: galleryItems.length,
+        });
+        setGalleryItems((prev) => [...prev, newItem]);
+        toast.success("Gallery item added");
+      }
+
+      setShowGalleryForm(false);
+      setEditingGalleryItem(null);
+    } catch (err) {
+      console.error("Failed to save gallery item:", err);
+      toast.error("Failed to save gallery item");
+      throw err;
+    }
+  };
+
+  const handleDeleteGalleryItem = async (item: CharacterGalleryItem) => {
+    if (!confirm("Are you sure you want to delete this gallery item?")) {
+      return;
+    }
+
+    try {
+      await deleteCharacterGalleryItem(item.id);
+      setGalleryItems((prev) => prev.filter((i) => i.id !== item.id));
+      toast.success("Gallery item deleted");
+    } catch (err) {
+      console.error("Failed to delete gallery item:", err);
+      toast.error("Failed to delete gallery item");
+    }
+  };
+
   return (
     <>
       <div
-        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black p-4"
         role="button"
         tabIndex={0}
         aria-label="Close and discard changes"
@@ -256,20 +380,20 @@ export default function CharacterForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
           role="dialog"
           aria-modal="true"
           aria-labelledby="character-form-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-6 pt-6 pb-4">
+          <div className="shrink-0 px-6 pt-6 pb-4">
             <h2 id="character-form-title" className="text-2xl font-bold">
               {character ? "Edit Character" : "Create New Character"}
             </h2>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 overflow-x-auto border-b border-gray-300 px-6 dark:border-gray-600">
+          <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-6 dark:border-gray-600">
             <button
               type="button"
               onClick={() => setActiveTab("basic")}
@@ -340,7 +464,7 @@ export default function CharacterForm({
 
           <form
             onSubmit={handleFormSubmit}
-            className="flex flex-1 flex-col overflow-hidden"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {/* Basic Info Tab */}
@@ -865,7 +989,7 @@ export default function CharacterForm({
 
               {/* Visuals Tab */}
               {activeTab === "visuals" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <ImageUploader
                     label="Profile Image"
                     value={profileImage || ""}
@@ -879,6 +1003,7 @@ export default function CharacterForm({
                     }
                     enableUpload={!!character}
                     onBeforeChange={handleDeleteOldImage}
+                    disableUrlInput={true}
                     helpText={
                       character
                         ? "Main character portrait - uploads to secure storage"
@@ -899,6 +1024,7 @@ export default function CharacterForm({
                     }
                     enableUpload={!!character}
                     onBeforeChange={handleDeleteOldImage}
+                    disableUrlInput={true}
                     helpText={
                       character
                         ? "Banner image for character page - uploads to secure storage"
@@ -914,6 +1040,99 @@ export default function CharacterForm({
                     }
                     helpText="Theme color for this character"
                   />
+
+                  {/* Gallery Section */}
+                  <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-medium">
+                          Gallery ({galleryItems.length})
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {character
+                            ? "Manage character artwork and images"
+                            : "Save the character first to add gallery items"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddGalleryItem}
+                        disabled={!character}
+                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Add Image
+                      </button>
+                    </div>
+
+                    {loadingGallery ? (
+                      <div className="py-8 text-center text-sm text-gray-500">
+                        Loading gallery...
+                      </div>
+                    ) : galleryItems.length === 0 ? (
+                      <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
+                        <svg
+                          className="mx-auto h-12 w-12 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="mt-2 text-sm text-gray-500">
+                          {character
+                            ? "No gallery items yet"
+                            : "Create the character first to add gallery items"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4 @md:grid-cols-3 @lg:grid-cols-4">
+                        {galleryItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
+                          >
+                            <StorageImage
+                              src={item.image_url}
+                              alt={item.title}
+                              fill
+                              className="object-cover"
+                            />
+                            {item.is_featured && (
+                              <div className="absolute left-2 top-2 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-white">
+                                Featured
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => handleEditGalleryItem(item)}
+                                className="rounded bg-white px-3 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGalleryItem(item)}
+                                className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                              <p className="truncate text-xs font-medium text-white">
+                                {item.title}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -926,7 +1145,7 @@ export default function CharacterForm({
             )}
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-2 border-t border-gray-300 px-6 py-4 dark:border-gray-600">
+            <div className="flex shrink-0 justify-end gap-2 border-t border-gray-300 px-6 py-4 dark:border-gray-600">
               <button
                 type="button"
                 onClick={handleCancelClick}
@@ -956,6 +1175,18 @@ export default function CharacterForm({
         onConfirm={confirmExit}
         onCancel={cancelExit}
       />
+
+      {showGalleryForm && character && (
+        <GalleryItemForm
+          characterId={character.id}
+          galleryItem={editingGalleryItem || undefined}
+          onSubmit={handleGalleryFormSubmit}
+          onCancel={() => {
+            setShowGalleryForm(false);
+            setEditingGalleryItem(null);
+          }}
+        />
+      )}
     </>
   );
 }

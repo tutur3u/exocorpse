@@ -185,6 +185,50 @@ export async function deleteCharacterImages(characterId: string) {
 }
 
 /**
+ * Upload character gallery image
+ * @param characterId - The character ID
+ * @param fileData - Base64 data URL of the image
+ * @param filename - Original filename
+ */
+export async function uploadCharacterGalleryImage(
+  characterId: string,
+  fileData: string,
+  filename: string,
+) {
+  return uploadFile(fileData, `characters/${characterId}/gallery`, filename);
+}
+
+/**
+ * Delete character gallery image
+ * @param path - Full path to the gallery image
+ */
+export async function deleteCharacterGalleryImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
+ * Upload artwork image for portfolio
+ * @param artworkId - The artwork piece ID
+ * @param fileData - Base64 data URL of the image
+ * @param filename - Original filename
+ */
+export async function uploadArtworkImage(
+  artworkId: string,
+  fileData: string,
+  filename: string,
+) {
+  return uploadFile(fileData, `portfolio/art/${artworkId}`, filename);
+}
+
+/**
+ * Delete artwork image
+ * @param path - Full path to the artwork image
+ */
+export async function deleteArtworkImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
  * Get a cached signed URL or fetch a new one if expired
  * This implements a database-level cache to reduce load on the tuturuuu SDK
  * @param path - Path to the file in storage
