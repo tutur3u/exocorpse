@@ -10,10 +10,6 @@ import PreviewModal from "@/components/shared/PreviewModal";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
-  uploadCharacterBannerImage,
-  uploadCharacterProfileImage,
-} from "@/lib/actions/storage";
-import {
   addCharacterToFaction,
   type Character,
   createCharacter,

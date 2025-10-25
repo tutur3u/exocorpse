@@ -1,5 +1,4 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
-import { uploadFile } from "@/lib/actions/storage";
 import {
   compressImage,
   formatBytes,
@@ -133,11 +132,27 @@ export default function ImageUploader({
           setUploadProgress("Uploading...");
         }
 
-        const result = await uploadFile(
-          compressedDataUrl,
-          uploadPath,
-          file.name,
-        );
+        // Convert data URL back to File for FormData upload
+        const response = await fetch(compressedDataUrl);
+        const blob = await response.blob();
+        const compressedFile = new File([blob], file.name, { type: blob.type });
+
+        // Upload via FormData API route
+        const formData = new FormData();
+        formData.append("file", compressedFile);
+        formData.append("path", uploadPath);
+
+        const uploadResponse = await fetch("/api/storage/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || "Upload failed");
+        }
+
+        const result = await uploadResponse.json();
 
         if (result.success) {
           // Call onBeforeChange to delete the old image if it exists

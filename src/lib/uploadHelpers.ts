@@ -2,7 +2,6 @@
  * Helper utilities for handling deferred image uploads
  */
 
-import { uploadFile } from "./actions/storage";
 import { compressImage } from "./imageCompression";
 
 export interface PendingUpload {
@@ -12,7 +11,7 @@ export interface PendingUpload {
 }
 
 /**
- * Upload a pending file to storage
+ * Upload a pending file to storage using FormData API route
  * @param file - The File object to upload
  * @param uploadPath - Storage path (e.g., "portfolio/art/123")
  * @returns Storage path of uploaded file
@@ -21,7 +20,7 @@ export async function uploadPendingFile(
   file: File,
   uploadPath: string,
 ): Promise<string> {
-  // Compress the image
+  // Compress the image and convert back to File
   const compressedDataUrl = await compressImage(file, {
     maxWidth: 2048,
     maxHeight: 2048,
@@ -30,8 +29,27 @@ export async function uploadPendingFile(
     skipCompressionUnder: 500 * 1024,
   });
 
-  // Upload to storage
-  const result = await uploadFile(compressedDataUrl, uploadPath, file.name);
+  // Convert data URL back to File
+  const response = await fetch(compressedDataUrl);
+  const blob = await response.blob();
+  const compressedFile = new File([blob], file.name, { type: blob.type });
+
+  // Upload via FormData API route
+  const formData = new FormData();
+  formData.append("file", compressedFile);
+  formData.append("path", uploadPath);
+
+  const uploadResponse = await fetch("/api/storage/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!uploadResponse.ok) {
+    const error = await uploadResponse.json();
+    throw new Error(error.error || "Failed to upload file");
+  }
+
+  const result = await uploadResponse.json();
 
   if (!result.success) {
     throw new Error("Failed to upload file");

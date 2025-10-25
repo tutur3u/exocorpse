@@ -24,46 +24,9 @@ function getTuturuuuClient() {
   return new TuturuuuClient(apiKey);
 }
 
-/**
- * Upload a file to the tuturuuu storage
- * @param file - The file to upload (as FormData or base64 string)
- * @param path - Destination folder path (e.g., "characters/profile-images")
- * @param filename - The filename to use
- * @returns The full path to the uploaded file
- */
-export async function uploadFile(
-  fileData: string, // base64 data URL
-  path: string,
-  filename: string,
-) {
-  // Verify authentication
-  await verifyAuth();
-
-  try {
-    const client = getTuturuuuClient();
-
-    // Convert base64 data URL to File object
-    const base64Response = await fetch(fileData);
-    const blob = await base64Response.blob();
-    const file = new File([blob], filename, { type: blob.type });
-
-    // Upload the file with upsert to allow overwriting
-    const result = await client.storage.upload(file, {
-      path,
-      upsert: true, // Allow overwriting if file exists
-    });
-
-    return {
-      success: true,
-      path: result.data.path,
-    };
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    throw new Error(
-      error instanceof Error ? error.message : "Failed to upload file",
-    );
-  }
-}
+// NOTE: File uploads now use FormData via /api/storage/upload to avoid payload size limits
+// See: uploadPendingFile in uploadHelpers.ts and ImageUploader component
+// The old uploadFile function has been removed as it caused FUNCTION_PAYLOAD_TOO_LARGE errors
 
 /**
  * Delete a file from storage
@@ -126,34 +89,6 @@ export async function batchGetSignedUrls(
 }
 
 /**
- * Upload character profile image
- * @param characterId - The character ID
- * @param fileData - Base64 data URL of the image
- * @param filename - Original filename
- */
-export async function uploadCharacterProfileImage(
-  characterId: string,
-  fileData: string,
-  filename: string,
-) {
-  return uploadFile(fileData, `characters/${characterId}/profile`, filename);
-}
-
-/**
- * Upload character banner image
- * @param characterId - The character ID
- * @param fileData - Base64 data URL of the image
- * @param filename - Original filename
- */
-export async function uploadCharacterBannerImage(
-  characterId: string,
-  fileData: string,
-  filename: string,
-) {
-  return uploadFile(fileData, `characters/${characterId}/banner`, filename);
-}
-
-/**
  * Delete character images when character is deleted
  * @param characterId - The character ID
  */
@@ -185,20 +120,6 @@ export async function deleteCharacterImages(characterId: string) {
 }
 
 /**
- * Upload character gallery image
- * @param characterId - The character ID
- * @param fileData - Base64 data URL of the image
- * @param filename - Original filename
- */
-export async function uploadCharacterGalleryImage(
-  characterId: string,
-  fileData: string,
-  filename: string,
-) {
-  return uploadFile(fileData, `characters/${characterId}/gallery`, filename);
-}
-
-/**
  * Delete character gallery image
  * @param path - Full path to the gallery image
  */
@@ -207,39 +128,11 @@ export async function deleteCharacterGalleryImage(path: string) {
 }
 
 /**
- * Upload artwork image for portfolio
- * @param artworkId - The artwork piece ID
- * @param fileData - Base64 data URL of the image
- * @param filename - Original filename
- */
-export async function uploadArtworkImage(
-  artworkId: string,
-  fileData: string,
-  filename: string,
-) {
-  return uploadFile(fileData, `portfolio/art/${artworkId}`, filename);
-}
-
-/**
  * Delete artwork image
  * @param path - Full path to the artwork image
  */
 export async function deleteArtworkImage(path: string) {
   return deleteFile(path);
-}
-
-/**
- * Upload writing cover image for portfolio
- * @param writingId - The writing piece ID
- * @param fileData - Base64 data URL of the image
- * @param filename - Original filename
- */
-export async function uploadWritingImage(
-  writingId: string,
-  fileData: string,
-  filename: string,
-) {
-  return uploadFile(fileData, `portfolio/writing/${writingId}`, filename);
 }
 
 /**
