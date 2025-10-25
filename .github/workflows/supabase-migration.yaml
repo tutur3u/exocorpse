@@ -2,9 +2,6 @@ name: Supabase Production Migration
 
 on:
   workflow_run:
-    workflows: ["Build Check"]
-    types:
-      - completed
     branches:
       - main
   workflow_dispatch:
@@ -14,8 +11,6 @@ jobs:
     name: Migrate production database
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    # Only run if the Vercel deployment succeeded or if manually triggered
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: read
       actions: read
