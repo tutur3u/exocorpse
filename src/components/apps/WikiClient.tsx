@@ -330,8 +330,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Story view with tabs
     if (viewMode === "story" && selectedStory) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -354,8 +354,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // World view with tabs
     if (viewMode === "world" && selectedWorld) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -378,8 +378,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Character view
     if (viewMode === "character" && viewingCharacter) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -400,8 +400,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Faction view
     if (viewMode === "faction" && viewingFaction) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -419,5 +419,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     return null;
   };
 
-  return <div className="@container h-full">{renderContent()}</div>;
+  return (
+    <div className="@container h-full overflow-auto">{renderContent()}</div>
+  );
 }

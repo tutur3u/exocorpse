@@ -9,8 +9,7 @@ type FactionViewProps = {
 
 export default function FactionView({ faction }: FactionViewProps) {
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto min-h-full max-w-2xl space-y-6 p-6">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
@@ -128,6 +127,5 @@ export default function FactionView({ faction }: FactionViewProps) {
           </div>
         )}
       </div>
-    </div>
   );
 }

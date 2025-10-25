@@ -13,12 +13,10 @@ export default function CharacterView({
   onFactionClick,
 }: CharacterViewProps) {
   return (
-    <div className="flex-1 overflow-hidden">
-      <CharacterDetail
-        character={character}
-        onWorldClick={onWorldClick}
-        onFactionClick={onFactionClick}
-      />
-    </div>
+    <CharacterDetail
+      character={character}
+      onWorldClick={onWorldClick}
+      onFactionClick={onFactionClick}
+    />
   );
 }

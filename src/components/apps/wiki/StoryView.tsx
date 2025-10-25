@@ -68,7 +68,7 @@ export default function StoryView({
     useBatchStorageUrls(factionLogoPaths);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Story Header with Banner */}
       {story.theme_background_image && (
         <div
@@ -168,7 +168,7 @@ export default function StoryView({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="p-6">
         {/* Synopsis Tab */}
         {activeTab === "synopsis" && (
           <div className="animate-fadeIn mx-auto max-w-4xl">

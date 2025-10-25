@@ -87,7 +87,7 @@ export default function CharacterDetail({
   ];
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-gray-900">
+    <div className="flex min-h-full flex-col bg-white dark:bg-gray-900">
       {/* Banner Image - Only visible on larger screens */}
       <div className="relative hidden h-64 overflow-hidden @lg:block">
         {character.banner_image ? (
@@ -205,7 +205,7 @@ export default function CharacterDetail({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto bg-linear-to-b from-transparent to-gray-50/30 p-6 dark:to-gray-900/30">
+      <div className="bg-linear-to-b from-transparent to-gray-50/30 p-6 dark:to-gray-900/30">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-3">

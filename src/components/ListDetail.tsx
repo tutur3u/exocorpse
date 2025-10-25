@@ -71,8 +71,8 @@ export default function ListDetail<TId extends string | number, TData>({
 
   if (indexLayout === "grid") {
     return (
-      <div className={`flex h-full flex-col ${className ?? ""}`}>
-        <div className="min-w-0 flex-1 overflow-auto p-6">
+      <div className={`flex flex-col ${className ?? ""}`}>
+        <div className="min-w-0 p-6">
           <div className="grid grid-cols-1 gap-6 @md:grid-cols-2 @2xl:grid-cols-3">
             {items.map((item) => (
               <div
