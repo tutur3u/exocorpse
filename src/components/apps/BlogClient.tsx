@@ -1,12 +1,14 @@
 "use client";
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import StorageImage from "@/components/shared/StorageImage";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import {
   type BlogPost,
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
@@ -86,6 +88,14 @@ export default function BlogClient({ initialData }: BlogClientProps) {
   const total = paginatedData.total || 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const clampedCurrentPage = Math.min(currentPage, totalPages);
+
+  // Batch fetch signed URLs for blog post cover images
+  const coverImagePaths = [
+    selectedPost?.cover_url,
+    ...posts.map((post) => post.cover_url),
+  ].filter((p): p is string => !!p && !p.startsWith("http"));
+
+  const { signedUrls: coverImageUrls } = useBatchStorageUrls(coverImagePaths);
 
   // Sync router if currentPage was out of bounds
   useEffect(() => {
@@ -191,6 +201,18 @@ export default function BlogClient({ initialData }: BlogClientProps) {
 
         {/* Post Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
+          {selectedPost.cover_url && (
+            <div className="relative mb-6 h-64 w-full overflow-hidden md:h-96">
+              <StorageImage
+                src={selectedPost.cover_url}
+                alt={selectedPost.title}
+                signedUrl={coverImageUrls.get(selectedPost.cover_url)}
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+            </div>
+          )}
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <MarkdownRenderer content={selectedPost.content} />
           </div>
@@ -267,36 +289,50 @@ export default function BlogClient({ initialData }: BlogClientProps) {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
                 <button
                   type="button"
                   key={post.id}
                   onClick={() => handlePostSelect(post)}
-                  className="w-full rounded-lg border border-gray-200 bg-white p-6 text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                  className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                 >
-                  <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-                    {post.title}
-                  </h3>
-                  {post.excerpt && (
-                    <p className="mb-3 text-gray-600 dark:text-gray-400">
-                      {post.excerpt}
-                    </p>
+                  {post.cover_url && (
+                    <div className="relative h-48 w-full shrink-0 overflow-hidden">
+                      <StorageImage
+                        src={post.cover_url}
+                        alt={post.title}
+                        signedUrl={coverImageUrls.get(post.cover_url)}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
                   )}
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
-                    <span>
-                      {new Date(post.published_at!).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}
-                    </span>
-                    <span className="text-blue-600 dark:text-blue-400">
-                      Read more →
-                    </span>
+                  <div className="flex flex-1 flex-col p-6">
+                    <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="mb-3 line-clamp-3 text-gray-600 dark:text-gray-400">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    <div className="mt-auto flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
+                      <span>
+                        {new Date(post.published_at!).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )}
+                      </span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        Read more →
+                      </span>
+                    </div>
                   </div>
                 </button>
               ))}

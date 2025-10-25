@@ -1,11 +1,15 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { BlogPost } from "@/lib/actions/blog";
+import { updateBlogPost } from "@/lib/actions/blog";
+import { deleteBlogImage } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
-import { useState } from "react";
+import { uploadPendingFile } from "@/lib/uploadHelpers";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 type BlogPostFormData = {
@@ -13,18 +17,21 @@ type BlogPostFormData = {
   slug: string;
   excerpt?: string;
   content: string;
+  cover_url?: string;
   published_at?: string | null;
 };
 
 type BlogPostFormProps = {
   post?: BlogPost;
-  onSubmit: (data: BlogPostFormData) => Promise<void>;
+  onSubmit: (data: BlogPostFormData) => Promise<BlogPost | void>;
+  onComplete: () => void; // Called when everything is done (including uploads)
   onCancel: () => void;
 };
 
 export default function BlogPostForm({
   post,
   onSubmit,
+  onComplete,
   onCancel,
 }: BlogPostFormProps) {
   // Convert published_at to datetime-local format if it exists
@@ -46,29 +53,70 @@ export default function BlogPostForm({
       slug: post?.slug || "",
       excerpt: post?.excerpt || "",
       content: post?.content || "",
+      cover_url: post?.cover_url || "",
       published_at: formatDatetimeLocal(post?.published_at) || "",
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCoverImage, setPendingCoverImage] = useState<File | null>(null);
 
   // Watch form values for components that need them
   const content = watch("content");
+  const coverUrl = watch("cover_url");
   const publishedAt = watch("published_at");
+
+  // Handle image deletion when replacing with a new one
+  const handleDeleteOldImage = async (oldImagePath: string) => {
+    if (
+      !oldImagePath ||
+      oldImagePath.startsWith("http") ||
+      oldImagePath.startsWith("pending:")
+    )
+      return;
+
+    try {
+      await deleteBlogImage(oldImagePath);
+    } catch (err) {
+      console.error("Failed to delete old image:", err);
+    }
+  };
+
+  // Reset form when post changes to clear dirty state
+  useEffect(() => {
+    reset({
+      title: post?.title || "",
+      slug: post?.slug || "",
+      excerpt: post?.excerpt || "",
+      content: post?.content || "",
+      cover_url: post?.cover_url || "",
+      published_at: formatDatetimeLocal(post?.published_at) || "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.id, reset]);
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
+    setUploadProgress(null);
     setError(null);
 
     try {
       // Clean up empty strings to undefined
       const cleanData: BlogPostFormData = cleanFormData(data, [
         "excerpt",
+        "cover_url",
         "published_at",
       ]);
 
@@ -81,9 +129,50 @@ export default function BlogPostForm({
         cleanData.published_at = date.toISOString();
       }
 
-      await onSubmit(cleanData);
+      // Submit the blog post data (without pending images)
+      const submitData = {
+        ...cleanData,
+        cover_url: cleanData.cover_url?.startsWith("pending:")
+          ? undefined
+          : cleanData.cover_url,
+      };
+
+      setUploadProgress("Saving blog post...");
+      const result = await onSubmit(submitData);
+
+      // If we got a result (created/updated entity) and have a pending cover image, upload it
+      if (result && pendingCoverImage) {
+        try {
+          setUploadProgress("Uploading cover image...");
+          const uploadedPath = await uploadPendingFile(
+            pendingCoverImage,
+            `blog/${result.id}`,
+          );
+
+          // Update the blog post with the uploaded image path
+          setUploadProgress("Updating blog post...");
+          await updateBlogPost(result.id, {
+            cover_url: uploadedPath,
+          });
+
+          setUploadProgress("Complete!");
+          setPendingCoverImage(null);
+        } catch (uploadError) {
+          console.error("Failed to upload cover image:", uploadError);
+          setError(
+            "Blog post saved, but cover image upload failed. Please edit to upload.",
+          );
+          setLoading(false);
+          return; // Don't close the form, let user see the error
+        }
+      }
+
+      // Everything succeeded, close the form
+      setUploadProgress(null);
+      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
+      setUploadProgress(null);
     } finally {
       setLoading(false);
     }
@@ -180,6 +269,36 @@ export default function BlogPostForm({
             className="flex flex-1 flex-col overflow-hidden"
           >
             <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              {uploadProgress && (
+                <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      {uploadProgress}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Basic Info */}
               <div>
                 <label
@@ -243,6 +362,34 @@ export default function BlogPostForm({
                 <p className="mt-1 text-xs text-gray-500">
                   Optional short description shown in post listings
                 </p>
+              </div>
+
+              {/* Cover Image */}
+              <div>
+                <ImageUploader
+                  label="Cover Image (Optional)"
+                  value={coverUrl || ""}
+                  onChange={(value) =>
+                    setValue("cover_url", value, { shouldDirty: true })
+                  }
+                  onFileSelect={(file) => setPendingCoverImage(file)}
+                  onBeforeChange={async (oldValue, newValue) => {
+                    if (oldValue) await handleDeleteOldImage(oldValue);
+                  }}
+                  enableUpload={!!post}
+                  uploadPath={post ? `blog/${post.id}` : undefined}
+                  disableUrlInput={!post}
+                  helpText={
+                    post
+                      ? "Upload a cover image for this blog post"
+                      : "Select an image. It will be uploaded after creating the blog post."
+                  }
+                />
+                {!post && pendingCoverImage && (
+                  <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                    ✓ Image ready to upload: {pendingCoverImage.name}
+                  </p>
+                )}
               </div>
 
               {/* Content */}

@@ -12,7 +12,6 @@ import {
   getCharacterWorlds,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
@@ -460,7 +459,7 @@ export default function CharacterDetail({
                             }
                             className="group relative h-56 w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
                           >
-                            <Image
+                            <StorageImage
                               src={outfit.image_url}
                               alt={outfit.name}
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
@@ -602,7 +601,7 @@ export default function CharacterDetail({
                         }
                         className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-500 dark:ring-gray-700"
                       >
-                        <Image
+                        <StorageImage
                           src={image.thumbnail_url || image.image_url}
                           alt={image.title}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"

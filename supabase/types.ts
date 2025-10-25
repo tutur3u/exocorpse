@@ -90,6 +90,7 @@ export type Database = {
       blog_posts: {
         Row: {
           content: string;
+          cover_url: string | null;
           created_at: string;
           excerpt: string | null;
           id: string;
@@ -100,6 +101,7 @@ export type Database = {
         };
         Insert: {
           content: string;
+          cover_url?: string | null;
           created_at?: string;
           excerpt?: string | null;
           id?: string;
@@ -110,6 +112,7 @@ export type Database = {
         };
         Update: {
           content?: string;
+          cover_url?: string | null;
           created_at?: string;
           excerpt?: string | null;
           id?: string;

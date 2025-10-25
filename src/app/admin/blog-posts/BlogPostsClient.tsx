@@ -2,6 +2,7 @@
 
 import BlogPostForm from "@/components/admin/forms/BlogPostForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import StorageImage from "@/components/shared/StorageImage";
 import {
   type BlogPost,
   createBlogPost,
@@ -9,6 +10,7 @@ import {
   getAllBlogPostsPaginated,
   updateBlogPost,
 } from "@/lib/actions/blog";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import { generatePaginationRange } from "@/lib/pagination";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +57,13 @@ export default function BlogPostsClient({
   const total = paginatedData?.total || 0;
   const totalPages = Math.ceil(total / currentPageSize);
 
+  // Batch fetch signed URLs for blog post cover images
+  const coverImagePaths = posts
+    .map((post) => post.cover_url)
+    .filter((p): p is string => !!p && !p.startsWith("http"));
+
+  const { signedUrls: coverImageUrls } = useBatchStorageUrls(coverImagePaths);
+
   // Clamp currentPage to valid range after deletions shrink totalPages
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
@@ -74,9 +83,6 @@ export default function BlogPostsClient({
   const createMutation = useMutation({
     mutationFn: createBlogPost,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
-      setShowForm(false);
       toastWithSound.success("Blog post created successfully!");
     },
     onError: (error) => {
@@ -93,10 +99,6 @@ export default function BlogPostsClient({
       data: Parameters<typeof updateBlogPost>[1];
     }) => updateBlogPost(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
-      setEditingPost(null);
-      setShowForm(false);
       toastWithSound.success("Blog post updated successfully!");
     },
     onError: (error) => {
@@ -117,12 +119,19 @@ export default function BlogPostsClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createBlogPost>[0]) => {
-    await createMutation.mutateAsync(data);
+    return await createMutation.mutateAsync(data);
   };
 
   const handleUpdate = async (data: Parameters<typeof updateBlogPost>[1]) => {
     if (!editingPost) return;
-    await updateMutation.mutateAsync({ id: editingPost.id, data });
+    return await updateMutation.mutateAsync({ id: editingPost.id, data });
+  };
+
+  const handleComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
+    queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+    setShowForm(false);
+    setEditingPost(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -255,26 +264,38 @@ export default function BlogPostsClient({
               return (
                 <div
                   key={post.id}
-                  className="group rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                  className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
                 >
+                  {post.cover_url && (
+                    <div className="relative h-48 w-full overflow-hidden">
+                      <StorageImage
+                        src={post.cover_url}
+                        alt={post.title}
+                        signedUrl={coverImageUrls.get(post.cover_url)}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
+                  )}
                   <div className="flex h-full flex-col justify-between p-6">
-                    <div className="mb-3 flex h-full flex-col justify-between">
-                      <div className="mb-2 flex items-center gap-2">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="mb-3 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <h3 className="flex-1 text-xl font-bold text-gray-900 dark:text-white">
                           {post.title}
                         </h3>
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium text-white backdrop-blur-sm ${status.color}`}
+                          className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium text-white backdrop-blur-sm ${status.color}`}
                         >
                           {status.label}
                         </span>
                       </div>
                       {post.excerpt && (
-                        <p className="mb-2 text-gray-600 dark:text-gray-400">
+                        <p className="line-clamp-3 text-gray-600 dark:text-gray-400">
                           {post.excerpt}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
+                      <div className="flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-500">
                         <span>
                           Created:{" "}
                           {new Date(post.created_at).toLocaleDateString()}
@@ -386,6 +407,7 @@ export default function BlogPostsClient({
         <BlogPostForm
           post={editingPost || undefined}
           onSubmit={editingPost ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingPost(null);

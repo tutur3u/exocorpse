@@ -148,7 +148,7 @@ export async function getStoryBySlug(slug: string) {
     .eq("slug", slug)
     .eq("is_published", true)
     .eq("visibility", "public")
-    .single();
+    .maybeSingle();
 
   if (storyError) {
     console.error("Error fetching story:", storyError);
@@ -237,7 +237,7 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .single();
+    .maybeSingle();
 
   if (!story) return null;
 
@@ -246,7 +246,7 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
     .select("*")
     .eq("story_id", story.id)
     .eq("slug", worldSlug)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching world:", error);
@@ -447,7 +447,7 @@ export async function getCharacterBySlug(
     .select("*")
     .eq("slug", characterSlug)
     .in("id", characterIds)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching character:", error);
@@ -471,7 +471,7 @@ export async function getCharacterBySlugInStory(
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .single();
+    .maybeSingle();
 
   if (!story) return null;
 
@@ -506,7 +506,7 @@ export async function getCharacterBySlugInStory(
     .select("*")
     .eq("slug", characterSlug)
     .in("id", characterIds)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching character:", error);
@@ -871,7 +871,7 @@ export async function getFactionBySlugInStory(
     .from("stories")
     .select("id")
     .eq("slug", storySlug)
-    .single();
+    .maybeSingle();
 
   if (!story) return null;
 
@@ -892,7 +892,7 @@ export async function getFactionBySlugInStory(
     .select("*, worlds(*)")
     .eq("slug", factionSlug)
     .in("world_id", worldIds)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching faction:", error);
@@ -918,7 +918,7 @@ export async function getFactionBySlug(
     .select("*")
     .eq("slug", factionSlug)
     .eq("world_id", world.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching faction:", error);

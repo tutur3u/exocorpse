@@ -97,6 +97,7 @@ export async function getPublishedBlogPostsPaginated(
 
 /**
  * Fetch all blog posts (admin use - includes drafts and scheduled posts)
+ * Sorted by published_at (nulls last), then created_at
  */
 export async function getAllBlogPosts() {
   // Verify authentication and get supabase client
@@ -105,6 +106,7 @@ export async function getAllBlogPosts() {
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
+    .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -117,6 +119,7 @@ export async function getAllBlogPosts() {
 
 /**
  * Fetch all blog posts with pagination (admin use - includes drafts and scheduled posts)
+ * Sorted by published_at (nulls last), then created_at, then id
  */
 export async function getAllBlogPostsPaginated(
   page: number = 1,
@@ -146,10 +149,11 @@ export async function getAllBlogPostsPaginated(
   let start = (validatedPage - 1) * validatedPageSize;
   start = Math.max(0, start);
 
-  // Get paginated data with deterministic ordering (tiebreaker on id)
+  // Get paginated data with deterministic ordering
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
+    .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .range(start, start + validatedPageSize - 1);

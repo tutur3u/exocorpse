@@ -251,6 +251,14 @@ export async function deleteWritingImage(path: string) {
 }
 
 /**
+ * Delete blog post cover image
+ * @param path - Full path to the blog cover image
+ */
+export async function deleteBlogImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
  * Get a cached signed URL or fetch a new one if expired
  * This implements a database-level cache to reduce load on the tuturuuu SDK
  * @param path - Path to the file in storage
