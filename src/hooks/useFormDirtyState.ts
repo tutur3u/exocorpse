@@ -14,8 +14,6 @@ export function useFormDirtyState<T extends FieldValues>(
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  const isDirty = form.formState.isDirty;
-
   /**
    * Attempts to exit the form. If the form is dirty, shows a confirmation dialog.
    * Otherwise, executes the exit action immediately.
@@ -23,7 +21,8 @@ export function useFormDirtyState<T extends FieldValues>(
    * @param onExit - Callback to execute when exiting (after confirmation if needed)
    */
   const handleExit = (onExit: () => void) => {
-    if (isDirty) {
+    // Read isDirty directly here to ensure we get the latest value
+    if (form.formState.isDirty) {
       setPendingAction(() => onExit);
       setShowConfirmDialog(true);
     } else {
@@ -53,7 +52,7 @@ export function useFormDirtyState<T extends FieldValues>(
   // Warn user when trying to close browser tab/window with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (form.formState.isDirty) {
         e.preventDefault();
         // Modern browsers ignore custom messages, but setting returnValue is still required
         e.returnValue = "";
@@ -62,10 +61,10 @@ export function useFormDirtyState<T extends FieldValues>(
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isDirty]);
+  }, [form.formState.isDirty]);
 
   return {
-    isDirty,
+    isDirty: form.formState.isDirty,
     showConfirmDialog,
     handleExit,
     confirmExit,

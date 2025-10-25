@@ -1,0 +1,91 @@
+name: Supabase Production Migration
+
+on:
+  workflow_run:
+    workflows: ["Build Check"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Migrate production database
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    # Only run if the Vercel deployment succeeded or if manually triggered
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+      actions: read
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+      PRODUCTION_PROJECT_ID: ${{ secrets.PRODUCTION_PROJECT_ID }}
+      PRODUCTION_DB_URL: ${{ secrets.PRODUCTION_DB_URL }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check prerequisites
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "Checking prerequisites for production migration..."
+
+          # Check Vercel production deployment status
+          echo "Checking Vercel production deployment status..."
+          VERCEL_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/workflows/vercel-production-platform.yaml/runs \
+            --jq '.workflow_runs[0] | {conclusion: .conclusion, status: .status, created_at: .created_at}')
+
+          VERCEL_CONCLUSION=$(echo "$VERCEL_RUN" | jq -r '.conclusion')
+          VERCEL_STATUS=$(echo "$VERCEL_RUN" | jq -r '.status')
+
+          echo "Vercel production deployment status: $VERCEL_STATUS"
+          echo "Vercel production deployment conclusion: $VERCEL_CONCLUSION"
+
+          if [ "$VERCEL_CONCLUSION" != "success" ]; then
+            echo "❌ Vercel production deployment has not completed successfully. Cannot proceed with production migration."
+            exit 1
+          fi
+
+          echo "✅ Vercel production deployment completed successfully."
+
+          # Check staging migration status
+          echo "Checking staging migration status..."
+          STAGING_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/workflows/supabase-staging.yaml/runs \
+            --jq '.workflow_runs[0] | {conclusion: .conclusion, status: .status, created_at: .created_at}')
+
+          STAGING_CONCLUSION=$(echo "$STAGING_RUN" | jq -r '.conclusion')
+          STAGING_STATUS=$(echo "$STAGING_RUN" | jq -r '.status')
+
+          echo "Staging migration status: $STAGING_STATUS"
+          echo "Staging migration conclusion: $STAGING_CONCLUSION"
+
+          if [ "$STAGING_CONCLUSION" != "success" ] && [ "$STAGING_CONCLUSION" != "skipped" ]; then
+            echo "❌ Staging migration has not completed successfully. Cannot proceed with production migration."
+            echo "Please ensure staging migration completes successfully before deploying to production."
+            exit 1
+          fi
+
+          if [ "$STAGING_CONCLUSION" = "skipped" ]; then
+            echo "⏭️  Staging migration was skipped (database already up-to-date)."
+          else
+            echo "✅ Staging migration completed successfully."
+          fi
+          echo "✅ All prerequisites met. Proceeding with production migration."
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy migrations to production
+        run: |
+          set -euo pipefail
+          supabase link --project-ref ${{ env.PRODUCTION_PROJECT_ID }}
+          supabase db push

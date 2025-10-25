@@ -1,4 +1,5 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { Story } from "@/lib/actions/wiki";
@@ -12,7 +13,8 @@ export default function StoriesView({
   stories,
   onStorySelect,
 }: StoriesViewProps) {
-  // Batch fetch all story background images (filter out external URLs)
+  // Batch fetch all story background images for optimal performance
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
   const storyImagePaths = stories
     .map((s) => s.theme_background_image)
     .filter((p): p is string => !!p && !p.startsWith("http"));
@@ -77,25 +79,24 @@ export default function StoriesView({
               className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Cover Image / Gradient */}
-              <div
-                className="relative h-32 overflow-hidden bg-linear-to-br from-blue-500 via-purple-500 to-pink-500"
-                style={
-                  item.data.theme_background_image
-                    ? item.data.theme_background_image.startsWith("http")
-                      ? {
-                          backgroundImage: `url(${item.data.theme_background_image})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                      : {
-                          backgroundImage: `url(${storyImageUrls.get(item.data.theme_background_image) || ""})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                    : {}
-                }
-              >
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="relative h-48 overflow-hidden bg-linear-to-br from-blue-500 via-purple-500 to-pink-500">
+                {item.data.theme_background_image ? (
+                  <>
+                    <StorageImage
+                      src={item.data.theme_background_image}
+                      signedUrl={storyImageUrls.get(
+                        item.data.theme_background_image,
+                      )}
+                      alt={item.title}
+                      width={400}
+                      height={192}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+                )}
 
                 {/* Status Badge */}
                 {item.data.is_published && (
@@ -126,36 +127,29 @@ export default function StoriesView({
               {/* Cover Image in Detail */}
               {item.data.theme_background_image && (
                 <div className="h-48 overflow-hidden rounded-xl bg-linear-to-br from-blue-500 to-purple-500">
-                  {item.data.theme_background_image.startsWith("http") ? (
-                    <img
-                      src={item.data.theme_background_image}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <StorageImage
-                      src={item.data.theme_background_image}
-                      signedUrl={storyImageUrls.get(
-                        item.data.theme_background_image,
-                      )}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                      width={1280}
-                      height={720}
-                    />
-                  )}
+                  <StorageImage
+                    src={item.data.theme_background_image}
+                    signedUrl={storyImageUrls.get(
+                      item.data.theme_background_image,
+                    )}
+                    alt={item.title}
+                    className="h-full w-full object-cover"
+                    width={1280}
+                    height={720}
+                  />
                 </div>
               )}
 
               {/* Description */}
               {item.data.description && (
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-                  <h4 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <h4 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Description
                   </h4>
-                  <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                    {item.data.description}
-                  </p>
+                  <MarkdownRenderer
+                    content={item.data.description}
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                  />
                 </div>
               )}
 
@@ -200,6 +194,7 @@ export default function StoriesView({
               {/* Action */}
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => onStorySelect(item.data)}
                   className="flex-1 rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                 >

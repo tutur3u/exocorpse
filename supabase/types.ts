@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      art_pieces: {
+        Row: {
+          artist_name: string | null;
+          artist_url: string | null;
+          created_at: string;
+          created_date: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          display_order: number | null;
+          id: string;
+          image_url: string;
+          is_featured: boolean | null;
+          slug: string;
+          tags: string[] | null;
+          thumbnail_url: string | null;
+          title: string;
+          updated_at: string;
+          year: number | null;
+        };
+        Insert: {
+          artist_name?: string | null;
+          artist_url?: string | null;
+          created_at?: string;
+          created_date?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          id?: string;
+          image_url: string;
+          is_featured?: boolean | null;
+          slug: string;
+          tags?: string[] | null;
+          thumbnail_url?: string | null;
+          title: string;
+          updated_at?: string;
+          year?: number | null;
+        };
+        Update: {
+          artist_name?: string | null;
+          artist_url?: string | null;
+          created_at?: string;
+          created_date?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          id?: string;
+          image_url?: string;
+          is_featured?: boolean | null;
+          slug?: string;
+          tags?: string[] | null;
+          thumbnail_url?: string | null;
+          title?: string;
+          updated_at?: string;
+          year?: number | null;
+        };
+        Relationships: [];
+      };
       blacklisted_users: {
         Row: {
           id: string;
@@ -1542,6 +1599,57 @@ export type Database = {
             referencedColumns: ["story_id"];
           },
         ];
+      };
+      writing_pieces: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_date: string | null;
+          deleted_at: string | null;
+          display_order: number | null;
+          excerpt: string | null;
+          id: string;
+          is_featured: boolean | null;
+          slug: string;
+          tags: string[] | null;
+          title: string;
+          updated_at: string;
+          word_count: number | null;
+          year: number | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_date?: string | null;
+          deleted_at?: string | null;
+          display_order?: number | null;
+          excerpt?: string | null;
+          id?: string;
+          is_featured?: boolean | null;
+          slug: string;
+          tags?: string[] | null;
+          title: string;
+          updated_at?: string;
+          word_count?: number | null;
+          year?: number | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_date?: string | null;
+          deleted_at?: string | null;
+          display_order?: number | null;
+          excerpt?: string | null;
+          id?: string;
+          is_featured?: boolean | null;
+          slug?: string;
+          tags?: string[] | null;
+          title?: string;
+          updated_at?: string;
+          word_count?: number | null;
+          year?: number | null;
+        };
+        Relationships: [];
       };
     };
     Views: {

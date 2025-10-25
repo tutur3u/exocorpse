@@ -529,6 +529,120 @@ export async function getCharacterGallery(characterId: string) {
 }
 
 /**
+ * Create a new character gallery item
+ */
+export async function createCharacterGalleryItem(data: {
+  character_id: string;
+  title: string;
+  description?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  artist_name?: string;
+  artist_url?: string;
+  commission_date?: string;
+  tags?: string[];
+  is_featured?: boolean;
+  display_order?: number;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("character_gallery")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating character gallery item:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update a character gallery item
+ */
+export async function updateCharacterGalleryItem(
+  id: string,
+  updates: {
+    title?: string;
+    description?: string;
+    image_url?: string;
+    thumbnail_url?: string;
+    artist_name?: string;
+    artist_url?: string;
+    commission_date?: string;
+    tags?: string[];
+    is_featured?: boolean;
+    display_order?: number;
+  },
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("character_gallery")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating character gallery item:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Delete a character gallery item (soft delete)
+ */
+export async function deleteCharacterGalleryItem(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { error } = await supabase
+    .from("character_gallery")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting character gallery item:", error);
+    throw error;
+  }
+}
+
+/**
+ * Reorder character gallery items
+ */
+export async function reorderCharacterGallery(
+  items: { id: string; display_order: number }[],
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // Update each item's display_order
+  const updates = items.map((item) =>
+    supabase
+      .from("character_gallery")
+      .update({ display_order: item.display_order })
+      .eq("id", item.id),
+  );
+
+  const results = await Promise.all(updates);
+
+  // Check for errors
+  const errors = results.filter((r) => r.error);
+  if (errors.length > 0) {
+    console.error("Error reordering character gallery:", errors);
+    throw new Error("Failed to reorder gallery items");
+  }
+}
+
+/**
  * Fetch character outfits
  */
 export async function getCharacterOutfits(characterId: string) {

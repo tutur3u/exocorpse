@@ -5,6 +5,8 @@ import FactionManager, {
 } from "@/components/admin/FactionManager";
 import FactionForm from "@/components/admin/forms/FactionForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   addCharacterToFaction,
   createFaction,
@@ -73,6 +75,19 @@ export default function FactionsClient({
     queryFn: () => getCharactersByWorldId(selectedWorldId),
     enabled: !!selectedWorldId,
   });
+
+  // Batch fetch all faction images for optimal performance
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
+  const factionImagePaths = factions.flatMap((f) => [
+    f.logo_url,
+    f.banner_image,
+  ]);
+  const filteredFactionImagePaths = factionImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: factionImageUrls } = useBatchStorageUrls(
+    filteredFactionImagePaths,
+  );
 
   const createMutation = useMutation({
     mutationFn: createFaction,
@@ -324,9 +339,25 @@ export default function FactionsClient({
               key={faction.id}
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
-              {/* Faction Header */}
-              <div className="relative h-24 overflow-hidden bg-linear-to-br from-purple-400 via-pink-400 to-rose-400">
-                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
+              {/* Cover Image / Gradient */}
+              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400">
+                {faction.logo_url || faction.banner_image ? (
+                  <>
+                    <StorageImage
+                      src={faction.logo_url || faction.banner_image || ""}
+                      signedUrl={factionImageUrls.get(
+                        faction.logo_url || faction.banner_image || "",
+                      )}
+                      alt={faction.name}
+                      width={400}
+                      height={192}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                )}
               </div>
 
               {/* Content */}

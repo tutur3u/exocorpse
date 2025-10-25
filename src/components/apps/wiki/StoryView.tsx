@@ -54,16 +54,18 @@ export default function StoryView({
   });
 
   // Batch fetch all character profile images at once
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
   const characterImagePaths = characters
     .map((c) => c.profile_image)
-    .filter((path): path is string => !!path);
+    .filter((path): path is string => !!path && !path.startsWith("http"));
   const { signedUrls: characterImageUrls, loading: imageUrlsLoading } =
     useBatchStorageUrls(characterImagePaths);
 
   // Batch fetch all faction logos at once
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
   const factionLogoPaths = factions
     .map((f) => f.logo_url)
-    .filter((path): path is string => !!path);
+    .filter((path): path is string => !!path && !path.startsWith("http"));
   const { signedUrls: factionLogoUrls, loading: logoUrlsLoading } =
     useBatchStorageUrls(factionLogoPaths);
 
@@ -71,12 +73,13 @@ export default function StoryView({
     <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Story Header with Banner */}
       {story.theme_background_image && (
-        <div
-          className="relative h-48 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${story.theme_background_image})`,
-          }}
-        >
+        <div className="relative h-48 overflow-hidden">
+          <StorageImage
+            src={story.theme_background_image}
+            alt={story.title}
+            fill
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
             <h1 className="mb-2 text-4xl font-bold text-white drop-shadow-lg">
@@ -226,18 +229,15 @@ export default function StoryView({
                     className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
                   >
                     {/* World Image/Gradient */}
-                    <div
-                      className="relative h-40 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500"
-                      style={
-                        world.theme_background_image
-                          ? {
-                              backgroundImage: `url(${world.theme_background_image})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                            }
-                          : {}
-                      }
-                    >
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+                      {world.theme_background_image ? (
+                        <StorageImage
+                          src={world.theme_background_image}
+                          alt={world.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : null}
                       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <h3 className="text-xl font-bold text-white drop-shadow-lg">
