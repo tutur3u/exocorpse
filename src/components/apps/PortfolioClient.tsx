@@ -2,7 +2,7 @@
 
 import { MasonryGallery } from "./Gallery";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
-import DOMPurify from "dompurify";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useState } from "react";
 
 type PortfolioClientProps = {
@@ -225,14 +225,14 @@ export default function PortfolioClient({
       {/* Writing Modal */}
       {selectedWriting && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           onClick={() => setSelectedWriting(null)}
         >
           <div
-            className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+            className="relative flex h-full max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {selectedWriting.title}
               </h2>
@@ -255,19 +255,8 @@ export default function PortfolioClient({
                 </svg>
               </button>
             </div>
-            <div className="overflow-y-auto p-6">
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(
-                      selectedWriting.content
-                        .split("\n")
-                        .map((p) => `<p>${p}</p>`)
-                        .join(""),
-                    ),
-                  }}
-                />
-              </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <MarkdownRenderer content={selectedWriting.content} />
             </div>
           </div>
         </div>
