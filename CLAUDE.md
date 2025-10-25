@@ -181,6 +181,7 @@ The wiki is a comprehensive fantasy story management system with a hierarchical 
 ### Styling Conventions
 
 - Using Tailwind CSS v4+ with @tailwindcss/postcss
+- **Container Queries**: Use `@sm:`, `@md:`, `@lg:`, `@xl:`, `@2xl:` instead of `sm:`, `md:`, `lg:`, `xl:`, `2xl:` for responsive design. This allows components to scale based on their container's width rather than viewport width. Add `@container` class to parent elements.
 - Gradient backgrounds and modern glassmorphism effects
 - Dark mode support throughout
 - Consistent color schemes: blue/purple for stories, indigo/cyan for worlds, green/purple for characters/factions
