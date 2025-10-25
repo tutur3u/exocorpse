@@ -419,5 +419,5 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     return null;
   };
 
-  return <div className="@container">{renderContent()}</div>;
+  return <div className="@container h-full">{renderContent()}</div>;
 }

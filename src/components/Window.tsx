@@ -91,7 +91,7 @@ export default function Window({ id, title, children }: WindowProps) {
         const eased =
           progress < 0.5
             ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            : 1 - (-2 * progress + 2) ** 2 / 2;
 
         const currentPos = {
           x: startPos.x + (endPos.x - startPos.x) * eased,
@@ -123,13 +123,7 @@ export default function Window({ id, title, children }: WindowProps) {
       }
       animationFrameRef.current = requestAnimationFrame(animate);
     },
-    [
-      id,
-      updateWindowPosition,
-      updateWindowSize,
-      setAnimatingPos,
-      setAnimatingSize,
-    ],
+    [id, updateWindowPosition, updateWindowSize],
   );
 
   // Handle maximize/restore with animation
@@ -233,13 +227,13 @@ export default function Window({ id, title, children }: WindowProps) {
       position={currentPosition}
       size={currentSize}
       onDragStart={() => focusWindow(id)}
-      onDragStop={(e, d) => {
+      onDragStop={(_, d) => {
         updateWindowPosition(id, { x: d.x, y: d.y });
       }}
-      onResizeStop={(e, direction, ref, delta, position) => {
+      onResizeStop={(_, __, ref, ___, position) => {
         updateWindowSize(id, {
-          width: parseInt(ref.style.width),
-          height: parseInt(ref.style.height),
+          width: parseInt(ref.style.width, 10),
+          height: parseInt(ref.style.height, 10),
         });
         updateWindowPosition(id, position);
       }}
@@ -255,9 +249,9 @@ export default function Window({ id, title, children }: WindowProps) {
       className="window-container pointer-events-auto"
     >
       <div
-        className={`flex h-full flex-col overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${
-          isAnimating ? "animate-scaleIn" : ""
-        } ${isClosing ? "animate-fadeOut" : ""}`}
+        className={`flex h-full flex-col overflow-hidden bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${
+          !isMaximized ? "rounded-lg border border-gray-300" : ""
+        } ${isAnimating ? "animate-scaleIn" : ""} ${isClosing ? "animate-fadeOut" : ""}`}
         onMouseDown={() => focusWindow(id)}
       >
         {/* Title Bar */}
