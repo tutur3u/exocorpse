@@ -80,11 +80,15 @@ export async function updateStory(
     .update(updates)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error updating story:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("Story not found");
   }
 
   return data;
@@ -595,11 +599,15 @@ export async function updateCharacterGalleryItem(
     .update(updates)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error updating character gallery item:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("Gallery item not found");
   }
 
   return data;
@@ -982,11 +990,15 @@ export async function updateWorld(
     .update(updates)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error updating world:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("World not found");
   }
 
   return data;
@@ -1166,7 +1178,7 @@ export async function updateCharacter(
       .from("characters")
       .select()
       .eq("id", id)
-      .single();
+      .maybeSingle();
     data = result.data;
     error = result.error;
   } else {
@@ -1176,7 +1188,7 @@ export async function updateCharacter(
       .update(characterUpdates)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
     data = result.data;
     error = result.error;
   }
@@ -1184,6 +1196,10 @@ export async function updateCharacter(
   if (error) {
     console.error("Error updating character:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("Character not found");
   }
 
   // If world_ids is provided, update the character_worlds relationships using the database function
@@ -1328,11 +1344,15 @@ export async function updateFaction(
     .update(updates)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error updating faction:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("Faction not found");
   }
 
   return data;
@@ -1481,11 +1501,15 @@ export async function updateCharacterFaction(
     .update(updates)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error updating character faction:", error);
     throw error;
+  }
+
+  if (!data) {
+    throw new Error("Character faction not found");
   }
 
   return data;
