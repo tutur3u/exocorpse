@@ -4,6 +4,7 @@ import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { Character } from "@/lib/actions/wiki";
 import {
   getCharacterFactions,
@@ -70,6 +71,16 @@ export default function CharacterDetail({
       ? initialData.characterDetail?.worlds
       : undefined,
   });
+
+  // Batch fetch signed URLs for gallery and outfit images
+  const imagePaths = [
+    ...gallery.map((item) => item.image_url),
+    ...outfits
+      .map((outfit) => outfit.image_url)
+      .filter((url): url is string => !!url),
+  ].filter((p): p is string => !!p && !p.startsWith("http"));
+
+  const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
 
   // Only show loading if we're fetching AND don't have any data yet
   const loading =
@@ -455,6 +466,9 @@ export default function CharacterDetail({
                                 imageUrl: outfit.image_url as string,
                                 title: outfit.name,
                                 description: outfit.description,
+                                signedUrl: imageUrls.get(
+                                  outfit.image_url as string,
+                                ),
                               })
                             }
                             className="group relative h-56 w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
@@ -590,6 +604,7 @@ export default function CharacterDetail({
                             imageUrl: image.image_url,
                             title: image.title,
                             description: image.description,
+                            signedUrl: imageUrls.get(image.image_url),
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="rounded-full bg-linear-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">

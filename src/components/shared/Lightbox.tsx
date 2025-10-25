@@ -1,4 +1,4 @@
-import Image from "next/image";
+import StorageImage from "@/components/shared/StorageImage";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -7,6 +7,7 @@ export type LightboxContent = {
   title: string;
   description?: string | null;
   footer?: ReactNode;
+  signedUrl?: string; // Optional pre-fetched signed URL
 };
 
 type LightboxProps = {
@@ -69,12 +70,14 @@ export default function Lightbox({
         tabIndex={-1}
       >
         <div className="relative flex-1 overflow-hidden rounded-2xl bg-gray-900 shadow-2xl">
-          <Image
+          <StorageImage
             src={content.imageUrl}
+            signedUrl={content.signedUrl}
             alt={imageAlt}
             className="h-full w-full object-contain"
             width={1280}
             height={720}
+            sizes="100vw"
           />
         </div>
         <div className="mt-6 max-h-[25vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900">
