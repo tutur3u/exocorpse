@@ -98,6 +98,13 @@ export async function deleteStory(id: string) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // First, get the story to find its images
+  const { data: story } = await supabase
+    .from("stories")
+    .select("theme_background_image")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("stories")
     .update({ deleted_at: new Date().toISOString() })
@@ -106,6 +113,22 @@ export async function deleteStory(id: string) {
   if (error) {
     console.error("Error deleting story:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (story?.theme_background_image) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+        const imagePath = story.theme_background_image;
+        if (imagePath && !imagePath.startsWith("http")) {
+          await deleteFile(imagePath);
+        }
+      } catch (imgError) {
+        console.error("Error deleting story images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }
 
@@ -604,6 +627,13 @@ export async function deleteCharacterGalleryItem(id: string) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // First, get the gallery item to find its images
+  const { data: galleryItem } = await supabase
+    .from("character_gallery")
+    .select("image_url, thumbnail_url")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("character_gallery")
     .update({ deleted_at: new Date().toISOString() })
@@ -612,6 +642,28 @@ export async function deleteCharacterGalleryItem(id: string) {
   if (error) {
     console.error("Error deleting character gallery item:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (galleryItem) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+
+        const imageUrl = galleryItem.image_url;
+        if (imageUrl && !imageUrl.startsWith("http")) {
+          await deleteFile(imageUrl);
+        }
+
+        const thumbnailUrl = galleryItem.thumbnail_url;
+        if (thumbnailUrl && !thumbnailUrl.startsWith("http")) {
+          await deleteFile(thumbnailUrl);
+        }
+      } catch (imgError) {
+        console.error("Error deleting gallery item images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }
 
@@ -971,6 +1023,13 @@ export async function deleteWorld(id: string) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // First, get the world to find its images
+  const { data: world } = await supabase
+    .from("worlds")
+    .select("theme_background_image, theme_map_image")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("worlds")
     .update({ deleted_at: new Date().toISOString() })
@@ -979,6 +1038,28 @@ export async function deleteWorld(id: string) {
   if (error) {
     console.error("Error deleting world:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (world) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+
+        const bgImage = world.theme_background_image;
+        if (bgImage && !bgImage.startsWith("http")) {
+          await deleteFile(bgImage);
+        }
+
+        const mapImage = world.theme_map_image;
+        if (mapImage && !mapImage.startsWith("http")) {
+          await deleteFile(mapImage);
+        }
+      } catch (imgError) {
+        console.error("Error deleting world images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }
 
@@ -1164,6 +1245,19 @@ export async function deleteCharacter(id: string) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // First, get the character and gallery items to find images
+  const { data: character } = await supabase
+    .from("characters")
+    .select("profile_image")
+    .eq("id", id)
+    .single();
+
+  const { data: galleryItems } = await supabase
+    .from("character_gallery")
+    .select("image_url, thumbnail_url")
+    .eq("character_id", id)
+    .is("deleted_at", null);
+
   const { error } = await supabase
     .from("characters")
     .update({ deleted_at: new Date().toISOString() })
@@ -1173,6 +1267,36 @@ export async function deleteCharacter(id: string) {
     console.error("Error deleting character:", error);
     throw error;
   }
+
+  // Clean up storage images asynchronously (fire and forget)
+  (async () => {
+    try {
+      const { deleteFile } = await import("./storage");
+
+      // Delete character profile image
+      const profileImage = character?.profile_image;
+      if (profileImage && !profileImage.startsWith("http")) {
+        await deleteFile(profileImage);
+      }
+
+      // Delete all gallery item images
+      if (galleryItems && galleryItems.length > 0) {
+        for (const item of galleryItems) {
+          const imageUrl = item.image_url;
+          if (imageUrl && !imageUrl.startsWith("http")) {
+            await deleteFile(imageUrl);
+          }
+          const thumbnailUrl = item.thumbnail_url;
+          if (thumbnailUrl && !thumbnailUrl.startsWith("http")) {
+            await deleteFile(thumbnailUrl);
+          }
+        }
+      }
+    } catch (imgError) {
+      console.error("Error deleting character images:", imgError);
+      // Fire and forget - errors are logged but don't affect the response
+    }
+  })();
 }
 
 // ============================================================================
@@ -1250,6 +1374,13 @@ export async function deleteFaction(id: string) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
 
+  // First, get the faction to find its images
+  const { data: faction } = await supabase
+    .from("factions")
+    .select("logo_url, banner_image")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("factions")
     .update({ deleted_at: new Date().toISOString() })
@@ -1258,6 +1389,28 @@ export async function deleteFaction(id: string) {
   if (error) {
     console.error("Error deleting faction:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (faction) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+
+        const logoUrl = faction.logo_url;
+        if (logoUrl && !logoUrl.startsWith("http")) {
+          await deleteFile(logoUrl);
+        }
+
+        const bannerImage = faction.banner_image;
+        if (bannerImage && !bannerImage.startsWith("http")) {
+          await deleteFile(bannerImage);
+        }
+      } catch (imgError) {
+        console.error("Error deleting faction images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }
 
