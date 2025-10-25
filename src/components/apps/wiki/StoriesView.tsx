@@ -1,10 +1,7 @@
-"use client";
-
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import StorageImage from "@/components/shared/StorageImage";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { Story } from "@/lib/actions/wiki";
-import { useRouter } from "next/navigation";
 
 type StoriesViewProps = {
   stories: Story[];
@@ -15,8 +12,6 @@ export default function StoriesView({
   stories,
   onStorySelect,
 }: StoriesViewProps) {
-  const router = useRouter();
-
   // Batch fetch all story background images (filter out external URLs)
   const storyImagePaths = stories
     .map((s) => s.theme_background_image)
@@ -32,59 +27,9 @@ export default function StoriesView({
     }),
   );
 
-  const handleBack = () => {
-    router.back();
-  };
-
-  const handleForward = () => {
-    router.forward();
-  };
-
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       <div className="border-b border-gray-200 bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-        <div className="mb-4 flex items-center gap-1">
-          <button
-            onClick={handleBack}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-            title="Go back"
-            type="button"
-          >
-            <svg
-              className="h-4 w-4 text-gray-600 dark:text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={handleForward}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-            title="Go forward"
-            type="button"
-          >
-            <svg
-              className="h-4 w-4 text-gray-600 dark:text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-        </div>
         <div>
           <h3 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
             Stories
