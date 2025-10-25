@@ -1,3 +1,5 @@
+"use client";
+
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
@@ -11,6 +13,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
 type CharacterDetailProps = {
@@ -24,9 +27,12 @@ export default function CharacterDetail({
   onWorldClick,
   onFactionClick,
 }: CharacterDetailProps) {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "outfits" | "lore" | "gallery"
-  >("overview");
+  const [activeTab, setActiveTab] = useQueryState(
+    "character-tab",
+    parseAsStringLiteral(["overview", "outfits", "lore", "gallery"] as const)
+      .withDefault("overview")
+      .withOptions({ history: "push", shallow: true }),
+  );
   const [lightboxContent, setLightboxContent] =
     useState<LightboxContent | null>(null);
 
@@ -83,7 +89,7 @@ export default function CharacterDetail({
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-gray-900">
       {/* Banner Image - Only visible on larger screens */}
-      <div className="relative hidden h-64 overflow-hidden lg:block">
+      <div className="relative hidden h-64 overflow-hidden @lg:block">
         {character.banner_image ? (
           <>
             <StorageImage
@@ -94,37 +100,37 @@ export default function CharacterDetail({
               height={128}
             />
             {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
           </>
         ) : (
           <>
-            <div className="h-full w-full bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500" />
+            <div className="h-full w-full bg-linear-to-r from-indigo-400 via-purple-500 to-pink-500" />
             {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
           </>
         )}
       </div>
 
       {/* Compact Header */}
-      <div className="border-b bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 dark:border-gray-800 dark:from-gray-900 dark:to-gray-950">
-        <div className="flex items-start gap-4">
+      <div className="border-b bg-linear-to-r from-gray-50 to-gray-100 px-6 py-4 dark:border-gray-800 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex items-start gap-4 @md:gap-6">
           {/* Profile Image */}
-          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
+          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
             {character.profile_image ? (
               <StorageImage
                 src={character.profile_image}
                 alt={character.name}
                 className="h-full w-full object-cover"
-                width={64}
-                height={64}
+                width={160}
+                height={160}
                 fallback={
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+                  <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-blue-500 to-purple-600 text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
                     {character.name.charAt(0)}
                   </div>
                 }
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+              <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-blue-500 to-purple-600 text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
                 {character.name.charAt(0)}
               </div>
             )}
@@ -132,7 +138,7 @@ export default function CharacterDetail({
 
           {/* Character Info */}
           <div className="min-w-0 flex-1">
-            <h1 className="mb-1 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
+            <h1 className="mb-1 bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
               {character.name}
             </h1>
             {character.nickname && (
@@ -147,22 +153,22 @@ export default function CharacterDetail({
             )}
             <div className="flex flex-wrap gap-1.5 text-xs">
               {character.age && (
-                <span className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="rounded-full bg-linear-to-r from-blue-500 to-blue-600 px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.age} years old
                 </span>
               )}
               {character.status && (
-                <span className="rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-2.5 py-1 font-medium text-white capitalize shadow-sm">
+                <span className="rounded-full bg-linear-to-r from-green-500 to-emerald-600 px-2.5 py-1 font-medium text-white capitalize shadow-sm">
                   {character.status}
                 </span>
               )}
               {character.species && (
-                <span className="rounded-full bg-gradient-to-r from-purple-500 to-purple-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="rounded-full bg-linear-to-r from-purple-500 to-purple-600 px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.species}
                 </span>
               )}
               {character.occupation && (
-                <span className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="rounded-full bg-linear-to-r from-yellow-500 to-orange-500 px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.occupation}
                 </span>
               )}
@@ -173,7 +179,7 @@ export default function CharacterDetail({
 
       {/* Tabs */}
       <div className="border-b bg-gray-50/50 px-6 dark:border-gray-800 dark:bg-gray-900/30">
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -183,7 +189,7 @@ export default function CharacterDetail({
                   tab.id as "overview" | "outfits" | "lore" | "gallery",
                 )
               }
-              className={`relative rounded-t-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+              className={`relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
                   ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
                   : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
@@ -191,7 +197,7 @@ export default function CharacterDetail({
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+                <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
               )}
             </button>
           ))}
@@ -199,7 +205,7 @@ export default function CharacterDetail({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent to-gray-50/30 p-6 dark:to-gray-900/30">
+      <div className="flex-1 overflow-y-auto bg-linear-to-b from-transparent to-gray-50/30 p-6 dark:to-gray-900/30">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-3">
@@ -217,7 +223,7 @@ export default function CharacterDetail({
                 {character.personality_summary && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-2 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-blue-600 to-purple-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-blue-600 to-purple-600"></span>
                       Personality
                     </h3>
                     <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
@@ -233,7 +239,7 @@ export default function CharacterDetail({
                   character.eye_color) && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-green-600 to-emerald-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-green-600 to-emerald-600"></span>
                       Physical Traits
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
@@ -285,7 +291,7 @@ export default function CharacterDetail({
                 {characterWorlds.length > 0 && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-indigo-600 to-cyan-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-cyan-600"></span>
                       Worlds
                     </h3>
                     <div className="space-y-2">
@@ -297,7 +303,7 @@ export default function CharacterDetail({
                             key={cw.id}
                             type="button"
                             onClick={() => onWorldClick?.(world.slug)}
-                            className="w-full rounded-lg border border-indigo-100 bg-gradient-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
+                            className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
                           >
                             <div className="flex items-center justify-between">
                               <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -334,7 +340,7 @@ export default function CharacterDetail({
                 {factions.length > 0 && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-purple-600 to-pink-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
                       Affiliations
                     </h3>
                     <div className="space-y-2">
@@ -345,7 +351,7 @@ export default function CharacterDetail({
                           onClick={() =>
                             onFactionClick?.(membership.factions?.slug || "")
                           }
-                          className="w-full rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
+                          className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
                         >
                           <div className="flex items-center justify-between">
                             <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -382,7 +388,7 @@ export default function CharacterDetail({
                 {(character.skills || character.abilities) && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-yellow-600 to-orange-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-yellow-600 to-orange-600"></span>
                       Skills & Abilities
                     </h3>
                     {character.skills && (
@@ -436,7 +442,7 @@ export default function CharacterDetail({
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
                     {outfits.map((outfit) => (
                       <div
                         key={outfit.id}
@@ -508,7 +514,7 @@ export default function CharacterDetail({
                 {character.backstory && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-indigo-600 to-purple-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-purple-600"></span>
                       Backstory
                     </h3>
                     <MarkdownRenderer content={character.backstory} />
@@ -517,7 +523,7 @@ export default function CharacterDetail({
                 {character.lore && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-purple-600 to-pink-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
                       Additional Lore
                     </h3>
                     <MarkdownRenderer content={character.lore} />
@@ -575,7 +581,7 @@ export default function CharacterDetail({
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-4 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5">
                     {gallery.map((image) => (
                       <button
                         key={image.id}
@@ -587,7 +593,7 @@ export default function CharacterDetail({
                             description: image.description,
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">
+                                <span className="rounded-full bg-linear-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">
                                   Artist: {image.artist_name}
                                 </span>
                               </div>

@@ -24,7 +24,7 @@ export default function MobileLayout({
       blogParams={blogParams}
       commissionParams={commissionParams}
     >
-      <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="relative h-screen w-screen overflow-hidden bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         {/* Desktop Notice Banner */}
         <DesktopNoticeBanner />
 

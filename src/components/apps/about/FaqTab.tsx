@@ -280,7 +280,7 @@ export default function FaqTab() {
               Corpse
             </span>{" "}
             ={" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
+            <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
               Exocorpse
             </span>
           </p>
@@ -306,8 +306,8 @@ export default function FaqTab() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-6 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-        <h2 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
+      <div className="mb-6 rounded-xl bg-linear-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
+        <h2 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
           Frequently Asked Questions
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">

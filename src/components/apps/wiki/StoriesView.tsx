@@ -1,6 +1,10 @@
+"use client";
+
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
-import { type Story } from "@/lib/actions/wiki";
-import Image from "next/image";
+import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import type { Story } from "@/lib/actions/wiki";
+import { useRouter } from "next/navigation";
 
 type StoriesViewProps = {
   stories: Story[];
@@ -11,6 +15,14 @@ export default function StoriesView({
   stories,
   onStorySelect,
 }: StoriesViewProps) {
+  const router = useRouter();
+
+  // Batch fetch all story background images (filter out external URLs)
+  const storyImagePaths = stories
+    .map((s) => s.theme_background_image)
+    .filter((p): p is string => !!p && !p.startsWith("http"));
+  const { signedUrls: storyImageUrls } = useBatchStorageUrls(storyImagePaths);
+
   const storyItems: Array<ListDetailItem<string, Story>> = stories.map(
     (story) => ({
       id: story.id,
@@ -20,11 +32,61 @@ export default function StoriesView({
     }),
   );
 
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleForward = () => {
+    router.forward();
+  };
+
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+    <div className="flex h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+      <div className="border-b border-gray-200 bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="mb-4 flex items-center gap-1">
+          <button
+            onClick={handleBack}
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+            title="Go back"
+            type="button"
+          >
+            <svg
+              className="h-4 w-4 text-gray-600 dark:text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={handleForward}
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+            title="Go forward"
+            type="button"
+          >
+            <svg
+              className="h-4 w-4 text-gray-600 dark:text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
         <div>
-          <h3 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
             Stories
           </h3>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -36,7 +98,7 @@ export default function StoriesView({
       {stories.length === 0 ? (
         <div className="flex flex-1 items-center justify-center p-8">
           <div className="max-w-md text-center">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
               <svg
                 className="h-10 w-10 text-blue-600 dark:text-blue-400"
                 fill="none"
@@ -71,18 +133,24 @@ export default function StoriesView({
             >
               {/* Cover Image / Gradient */}
               <div
-                className="relative h-32 overflow-hidden bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"
+                className="relative h-32 overflow-hidden bg-linear-to-br from-blue-500 via-purple-500 to-pink-500"
                 style={
                   item.data.theme_background_image
-                    ? {
-                        backgroundImage: `url(${item.data.theme_background_image})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
+                    ? item.data.theme_background_image.startsWith("http")
+                      ? {
+                          backgroundImage: `url(${item.data.theme_background_image})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : {
+                          backgroundImage: `url(${storyImageUrls.get(item.data.theme_background_image) || ""})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
                     : {}
                 }
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
                 {/* Status Badge */}
                 {item.data.is_published && (
@@ -112,14 +180,25 @@ export default function StoriesView({
             <div className="space-y-6">
               {/* Cover Image in Detail */}
               {item.data.theme_background_image && (
-                <div className="h-48 overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-purple-500">
-                  <Image
-                    src={item.data.theme_background_image}
-                    alt={item.title}
-                    className="h-full w-full object-cover"
-                    width={1280}
-                    height={720}
-                  />
+                <div className="h-48 overflow-hidden rounded-xl bg-linear-to-br from-blue-500 to-purple-500">
+                  {item.data.theme_background_image.startsWith("http") ? (
+                    <img
+                      src={item.data.theme_background_image}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <StorageImage
+                      src={item.data.theme_background_image}
+                      signedUrl={storyImageUrls.get(
+                        item.data.theme_background_image,
+                      )}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                      width={1280}
+                      height={720}
+                    />
+                  )}
                 </div>
               )}
 
@@ -177,7 +256,7 @@ export default function StoriesView({
               <div className="flex gap-2">
                 <button
                   onClick={() => onStorySelect(item.data)}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  className="flex-1 rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   Explore Worlds
                 </button>

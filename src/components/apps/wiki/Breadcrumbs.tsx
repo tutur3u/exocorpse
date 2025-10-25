@@ -1,9 +1,12 @@
+"use client";
+
 import {
   type Character,
   type Faction,
   type Story,
   type World,
 } from "@/lib/actions/wiki";
+import { useRouter } from "next/navigation";
 
 type ViewMode = "stories" | "story" | "world" | "character" | "faction";
 
@@ -24,6 +27,16 @@ export default function Breadcrumbs({
   viewingFaction,
   onNavigate,
 }: BreadcrumbsProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleForward = () => {
+    router.forward();
+  };
+
   const crumbs = [];
 
   // Add Stories link (except when we're on the stories page)
@@ -141,7 +154,59 @@ export default function Breadcrumbs({
     );
   }
 
-  return crumbs.length > 0 ? (
-    <div className="flex items-center text-sm">{crumbs}</div>
-  ) : null;
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      {/* Back/Forward Navigation */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleBack}
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          title="Go back"
+          type="button"
+        >
+          <svg
+            className="h-4 w-4 text-gray-600 dark:text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={handleForward}
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          title="Go forward"
+          type="button"
+        >
+          <svg
+            className="h-4 w-4 text-gray-600 dark:text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Separator */}
+      {crumbs.length > 0 && (
+        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
+      )}
+
+      {/* Breadcrumbs */}
+      {crumbs.length > 0 && <div className="flex items-center">{crumbs}</div>}
+    </div>
+  );
 }

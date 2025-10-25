@@ -1,6 +1,6 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
-import { type Character, type Faction } from "@/lib/actions/wiki";
+import type { Character, Faction } from "@/lib/actions/wiki";
 import Image from "next/image";
 
 type ContentViewProps = {
@@ -59,7 +59,7 @@ export default function ContentView({
                 <div className="relative h-32 overflow-visible rounded-t-xl">
                   {/* Banner or gradient background */}
                   <div
-                    className="h-full overflow-hidden rounded-t-xl bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400"
+                    className="h-full overflow-hidden rounded-t-xl bg-linear-to-br from-green-400 via-emerald-400 to-teal-400"
                     style={
                       "banner_image" in item.data && item.data.banner_image
                         ? {
@@ -70,7 +70,7 @@ export default function ContentView({
                         : {}
                     }
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                   </div>
 
                   {/* Profile Image */}
@@ -121,8 +121,8 @@ export default function ContentView({
             ) : (
               <>
                 {/* Faction Card */}
-                <div className="relative h-32 overflow-hidden rounded-t-xl bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+                <div className="relative h-32 overflow-hidden rounded-t-xl bg-linear-to-br from-purple-400 via-pink-400 to-rose-400">
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
 
                   {/* Faction Icon */}
                   <div className="absolute inset-0 flex items-center justify-center">

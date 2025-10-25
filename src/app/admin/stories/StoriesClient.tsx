@@ -12,6 +12,7 @@ import {
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+
 interface StoriesClientProps {
   initialStories: Story[];
 }
@@ -103,7 +104,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
             setEditingStory(null);
             setShowForm(true);
           }}
-          className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          className="rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
         >
           + New Story
         </button>
@@ -111,7 +112,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
 
       {stories.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
             <svg
               className="h-8 w-8 text-blue-600 dark:text-blue-400"
               fill="none"
@@ -137,7 +138,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
               setEditingStory(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             Create Your First Story
           </button>
@@ -151,7 +152,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
             >
               {/* Cover Image / Gradient */}
               <div
-                className="relative h-32 overflow-hidden bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"
+                className="relative h-32 overflow-hidden bg-linear-to-br from-blue-500 via-purple-500 to-pink-500"
                 style={
                   story.theme_background_image
                     ? {
@@ -162,7 +163,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
                     : {}
                 }
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
                 {/* Status Badge */}
                 {story.is_published && (

@@ -43,7 +43,7 @@ export default function FactionView({ faction }: FactionViewProps) {
         </div>
 
         {/* Key Stats */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4 @md:grid-cols-3">
           {faction.power_level && (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">

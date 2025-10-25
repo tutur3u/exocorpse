@@ -1,6 +1,6 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
-import { type World } from "@/lib/actions/wiki";
+import type { World } from "@/lib/actions/wiki";
 
 type WorldsViewProps = {
   worlds: World[];
@@ -29,8 +29,8 @@ export default function WorldsView({ worlds, onWorldSelect }: WorldsViewProps) {
             className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-gray-700 dark:bg-gray-800"
           >
             {/* Decorative Header */}
-            <div className="relative h-24 overflow-hidden bg-gradient-to-br from-indigo-400 via-cyan-400 to-teal-400">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+            <div className="relative h-24 overflow-hidden bg-linear-to-br from-indigo-400 via-cyan-400 to-teal-400">
+              <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
             </div>
 
             {/* Content */}
@@ -68,7 +68,7 @@ export default function WorldsView({ worlds, onWorldSelect }: WorldsViewProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => onWorldSelect(item.data)}
-                className="flex-1 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                className="flex-1 rounded-lg bg-linear-to-r from-indigo-600 to-cyan-600 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 View Content
               </button>

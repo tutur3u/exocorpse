@@ -55,7 +55,7 @@ export default function DesktopNoticeBanner() {
 
   return (
     <div className="animate-slideDown fixed top-0 right-0 left-0 z-[9999]">
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 text-white shadow-lg">
+      <div className="bg-linear-to-r from-purple-600 to-blue-600 px-4 py-3 text-white shadow-lg">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium">
             💻 For the best experience, visit on desktop

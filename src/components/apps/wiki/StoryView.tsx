@@ -6,13 +6,13 @@ import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   type Character,
   type Faction,
-  type Story,
-  type World,
   getCharactersByStorySlug,
   getFactionsByStorySlug,
+  type Story,
+  type World,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 type StoryViewProps = {
   story: Story;
@@ -29,9 +29,17 @@ export default function StoryView({
   onCharacterSelect,
   onFactionSelect,
 }: StoryViewProps) {
-  const [activeTab, setActiveTab] = useState<
-    "synopsis" | "worlds" | "characters" | "factions"
-  >("synopsis");
+  const [activeTab, setActiveTab] = useQueryState(
+    "story-tab",
+    parseAsStringLiteral([
+      "synopsis",
+      "worlds",
+      "characters",
+      "factions",
+    ] as const)
+      .withDefault("synopsis")
+      .withOptions({ history: "push", shallow: true }),
+  );
 
   // Fetch all characters across all worlds in this story
   const { data: characters = [], isLoading: charactersLoading } = useQuery({
@@ -60,7 +68,7 @@ export default function StoryView({
     useBatchStorageUrls(factionLogoPaths);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Story Header with Banner */}
       {story.theme_background_image && (
         <div
@@ -69,7 +77,7 @@ export default function StoryView({
             backgroundImage: `url(${story.theme_background_image})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
             <h1 className="mb-2 text-4xl font-bold text-white drop-shadow-lg">
               {story.title}
@@ -86,7 +94,7 @@ export default function StoryView({
       {/* Header for stories without banner */}
       {!story.theme_background_image && (
         <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent">
+          <h1 className="mb-2 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent">
             {story.title}
           </h1>
           {story.summary && (
@@ -99,11 +107,11 @@ export default function StoryView({
 
       {/* Tabs */}
       <div className="border-b bg-gray-50/50 px-6 dark:border-gray-800 dark:bg-gray-900/30">
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("synopsis")}
-            className={`relative rounded-t-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "synopsis"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
@@ -111,13 +119,13 @@ export default function StoryView({
           >
             Synopsis
             {activeTab === "synopsis" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("worlds")}
-            className={`relative rounded-t-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "worlds"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
@@ -125,13 +133,13 @@ export default function StoryView({
           >
             Worlds ({worlds.length})
             {activeTab === "worlds" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("characters")}
-            className={`relative rounded-t-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "characters"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
@@ -139,13 +147,13 @@ export default function StoryView({
           >
             Characters ({charactersLoading ? "..." : characters.length})
             {activeTab === "characters" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("factions")}
-            className={`relative rounded-t-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "factions"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
@@ -153,7 +161,7 @@ export default function StoryView({
           >
             Factions ({factionsLoading ? "..." : factions.length})
             {activeTab === "factions" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
             )}
           </button>
         </div>
@@ -184,7 +192,7 @@ export default function StoryView({
             {worlds.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
                     <svg
                       className="h-10 w-10 text-indigo-600 dark:text-indigo-400"
                       fill="none"
@@ -209,7 +217,7 @@ export default function StoryView({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 @lg:grid-cols-2">
                 {worlds.map((world) => (
                   <button
                     key={world.id}
@@ -219,7 +227,7 @@ export default function StoryView({
                   >
                     {/* World Image/Gradient */}
                     <div
-                      className="relative h-40 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"
+                      className="relative h-40 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500"
                       style={
                         world.theme_background_image
                           ? {
@@ -230,7 +238,7 @@ export default function StoryView({
                           : {}
                       }
                     >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <h3 className="text-xl font-bold text-white drop-shadow-lg">
                           {world.name}
@@ -282,7 +290,7 @@ export default function StoryView({
             ) : characters.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-purple-100 dark:from-green-900/30 dark:to-purple-900/30">
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-purple-100 dark:from-green-900/30 dark:to-purple-900/30">
                     <svg
                       className="h-10 w-10 text-green-600 dark:text-green-400"
                       fill="none"
@@ -307,7 +315,7 @@ export default function StoryView({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5 @2xl:grid-cols-6">
                 {characters.map((character) => (
                   <button
                     key={character.id}
@@ -316,7 +324,7 @@ export default function StoryView({
                     className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
                   >
                     {/* Character Image */}
-                    <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+                    <div className="relative aspect-square overflow-hidden bg-linear-to-br from-blue-500 to-purple-600">
                       {character.profile_image ? (
                         <StorageImage
                           src={character.profile_image}
@@ -379,7 +387,7 @@ export default function StoryView({
             ) : factions.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
                     <svg
                       className="h-10 w-10 text-purple-600 dark:text-purple-400"
                       fill="none"
@@ -404,7 +412,7 @@ export default function StoryView({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 @lg:grid-cols-2">
                 {factions.map((faction) => (
                   <button
                     key={faction.id}
@@ -414,7 +422,7 @@ export default function StoryView({
                   >
                     {/* Faction Logo/Image */}
                     {faction.logo_url ? (
-                      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-red-500">
+                      <div className="relative h-40 overflow-hidden bg-linear-to-br from-purple-500 via-pink-500 to-red-500">
                         <StorageImage
                           src={faction.logo_url}
                           signedUrl={factionLogoUrls.get(faction.logo_url)}
@@ -425,7 +433,7 @@ export default function StoryView({
                       </div>
                     ) : (
                       <div
-                        className="relative h-40 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500"
+                        className="relative h-40 bg-linear-to-br from-purple-500 via-pink-500 to-red-500"
                         style={
                           faction.color_scheme
                             ? { background: faction.color_scheme }

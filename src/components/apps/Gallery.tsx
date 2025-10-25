@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
-import Lightbox, { LightboxContent } from "../shared/Lightbox";
+import Lightbox, { type LightboxContent } from "../shared/Lightbox";
+
 /* eslint-disable @next/next/no-img-element */
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -139,7 +140,7 @@ export function MasonryGallery({
                   loading="lazy"
                 />
                 {showOverlay && (image.metadata?.author || image.title) && (
-                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
                     <div className="p-3 text-white">
                       {image.title && (
                         <p className="text-sm font-medium">{image.title}</p>

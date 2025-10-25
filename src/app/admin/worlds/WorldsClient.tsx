@@ -7,8 +7,8 @@ import {
   deleteWorld,
   getPublishedStories,
   getWorldsByStoryId,
-  updateWorld,
   type Story,
+  updateWorld,
   type World,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
@@ -116,7 +116,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
               setEditingWorld(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-indigo-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             + New World
           </button>
@@ -144,7 +144,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
 
       {!selectedStoryId ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
             <svg
               className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
               fill="none"
@@ -174,7 +174,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
         </div>
       ) : worlds.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
             <svg
               className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
               fill="none"
@@ -200,7 +200,7 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
               setEditingWorld(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-indigo-600 to-cyan-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             Create First World
           </button>
@@ -213,8 +213,8 @@ export default function WorldsClient({ initialStories }: WorldsClientProps) {
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Decorative Header */}
-              <div className="relative h-24 overflow-hidden bg-gradient-to-br from-indigo-400 via-cyan-400 to-teal-400">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+              <div className="relative h-24 overflow-hidden bg-linear-to-br from-indigo-400 via-cyan-400 to-teal-400">
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
               </div>
 
               {/* Content */}

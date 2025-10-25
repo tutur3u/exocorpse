@@ -40,6 +40,9 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: parseAsString,
       character: parseAsString,
       faction: parseAsString,
+      "story-tab": parseAsString,
+      "world-tab": parseAsString,
+      "character-tab": parseAsString,
     },
     {
       shallow: true,
@@ -218,6 +221,9 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: null,
       character: null,
       faction: null,
+      "story-tab": null,
+      "world-tab": null,
+      "character-tab": null,
     });
   };
 
@@ -227,6 +233,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: world.slug,
       character: null,
       faction: null,
+      "world-tab": null,
+      "character-tab": null,
     });
   };
 
@@ -236,6 +244,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: worldSlug,
       character: character.slug,
       faction: null,
+      "character-tab": null,
     });
   };
 
@@ -245,6 +254,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: worldSlug,
       character: null,
       faction: faction.slug,
+      "character-tab": null,
     });
   };
 
@@ -254,6 +264,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: worldSlug,
       character: null,
       faction: null,
+      "world-tab": null,
+      "character-tab": null,
     });
   };
 
@@ -263,6 +275,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: worldSlug,
       character: null,
       faction: factionSlug,
+      "character-tab": null,
     });
   };
 
@@ -273,6 +286,9 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
         world: null,
         character: null,
         faction: null,
+        "story-tab": null,
+        "world-tab": null,
+        "character-tab": null,
       });
     } else if (mode === "story") {
       setParams({
@@ -280,6 +296,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
         world: null,
         character: null,
         faction: null,
+        "world-tab": null,
+        "character-tab": null,
       });
     } else if (mode === "world") {
       setParams({
@@ -287,6 +305,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
         world: worldSlug,
         character: null,
         faction: null,
+        "character-tab": null,
       });
     }
   };
@@ -311,7 +330,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Story view with tabs
     if (viewMode === "story" && selectedStory) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
           <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
@@ -335,7 +354,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // World view with tabs
     if (viewMode === "world" && selectedWorld) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
           <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
@@ -359,7 +378,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Character view
     if (viewMode === "character" && viewingCharacter) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
           <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
@@ -381,7 +400,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Faction view
     if (viewMode === "faction" && viewingFaction) {
       return (
-        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex h-full flex-col overflow-hidden bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
           <div className="border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
             <Breadcrumbs
               viewMode={viewMode}
@@ -400,5 +419,5 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     return null;
   };
 
-  return <>{renderContent()}</>;
+  return <div className="@container">{renderContent()}</div>;
 }

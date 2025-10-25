@@ -12,8 +12,8 @@ import { experiences, favorites, moreInfo } from "./data";
 export default function AboutTab() {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-        <h2 className="mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
+      <div className="rounded-xl bg-linear-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
+        <h2 className="mb-3 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
           About Me
         </h2>
         <p className="text-lg text-gray-700 dark:text-gray-300">

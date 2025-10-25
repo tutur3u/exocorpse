@@ -79,7 +79,7 @@ export default function SocialLink({ link }: Props) {
       className={`group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 ${colors.border} ${link.fullWidth ? "md:col-span-2" : ""}`}
     >
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${colors.bg} to-transparent opacity-0 transition-opacity group-hover:opacity-100`}
+        className={`absolute inset-0 bg-linear-to-br ${colors.bg} to-transparent opacity-0 transition-opacity group-hover:opacity-100`}
       />
       <div className="relative flex items-center gap-4">
         <div

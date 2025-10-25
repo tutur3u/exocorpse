@@ -3,9 +3,9 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import {
+  type BlogPost,
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
-  type BlogPost,
 } from "@/lib/actions/blog";
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
@@ -240,7 +240,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
       <div className="flex-1 overflow-y-auto p-6">
         {posts.length === 0 && total === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center dark:border-gray-700 dark:bg-gray-900">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
               <svg
                 className="h-8 w-8 text-blue-600 dark:text-blue-400"
                 fill="none"

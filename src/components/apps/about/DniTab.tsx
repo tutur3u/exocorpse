@@ -4,8 +4,8 @@ import { dniHard, dniSoft } from "./data";
 export default function DniTab() {
   return (
     <div className="space-y-6">
-      <div className="mb-6 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 p-6 dark:from-red-950 dark:to-orange-950">
-        <h2 className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-3xl font-bold text-transparent dark:from-red-400 dark:to-orange-400">
+      <div className="mb-6 rounded-xl bg-linear-to-br from-red-50 to-orange-50 p-6 dark:from-red-950 dark:to-orange-950">
+        <h2 className="bg-linear-to-r from-red-600 to-orange-600 bg-clip-text text-3xl font-bold text-transparent dark:from-red-400 dark:to-orange-400">
           Do Not Interact
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -14,7 +14,7 @@ export default function DniTab() {
       </div>
 
       {/* Soft DNIs */}
-      <section className="rounded-xl border-2 border-yellow-300 bg-gradient-to-br from-yellow-50 to-orange-50 p-6 shadow-lg dark:border-yellow-700 dark:from-yellow-950 dark:to-orange-950">
+      <section className="rounded-xl border-2 border-yellow-300 bg-linear-to-br from-yellow-50 to-orange-50 p-6 shadow-lg dark:border-yellow-700 dark:from-yellow-950 dark:to-orange-950">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-yellow-900 dark:text-yellow-100">
           <FaInfoCircle className="h-5 w-5" />
           Soft DNIs (Preference)
@@ -37,7 +37,7 @@ export default function DniTab() {
       </section>
 
       {/* Hard DNIs */}
-      <section className="rounded-xl border-2 border-red-300 bg-gradient-to-br from-red-50 to-pink-50 p-6 shadow-lg dark:border-red-700 dark:from-red-950 dark:to-pink-950">
+      <section className="rounded-xl border-2 border-red-300 bg-linear-to-br from-red-50 to-pink-50 p-6 shadow-lg dark:border-red-700 dark:from-red-950 dark:to-pink-950">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-red-900 dark:text-red-100">
           <FaTimesCircle className="h-5 w-5" />
           Hard DNIs (Hardblock)

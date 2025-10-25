@@ -3,11 +3,11 @@
 import BlogPostForm from "@/components/admin/forms/BlogPostForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
+  type BlogPost,
   createBlogPost,
   deleteBlogPost,
   getAllBlogPostsPaginated,
   updateBlogPost,
-  type BlogPost,
 } from "@/lib/actions/blog";
 import { generatePaginationRange } from "@/lib/pagination";
 import toastWithSound from "@/lib/toast";
@@ -171,7 +171,7 @@ export default function BlogPostsClient({
             setEditingPost(null);
             setShowForm(true);
           }}
-          className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          className="rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
         >
           + New Post
         </button>
@@ -212,7 +212,7 @@ export default function BlogPostsClient({
         </div>
       ) : posts.length === 0 && total === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
             <svg
               className="h-8 w-8 text-blue-600 dark:text-blue-400"
               fill="none"
@@ -242,7 +242,7 @@ export default function BlogPostsClient({
               setEditingPost(null);
               setShowForm(true);
             }}
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
             Create Your First Post
           </button>
