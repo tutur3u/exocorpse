@@ -9,10 +9,12 @@ interface LoginFormProps {
   redirectTo: string;
 }
 
+const DEV_MODE = process.env.NODE_ENV === "development";
+
 export default function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEV_MODE ? "local@tuturuuu.com" : "");
+  const [password, setPassword] = useState(DEV_MODE ? "password123" : "");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
