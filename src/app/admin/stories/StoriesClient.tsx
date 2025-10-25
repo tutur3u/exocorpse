@@ -95,6 +95,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   };
 
   const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({ queryKey: ["stories"] });
     setShowForm(false);
     setEditingStory(null);
     toastWithSound.success(

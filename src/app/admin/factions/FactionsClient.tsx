@@ -177,6 +177,10 @@ export default function FactionsClient({
   };
 
   const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({
+      queryKey: ["factions", selectedWorldId],
+    });
     setShowForm(false);
     setEditingFaction(null);
     toastWithSound.success(

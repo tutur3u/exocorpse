@@ -114,6 +114,8 @@ export default function WorldsClient({
   };
 
   const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({ queryKey: ["worlds"] });
     setShowForm(false);
     setEditingWorld(null);
     toastWithSound.success(
