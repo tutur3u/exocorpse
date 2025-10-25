@@ -44,9 +44,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const createMutation = useMutation({
     mutationFn: createStory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      setShowForm(false);
-      toastWithSound.success("Story created successfully!");
+      // Don't invalidate here - handleComplete will do it after uploads finish
+      // to avoid redundant refetches and UI flicker
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create story: ${error.message}`);
@@ -62,10 +61,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       data: Parameters<typeof updateStory>[1];
     }) => updateStory(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      setEditingStory(null);
-      setShowForm(false);
-      toastWithSound.success("Story updated successfully!");
+      // Don't invalidate here - handleComplete will do it after uploads finish
+      // to avoid redundant refetches and UI flicker
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update story: ${error.message}`);
@@ -84,12 +81,29 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   });
 
   const handleCreate = async (data: Parameters<typeof createStory>[0]) => {
-    await createMutation.mutateAsync(data);
+    const newStory = await createMutation.mutateAsync(data);
+    return newStory;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateStory>[1]) => {
-    if (!editingStory) return;
-    await updateMutation.mutateAsync({ id: editingStory.id, data });
+    if (!editingStory) return undefined;
+    const updated = await updateMutation.mutateAsync({
+      id: editingStory.id,
+      data,
+    });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({ queryKey: ["stories"] });
+    setShowForm(false);
+    setEditingStory(null);
+    toastWithSound.success(
+      editingStory
+        ? "Story updated successfully!"
+        : "Story created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {
@@ -228,6 +242,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
         <StoryForm
           story={editingStory || undefined}
           onSubmit={editingStory ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingStory(null);

@@ -1603,6 +1603,7 @@ export type Database = {
       writing_pieces: {
         Row: {
           content: string;
+          cover_image: string | null;
           created_at: string;
           created_date: string | null;
           deleted_at: string | null;
@@ -1612,6 +1613,7 @@ export type Database = {
           is_featured: boolean | null;
           slug: string;
           tags: string[] | null;
+          thumbnail_url: string | null;
           title: string;
           updated_at: string;
           word_count: number | null;
@@ -1619,6 +1621,7 @@ export type Database = {
         };
         Insert: {
           content: string;
+          cover_image?: string | null;
           created_at?: string;
           created_date?: string | null;
           deleted_at?: string | null;
@@ -1628,6 +1631,7 @@ export type Database = {
           is_featured?: boolean | null;
           slug: string;
           tags?: string[] | null;
+          thumbnail_url?: string | null;
           title: string;
           updated_at?: string;
           word_count?: number | null;
@@ -1635,6 +1639,7 @@ export type Database = {
         };
         Update: {
           content?: string;
+          cover_image?: string | null;
           created_at?: string;
           created_date?: string | null;
           deleted_at?: string | null;
@@ -1644,6 +1649,7 @@ export type Database = {
           is_featured?: boolean | null;
           slug?: string;
           tags?: string[] | null;
+          thumbnail_url?: string | null;
           title?: string;
           updated_at?: string;
           word_count?: number | null;

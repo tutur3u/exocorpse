@@ -92,11 +92,10 @@ export default function FactionsClient({
   const createMutation = useMutation({
     mutationFn: createFaction,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({
         queryKey: ["factions", selectedWorldId],
       });
-      setShowForm(false);
-      toastWithSound.success("Faction created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create faction: ${error.message}`);
@@ -112,12 +111,10 @@ export default function FactionsClient({
       data: Parameters<typeof updateFaction>[1];
     }) => updateFaction(id, data),
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({
         queryKey: ["factions", selectedWorldId],
       });
-      setEditingFaction(null);
-      setShowForm(false);
-      toastWithSound.success("Faction updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update faction: ${error.message}`);
@@ -166,12 +163,31 @@ export default function FactionsClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createFaction>[0]) => {
-    await createMutation.mutateAsync(data);
+    const newFaction = await createMutation.mutateAsync(data);
+    return newFaction;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateFaction>[1]) => {
-    if (!editingFaction) return;
-    await updateMutation.mutateAsync({ id: editingFaction.id, data });
+    if (!editingFaction) return undefined;
+    const updated = await updateMutation.mutateAsync({
+      id: editingFaction.id,
+      data,
+    });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({
+      queryKey: ["factions", selectedWorldId],
+    });
+    setShowForm(false);
+    setEditingFaction(null);
+    toastWithSound.success(
+      editingFaction
+        ? "Faction updated successfully!"
+        : "Faction created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {
@@ -412,6 +428,7 @@ export default function FactionsClient({
           faction={editingFaction || undefined}
           worldId={selectedWorldId}
           onSubmit={editingFaction ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingFaction(null);

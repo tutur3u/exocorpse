@@ -5,8 +5,10 @@ import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
+import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { deleteFile } from "@/lib/actions/storage";
 import type { Faction } from "@/lib/actions/wiki";
+import { updateFaction } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -34,7 +36,8 @@ type FactionFormData = {
 type FactionFormProps = {
   faction?: Faction;
   worldId: string;
-  onSubmit: (data: FactionFormData) => Promise<void>;
+  onSubmit: (data: FactionFormData) => Promise<Faction | void>;
+  onComplete: () => void;
   onCancel: () => void;
 };
 
@@ -42,8 +45,16 @@ export default function FactionForm({
   faction,
   worldId,
   onSubmit,
+  onComplete,
   onCancel,
 }: FactionFormProps) {
+  const {
+    setPendingFile,
+    uploadPendingFiles,
+    uploadProgress,
+    hasPendingFiles,
+  } = usePendingUploads();
+
   const [activeTab, setActiveTab] = useState<
     "basic" | "details" | "visuals" | "content"
   >("basic");
@@ -109,7 +120,28 @@ export default function FactionForm({
         ["member_count"],
       );
 
-      await onSubmit(cleanData);
+      // Submit the faction data
+      const result = await onSubmit(cleanData);
+
+      // If we got a result and have pending files, upload them
+      if (result && hasPendingFiles) {
+        const uploadSuccess = await uploadPendingFiles(
+          result.id,
+          `factions/${result.id}`,
+          async (updates) => {
+            await updateFaction(result.id, updates);
+          },
+        );
+
+        if (!uploadSuccess) {
+          setError("Failed to upload images. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // All done - close the form and refresh
+      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -241,6 +273,46 @@ export default function FactionForm({
             className="flex flex-1 flex-col overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto px-6 py-4">
+              {/* Error Display */}
+              {error && (
+                <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              {/* Upload Progress */}
+              {uploadProgress && (
+                <div className="mb-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      {uploadProgress}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Basic Info Tab */}
               {activeTab === "basic" && (
                 <div className="space-y-4">
@@ -478,6 +550,7 @@ export default function FactionForm({
                     onChange={(value) =>
                       setValue("logo_url", value, { shouldDirty: true })
                     }
+                    onFileSelect={(file) => setPendingFile("logo_url", file)}
                     uploadPath={
                       faction ? `factions/${faction.id}/logo` : undefined
                     }
@@ -504,6 +577,9 @@ export default function FactionForm({
                     value={bannerImage || ""}
                     onChange={(value) =>
                       setValue("banner_image", value, { shouldDirty: true })
+                    }
+                    onFileSelect={(file) =>
+                      setPendingFile("banner_image", file)
                     }
                     uploadPath={
                       faction ? `factions/${faction.id}/banner` : undefined

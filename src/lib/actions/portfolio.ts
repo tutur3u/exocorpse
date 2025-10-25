@@ -157,19 +157,48 @@ export async function updateArtPiece(
 }
 
 /**
- * Delete an art piece (soft delete)
+ * Delete an art piece (hard delete)
  */
 export async function deleteArtPiece(id: string) {
   const { supabase } = await verifyAuth();
 
-  const { error } = await supabase
+  // First, get the art piece to find its images
+  const { data: artPiece } = await supabase
     .from("art_pieces")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .select("image_url, thumbnail_url")
+    .eq("id", id)
+    .single();
+
+  // Delete the database row
+  const { error } = await supabase.from("art_pieces").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting art piece:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  // Don't await this to avoid blocking the response
+  if (artPiece) {
+    (async () => {
+      try {
+        const { deleteArtworkImage } = await import("./storage");
+
+        if (artPiece.image_url && !artPiece.image_url.startsWith("http")) {
+          await deleteArtworkImage(artPiece.image_url);
+        }
+
+        if (
+          artPiece.thumbnail_url &&
+          !artPiece.thumbnail_url.startsWith("http")
+        ) {
+          await deleteArtworkImage(artPiece.thumbnail_url);
+        }
+      } catch (imgError) {
+        console.error("Error deleting art piece images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }
 
@@ -272,6 +301,8 @@ export async function createWritingPiece(writingPiece: {
   title: string;
   excerpt?: string;
   content: string;
+  cover_image?: string;
+  thumbnail_url?: string;
   year?: number;
   created_date?: string;
   tags?: string[];
@@ -343,18 +374,50 @@ export async function updateWritingPiece(
 }
 
 /**
- * Delete a writing piece (soft delete)
+ * Delete a writing piece (hard delete)
  */
 export async function deleteWritingPiece(id: string) {
   const { supabase } = await verifyAuth();
 
-  const { error } = await supabase
+  // First, get the writing piece to find its images
+  const { data: writingPiece } = await supabase
     .from("writing_pieces")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .select("cover_image, thumbnail_url")
+    .eq("id", id)
+    .single();
+
+  // Delete the database row
+  const { error } = await supabase.from("writing_pieces").delete().eq("id", id);
 
   if (error) {
     console.error("Error deleting writing piece:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  // Don't await this to avoid blocking the response
+  if (writingPiece) {
+    (async () => {
+      try {
+        const { deleteWritingImage } = await import("./storage");
+
+        if (
+          writingPiece.cover_image &&
+          !writingPiece.cover_image.startsWith("http")
+        ) {
+          await deleteWritingImage(writingPiece.cover_image);
+        }
+
+        if (
+          writingPiece.thumbnail_url &&
+          !writingPiece.thumbnail_url.startsWith("http")
+        ) {
+          await deleteWritingImage(writingPiece.thumbnail_url);
+        }
+      } catch (imgError) {
+        console.error("Error deleting writing piece images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 }

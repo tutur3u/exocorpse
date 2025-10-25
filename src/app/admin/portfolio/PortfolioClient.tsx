@@ -13,6 +13,8 @@ import {
   deleteWritingPiece,
   updateArtPiece,
   updateWritingPiece,
+  getAllArtPiecesAdmin,
+  getAllWritingPiecesAdmin,
 } from "@/lib/actions/portfolio";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -57,6 +59,18 @@ export default function PortfolioClient({
     filteredArtImagePaths,
   );
 
+  // Batch fetch all writing piece cover images
+  const writingImagePaths = writingPieces.flatMap((writing) => [
+    writing.cover_image,
+    writing.thumbnail_url,
+  ]);
+  const filteredWritingImagePaths = writingImagePaths.filter(
+    (p): p is string => !!p && !p.startsWith("http"),
+  );
+  const { signedUrls: writingImageUrls } = useBatchStorageUrls(
+    filteredWritingImagePaths,
+  );
+
   // Art handlers
   const handleAddArt = () => {
     setEditingArt(null);
@@ -90,6 +104,7 @@ export default function PortfolioClient({
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         toast.success("Artwork updated successfully");
+        return updated;
       } else {
         const newArt = await createArtPiece({
           ...data,
@@ -97,15 +112,25 @@ export default function PortfolioClient({
         });
         setArtPieces((prev) => [newArt, ...prev]);
         toast.success("Artwork created successfully");
+        return newArt;
       }
-
-      setShowArtForm(false);
-      setEditingArt(null);
     } catch (error) {
       console.error("Failed to save artwork:", error);
       toast.error("Failed to save artwork");
       throw error;
     }
+  };
+
+  const handleArtComplete = async () => {
+    // Refresh to show uploaded images
+    try {
+      const refreshedArt = await getAllArtPiecesAdmin();
+      setArtPieces(refreshedArt);
+    } catch (error) {
+      console.error("Failed to refresh art pieces:", error);
+    }
+    setShowArtForm(false);
+    setEditingArt(null);
   };
 
   const handleDeleteArt = async () => {
@@ -139,6 +164,8 @@ export default function PortfolioClient({
     slug: string;
     excerpt?: string;
     content: string;
+    cover_image?: string;
+    thumbnail_url?: string;
     year?: number;
     created_date?: string;
     tags?: string[];
@@ -154,6 +181,7 @@ export default function PortfolioClient({
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
         toast.success("Writing updated successfully");
+        return updated; // Return the updated piece
       } else {
         const newWriting = await createWritingPiece({
           ...data,
@@ -161,15 +189,27 @@ export default function PortfolioClient({
         });
         setWritingPieces((prev) => [newWriting, ...prev]);
         toast.success("Writing created successfully");
+        return newWriting; // Return the new piece so form can upload images
       }
-
-      setShowWritingForm(false);
-      setEditingWriting(null);
     } catch (error) {
       console.error("Failed to save writing:", error);
       toast.error("Failed to save writing");
       throw error;
     }
+  };
+
+  const handleWritingComplete = async () => {
+    // Refresh the writing list to show uploaded images
+    try {
+      const refreshedWriting = await getAllWritingPiecesAdmin();
+      setWritingPieces(refreshedWriting);
+    } catch (error) {
+      console.error("Failed to refresh writing pieces:", error);
+      // Not critical, just log it
+    }
+
+    setShowWritingForm(false);
+    setEditingWriting(null);
   };
 
   const handleDeleteWriting = async () => {
@@ -367,52 +407,68 @@ export default function PortfolioClient({
                   {writingPieces.map((writing) => (
                     <div
                       key={writing.id}
-                      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                      className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            {writing.title}
-                          </h3>
-                          {writing.excerpt && (
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                              {writing.excerpt}
-                            </p>
-                          )}
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                            {writing.year && <span>{writing.year}</span>}
-                            {writing.word_count && (
-                              <span>{writing.word_count} words</span>
-                            )}
-                            {writing.tags && writing.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {writing.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                      <div className="flex items-start gap-4 p-4">
+                        {writing.cover_image && (
+                          <div className="shrink-0">
+                            <StorageImage
+                              src={writing.cover_image}
+                              signedUrl={writingImageUrls.get(
+                                writing.cover_image,
+                              )}
+                              alt={writing.title}
+                              width={128}
+                              height={96}
+                              className="h-24 w-32 rounded object-cover"
+                            />
                           </div>
-                        </div>
-                        <div className="ml-4 flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEditWriting(writing)}
-                            className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingWriting(writing)}
-                            className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
+                        )}
+                        <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-gray-900 dark:text-white">
+                              {writing.title}
+                            </h3>
+                            {writing.excerpt && (
+                              <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                                {writing.excerpt}
+                              </p>
+                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                              {writing.year && <span>{writing.year}</span>}
+                              {writing.word_count && (
+                                <span>{writing.word_count} words</span>
+                              )}
+                              {writing.tags && writing.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {writing.tags.map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEditWriting(writing)}
+                              className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingWriting(writing)}
+                              className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -429,6 +485,7 @@ export default function PortfolioClient({
         <ArtPieceForm
           artPiece={editingArt || undefined}
           onSubmit={handleArtSubmit}
+          onComplete={handleArtComplete}
           onCancel={() => {
             setShowArtForm(false);
             setEditingArt(null);
@@ -440,6 +497,7 @@ export default function PortfolioClient({
         <WritingPieceForm
           writingPiece={editingWriting || undefined}
           onSubmit={handleWritingSubmit}
+          onComplete={handleWritingComplete}
           onCancel={() => {
             setShowWritingForm(false);
             setEditingWriting(null);

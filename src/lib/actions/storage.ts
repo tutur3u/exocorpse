@@ -229,6 +229,28 @@ export async function deleteArtworkImage(path: string) {
 }
 
 /**
+ * Upload writing cover image for portfolio
+ * @param writingId - The writing piece ID
+ * @param fileData - Base64 data URL of the image
+ * @param filename - Original filename
+ */
+export async function uploadWritingImage(
+  writingId: string,
+  fileData: string,
+  filename: string,
+) {
+  return uploadFile(fileData, `portfolio/writing/${writingId}`, filename);
+}
+
+/**
+ * Delete writing cover image
+ * @param path - Full path to the writing cover image
+ */
+export async function deleteWritingImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
  * Get a cached signed URL or fetch a new one if expired
  * This implements a database-level cache to reduce load on the tuturuuu SDK
  * @param path - Path to the file in storage

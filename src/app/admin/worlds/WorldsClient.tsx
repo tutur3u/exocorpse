@@ -63,9 +63,8 @@ export default function WorldsClient({
   const createMutation = useMutation({
     mutationFn: createWorld,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["worlds"] });
-      setShowForm(false);
-      toastWithSound.success("World created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create world: ${error.message}`);
@@ -81,10 +80,8 @@ export default function WorldsClient({
       data: Parameters<typeof updateWorld>[1];
     }) => updateWorld(id, data),
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["worlds"] });
-      setEditingWorld(null);
-      setShowForm(false);
-      toastWithSound.success("World updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update world: ${error.message}`);
@@ -103,12 +100,29 @@ export default function WorldsClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createWorld>[0]) => {
-    await createMutation.mutateAsync(data);
+    const newWorld = await createMutation.mutateAsync(data);
+    return newWorld;
   };
 
   const handleUpdate = async (data: Parameters<typeof updateWorld>[1]) => {
-    if (!editingWorld) return;
-    await updateMutation.mutateAsync({ id: editingWorld.id, data });
+    if (!editingWorld) return undefined;
+    const updated = await updateMutation.mutateAsync({
+      id: editingWorld.id,
+      data,
+    });
+    return updated || undefined;
+  };
+
+  const handleComplete = () => {
+    // Refresh to show uploaded images
+    queryClient.invalidateQueries({ queryKey: ["worlds"] });
+    setShowForm(false);
+    setEditingWorld(null);
+    toastWithSound.success(
+      editingWorld
+        ? "World updated successfully!"
+        : "World created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {
@@ -278,6 +292,7 @@ export default function WorldsClient({
           world={editingWorld || undefined}
           storyId={editingWorld?.story_id || selectedStoryId}
           onSubmit={editingWorld ? handleUpdate : handleCreate}
+          onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
             setEditingWorld(null);
