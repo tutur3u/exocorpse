@@ -55,7 +55,7 @@
     "remark-gfm": "^4.0.1",
     "sanitize-html": "^2.17.0",
     "sonner": "^2.0.7",
-    "tuturuuu": "0.1.2"
+    "tuturuuu": "0.1.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

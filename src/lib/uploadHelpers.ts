@@ -12,9 +12,10 @@ export interface PendingUpload {
 }
 
 /**
- * Upload a pending file to storage using FormData API route
+ * Upload a pending file to storage using signed upload URL (direct upload to storage)
+ * This completely bypasses Next.js for the file upload, avoiding all payload size limits
  * @param file - The File object to upload
- * @param uploadPath - Storage path (e.g., "portfolio/art/123")
+ * @param uploadPath - Storage path directory (e.g., "portfolio/art/123")
  * @returns Storage path of uploaded file
  */
 export async function uploadPendingFile(
@@ -36,28 +37,39 @@ export async function uploadPendingFile(
   const sanitizedName = sanitizeFilename(file.name);
   const compressedFile = new File([blob], sanitizedName, { type: blob.type });
 
-  // Upload via FormData API route
-  const formData = new FormData();
-  formData.append("file", compressedFile);
-  formData.append("path", uploadPath);
+  // Build full storage path
+  const fullPath = `${uploadPath}/${sanitizedName}`;
 
-  const uploadResponse = await fetch("/api/storage/upload", {
+  // Get signed upload URL from server
+  const signedUrlResponse = await fetch("/api/storage/signed-upload-url", {
     method: "POST",
-    body: formData,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path: fullPath }),
+  });
+
+  if (!signedUrlResponse.ok) {
+    const error = await signedUrlResponse.json();
+    throw new Error(error.error || "Failed to get signed upload URL");
+  }
+
+  const { signedUrl, path } = await signedUrlResponse.json();
+
+  // Upload directly to storage using signed URL (bypasses Next.js completely)
+  const uploadResponse = await fetch(signedUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": compressedFile.type,
+    },
+    body: compressedFile,
   });
 
   if (!uploadResponse.ok) {
-    const error = await uploadResponse.json();
-    throw new Error(error.error || "Failed to upload file");
+    throw new Error(`Upload failed: ${uploadResponse.statusText}`);
   }
 
-  const result = await uploadResponse.json();
-
-  if (!result.success) {
-    throw new Error("Failed to upload file");
-  }
-
-  return result.path;
+  return path;
 }
 
 /**

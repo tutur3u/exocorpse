@@ -133,7 +133,7 @@ export default function ImageUploader({
           setUploadProgress("Uploading...");
         }
 
-        // Convert data URL back to File for FormData upload with sanitized filename
+        // Convert data URL back to File with sanitized filename
         const response = await fetch(compressedDataUrl);
         const blob = await response.blob();
         const sanitizedName = sanitizeFilename(file.name);
@@ -141,62 +141,75 @@ export default function ImageUploader({
           type: blob.type,
         });
 
-        // Upload via FormData API route
-        const formData = new FormData();
-        formData.append("file", compressedFile);
-        formData.append("path", uploadPath);
+        // Build full storage path
+        const fullPath = `${uploadPath}/${sanitizedName}`;
 
-        const uploadResponse = await fetch("/api/storage/upload", {
-          method: "POST",
-          body: formData,
+        // Get signed upload URL from server
+        const signedUrlResponse = await fetch(
+          "/api/storage/signed-upload-url",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ path: fullPath }),
+          },
+        );
+
+        if (!signedUrlResponse.ok) {
+          const error = await signedUrlResponse.json();
+          throw new Error(error.error || "Failed to get signed upload URL");
+        }
+
+        const { signedUrl, path } = await signedUrlResponse.json();
+
+        // Upload directly to storage using signed URL (bypasses Next.js completely)
+        const uploadResponse = await fetch(signedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": compressedFile.type,
+          },
+          body: compressedFile,
         });
 
         if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(error.error || "Upload failed");
+          throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+        // Call onBeforeChange to delete the old image if it exists
+        if (onBeforeChange && value) {
+          try {
+            setUploadProgress("Cleaning up...");
+            await onBeforeChange(value, path);
+          } catch (deleteError) {
+            console.error("Error deleting old image:", deleteError);
+          }
         }
 
-        const result = await uploadResponse.json();
+        // Store the storage path
+        onChange(path);
 
-        if (result.success) {
-          // Call onBeforeChange to delete the old image if it exists
-          if (onBeforeChange && value) {
-            try {
-              setUploadProgress("Cleaning up...");
-              await onBeforeChange(value, result.path);
-            } catch (deleteError) {
-              console.error("Error deleting old image:", deleteError);
-            }
-          }
+        // Invalidate cache
+        await queryClient.invalidateQueries({
+          queryKey: ["storage-url", path],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["storage-urls-batch"],
+          exact: false,
+        });
 
-          // Store the storage path
-          onChange(result.path);
+        setPendingFile(null);
+        setUploadProgress("Complete!");
 
-          // Invalidate cache
-          await queryClient.invalidateQueries({
-            queryKey: ["storage-url", result.path],
-          });
-          await queryClient.invalidateQueries({
-            queryKey: ["storage-urls-batch"],
-            exact: false,
-          });
-
-          setPendingFile(null);
-          setUploadProgress("Complete!");
-
-          // Clean up object URL to free memory
-          if (objectUrl) {
-            URL.revokeObjectURL(objectUrl);
-            setObjectUrl(null);
-          }
-
-          setTimeout(() => {
-            setUploading(false);
-            setUploadProgress(null);
-          }, 1000);
-        } else {
-          throw new Error("Upload failed");
+        // Clean up object URL to free memory
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          setObjectUrl(null);
         }
+
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(null);
+        }, 1000);
       } catch (uploadError) {
         setError(
           uploadError instanceof Error ? uploadError.message : "Upload failed",

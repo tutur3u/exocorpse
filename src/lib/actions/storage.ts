@@ -24,9 +24,11 @@ function getTuturuuuClient() {
   return new TuturuuuClient(apiKey);
 }
 
-// NOTE: File uploads now use FormData via /api/storage/upload to avoid payload size limits
+// NOTE: File uploads now use signed upload URLs for direct client-to-storage uploads
+// This completely bypasses Next.js for file transfer, avoiding all payload size limits
+// Flow: Client → /api/storage/signed-upload-url (get signed URL) → Direct upload to storage
 // See: uploadPendingFile in uploadHelpers.ts and ImageUploader component
-// The old uploadFile function has been removed as it caused FUNCTION_PAYLOAD_TOO_LARGE errors
+// The old uploadFile server action has been removed as it caused FUNCTION_PAYLOAD_TOO_LARGE errors
 
 /**
  * Delete a file from storage
