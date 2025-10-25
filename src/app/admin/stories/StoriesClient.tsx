@@ -44,9 +44,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const createMutation = useMutation({
     mutationFn: createStory,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["stories"] });
-      setShowForm(false);
-      toastWithSound.success("Story created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create story: ${error.message}`);
@@ -62,10 +61,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       data: Parameters<typeof updateStory>[1];
     }) => updateStory(id, data),
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["stories"] });
-      setEditingStory(null);
-      setShowForm(false);
-      toastWithSound.success("Story updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update story: ${error.message}`);
@@ -100,6 +97,11 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const handleComplete = () => {
     setShowForm(false);
     setEditingStory(null);
+    toastWithSound.success(
+      editingStory
+        ? "Story updated successfully!"
+        : "Story created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {

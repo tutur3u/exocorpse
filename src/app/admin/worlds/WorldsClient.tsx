@@ -63,9 +63,8 @@ export default function WorldsClient({
   const createMutation = useMutation({
     mutationFn: createWorld,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["worlds"] });
-      setShowForm(false);
-      toastWithSound.success("World created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create world: ${error.message}`);
@@ -81,10 +80,8 @@ export default function WorldsClient({
       data: Parameters<typeof updateWorld>[1];
     }) => updateWorld(id, data),
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({ queryKey: ["worlds"] });
-      setEditingWorld(null);
-      setShowForm(false);
-      toastWithSound.success("World updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update world: ${error.message}`);
@@ -119,6 +116,11 @@ export default function WorldsClient({
   const handleComplete = () => {
     setShowForm(false);
     setEditingWorld(null);
+    toastWithSound.success(
+      editingWorld
+        ? "World updated successfully!"
+        : "World created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {

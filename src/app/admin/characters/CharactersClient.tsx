@@ -282,11 +282,10 @@ export default function CharactersClient({
   const createMutation = useMutation({
     mutationFn: createCharacter,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({
         queryKey: ["characters", selectedStoryId],
       });
-      setShowForm(false);
-      toastWithSound.success("Character created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create character: ${error.message}`);
@@ -303,6 +302,7 @@ export default function CharactersClient({
       worldIds: string[];
     }) => updateCharacter(id, data),
     onSuccess: async () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       // Invalidate the characters query for the selected story
       await queryClient.invalidateQueries({
         queryKey: ["characters", selectedStoryId],
@@ -314,10 +314,6 @@ export default function CharactersClient({
           queryKey: ["characterWorlds", editingCharacter.id],
         });
       }
-
-      setEditingCharacter(null);
-      setShowForm(false);
-      toastWithSound.success("Character updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update character: ${error.message}`);
@@ -391,6 +387,11 @@ export default function CharactersClient({
     });
     setShowForm(false);
     setEditingCharacter(null);
+    toastWithSound.success(
+      editingCharacter
+        ? "Character updated successfully!"
+        : "Character created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {

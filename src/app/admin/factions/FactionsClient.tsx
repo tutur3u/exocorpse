@@ -92,11 +92,10 @@ export default function FactionsClient({
   const createMutation = useMutation({
     mutationFn: createFaction,
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({
         queryKey: ["factions", selectedWorldId],
       });
-      setShowForm(false);
-      toastWithSound.success("Faction created successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create faction: ${error.message}`);
@@ -112,12 +111,10 @@ export default function FactionsClient({
       data: Parameters<typeof updateFaction>[1];
     }) => updateFaction(id, data),
     onSuccess: () => {
+      // Don't close form here - onComplete will handle it after uploads finish
       queryClient.invalidateQueries({
         queryKey: ["factions", selectedWorldId],
       });
-      setEditingFaction(null);
-      setShowForm(false);
-      toastWithSound.success("Faction updated successfully!");
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update faction: ${error.message}`);
@@ -182,6 +179,11 @@ export default function FactionsClient({
   const handleComplete = () => {
     setShowForm(false);
     setEditingFaction(null);
+    toastWithSound.success(
+      editingFaction
+        ? "Faction updated successfully!"
+        : "Faction created successfully!",
+    );
   };
 
   const handleDelete = async (id: string) => {
