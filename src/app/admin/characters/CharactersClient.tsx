@@ -5,11 +5,18 @@ import FactionManager, {
 } from "@/components/admin/FactionManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import { useStorageUrl } from "@/hooks/useStorageUrl";
+import {
+  uploadCharacterBannerImage,
+  uploadCharacterProfileImage,
+} from "@/lib/actions/storage";
 import {
   addCharacterToFaction,
   type Character,
   createCharacter,
   deleteCharacter,
+  getAllCharacters,
+  getAllWorlds,
   getCharacterFactions,
   getCharactersByStoryId,
   getCharactersByWorldId,
@@ -23,10 +30,125 @@ import {
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 import { useState } from "react";
 
 interface CharactersClientProps {
   initialStories: Story[];
+}
+
+// Character Card Component - extracted to use hooks properly
+function CharacterCard({
+  character,
+  onEdit,
+  onDelete,
+  onManageFactions,
+}: {
+  character: Character;
+  onEdit: (character: Character) => void;
+  onDelete: (id: string) => void;
+  onManageFactions: (id: string, name: string) => void;
+}) {
+  const { signedUrl: profileUrl, loading: profileLoading } = useStorageUrl(
+    character.profile_image,
+  );
+  const { signedUrl: bannerUrl, loading: bannerLoading } = useStorageUrl(
+    character.banner_image,
+  );
+
+  return (
+    <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      {/* Character Banner/Header */}
+      <div className="relative h-32 overflow-hidden rounded-t-xl bg-linear-to-br from-green-400 via-emerald-400 to-teal-400">
+        {bannerUrl && !bannerLoading ? (
+          <Image
+            src={bannerUrl}
+            alt={`${character.name} banner`}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+        )}
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+      </div>
+
+      {/* Profile Image - Overlapping the banner */}
+      <div className="relative px-4">
+        <div className="absolute -top-10 left-4">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-gray-200 dark:border-gray-800 dark:bg-gray-700">
+            {profileUrl && !profileLoading ? (
+              <Image
+                src={profileUrl}
+                alt={character.name}
+                fill
+                sizes="80px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <svg
+                  className="h-10 w-10 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Content - adjusted padding for overlapping profile */}
+      <div className="px-4 pt-12 pb-4">
+        <h4 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+          {character.name}
+        </h4>
+        {character.nickname && (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            &quot;{character.nickname}&quot;
+          </p>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+        <div className="mb-2">
+          <button
+            type="button"
+            onClick={() => onManageFactions(character.id, character.name)}
+            className="w-full rounded-lg bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
+          >
+            Manage Factions
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onEdit(character)}
+            className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(character.id)}
+            className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function CharactersClient({
@@ -62,16 +184,26 @@ export default function CharactersClient({
     initialData: initialStories,
   });
 
+  // Fetch worlds - for the filter (story-specific) and for character form (all worlds)
   const { data: worlds = [] } = useQuery({
     queryKey: ["worlds", selectedStoryId],
     queryFn: () => getWorldsByStoryId(selectedStoryId),
     enabled: !!selectedStoryId,
   });
 
+  // Fetch all worlds for the character form
+  const { data: allWorlds = [], isLoading: allWorldsLoading } = useQuery({
+    queryKey: ["allWorlds"],
+    queryFn: getAllWorlds,
+  });
+
+  // Fetch all characters by default, or filtered by story if one is selected
   const { data: characters = [], isLoading: charactersLoading } = useQuery({
     queryKey: ["characters", selectedStoryId],
-    queryFn: () => getCharactersByStoryId(selectedStoryId),
-    enabled: !!selectedStoryId,
+    queryFn: () =>
+      selectedStoryId
+        ? getCharactersByStoryId(selectedStoryId)
+        : getAllCharacters(),
   });
 
   const { data: factions = [] } = useQuery({
@@ -214,7 +346,79 @@ export default function CharactersClient({
   });
 
   const handleCreate = async (data: Parameters<typeof createCharacter>[0]) => {
-    await createMutation.mutateAsync(data);
+    // Extract images from the data (they might be base64 data URLs at this point)
+    const { profile_image, banner_image, ...characterDataWithoutImages } = data;
+
+    // Check if images are base64 data URLs (not uploaded yet)
+    const hasProfileImageToUpload =
+      profile_image &&
+      (profile_image.startsWith("data:") || profile_image.startsWith("blob:"));
+    const hasBannerImageToUpload =
+      banner_image &&
+      (banner_image.startsWith("data:") || banner_image.startsWith("blob:"));
+
+    // Create character first (without images or with storage paths if already uploaded)
+    const newCharacter = await createMutation.mutateAsync({
+      ...characterDataWithoutImages,
+      profile_image: hasProfileImageToUpload ? undefined : profile_image,
+      banner_image: hasBannerImageToUpload ? undefined : banner_image,
+    });
+
+    // If images need to be uploaded, upload them now using the new character ID
+    if (newCharacter && (hasProfileImageToUpload || hasBannerImageToUpload)) {
+      // Show loading toast for image upload
+      const uploadToastId = toastWithSound.loading("Uploading images...");
+
+      try {
+        const updateData: Partial<typeof data> = {};
+
+        // Upload profile image if it's a data URL
+        if (hasProfileImageToUpload && profile_image) {
+          const profileResult = await uploadCharacterProfileImage(
+            newCharacter.id,
+            profile_image,
+            "profile.jpg",
+          );
+          if (profileResult.success) {
+            updateData.profile_image = profileResult.path;
+          }
+        }
+
+        // Upload banner image if it's a data URL
+        if (hasBannerImageToUpload && banner_image) {
+          const bannerResult = await uploadCharacterBannerImage(
+            newCharacter.id,
+            banner_image,
+            "banner.jpg",
+          );
+          if (bannerResult.success) {
+            updateData.banner_image = bannerResult.path;
+          }
+        }
+
+        // Update character with uploaded image paths
+        if (Object.keys(updateData).length > 0) {
+          await updateCharacter(newCharacter.id, updateData);
+
+          // Refresh the character list to show updated images
+          queryClient.invalidateQueries({
+            queryKey: ["characters", selectedStoryId],
+          });
+        }
+
+        // Dismiss loading toast and show success
+        toastWithSound.dismiss(uploadToastId);
+        toastWithSound.success("Images uploaded successfully!");
+      } catch (uploadError) {
+        // Dismiss loading toast and show error
+        toastWithSound.dismiss(uploadToastId);
+        // Log error but don't fail the character creation
+        console.error("Failed to upload images:", uploadError);
+        toastWithSound.error(
+          "Character created but image upload failed. You can edit the character to upload images.",
+        );
+      }
+    }
   };
 
   const handleUpdate = async (data: Parameters<typeof updateCharacter>[1]) => {
@@ -266,26 +470,25 @@ export default function CharactersClient({
             Characters
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Manage characters within your worlds
+            Manage all characters across your worlds
           </p>
         </div>
-        {selectedStoryId && (
-          <button
-            onClick={() => {
-              setEditingCharacter(null);
-              setShowForm(true);
-            }}
-            className="rounded-lg bg-linear-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            + New Character
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            setEditingCharacter(null);
+            setShowForm(true);
+          }}
+          className="rounded-lg bg-linear-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        >
+          + New Character
+        </button>
       </div>
 
-      {/* Story & World Selector */}
+      {/* Story & World Filters */}
       <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Select a Story
+          Filter by Story (optional)
         </label>
         <select
           value={selectedStoryId}
@@ -295,7 +498,7 @@ export default function CharactersClient({
           }}
           className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
         >
-          <option value="">-- Choose a story --</option>
+          <option value="">All Stories</option>
           {stories.map((story) => (
             <option key={story.id} value={story.id}>
               {story.title}
@@ -348,31 +551,7 @@ export default function CharactersClient({
         </div>
       )}
 
-      {!selectedStoryId ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
-            <svg
-              className="h-8 w-8 text-green-600 dark:text-green-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Select a story to manage characters
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Choose a story from the dropdown above
-          </p>
-        </div>
-      ) : charactersLoading ? (
+      {charactersLoading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="text-gray-500 dark:text-gray-400">
             Loading characters...
@@ -444,76 +623,34 @@ export default function CharactersClient({
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredCharacters.map((character) => (
-            <div
+            <CharacterCard
               key={character.id}
-              className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
-            >
-              {/* Character Header */}
-              <div className="relative h-32 overflow-hidden bg-linear-to-br from-green-400 via-emerald-400 to-teal-400">
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-              </div>
-
-              {/* Content */}
-              <div className="p-4">
-                <h4 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {character.name}
-                </h4>
-                {character.nickname && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    &quot;{character.nickname}&quot;
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-                <div className="mb-2">
-                  <button
-                    onClick={() =>
-                      handleOpenFactionManager(character.id, character.name)
-                    }
-                    className="w-full rounded-lg bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
-                  >
-                    Manage Factions
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(character)}
-                    className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(character.id)}
-                    className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
+              character={character}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onManageFactions={handleOpenFactionManager}
+            />
           ))}
         </div>
       )}
 
-      {showForm &&
-        selectedStoryId &&
-        (!editingCharacter || !characterWorldsLoading) && (
-          <CharacterForm
-            character={editingCharacter ?? undefined}
-            preSelectedWorldIds={
-              editingCharacter ? characterWorlds.map((cw) => cw.world_id) : []
-            }
-            availableWorlds={worlds}
-            worldsLoading={editingCharacter ? characterWorldsLoading : false}
-            onSubmit={editingCharacter ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingCharacter(null);
-            }}
-          />
-        )}
+      {showForm && (!editingCharacter || !characterWorldsLoading) && (
+        <CharacterForm
+          character={editingCharacter ?? undefined}
+          preSelectedWorldIds={
+            editingCharacter ? characterWorlds.map((cw) => cw.world_id) : []
+          }
+          availableWorlds={allWorlds}
+          worldsLoading={
+            editingCharacter ? characterWorldsLoading : allWorldsLoading
+          }
+          onSubmit={editingCharacter ? handleUpdate : handleCreate}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingCharacter(null);
+          }}
+        />
+      )}
 
       {showFactionManager && managingCharacter && (
         <FactionManager
