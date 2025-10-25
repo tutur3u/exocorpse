@@ -142,7 +142,13 @@ export default function CharacterForm({
     defaultValues: getFormValues(),
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch, reset } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
@@ -310,7 +316,9 @@ export default function CharacterForm({
     is_featured?: boolean;
   }) => {
     if (!character?.id) {
-      toast.error("Please save the character first before adding gallery items");
+      toast.error(
+        "Please save the character first before adding gallery items",
+      );
       return;
     }
 
@@ -325,10 +333,13 @@ export default function CharacterForm({
 
       if (editingGalleryItem) {
         // Update existing item
-        const updated = await updateCharacterGalleryItem(editingGalleryItem.id, {
-          ...data,
-          tags: tagsArray,
-        });
+        const updated = await updateCharacterGalleryItem(
+          editingGalleryItem.id,
+          {
+            ...data,
+            tags: tagsArray,
+          },
+        );
         setGalleryItems((prev) =>
           prev.map((item) => (item.id === updated.id ? updated : item)),
         );
@@ -380,7 +391,7 @@ export default function CharacterForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="animate-slideUp flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
           role="dialog"
           aria-modal="true"
           aria-labelledby="character-form-title"
@@ -1103,7 +1114,7 @@ export default function CharacterForm({
                               className="object-cover"
                             />
                             {item.is_featured && (
-                              <div className="absolute left-2 top-2 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-white">
+                              <div className="absolute top-2 left-2 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-white">
                                 Featured
                               </div>
                             )}
@@ -1123,7 +1134,7 @@ export default function CharacterForm({
                                 Delete
                               </button>
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                            <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                               <p className="truncate text-xs font-medium text-white">
                                 {item.title}
                               </p>

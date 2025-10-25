@@ -60,7 +60,13 @@ export default function ArtPieceForm({
     defaultValues: getFormValues(),
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch, reset } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
@@ -173,7 +179,7 @@ export default function ArtPieceForm({
         aria-label="Close dialog"
       >
         <div
-          className="relative z-50 flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+          className="relative z-50 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -205,7 +211,10 @@ export default function ArtPieceForm({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col">
+          <form
+            onSubmit={handleFormSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
               {error && (
                 <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -220,12 +229,16 @@ export default function ArtPieceForm({
                 <ImageUploader
                   label="Artwork Image *"
                   value={imageUrl}
-                  onChange={(value) => setValue("image_url", value, { shouldDirty: true })}
+                  onChange={(value) =>
+                    setValue("image_url", value, { shouldDirty: true })
+                  }
                   onBeforeChange={async (oldValue, newValue) => {
                     if (oldValue) await handleDeleteOldImage(oldValue);
                   }}
                   enableUpload={!!artPiece}
-                  uploadPath={artPiece ? `portfolio/art/${artPiece.id}` : undefined}
+                  uploadPath={
+                    artPiece ? `portfolio/art/${artPiece.id}` : undefined
+                  }
                   disableUrlInput={true}
                   helpText={
                     artPiece
@@ -250,7 +263,7 @@ export default function ArtPieceForm({
                     required: true,
                     onChange: (e) => handleTitleChange(e.target.value),
                   })}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter title"
                 />
               </div>
@@ -267,7 +280,7 @@ export default function ArtPieceForm({
                   type="text"
                   id="slug"
                   {...register("slug", { required: true })}
-                  className={`w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${
+                  className={`w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white ${
                     artPiece ? "cursor-not-allowed opacity-60" : ""
                   }`}
                   placeholder="url-friendly-slug"
@@ -292,7 +305,7 @@ export default function ArtPieceForm({
                   id="description"
                   {...register("description")}
                   rows={4}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Optional description (supports markdown)"
                 />
               </div>
@@ -314,7 +327,7 @@ export default function ArtPieceForm({
                       min: 1900,
                       max: 2100,
                     })}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="2024"
                   />
                 </div>
@@ -330,7 +343,7 @@ export default function ArtPieceForm({
                     type="date"
                     id="created_date"
                     {...register("created_date")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -348,7 +361,7 @@ export default function ArtPieceForm({
                     type="text"
                     id="artist_name"
                     {...register("artist_name")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="Artist name"
                   />
                 </div>
@@ -364,7 +377,7 @@ export default function ArtPieceForm({
                     type="url"
                     id="artist_url"
                     {...register("artist_url")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="https://..."
                   />
                 </div>
@@ -382,7 +395,7 @@ export default function ArtPieceForm({
                   type="text"
                   id="tags"
                   {...register("tags")}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="original, fanwork, commissioned (comma separated)"
                 />
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

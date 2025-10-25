@@ -60,7 +60,13 @@ export default function GalleryItemForm({
     defaultValues: getFormValues(),
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch, reset } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
@@ -154,7 +160,7 @@ export default function GalleryItemForm({
         aria-label="Close dialog"
       >
         <div
-          className="relative z-[70] flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+          className="relative z-[70] flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -186,7 +192,10 @@ export default function GalleryItemForm({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col">
+          <form
+            onSubmit={handleFormSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
               {error && (
                 <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -201,7 +210,9 @@ export default function GalleryItemForm({
                 <ImageUploader
                   label="Gallery Image *"
                   value={imageUrl}
-                  onChange={(value) => setValue("image_url", value, { shouldDirty: true })}
+                  onChange={(value) =>
+                    setValue("image_url", value, { shouldDirty: true })
+                  }
                   onBeforeChange={async (oldValue, newValue) => {
                     if (oldValue) await handleDeleteOldImage(oldValue);
                   }}
@@ -232,7 +243,7 @@ export default function GalleryItemForm({
                   type="text"
                   id="title"
                   {...register("title", { required: true })}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter title"
                 />
               </div>
@@ -249,7 +260,7 @@ export default function GalleryItemForm({
                   id="description"
                   {...register("description")}
                   rows={4}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Optional description of the artwork"
                 />
               </div>
@@ -267,7 +278,7 @@ export default function GalleryItemForm({
                     type="text"
                     id="artist_name"
                     {...register("artist_name")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="Artist name"
                   />
                 </div>
@@ -283,7 +294,7 @@ export default function GalleryItemForm({
                     type="url"
                     id="artist_url"
                     {...register("artist_url")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="https://..."
                   />
                 </div>
@@ -301,7 +312,7 @@ export default function GalleryItemForm({
                   type="date"
                   id="commission_date"
                   {...register("commission_date")}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
@@ -317,7 +328,7 @@ export default function GalleryItemForm({
                   type="text"
                   id="tags"
                   {...register("tags")}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="full body, portrait, action (comma separated)"
                 />
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

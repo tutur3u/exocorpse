@@ -55,7 +55,13 @@ export default function WritingPieceForm({
     defaultValues: getFormValues(),
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch, reset } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
@@ -151,7 +157,7 @@ export default function WritingPieceForm({
         aria-label="Close dialog"
       >
         <div
-          className="relative z-50 flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+          className="relative z-50 flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -183,7 +189,10 @@ export default function WritingPieceForm({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleFormSubmit} className="flex min-h-0 flex-1 flex-col">
+          <form
+            onSubmit={handleFormSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
               {error && (
                 <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -208,7 +217,7 @@ export default function WritingPieceForm({
                     required: true,
                     onChange: (e) => handleTitleChange(e.target.value),
                   })}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter title"
                 />
               </div>
@@ -225,7 +234,7 @@ export default function WritingPieceForm({
                   type="text"
                   id="slug"
                   {...register("slug", { required: true })}
-                  className={`w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${
+                  className={`w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white ${
                     writingPiece ? "cursor-not-allowed opacity-60" : ""
                   }`}
                   placeholder="url-friendly-slug"
@@ -250,7 +259,7 @@ export default function WritingPieceForm({
                   id="excerpt"
                   {...register("excerpt")}
                   rows={3}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="Short excerpt or summary"
                 />
               </div>
@@ -287,7 +296,7 @@ export default function WritingPieceForm({
                       min: 1900,
                       max: 2100,
                     })}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="2024"
                   />
                 </div>
@@ -303,7 +312,7 @@ export default function WritingPieceForm({
                     type="date"
                     id="created_date"
                     {...register("created_date")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -321,7 +330,7 @@ export default function WritingPieceForm({
                     type="text"
                     id="tags"
                     {...register("tags")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="original, fanwork, commissioned (comma separated)"
                   />
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -343,7 +352,7 @@ export default function WritingPieceForm({
                       valueAsNumber: true,
                       min: 0,
                     })}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="Auto"
                   />
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -383,11 +392,7 @@ export default function WritingPieceForm({
                 disabled={loading}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
-                {loading
-                  ? "Saving..."
-                  : writingPiece
-                    ? "Update"
-                    : "Create"}
+                {loading ? "Saving..." : writingPiece ? "Update" : "Create"}
               </button>
             </div>
           </form>
