@@ -2,7 +2,7 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import type { Tables } from "../../../supabase/types";
 
 export type ArtPiece = Tables<"art_pieces">;
@@ -282,7 +282,13 @@ export async function createWritingPiece(writingPiece: {
   const { supabase } = await verifyAuth();
 
   // Sanitize content before saving
-  const sanitizedContent = DOMPurify.sanitize(writingPiece.content);
+  const sanitizedContent = sanitizeHtml(writingPiece.content, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      "*": ["class", "style"],
+    },
+  });
 
   const { data, error } = await supabase
     .from("writing_pieces")
@@ -309,7 +315,16 @@ export async function updateWritingPiece(
 
   // Sanitize content if it's being updated
   const sanitizedUpdates = updates.content
-    ? { ...updates, content: DOMPurify.sanitize(updates.content) }
+    ? {
+        ...updates,
+        content: sanitizeHtml(updates.content, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+          allowedAttributes: {
+            ...sanitizeHtml.defaults.allowedAttributes,
+            "*": ["class", "style"],
+          },
+        }),
+      }
     : updates;
 
   const { data, error } = await supabase

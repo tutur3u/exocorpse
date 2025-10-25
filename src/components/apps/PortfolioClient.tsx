@@ -2,7 +2,7 @@
 
 import { MasonryGallery } from "./Gallery";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import { useState } from "react";
 
 type PortfolioClientProps = {
