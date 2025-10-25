@@ -90,9 +90,12 @@ export default function AdminNav() {
           <div
             key={section.label}
             className="relative"
-            ref={(el) => (dropdownRefs.current[section.label] = el)}
+            ref={(el) => {
+              dropdownRefs.current[section.label] = el;
+            }}
           >
             <button
+              type="button"
               onClick={() =>
                 setOpenDropdown(isOpen ? null : section.label)
               }
@@ -101,6 +104,8 @@ export default function AdminNav() {
                   ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                   : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
               }`}
+              aria-expanded={isOpen}
+              aria-haspopup="true"
             >
               {section.label}
               <svg
@@ -110,6 +115,7 @@ export default function AdminNav() {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -121,7 +127,7 @@ export default function AdminNav() {
             </button>
 
             {isOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+              <div className="absolute left-0 top-full z-50 mt-1 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                 {section.items.map((item) => {
                   const itemActive = isActive(item.href, item.exact);
                   return (

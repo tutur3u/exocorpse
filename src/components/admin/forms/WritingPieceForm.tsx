@@ -257,15 +257,10 @@ export default function WritingPieceForm({
 
               {/* Content */}
               <div>
-                <label
-                  htmlFor="content"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Content * (Markdown)
-                </label>
                 <MarkdownEditor
+                  label="Content * (Markdown)"
                   value={content}
-                  onChange={(value) => setValue("content", value)}
+                  onChange={(value) => setValue("content", value, { shouldDirty: true })}
                   placeholder="Write your content here... (supports markdown)"
                 />
               </div>
