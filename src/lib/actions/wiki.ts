@@ -173,6 +173,26 @@ export async function getWorldsByStorySlug(storySlug: string) {
 /**
  * Fetch all worlds for a story
  */
+/**
+ * Fetch all worlds (without story filter)
+ */
+export async function getAllWorlds() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("worlds")
+    .select("*")
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all worlds:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function getWorldsByStoryId(storyId: string) {
   const supabase = await getSupabaseServer();
 
@@ -308,6 +328,26 @@ export async function getCharactersByWorldSlug(
 /**
  * Fetch all characters for a story (from all worlds in that story)
  */
+/**
+ * Fetch all characters (without story/world filter)
+ */
+export async function getAllCharacters() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("characters")
+    .select("*")
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all characters:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function getCharactersByStoryId(storyId: string) {
   const supabase = await getSupabaseServer();
 

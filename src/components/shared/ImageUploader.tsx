@@ -22,7 +22,7 @@ export default function ImageUploader({
   onChange,
   helpText = "Enter image URL or upload a file",
   accept = "image/*",
-  maxSizeMB = 5,
+  maxSizeMB = 50,
   uploadPath,
   enableUpload = true,
   onBeforeChange,

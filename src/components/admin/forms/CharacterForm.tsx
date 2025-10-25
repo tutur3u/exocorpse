@@ -882,7 +882,7 @@ export default function CharacterForm({
                     helpText={
                       character
                         ? "Main character portrait - uploads to secure storage"
-                        : "Save character first to enable image uploads"
+                        : "Select an image - it will be uploaded to secure storage when you create the character"
                     }
                   />
 
@@ -902,7 +902,7 @@ export default function CharacterForm({
                     helpText={
                       character
                         ? "Banner image for character page - uploads to secure storage"
-                        : "Save character first to enable image uploads"
+                        : "Select an image - it will be uploaded to secure storage when you create the character"
                     }
                   />
 
