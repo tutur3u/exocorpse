@@ -2,6 +2,7 @@
 
 import { MasonryGallery } from "./Gallery";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
+import DOMPurify from "isomorphic-dompurify";
 import { useState } from "react";
 
 type PortfolioClientProps = {
@@ -258,10 +259,12 @@ export default function PortfolioClient({
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: selectedWriting.content
-                      .split("\n")
-                      .map((p) => `<p>${p}</p>`)
-                      .join(""),
+                    __html: DOMPurify.sanitize(
+                      selectedWriting.content
+                        .split("\n")
+                        .map((p) => `<p>${p}</p>`)
+                        .join(""),
+                    ),
                   }}
                 />
               </div>

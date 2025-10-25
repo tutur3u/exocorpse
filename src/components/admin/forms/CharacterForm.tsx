@@ -7,7 +7,7 @@ import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
-import { deleteFile } from "@/lib/actions/storage";
+import { deleteCharacterGalleryImage, deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import {
   createCharacterGalleryItem,
@@ -371,6 +371,43 @@ export default function CharacterForm({
     }
 
     try {
+      // Delete images from storage first
+      const deletePromises: Promise<unknown>[] = [];
+
+      // Delete main image if it's a storage path
+      if (
+        item.image_url &&
+        !item.image_url.startsWith("http") &&
+        !item.image_url.startsWith("data:") &&
+        item.image_url.includes("characters/")
+      ) {
+        deletePromises.push(
+          deleteCharacterGalleryImage(item.image_url).catch((err) => {
+            console.error("Error deleting gallery image:", err);
+            return undefined;
+          }),
+        );
+      }
+
+      // Delete thumbnail if it's a storage path
+      if (
+        item.thumbnail_url &&
+        !item.thumbnail_url.startsWith("http") &&
+        !item.thumbnail_url.startsWith("data:") &&
+        item.thumbnail_url.includes("characters/")
+      ) {
+        deletePromises.push(
+          deleteCharacterGalleryImage(item.thumbnail_url).catch((err) => {
+            console.error("Error deleting gallery thumbnail:", err);
+            return undefined;
+          }),
+        );
+      }
+
+      // Wait for all storage deletions to complete
+      await Promise.all(deletePromises);
+
+      // Then delete from database
       await deleteCharacterGalleryItem(item.id);
       setGalleryItems((prev) => prev.filter((i) => i.id !== item.id));
       toast.success("Gallery item deleted");
@@ -1014,11 +1051,11 @@ export default function CharacterForm({
                     }
                     enableUpload={!!character}
                     onBeforeChange={handleDeleteOldImage}
-                    disableUrlInput={true}
+                    disableUrlInput={!!character}
                     helpText={
                       character
                         ? "Main character portrait - uploads to secure storage"
-                        : "Select an image - it will be uploaded to secure storage when you create the character"
+                        : "Enter an image URL. Upload will be available after creation."
                     }
                   />
 
@@ -1035,11 +1072,11 @@ export default function CharacterForm({
                     }
                     enableUpload={!!character}
                     onBeforeChange={handleDeleteOldImage}
-                    disableUrlInput={true}
+                    disableUrlInput={!!character}
                     helpText={
                       character
                         ? "Banner image for character page - uploads to secure storage"
-                        : "Select an image - it will be uploaded to secure storage when you create the character"
+                        : "Enter an image URL. Upload will be available after creation."
                     }
                   />
 

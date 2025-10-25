@@ -38,9 +38,19 @@ export default function GalleryItemForm({
 }: GalleryItemFormProps) {
   // Format date from database to YYYY-MM-DD
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "";
+    if (!dateString || dateString.length < 10) return "";
+
+    // If already in YYYY-MM-DD or ISO format, extract the date portion
+    if (dateString[4] === "-" && dateString[7] === "-") {
+      return dateString.slice(0, 10);
+    }
+
+    // Otherwise, parse and format using local date to avoid timezone skew
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   // Get form values from gallery item data
@@ -222,11 +232,11 @@ export default function GalleryItemForm({
                       ? `characters/${characterId}/gallery`
                       : undefined
                   }
-                  disableUrlInput={true}
+                  disableUrlInput={!!galleryItem}
                   helpText={
                     galleryItem
                       ? "Upload a new image to replace the current one"
-                      : "Image upload will be available after creation. Please save the gallery item first."
+                      : "Enter an image URL. Upload will be available after creation."
                   }
                 />
               </div>

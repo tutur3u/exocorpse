@@ -2,6 +2,7 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import DOMPurify from "isomorphic-dompurify";
 import type { Tables } from "../../../supabase/types";
 
 export type ArtPiece = Tables<"art_pieces">;
@@ -36,8 +37,7 @@ export async function getArtPieces() {
  * Fetch all art pieces including soft-deleted (admin only)
  */
 export async function getAllArtPiecesAdmin() {
-  await verifyAuth();
-  const supabase = await getSupabaseServer();
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("art_pieces")
@@ -202,8 +202,7 @@ export async function getWritingPieces() {
  * Fetch all writing pieces including soft-deleted (admin only)
  */
 export async function getAllWritingPiecesAdmin() {
-  await verifyAuth();
-  const supabase = await getSupabaseServer();
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("writing_pieces")
@@ -282,9 +281,12 @@ export async function createWritingPiece(writingPiece: {
 }) {
   const { supabase } = await verifyAuth();
 
+  // Sanitize content before saving
+  const sanitizedContent = DOMPurify.sanitize(writingPiece.content);
+
   const { data, error } = await supabase
     .from("writing_pieces")
-    .insert(writingPiece)
+    .insert({ ...writingPiece, content: sanitizedContent })
     .select()
     .single();
 
@@ -305,9 +307,14 @@ export async function updateWritingPiece(
 ) {
   const { supabase } = await verifyAuth();
 
+  // Sanitize content if it's being updated
+  const sanitizedUpdates = updates.content
+    ? { ...updates, content: DOMPurify.sanitize(updates.content) }
+    : updates;
+
   const { data, error } = await supabase
     .from("writing_pieces")
-    .update(updates)
+    .update(sanitizedUpdates)
     .eq("id", id)
     .select()
     .single();

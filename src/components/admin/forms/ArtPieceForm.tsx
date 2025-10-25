@@ -23,9 +23,13 @@ type ArtPieceFormData = {
   artist_url?: string;
 };
 
+type ArtPieceSubmitData = Omit<ArtPieceFormData, "tags"> & {
+  tags?: string[];
+};
+
 type ArtPieceFormProps = {
   artPiece?: ArtPiece;
-  onSubmit: (data: ArtPieceFormData) => Promise<void>;
+  onSubmit: (data: ArtPieceSubmitData) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -37,8 +41,22 @@ export default function ArtPieceForm({
   // Format date from database to YYYY-MM-DD
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "";
+
+    // If already in YYYY-MM-DD or ISO format, extract the date portion
+    if (
+      dateString.length >= 10 &&
+      dateString[4] === "-" &&
+      dateString[7] === "-"
+    ) {
+      return dateString.slice(0, 10);
+    }
+
+    // Otherwise, parse and format using local date to avoid timezone skew
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   // Get form values from art piece data
@@ -86,6 +104,13 @@ export default function ArtPieceForm({
     setError(null);
 
     try {
+      // Validate required image_url
+      if (!data.image_url || data.image_url.trim() === "") {
+        setError("Artwork image is required");
+        setLoading(false);
+        return;
+      }
+
       // Clean up empty strings to undefined
       const cleanData: ArtPieceFormData = cleanFormData(
         data,
@@ -110,7 +135,7 @@ export default function ArtPieceForm({
 
       await onSubmit({
         ...cleanData,
-        tags: tagsArray?.join(", "),
+        tags: tagsArray,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -162,7 +187,7 @@ export default function ArtPieceForm({
   };
 
   const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
+    if (e.key === "Escape" || e.key === "Enter") {
       e.preventDefault();
       handleExit(onCancel);
     }
@@ -239,11 +264,11 @@ export default function ArtPieceForm({
                   uploadPath={
                     artPiece ? `portfolio/art/${artPiece.id}` : undefined
                   }
-                  disableUrlInput={true}
+                  disableUrlInput={!!artPiece}
                   helpText={
                     artPiece
                       ? "Upload a new image to replace the current one"
-                      : "Image upload will be available after creation. Please save the artwork first."
+                      : "Enter an image URL. Upload will be available after creation."
                   }
                 />
               </div>

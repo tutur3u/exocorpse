@@ -20,9 +20,13 @@ type WritingPieceFormData = {
   word_count?: number;
 };
 
+type WritingPieceSubmitData = Omit<WritingPieceFormData, "tags"> & {
+  tags?: string[];
+};
+
 type WritingPieceFormProps = {
   writingPiece?: WritingPiece;
-  onSubmit: (data: WritingPieceFormData) => Promise<void>;
+  onSubmit: (data: WritingPieceSubmitData) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -34,8 +38,22 @@ export default function WritingPieceForm({
   // Format date from database to YYYY-MM-DD
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "";
+
+    // If already in YYYY-MM-DD or ISO format, extract the date portion
+    if (
+      dateString.length >= 10 &&
+      dateString[4] === "-" &&
+      dateString[7] === "-"
+    ) {
+      return dateString.slice(0, 10);
+    }
+
+    // Otherwise, parse and format using local date to avoid timezone skew
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   // Get form values from writing piece data
@@ -107,7 +125,7 @@ export default function WritingPieceForm({
 
       await onSubmit({
         ...cleanData,
-        tags: tagsArray?.join(", "),
+        tags: tagsArray,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

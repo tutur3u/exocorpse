@@ -38,6 +38,7 @@
     "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
     "@vercel/analytics": "^1.5.0",
     "howler": "^2.2.4",
+    "isomorphic-dompurify": "^2.30.1",
     "lucide-react": "^0.548.0",
     "next": "^16.0.0",
     "nuqs": "^2.7.2",

@@ -65,8 +65,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = ${{ steps.check-existing-pr.outputs.pr_number }};
-            const branchName = `fix/prettier-formatting-${{ github.ref_name }}`;
+            const prNumber = parseInt('${{ steps.check-existing-pr.outputs.pr_number }}');
+            const branchName = 'fix/prettier-formatting-${{ github.ref_name }}';
 
             // Close the PR
             await github.rest.pulls.update({
