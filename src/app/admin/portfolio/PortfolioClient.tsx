@@ -203,7 +203,7 @@ export default function PortfolioClient({
           <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("art")}
-              className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium ${
+              className={`border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap ${
                 activeTab === "art"
                   ? "border-blue-500 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -213,7 +213,7 @@ export default function PortfolioClient({
             </button>
             <button
               onClick={() => setActiveTab("writing")}
-              className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium ${
+              className={`border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap ${
                 activeTab === "writing"
                   ? "border-blue-500 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"

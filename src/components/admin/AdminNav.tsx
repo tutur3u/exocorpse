@@ -96,9 +96,7 @@ export default function AdminNav() {
           >
             <button
               type="button"
-              onClick={() =>
-                setOpenDropdown(isOpen ? null : section.label)
-              }
+              onClick={() => setOpenDropdown(isOpen ? null : section.label)}
               className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
                   ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
@@ -127,7 +125,7 @@ export default function AdminNav() {
             </button>
 
             {isOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+              <div className="absolute top-full left-0 z-50 mt-1 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                 {section.items.map((item) => {
                   const itemActive = isActive(item.href, item.exact);
                   return (

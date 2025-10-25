@@ -14,8 +14,9 @@ export default function PortfolioClient({
   writingPieces,
 }: PortfolioClientProps) {
   const [activeTab, setActiveTab] = useState<"writing" | "art">("art");
-  const [selectedWriting, setSelectedWriting] =
-    useState<WritingPiece | null>(null);
+  const [selectedWriting, setSelectedWriting] = useState<WritingPiece | null>(
+    null,
+  );
 
   // Filter controls
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
