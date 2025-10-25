@@ -3,6 +3,7 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
+import Image from "next/image";
 import { useState } from "react";
 import { MasonryGallery } from "./Gallery";
 
@@ -221,14 +222,20 @@ export default function PortfolioClient({
                 </button>
                 <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                   <div className="flex items-center justify-center rounded-t-lg bg-gray-100 p-8 dark:bg-gray-900">
-                    <img
-                      src={
-                        artImageUrls.get(selectedArt.image_url) ||
-                        selectedArt.image_url
-                      }
-                      alt={selectedArt.title}
-                      className="max-h-[70vh] w-auto rounded-lg object-contain"
-                    />
+                    <div className="relative max-h-[70vh] w-full">
+                      <Image
+                        src={
+                          artImageUrls.get(selectedArt.image_url) ||
+                          selectedArt.image_url
+                        }
+                        alt={selectedArt.title}
+                        width={800}
+                        height={600}
+                        className="max-h-[70vh] w-auto rounded-lg"
+                        style={{ objectFit: "contain" }}
+                        unoptimized
+                      />
+                    </div>
                   </div>
                   <div className="p-6">
                     <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -319,14 +326,16 @@ export default function PortfolioClient({
                 </button>
                 <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                   {selectedWriting.cover_image && (
-                    <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-gray-100 dark:bg-gray-700">
-                      <img
+                    <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gray-100 dark:bg-gray-700">
+                      <Image
                         src={
                           writingImageUrls.get(selectedWriting.cover_image) ||
                           selectedWriting.cover_image
                         }
                         alt={selectedWriting.title}
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
+                        unoptimized
                       />
                     </div>
                   )}
@@ -378,14 +387,16 @@ export default function PortfolioClient({
                     onClick={() => setSelectedWriting(writing)}
                   >
                     {writing.cover_image && (
-                      <div className="aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <img
+                      <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <Image
                           src={
                             writingImageUrls.get(writing.cover_image) ||
                             writing.cover_image
                           }
                           alt={writing.title}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          fill
+                          className="object-cover transition-transform group-hover:scale-105"
+                          unoptimized
                         />
                       </div>
                     )}

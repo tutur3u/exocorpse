@@ -26,6 +26,10 @@ self.onmessage = async (e) => {
       width = height * aspectRatio;
     }
 
+    // Round dimensions to avoid subpixel blurring
+    width = Math.round(width);
+    height = Math.round(height);
+
     // Use OffscreenCanvas for better performance
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext("2d", {
@@ -44,28 +48,24 @@ self.onmessage = async (e) => {
     // Draw image
     ctx.drawImage(img, 0, 0, width, height);
 
+    // Close bitmap to release resources
+    img.close();
+
     // Convert to blob with compression
     const blob = await canvas.convertToBlob({
       type: options.outputFormat,
       quality: options.quality,
     });
 
-    // Convert blob to data URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      self.postMessage({
+    // Post blob as transferable to avoid copying
+    self.postMessage(
+      {
         success: true,
-        dataUrl: reader.result,
+        blob,
         size: blob.size,
-      });
-    };
-    reader.onerror = () => {
-      self.postMessage({
-        success: false,
-        error: "Failed to convert blob to data URL",
-      });
-    };
-    reader.readAsDataURL(blob);
+      },
+      [blob],
+    );
   } catch (error) {
     self.postMessage({
       success: false,

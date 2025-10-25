@@ -412,12 +412,14 @@ export default function PortfolioClient({
                       <div className="flex items-start gap-4 p-4">
                         {writing.cover_image && (
                           <div className="shrink-0">
-                            <img
-                              src={
-                                writingImageUrls.get(writing.cover_image) ||
-                                writing.cover_image
-                              }
+                            <StorageImage
+                              src={writing.cover_image}
+                              signedUrl={writingImageUrls.get(
+                                writing.cover_image,
+                              )}
                               alt={writing.title}
+                              width={128}
+                              height={96}
                               className="h-24 w-32 rounded object-cover"
                             />
                           </div>

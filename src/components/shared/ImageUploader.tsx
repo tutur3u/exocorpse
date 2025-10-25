@@ -54,12 +54,16 @@ export default function ImageUploader({
     };
   }, [objectUrl]);
 
-  // Check if the value is a relative storage path (not a full URL or data URL)
+  // Check if the value is a pending sentinel
+  const isPending = typeof value === "string" && value.startsWith("pending:");
+
+  // Check if the value is a relative storage path (not a full URL, data URL, or pending sentinel)
   const isStoragePath =
     value &&
     !value.startsWith("http://") &&
     !value.startsWith("https://") &&
-    !value.startsWith("data:");
+    !value.startsWith("data:") &&
+    !isPending;
 
   // Use the hook to get the signed URL if it's a storage path
   const { signedUrl: displayUrl, loading: urlLoading } = useStorageUrl(
@@ -67,11 +71,12 @@ export default function ImageUploader({
   );
 
   // Determine which URL to display (prioritize object URL for pending files)
+  // Ignore preview/displayUrl for pending sentinels
   const imagePreviewUrl =
     objectUrl ||
-    displayUrl ||
-    preview ||
-    (isStoragePath ? null : value) ||
+    (!isPending && displayUrl) ||
+    (!isPending && preview) ||
+    (isStoragePath ? null : isPending ? null : value) ||
     null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,6 +164,13 @@ export default function ImageUploader({
 
           setPendingFile(null);
           setUploadProgress("Complete!");
+
+          // Clean up object URL to free memory
+          if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+            setObjectUrl(null);
+          }
+
           setTimeout(() => {
             setUploading(false);
             setUploadProgress(null);

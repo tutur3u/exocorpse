@@ -44,8 +44,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const createMutation = useMutation({
     mutationFn: createStory,
     onSuccess: () => {
-      // Don't close form here - onComplete will handle it after uploads finish
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      // Don't invalidate here - handleComplete will do it after uploads finish
+      // to avoid redundant refetches and UI flicker
     },
     onError: (error) => {
       toastWithSound.error(`Failed to create story: ${error.message}`);
@@ -61,8 +61,8 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
       data: Parameters<typeof updateStory>[1];
     }) => updateStory(id, data),
     onSuccess: () => {
-      // Don't close form here - onComplete will handle it after uploads finish
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      // Don't invalidate here - handleComplete will do it after uploads finish
+      // to avoid redundant refetches and UI flicker
     },
     onError: (error) => {
       toastWithSound.error(`Failed to update story: ${error.message}`);

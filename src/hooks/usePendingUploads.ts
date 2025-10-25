@@ -3,7 +3,10 @@
  */
 
 import { useState } from "react";
-import { uploadPendingFile } from "@/lib/uploadHelpers";
+import {
+  uploadPendingFiles as uploadPendingFilesBulk,
+  type PendingUpload,
+} from "@/lib/uploadHelpers";
 
 interface PendingFile {
   file: File;
@@ -36,18 +39,27 @@ export function usePendingUploads() {
     if (pendingFiles.size === 0) return true;
 
     try {
+      setUploadProgress(
+        `Uploading ${pendingFiles.size} file${pendingFiles.size > 1 ? "s" : ""}...`,
+      );
+
+      // Build array of uploads for bulk helper
+      const uploads: PendingUpload[] = Array.from(pendingFiles.entries()).map(
+        ([fieldName, file]) => ({
+          fieldName,
+          file,
+          uploadPath: basePath,
+        }),
+      );
+
+      // Use bulk helper to upload all files concurrently
+      const pathMap = await uploadPendingFilesBulk(uploads);
+
+      // Convert Map to Record for updateFn
       const updates: Record<string, string> = {};
-      const fileEntries = Array.from(pendingFiles.entries());
-
-      for (let i = 0; i < fileEntries.length; i++) {
-        const [fieldName, file] = fileEntries[i];
-        setUploadProgress(
-          `Uploading ${fieldName} (${i + 1}/${fileEntries.length})...`,
-        );
-
-        const uploadedPath = await uploadPendingFile(file, basePath);
-        updates[fieldName] = uploadedPath;
-      }
+      pathMap.forEach((path, fieldName) => {
+        updates[fieldName] = path;
+      });
 
       setUploadProgress("Updating entity...");
       await updateFn(updates);

@@ -76,7 +76,16 @@ async function compressImageWithWorker(
       worker.onmessage = (e) => {
         worker.terminate();
         if (e.data.success) {
-          resolve(e.data.dataUrl);
+          // Worker now returns a blob instead of dataUrl
+          // Convert blob to data URL for compatibility
+          const blobReader = new FileReader();
+          blobReader.onloadend = () => {
+            resolve(blobReader.result as string);
+          };
+          blobReader.onerror = () => {
+            reject(new Error("Failed to convert blob to data URL"));
+          };
+          blobReader.readAsDataURL(e.data.blob);
         } else {
           reject(new Error(e.data.error));
         }

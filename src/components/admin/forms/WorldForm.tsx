@@ -253,7 +253,11 @@ export default function WorldForm({
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {/* Error Display */}
               {error && (
-                <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                <div
+                  className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+                  role="alert"
+                  aria-live="assertive"
+                >
                   <p className="text-sm text-red-800 dark:text-red-200">
                     {error}
                   </p>
@@ -510,13 +514,6 @@ export default function WorldForm({
                 </div>
               )}
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="mx-6 mb-4 rounded bg-red-100 p-3 text-sm text-red-700 dark:bg-red-900 dark:text-red-200">
-                {error}
-              </div>
-            )}
 
             {/* Form Actions */}
             <div className="flex justify-end gap-2 border-t border-gray-300 px-6 py-4 dark:border-gray-600">
