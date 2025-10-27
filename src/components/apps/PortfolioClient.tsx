@@ -1,7 +1,7 @@
 "use client";
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
-import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
+import { useInitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 import Image from "next/image";
@@ -12,13 +12,13 @@ import { MasonryGallery } from "./Gallery";
 type PortfolioClientProps = {
   artPieces: ArtPiece[];
   writingPieces: WritingPiece[];
-  initialData: InitialPortfolioData;
+  onNavigateToGallery?: () => void;
 };
 
 export default function PortfolioClient({
   artPieces,
   writingPieces,
-  initialData,
+  onNavigateToGallery,
 }: PortfolioClientProps) {
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
@@ -32,20 +32,52 @@ export default function PortfolioClient({
     },
   );
 
+  // Get initial data from context (server-side fetched data)
+  const initialData = useInitialPortfolioData();
+
+  console.log("PortfolioClient params:", params);
+  console.log(
+    "PortfolioClient initialData:",
+    initialData.selectedArtPiece,
+    initialData.selectedWritingPiece,
+  );
+
   // Initialize state from params or defaults
   const activeTab = (params["portfolio-tab"] ?? "art") as "art" | "writing";
   const selectedPieceId = params["portfolio-piece"];
 
   // Find selected pieces based on URL params
+  // First try to use server-fetched data, then fall back to client data
   const selectedArt = useMemo(() => {
     if (!selectedPieceId || activeTab !== "art") return null;
+    // Prefer server-fetched data if available and matches
+    if (
+      initialData.selectedArtPiece &&
+      initialData.selectedArtPiece.slug === selectedPieceId
+    ) {
+      return initialData.selectedArtPiece;
+    }
+    // Fall back to searching in the gallery list
     return artPieces.find((a) => a.slug === selectedPieceId) ?? null;
-  }, [selectedPieceId, activeTab, artPieces]);
+  }, [selectedPieceId, activeTab, artPieces, initialData.selectedArtPiece]);
 
   const selectedWriting = useMemo(() => {
     if (!selectedPieceId || activeTab !== "writing") return null;
+    // Prefer server-fetched data if available and matches
+    if (
+      initialData.selectedWritingPiece &&
+      initialData.selectedWritingPiece.slug === selectedPieceId
+    ) {
+      return initialData.selectedWritingPiece;
+    }
+    // Fall back to searching in the gallery list
     return writingPieces.find((w) => w.slug === selectedPieceId) ?? null;
-  }, [selectedPieceId, activeTab, writingPieces]);
+  }, [
+    selectedPieceId,
+    activeTab,
+    writingPieces,
+    initialData.selectedWritingPiece,
+  ]);
 
   // Filter controls
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -83,10 +115,12 @@ export default function PortfolioClient({
   const filteredWritingPieces = filterItems(writingPieces);
 
   // Batch fetch signed URLs for art images
-  const artImagePaths = artPieces.flatMap((art) => [
-    art.image_url,
-    art.thumbnail_url,
-  ]);
+  // Include both gallery pieces and the selected art piece
+  const artImagePaths = [
+    ...artPieces.flatMap((art) => [art.image_url, art.thumbnail_url]),
+    ...(selectedArt ? [selectedArt.image_url, selectedArt.thumbnail_url] : []),
+  ];
+
   const filteredArtImagePaths = artImagePaths.filter(
     (p): p is string => !!p && !p.startsWith("http"),
   );
@@ -95,10 +129,16 @@ export default function PortfolioClient({
   );
 
   // Batch fetch signed URLs for writing cover images
-  const writingImagePaths = writingPieces.flatMap((writing) => [
-    writing.cover_image,
-    writing.thumbnail_url,
-  ]);
+  // Include both gallery pieces and the selected writing piece
+  const writingImagePaths = [
+    ...writingPieces.flatMap((writing) => [
+      writing.cover_image,
+      writing.thumbnail_url,
+    ]),
+    ...(selectedWriting
+      ? [selectedWriting.cover_image, selectedWriting.thumbnail_url]
+      : []),
+  ];
   const filteredWritingImagePaths = writingImagePaths.filter(
     (p): p is string => !!p && !p.startsWith("http"),
   );
@@ -231,11 +271,12 @@ export default function PortfolioClient({
               /* Artwork Detail View */
               <div className="space-y-4">
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    onNavigateToGallery?.();
                     setParams({
                       "portfolio-piece": null,
-                    })
-                  }
+                    });
+                  }}
                   className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
                 >
                   <svg
@@ -300,7 +341,7 @@ export default function PortfolioClient({
                         )}
                         {selectedArt.year && <span>{selectedArt.year}</span>}
                         {selectedArt.tags &&
-                          selectedArt.tags.map((tag) => (
+                          selectedArt.tags.map((tag: string) => (
                             <span
                               key={tag}
                               className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
@@ -342,11 +383,12 @@ export default function PortfolioClient({
               /* Writing Detail View */
               <div className="space-y-4">
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    onNavigateToGallery?.();
                     setParams({
                       "portfolio-piece": null,
-                    })
-                  }
+                    });
+                  }}
                   className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
                 >
                   <svg
@@ -392,7 +434,7 @@ export default function PortfolioClient({
                           <span>{selectedWriting.word_count} words</span>
                         )}
                         {selectedWriting.tags &&
-                          selectedWriting.tags.map((tag) => (
+                          selectedWriting.tags.map((tag: string) => (
                             <span
                               key={tag}
                               className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"

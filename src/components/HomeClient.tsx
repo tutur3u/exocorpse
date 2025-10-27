@@ -65,11 +65,8 @@ export default function HomeClient({
   }
 
   const Component = isMobile ? MobileLayout : Desktop;
-  const Wrapper = isMobile
-    ? ({ children }: { children: React.ReactNode }) => <>{children}</>
-    : WindowProvider;
-
-  const commonProps = {
+  type WindowProviderProps = React.ComponentProps<typeof WindowProvider>;
+  const commonProps: Omit<WindowProviderProps, "children"> = {
     wikiParams,
     blogParams,
     commissionParams,
@@ -81,9 +78,13 @@ export default function HomeClient({
       <InitialCommissionDataProvider value={initialCommissionData}>
         <InitialBlogDataProvider initialData={initialBlogData}>
           <InitialWikiDataProvider initialData={initialWikiData}>
-            <Wrapper {...commonProps}>
-              <Component {...commonProps} />
-            </Wrapper>
+            {isMobile ? (
+              <MobileLayout {...commonProps} />
+            ) : (
+              <WindowProvider {...commonProps}>
+                <Desktop />
+              </WindowProvider>
+            )}
           </InitialWikiDataProvider>
         </InitialBlogDataProvider>
       </InitialCommissionDataProvider>

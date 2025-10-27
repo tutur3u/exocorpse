@@ -9,7 +9,12 @@ import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
-import { getArtPieces, getWritingPieces } from "@/lib/actions/portfolio";
+import {
+  getArtPieceBySlug,
+  getArtPieces,
+  getWritingPieceBySlug,
+  getWritingPieces,
+} from "@/lib/actions/portfolio";
 import type { Character, Story } from "@/lib/actions/wiki";
 import {
   getCharacterBySlug,
@@ -17,7 +22,6 @@ import {
   getCharacterFactions,
   getCharacterGallery,
   getCharacterOutfits,
-  getCharactersByStorySlug,
   getCharactersByWorldSlug,
   getCharacterWorlds,
   getFactionBySlug,
@@ -273,25 +277,46 @@ async function HomeContent({
   };
 
   // Fetch initial portfolio data based on params
-  const [artPieces, writingPieces] = await Promise.all([
-    getArtPieces(),
-    getWritingPieces(),
-  ]);
+  let artPieces: Awaited<ReturnType<typeof getArtPieces>> = [];
+  let writingPieces: Awaited<ReturnType<typeof getWritingPieces>> = [];
+  let selectedArtPiece: Awaited<ReturnType<typeof getArtPieceBySlug>> = null;
+  let selectedWritingPiece: Awaited<ReturnType<typeof getWritingPieceBySlug>> =
+    null;
 
-  const selectedArtPiece =
-    portfolioParams["portfolio-tab"] === "art" &&
-    portfolioParams["portfolio-piece"]
-      ? (artPieces.find((p) => p.slug === portfolioParams["portfolio-piece"]) ??
-        null)
-      : null;
-
-  const selectedWritingPiece =
-    portfolioParams["portfolio-tab"] === "writing" &&
-    portfolioParams["portfolio-piece"]
-      ? (writingPieces.find(
-          (p) => p.slug === portfolioParams["portfolio-piece"],
-        ) ?? null)
-      : null;
+  if (portfolioParams["portfolio-piece"]) {
+    // If we have a specific piece slug, fetch only that piece and infer tab if needed
+    if (portfolioParams["portfolio-tab"] === "art") {
+      selectedArtPiece = await getArtPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+    } else if (portfolioParams["portfolio-tab"] === "writing") {
+      selectedWritingPiece = await getWritingPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+    } else if (!portfolioParams["portfolio-tab"]) {
+      // Tab is missing, need to infer - try art first, then writing
+      const artPiece = await getArtPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+      if (artPiece) {
+        selectedArtPiece = artPiece;
+        portfolioParams["portfolio-tab"] = "art";
+      } else {
+        selectedWritingPiece = await getWritingPieceBySlug(
+          portfolioParams["portfolio-piece"],
+        );
+        if (selectedWritingPiece) {
+          portfolioParams["portfolio-tab"] = "writing";
+        }
+      }
+    }
+  } else {
+    // No specific piece requested, fetch all pieces for the portfolio list
+    [artPieces, writingPieces] = await Promise.all([
+      getArtPieces(),
+      getWritingPieces(),
+    ]);
+  }
 
   const initialPortfolioData: InitialPortfolioData = {
     artPieces,
@@ -391,12 +416,14 @@ async function HomeContent({
       initialWikiData.characters = characters;
       initialWikiData.factions = factions;
 
-      // If a specific character is selected, pre-fetch all its detail data
+      // If a specific character is selected, fetch only that character
       if (wikiParams.character) {
-        const selectedCharacter = characters.find(
-          (c: Character) => c.slug === wikiParams.character,
+        const selectedCharacter = await getCharacterBySlug(
+          wikiParams.story,
+          wikiParams.world,
+          wikiParams.character,
         );
-        if (selectedCharacter) {
+        if (selectedCharacter && selectedCharacter.id) {
           const [gallery, outfits, factions, worlds] = await Promise.all([
             getCharacterGallery(selectedCharacter.id),
             getCharacterOutfits(selectedCharacter.id),
@@ -413,16 +440,14 @@ async function HomeContent({
         }
       }
     } else if (wikiParams.character) {
-      // Fetch all characters in story if character is selected without world
-      initialWikiData.characters = await getCharactersByStorySlug(
+      // Fetch specific character directly without fetching all characters
+      const selectedCharacter = await getCharacterBySlugInStory(
         wikiParams.story,
+        wikiParams.character,
       );
+      if (selectedCharacter && selectedCharacter.id) {
+        initialWikiData.characters = [selectedCharacter as Character];
 
-      // Pre-fetch character detail data for character viewed without world
-      const selectedCharacter = initialWikiData.characters.find(
-        (c: Character) => c.slug === wikiParams.character,
-      );
-      if (selectedCharacter) {
         const [gallery, outfits, factions, worlds] = await Promise.all([
           getCharacterGallery(selectedCharacter.id),
           getCharacterOutfits(selectedCharacter.id),

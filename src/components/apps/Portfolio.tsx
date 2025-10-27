@@ -3,16 +3,23 @@
 import { useInitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import { getArtPieces, getWritingPieces } from "@/lib/actions/portfolio";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import PortfolioClient from "./PortfolioClient";
 
 export default function Portfolio() {
   const initialData = useInitialPortfolioData();
+  // Track if user has navigated to gallery view (back from detail)
+  const [viewingGallery, setViewingGallery] = useState(
+    initialData.artPieces.length > 0 || initialData.writingPieces.length > 0,
+  );
 
   const { data: artPieces = [], isLoading: isLoadingArt } = useQuery({
     queryKey: ["portfolio", "art"],
     queryFn: getArtPieces,
     initialData:
       initialData.artPieces.length > 0 ? initialData.artPieces : undefined,
+    // Only enable query if viewing gallery or already have data
+    enabled: viewingGallery || initialData.artPieces.length > 0,
   });
 
   const { data: writingPieces = [], isLoading: isLoadingWriting } = useQuery({
@@ -22,9 +29,11 @@ export default function Portfolio() {
       initialData.writingPieces.length > 0
         ? initialData.writingPieces
         : undefined,
+    // Only enable query if viewing gallery or already have data
+    enabled: viewingGallery || initialData.writingPieces.length > 0,
   });
 
-  const loading = isLoadingArt || isLoadingWriting;
+  const loading = viewingGallery && (isLoadingArt || isLoadingWriting);
 
   if (loading) {
     return (
@@ -43,7 +52,7 @@ export default function Portfolio() {
     <PortfolioClient
       artPieces={artPieces}
       writingPieces={writingPieces}
-      initialData={initialData}
+      onNavigateToGallery={() => setViewingGallery(true)}
     />
   );
 }
