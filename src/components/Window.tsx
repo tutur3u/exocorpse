@@ -28,7 +28,7 @@ export default function Window({ id, title, children }: WindowProps) {
 
   const { playSound } = useSound();
 
-  // Set up params clearing for wiki and commission windows
+  // Set up params clearing for wiki, commission, and portfolio windows
   const [, setParams] = useQueryStates(
     {
       story: parseAsString,
@@ -38,6 +38,10 @@ export default function Window({ id, title, children }: WindowProps) {
       "commission-tab": parseAsString,
       "blacklist-page": parseAsString,
       "blacklist-page-size": parseAsString,
+      "portfolio-tab": parseAsString,
+      "portfolio-piece": parseAsString,
+      "story-tab": parseAsString,
+      "faction-tab": parseAsString,
     },
     {
       shallow: true,
@@ -185,6 +189,8 @@ export default function Window({ id, title, children }: WindowProps) {
         world: null,
         character: null,
         faction: null,
+        "story-tab": null,
+        "faction-tab": null,
       });
     }
 
@@ -194,6 +200,14 @@ export default function Window({ id, title, children }: WindowProps) {
         "commission-tab": null,
         "blacklist-page": null,
         "blacklist-page-size": null,
+      });
+    }
+
+    // If closing the portfolio window, clear portfolio search params
+    if (id === "portfolio") {
+      setParams({
+        "portfolio-tab": null,
+        "portfolio-piece": null,
       });
     }
 
