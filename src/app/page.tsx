@@ -2,12 +2,14 @@ import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
+import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
 import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import { getArtPieces, getWritingPieces } from "@/lib/actions/portfolio";
 import type { Character, Story } from "@/lib/actions/wiki";
 import {
   getCharacterBySlug,
@@ -30,6 +32,7 @@ import {
   serializeBlogSearchParams,
 } from "@/lib/blog-search-params";
 import { loadCommissionSearchParams } from "@/lib/commission-search-params";
+import { loadPortfolioSearchParams } from "@/lib/portfolio-search-params";
 import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
@@ -213,16 +216,19 @@ async function HomeContent({
   wikiParamsData,
   blogParamsData,
   commissionParamsData,
+  portfolioParamsData,
 }: {
   wikiParamsData: Awaited<ReturnType<typeof loadWikiSearchParams>>;
   blogParamsData: Awaited<ReturnType<typeof loadBlogSearchParams>>;
   commissionParamsData: Awaited<ReturnType<typeof loadCommissionSearchParams>>;
+  portfolioParamsData: Awaited<ReturnType<typeof loadPortfolioSearchParams>>;
 }) {
   const DEFAULT_PAGE_SIZE = 10;
 
   const wikiParams = wikiParamsData;
   const blogParams = blogParamsData;
   const commissionParams = commissionParamsData;
+  const portfolioParams = portfolioParamsData;
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -266,8 +272,34 @@ async function HomeContent({
     blacklistPageSize: blacklistData.pageSize,
   };
 
-  // Only fetch data server-side if user has params (navigating to content)
-  // Otherwise, client-side fetching is fine (root visit with no params)
+  // Fetch initial portfolio data based on params
+  const [artPieces, writingPieces] = await Promise.all([
+    getArtPieces(),
+    getWritingPieces(),
+  ]);
+
+  const selectedArtPiece =
+    portfolioParams["portfolio-tab"] === "art" &&
+    portfolioParams["portfolio-piece"]
+      ? (artPieces.find((p) => p.slug === portfolioParams["portfolio-piece"]) ??
+        null)
+      : null;
+
+  const selectedWritingPiece =
+    portfolioParams["portfolio-tab"] === "writing" &&
+    portfolioParams["portfolio-piece"]
+      ? (writingPieces.find(
+          (p) => p.slug === portfolioParams["portfolio-piece"],
+        ) ?? null)
+      : null;
+
+  const initialPortfolioData: InitialPortfolioData = {
+    artPieces,
+    writingPieces,
+    selectedArtPiece,
+    selectedWritingPiece,
+    params: portfolioParams,
+  };
   const hasWikiParams = !!(
     wikiParams.story ||
     wikiParams.world ||
@@ -413,9 +445,11 @@ async function HomeContent({
       wikiParams={wikiParams}
       blogParams={blogParams}
       commissionParams={commissionParams}
+      portfolioParams={portfolioParams}
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
+      initialPortfolioData={initialPortfolioData}
     />
   );
 }
@@ -433,6 +467,7 @@ async function HomeContentWrapper({
   const wikiParamsData = await loadWikiSearchParams(searchParams);
   const blogParamsData = await loadBlogSearchParams(searchParams);
   const commissionParamsData = await loadCommissionSearchParams(searchParams);
+  const portfolioParamsData = await loadPortfolioSearchParams(searchParams);
 
   // Pass resolved params to cached component
   return (
@@ -440,6 +475,7 @@ async function HomeContentWrapper({
       wikiParamsData={wikiParamsData}
       blogParamsData={blogParamsData}
       commissionParamsData={commissionParamsData}
+      portfolioParamsData={portfolioParamsData}
     />
   );
 }

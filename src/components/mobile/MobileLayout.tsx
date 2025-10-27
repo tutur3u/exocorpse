@@ -3,6 +3,7 @@
 import { MobileProvider } from "@/contexts/MobileContext";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import DesktopNoticeBanner from "./DesktopNoticeBanner";
 import MobileBottomSheet from "./MobileBottomSheet";
@@ -11,18 +12,21 @@ type MobileLayoutProps = {
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
   commissionParams: CommissionSearchParams;
+  portfolioParams: PortfolioSearchParams;
 };
 
 export default function MobileLayout({
   wikiParams,
   blogParams,
   commissionParams,
+  portfolioParams,
 }: MobileLayoutProps) {
   return (
     <MobileProvider
       wikiParams={wikiParams}
       blogParams={blogParams}
       commissionParams={commissionParams}
+      portfolioParams={portfolioParams}
     >
       <div className="relative h-screen w-screen overflow-hidden bg-linear-to-br from-purple-900 via-blue-900 to-indigo-900">
         {/* Desktop Notice Banner */}

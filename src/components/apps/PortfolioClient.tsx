@@ -1,26 +1,51 @@
 "use client";
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 import Image from "next/image";
-import { useState } from "react";
+import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
+import { useMemo, useState } from "react";
 import { MasonryGallery } from "./Gallery";
 
 type PortfolioClientProps = {
   artPieces: ArtPiece[];
   writingPieces: WritingPiece[];
+  initialData: InitialPortfolioData;
 };
 
 export default function PortfolioClient({
   artPieces,
   writingPieces,
+  initialData,
 }: PortfolioClientProps) {
-  const [activeTab, setActiveTab] = useState<"writing" | "art">("art");
-  const [selectedWriting, setSelectedWriting] = useState<WritingPiece | null>(
-    null,
+  // Use nuqs for URL state management
+  const [params, setParams] = useQueryStates(
+    {
+      "portfolio-tab": parseAsStringLiteral(["art", "writing"] as const),
+      "portfolio-piece": parseAsString,
+    },
+    {
+      shallow: true,
+      history: "push",
+    },
   );
-  const [selectedArt, setSelectedArt] = useState<ArtPiece | null>(null);
+
+  // Initialize state from params or defaults
+  const activeTab = (params["portfolio-tab"] ?? "art") as "art" | "writing";
+  const selectedPieceId = params["portfolio-piece"];
+
+  // Find selected pieces based on URL params
+  const selectedArt = useMemo(() => {
+    if (!selectedPieceId || activeTab !== "art") return null;
+    return artPieces.find((a) => a.slug === selectedPieceId) ?? null;
+  }, [selectedPieceId, activeTab, artPieces]);
+
+  const selectedWriting = useMemo(() => {
+    if (!selectedPieceId || activeTab !== "writing") return null;
+    return writingPieces.find((w) => w.slug === selectedPieceId) ?? null;
+  }, [selectedPieceId, activeTab, writingPieces]);
 
   // Filter controls
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -106,8 +131,10 @@ export default function PortfolioClient({
               : "hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
           onClick={() => {
-            setActiveTab("art");
-            setSelectedWriting(null);
+            setParams({
+              "portfolio-tab": "art",
+              "portfolio-piece": null,
+            });
           }}
         >
           Art ({artPieces.length})
@@ -119,8 +146,10 @@ export default function PortfolioClient({
               : "hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
           onClick={() => {
-            setActiveTab("writing");
-            setSelectedArt(null);
+            setParams({
+              "portfolio-tab": "writing",
+              "portfolio-piece": null,
+            });
           }}
         >
           Writing ({writingPieces.length})
@@ -202,7 +231,11 @@ export default function PortfolioClient({
               /* Artwork Detail View */
               <div className="space-y-4">
                 <button
-                  onClick={() => setSelectedArt(null)}
+                  onClick={() =>
+                    setParams({
+                      "portfolio-piece": null,
+                    })
+                  }
                   className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
                 >
                   <svg
@@ -295,7 +328,10 @@ export default function PortfolioClient({
                 images={galleryImages}
                 onImageClick={(image) => {
                   const art = filteredArtPieces.find((a) => a.id === image.id);
-                  if (art) setSelectedArt(art);
+                  if (art)
+                    setParams({
+                      "portfolio-piece": art.slug,
+                    });
                 }}
               />
             )}
@@ -306,7 +342,11 @@ export default function PortfolioClient({
               /* Writing Detail View */
               <div className="space-y-4">
                 <button
-                  onClick={() => setSelectedWriting(null)}
+                  onClick={() =>
+                    setParams({
+                      "portfolio-piece": null,
+                    })
+                  }
                   className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
                 >
                   <svg
@@ -384,7 +424,11 @@ export default function PortfolioClient({
                   <div
                     key={writing.id}
                     className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
-                    onClick={() => setSelectedWriting(writing)}
+                    onClick={() =>
+                      setParams({
+                        "portfolio-piece": writing.slug,
+                      })
+                    }
                   >
                     {writing.cover_image && (
                       <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
