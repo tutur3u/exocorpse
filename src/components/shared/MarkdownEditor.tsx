@@ -1,5 +1,7 @@
 import { useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 
 type MarkdownEditorProps = {
@@ -66,6 +68,9 @@ export const markdownComponents: Components = {
   ),
   em: ({ children }) => (
     <em className="text-gray-800 italic dark:text-gray-200">{children}</em>
+  ),
+  ins: ({ children }) => (
+    <ins className="text-gray-900 underline dark:text-gray-100">{children}</ins>
   ),
   code: ({ children, className: codeClassName }) => {
     const isBlock = codeClassName?.startsWith("language-");
@@ -206,7 +211,7 @@ export default function MarkdownEditor({
       {activeTab === "write" && (
         <div>
           {/* Toolbar */}
-          <div className="mb-2 flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
+          <div className="flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
             <button
               type="button"
               onClick={() => insertMarkdown("# ", "")}
@@ -256,6 +261,14 @@ export default function MarkdownEditor({
             >
               {"<>"}
             </button>
+            <button
+              type="button"
+              onClick={() => insertMarkdown("<ins>", "</ins>")}
+              className="rounded px-2 py-1 text-sm underline hover:bg-gray-200 dark:hover:bg-gray-700"
+              title="Underline"
+            >
+              U
+            </button>
             <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
             <button
               type="button"
@@ -297,6 +310,7 @@ export default function MarkdownEditor({
           {value ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
               components={markdownComponents}
             >
               {value}
@@ -308,18 +322,19 @@ export default function MarkdownEditor({
           )}
         </div>
       )}
+      <div className="mt-2 flex justify-between">
+        {/* Help Text */}
+        {helpText && (
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {helpText}
+          </p>
+        )}
 
-      {/* Help Text */}
-      {helpText && (
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {helpText}
+        {/* Character count */}
+        <p className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
+          {value.length} characters
         </p>
-      )}
-
-      {/* Character count */}
-      <p className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
-        {value.length} characters
-      </p>
+      </div>
     </div>
   );
 }
