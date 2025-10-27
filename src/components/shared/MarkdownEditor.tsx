@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 
 type MarkdownEditorProps = {
@@ -309,7 +310,7 @@ export default function MarkdownEditor({
           {value ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw, rehypeSanitize]}
               components={markdownComponents}
             >
               {value}

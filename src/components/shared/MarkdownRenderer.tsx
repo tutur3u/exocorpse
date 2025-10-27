@@ -1,8 +1,9 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 import { markdownComponents } from "./MarkdownEditor";
 
 type MarkdownRendererProps = {
@@ -22,7 +23,7 @@ export default function MarkdownRenderer({
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={markdownComponents}
       >
         {content}
