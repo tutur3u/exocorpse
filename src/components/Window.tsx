@@ -42,6 +42,8 @@ export default function Window({ id, title, children }: WindowProps) {
       "portfolio-piece": parseAsString,
       "story-tab": parseAsString,
       "faction-tab": parseAsString,
+      "character-tab": parseAsString,
+      "world-tab": parseAsString,
     },
     {
       shallow: true,
@@ -191,6 +193,8 @@ export default function Window({ id, title, children }: WindowProps) {
         faction: null,
         "story-tab": null,
         "faction-tab": null,
+        "character-tab": null,
+        "world-tab": null,
       });
     }
 
