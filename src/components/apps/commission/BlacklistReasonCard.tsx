@@ -41,12 +41,12 @@ export default function BlacklistReasonCard({
       <section
         id={`blacklist-reason-${user.id}`}
         aria-hidden={!isExpanded}
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+        className={`transition-all duration-300 ease-in-out ${
           isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         {user.reasoning && (
-          <div className="bg-gray-50 px-3 py-3 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+          <div className="overflow-y-auto bg-gray-50 px-3 py-3 text-gray-600 dark:bg-gray-900 dark:text-gray-400">
             {user.reasoning}
           </div>
         )}
