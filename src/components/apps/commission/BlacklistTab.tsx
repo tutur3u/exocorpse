@@ -7,7 +7,8 @@ import {
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, useQueryStates } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import BlacklistReasonCard from "./BlacklistReasonCard";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -25,6 +26,8 @@ export default function BlacklistTab({
   initialPage,
   initialPageSize,
 }: BlacklistTabProps) {
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+
   const [params, setParams] = useQueryStates(
     {
       "blacklist-page": parseAsInteger,
@@ -121,25 +124,33 @@ export default function BlacklistTab({
         </div>
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {blacklistedUsers.map((user) => (
-              <div
-                key={user.id}
-                className="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="font-semibold">{user.username}</h3>
-                  {user.timestamp && (
-                    <span className="text-xs text-gray-500">
-                      {new Date(user.timestamp).toLocaleDateString()}
-                    </span>
-                  )}
+              <div key={user.id} className="space-y-2">
+                {/* Static User Card */}
+                <div className="rounded-4xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                      {user.username}
+                    </h3>
+                    {user.timestamp && (
+                      <span className="text-sm">
+                        {new Date(user.timestamp).toLocaleDateString("en-GB")}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {user.reasoning && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {user.reasoning}
-                  </p>
-                )}
+
+                {/* Expandable Reasoning Card */}
+                <BlacklistReasonCard
+                  user={user}
+                  isExpanded={expandedUserId === user.id}
+                  onToggle={() =>
+                    setExpandedUserId(
+                      expandedUserId === user.id ? null : user.id,
+                    )
+                  }
+                />
               </div>
             ))}
           </div>
@@ -194,7 +205,7 @@ export default function BlacklistTab({
                       key={page}
                       type="button"
                       onClick={() => handlePageChange(page)}
-                      className={`min-w-[2rem] rounded px-3 py-1 text-sm font-medium transition-colors ${
+                      className={`min-w-8 rounded px-3 py-1 text-sm font-medium transition-colors ${
                         page === clampedCurrentPage
                           ? "bg-blue-500 text-white"
                           : "hover:bg-gray-100 dark:hover:bg-gray-800"
