@@ -35,7 +35,6 @@ export default function PortfolioClient({
   // Get initial data from context (server-side fetched data)
   const initialData = useInitialPortfolioData();
 
-
   // Initialize state from params or defaults
   const activeTab = (params["portfolio-tab"] ?? "art") as "art" | "writing";
   const selectedPieceId = params["portfolio-piece"];
