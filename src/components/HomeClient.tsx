@@ -55,6 +55,8 @@ export default function HomeClient({
     commissionParams["commission-tab"] ||
     commissionParams["blacklist-page"] ||
     commissionParams["blacklist-page-size"] ||
+    commissionParams.service ||
+    commissionParams.style ||
     portfolioParams["portfolio-tab"] ||
     portfolioParams["portfolio-piece"]
   );

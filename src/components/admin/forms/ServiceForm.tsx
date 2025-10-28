@@ -1,15 +1,38 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import ImageUploader from "@/components/shared/ImageUploader";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
-import type { Addon, Picture, Service, Style } from "@/lib/actions/commissions";
+import type {
+  Addon,
+  Picture,
+  Service,
+  ServiceWithDetails,
+  Style,
+} from "@/lib/actions/commissions";
+import { deleteFile } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import PictureForm from "./PictureForm";
 import StyleForm from "./StyleForm";
+// Local payload types for handlers
+type StylePayload = {
+  service_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+};
+
+type PicturePayload = {
+  service_id: string;
+  style_id?: string | null;
+  image_url: string;
+  caption?: string;
+  is_primary_example: boolean;
+};
 
 type ServiceFormData = {
   name: string;
@@ -18,14 +41,11 @@ type ServiceFormData = {
   base_price: number;
   is_active: boolean;
   comm_link?: string;
+  cover_image_url?: string;
 };
 
 type ServiceFormProps = {
-  service?: Service & {
-    styles?: Style[];
-    pictures?: Picture[];
-    service_addons?: any[];
-  };
+  service?: ServiceWithDetails;
   availableAddons?: Addon[];
   onSubmit: (
     data: ServiceFormData,
@@ -34,12 +54,18 @@ type ServiceFormProps = {
   onComplete: () => void;
   onCancel: () => void;
   // Handlers for styles
-  onCreateStyle?: (data: any) => Promise<Style | void>;
-  onUpdateStyle?: (styleId: string, data: any) => Promise<Style | void>;
+  onCreateStyle?: (data: StylePayload) => Promise<Style | void>;
+  onUpdateStyle?: (
+    styleId: string,
+    data: StylePayload,
+  ) => Promise<Style | void>;
   onDeleteStyle?: (styleId: string) => Promise<void>;
   // Handlers for pictures
-  onCreatePicture?: (data: any) => Promise<Picture | void>;
-  onUpdatePicture?: (pictureId: string, data: any) => Promise<Picture | void>;
+  onCreatePicture?: (data: PicturePayload) => Promise<Picture | void>;
+  onUpdatePicture?: (
+    pictureId: string,
+    data: PicturePayload,
+  ) => Promise<Picture | void>;
   onDeletePicture?: (pictureId: string) => Promise<void>;
   onPictureComplete?: () => Promise<void>;
   // Handlers for addons
@@ -87,6 +113,7 @@ export default function ServiceForm({
       base_price: service?.base_price || 0,
       is_active: service?.is_active ?? true,
       comm_link: service?.comm_link || "",
+      cover_image_url: service?.cover_image_url || "",
     },
   });
 
@@ -111,6 +138,7 @@ export default function ServiceForm({
       base_price: service?.base_price || 0,
       is_active: service?.is_active ?? true,
       comm_link: service?.comm_link || "",
+      cover_image_url: service?.cover_image_url || "",
     });
   }, [service, reset]);
 
@@ -118,7 +146,7 @@ export default function ServiceForm({
   useEffect(() => {
     if (service?.service_addons) {
       setSelectedAddons(
-        new Set(service.service_addons.map((sa: any) => sa.addon_id)),
+        new Set(service.service_addons.map((sa) => sa.addon_id)),
       );
     }
   }, [service?.service_addons]);
@@ -129,20 +157,18 @@ export default function ServiceForm({
 
     const urls: string[] = [];
 
-    // Service-level pictures
+    // Service-level pictures only (exclude style pictures)
     service.pictures
-      ?.filter((p: any) => !p.style_id)
-      .forEach((picture: any) => {
-        // Filter out pending URLs - they're not real storage paths yet
+      ?.filter((p) => !p.style_id)
+      .forEach((picture) => {
         if (picture.image_url && !picture.image_url.startsWith("pending:")) {
           urls.push(picture.image_url);
         }
       });
 
     // Style-specific pictures
-    service.styles?.forEach((style: any) => {
-      style.pictures?.forEach((picture: any) => {
-        // Filter out pending URLs - they're not real storage paths yet
+    service.styles?.forEach((style) => {
+      style.pictures?.forEach((picture) => {
         if (picture.image_url && !picture.image_url.startsWith("pending:")) {
           urls.push(picture.image_url);
         }
@@ -155,6 +181,47 @@ export default function ServiceForm({
   // Batch fetch all signed URLs
   const { signedUrls } = useBatchStorageUrls(allPictureUrls, !!service);
 
+  // Cover selection modal state
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
+
+  // All selectable cover candidates (service-level + style pictures)
+  const coverCandidates: { id: string; url: string; caption?: string }[] =
+    useMemo(() => {
+      if (!service) return [];
+      const items: { id: string; url: string; caption?: string }[] = [];
+
+      // Service-level pictures only to avoid duplicating style images
+      service.pictures
+        ?.filter((p) => !!p.image_url && !p.style_id)
+        .forEach((p) =>
+          items.push({
+            id: p.picture_id,
+            url: p.image_url,
+            caption: p.caption ?? undefined,
+          }),
+        );
+
+      // Style pictures
+      service.styles?.forEach((s) => {
+        s.pictures?.forEach((p) => {
+          if (p.image_url)
+            items.push({
+              id: p.picture_id,
+              url: p.image_url,
+              caption: p.caption ?? undefined,
+            });
+        });
+      });
+
+      // Deduplicate by picture id just in case
+      const seen = new Set<string>();
+      return items.filter((it) => {
+        if (seen.has(it.id)) return false;
+        seen.add(it.id);
+        return true;
+      });
+    }, [service]);
+
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
@@ -163,7 +230,7 @@ export default function ServiceForm({
       // Clean up empty strings to undefined
       const cleanData: ServiceFormData = cleanFormData(
         data,
-        ["description", "comm_link"],
+        ["description", "comm_link", "cover_image_url"],
         [],
       );
 
@@ -334,14 +401,12 @@ export default function ServiceForm({
                       type="text"
                       id="slug"
                       {...register("slug", { required: true })}
-                      disabled={!!service}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:disabled:bg-gray-800"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       placeholder="full-body-illustration"
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {service
-                        ? "Slug cannot be changed after creation"
-                        : "URL-friendly identifier (auto-generated from name)"}
+                      URL-friendly identifier (auto-generated from name for new
+                      services)
                     </p>
                   </div>
 
@@ -361,6 +426,55 @@ export default function ServiceForm({
                       placeholder="Describe this service..."
                     />
                   </div>
+
+                  {/* Cover Image (existing services only) */}
+                  {service && (
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Cover Image
+                      </label>
+                      <div className="space-y-2 rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                        <ImageUploader
+                          label="Cover Image"
+                          value={watch("cover_image_url") || ""}
+                          onChange={(value) =>
+                            setValue("cover_image_url", value, {
+                              shouldDirty: true,
+                            })
+                          }
+                          uploadPath={
+                            service
+                              ? `services/${service.service_id}/cover`
+                              : undefined
+                          }
+                          enableUpload={!!service}
+                          onBeforeChange={async (oldValue, _newValue) => {
+                            // Delete old file if it was a storage path (not http/data/pending)
+                            if (
+                              oldValue &&
+                              !oldValue.startsWith("http") &&
+                              !oldValue.startsWith("data:") &&
+                              !oldValue.startsWith("pending:")
+                            ) {
+                              try {
+                                await deleteFile(oldValue);
+                              } catch {}
+                            }
+                          }}
+                          helpText="Upload a new image or choose from existing examples."
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowCoverPicker(true)}
+                            className="rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                          >
+                            Choose existing
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Base Price */}
                   <div>
@@ -510,16 +624,15 @@ export default function ServiceForm({
                       style)
                     </p>
                     {!service.pictures ||
-                    service.pictures.filter((p: any) => !p.style_id).length ===
-                      0 ? (
+                    service.pictures.filter((p) => !p.style_id).length === 0 ? (
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         No service-level pictures yet
                       </p>
                     ) : (
                       <div className="grid grid-cols-3 gap-3">
                         {service.pictures
-                          ?.filter((p: any) => !p.style_id)
-                          .map((picture: any) => (
+                          ?.filter((p) => !p.style_id)
+                          .map((picture) => (
                             <div
                               key={picture.picture_id}
                               className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 dark:border-gray-700"
@@ -591,7 +704,7 @@ export default function ServiceForm({
                       </p>
                     ) : (
                       <div className="space-y-4">
-                        {service.styles?.map((style: any) => (
+                        {service.styles?.map((style) => (
                           <div
                             key={style.style_id}
                             className="rounded-md border border-gray-200 p-4 dark:border-gray-700"
@@ -656,7 +769,7 @@ export default function ServiceForm({
                                 </p>
                               ) : (
                                 <div className="grid grid-cols-3 gap-2">
-                                  {style.pictures?.map((picture: any) => (
+                                  {style.pictures?.map((picture) => (
                                     <div
                                       key={picture.picture_id}
                                       className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 dark:border-gray-700"
@@ -846,6 +959,66 @@ export default function ServiceForm({
             setPictureStyleId(null);
           }}
         />
+      )}
+
+      {/* Cover Picker Modal */}
+      {showCoverPicker && service && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowCoverPicker(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+              <h3 className="text-lg font-semibold">Choose existing image</h3>
+              <button
+                type="button"
+                className="rounded px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setShowCoverPicker(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto p-4">
+              {coverCandidates.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No images available yet. Upload examples first.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {coverCandidates.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 text-left hover:ring-2 hover:ring-blue-500 dark:border-gray-700"
+                      onClick={() => {
+                        setValue("cover_image_url", item.url, {
+                          shouldDirty: true,
+                        });
+                        setShowCoverPicker(false);
+                      }}
+                    >
+                      <StorageImage
+                        src={item.url}
+                        signedUrl={signedUrls.get(item.url)}
+                        alt={item.caption || "Example"}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center bg-black/40 text-white group-hover:flex">
+                        <span className="rounded bg-white/80 px-2 py-1 text-xs font-medium text-gray-900">
+                          Select
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       <ConfirmExitDialog

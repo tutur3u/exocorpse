@@ -19,6 +19,8 @@ export type ServiceAddon = Tables<"service_addons">;
 export type ServiceWithDetails = Service & {
   addons?: Addon[];
   styles?: (Style & { pictures?: Picture[] })[];
+  pictures?: Picture[];
+  service_addons?: (ServiceAddon & { addons?: Addon })[];
 };
 
 export type StyleWithPictures = Style & {
@@ -49,6 +51,41 @@ export async function getAllServices() {
 }
 
 /**
+ * Get all services with full details (pictures, styles, addons)
+ * This is useful for displaying service listings with images
+ */
+export async function getAllServicesWithDetails() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("services")
+    .select(
+      `
+      *,
+      service_addons (
+        service_id,
+        addon_id,
+        addon_is_exclusive,
+        addons (*)
+      ),
+      styles (
+        *,
+        pictures (*)
+      ),
+      pictures (*)
+    `,
+    )
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching services with details:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Get a single service by ID with all related data
  */
 export async function getServiceById(serviceId: string) {
@@ -60,6 +97,7 @@ export async function getServiceById(serviceId: string) {
       `
       *,
       service_addons (
+        service_id,
         addon_id,
         addon_is_exclusive,
         addons (*)
@@ -85,7 +123,9 @@ export async function getServiceById(serviceId: string) {
 /**
  * Get a service by slug
  */
-export async function getServiceBySlug(slug: string) {
+export async function getServiceBySlug(
+  slug: string,
+): Promise<ServiceWithDetails | null> {
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -94,6 +134,7 @@ export async function getServiceBySlug(slug: string) {
       `
       *,
       service_addons (
+        service_id,
         addon_id,
         addon_is_exclusive,
         addons (*)
@@ -113,13 +154,13 @@ export async function getServiceBySlug(slug: string) {
     return null;
   }
 
-  return data;
+  return (data as ServiceWithDetails) ?? null;
 }
 
 /**
  * Get active services (for public display)
  */
-export async function getActiveServices() {
+export async function getActiveServices(): Promise<ServiceWithDetails[]> {
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -127,6 +168,12 @@ export async function getActiveServices() {
     .select(
       `
       *,
+      service_addons (
+        service_id,
+        addon_id,
+        addon_is_exclusive,
+        addons (*)
+      ),
       styles (
         *,
         pictures (*)
@@ -142,7 +189,7 @@ export async function getActiveServices() {
     return [];
   }
 
-  return data || [];
+  return (data as ServiceWithDetails[]) || [];
 }
 
 // ============================================================================
@@ -542,6 +589,7 @@ export async function getStyleById(styleId: string) {
 export async function createStyle(style: {
   service_id: string;
   name: string;
+  slug: string;
   description?: string;
 }) {
   const { supabase } = await verifyAuth();

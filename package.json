@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
-    "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
+    "@tuturuuu/supabase": "^0.2.3",
     "@types/dompurify": "^3.2.0",
     "@types/sanitize-html": "^2.16.0",
     "@vercel/analytics": "^1.5.0",

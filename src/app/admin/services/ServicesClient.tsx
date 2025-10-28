@@ -269,7 +269,14 @@ export default function ServicesClient({
   );
 
   const handleUpdateService = useCallback(
-    async (data: Parameters<typeof createService>[0]) => {
+    async (
+      data: Partial<
+        Omit<
+          Service,
+          "service_id" | "created_at" | "slug" // slug is immutable here
+        >
+      >,
+    ) => {
       if (!selectedServiceId) return;
       return updateServiceMutation.mutateAsync({
         id: selectedServiceId,

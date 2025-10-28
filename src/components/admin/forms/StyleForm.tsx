@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 type StyleFormData = {
   service_id: string;
   name: string;
+  slug: string;
   description?: string;
 };
 
@@ -32,24 +33,55 @@ export default function StyleForm({
     defaultValues: {
       service_id: serviceId,
       name: style?.name || "",
+      slug: style?.slug || "",
       description: style?.description || "",
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit } = form;
+  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleNameChange = (value: string) => {
+    setValue("name", value, { shouldDirty: true });
+    if (!style) {
+      const slugValue = value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+      setValue("slug", slugValue, { shouldDirty: true });
+    }
+  };
+
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
 
     try {
+      // Ensure slug exists; generate from name if not provided
+      const computedSlug =
+        data.slug && data.slug.trim().length > 0
+          ? data.slug
+          : data.name
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9\s-]/g, "")
+              .replace(/\s+/g, "-")
+              .replace(/-+/g, "-");
+
+      const withSlug: StyleFormData = { ...data, slug: computedSlug };
+
       // Clean up empty strings to undefined
-      const cleanData: StyleFormData = cleanFormData(data, ["description"], []);
+      const cleanData: StyleFormData = cleanFormData(
+        withSlug,
+        ["description"],
+        [],
+      );
 
       // Submit the style data
       await onSubmit(cleanData);
@@ -123,9 +155,31 @@ export default function StyleForm({
                   type="text"
                   id="name"
                   {...register("name", { required: true })}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., Anime Style, Realistic, Chibi"
                 />
+              </div>
+
+              {/* Slug */}
+              <div>
+                <label
+                  htmlFor="slug"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Slug <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="slug"
+                  {...register("slug", { required: true })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="chibi-style"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  URL-friendly identifier (auto-generated from name for new
+                  styles)
+                </p>
               </div>
 
               {/* Description */}

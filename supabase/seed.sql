@@ -1247,18 +1247,19 @@ service_addon_links AS (
 
 -- 4. Create Styles for the services
 new_styles AS (
-    INSERT INTO styles (service_id, name, description)
+    INSERT INTO styles (service_id, name, slug, description)
     SELECT
         s.service_id,
         v.name,
+        v.style_slug,
         v.description
     FROM new_services s
-    -- Use a VALUES list to join against the slugs
+    -- Use a VALUES list to join against the service slugs and provide style slugs
     JOIN ( VALUES
-        ('digital-sketch', 'Clean Lineart', 'Crisp, black and white lineart.'),
-        ('full-color-illustration', 'Painterly', 'A textured, blended digital painting style.'),
-        ('full-color-illustration', 'Anime / Cel-Shaded', 'Bright colors with hard-edged shadows.')
-    ) AS v(slug, name, description) ON s.slug = v.slug
+        ('digital-sketch', 'clean-lineart', 'Clean Lineart', 'Crisp, black and white lineart.'),
+        ('full-color-illustration', 'painterly', 'Painterly', 'A textured, blended digital painting style.'),
+        ('full-color-illustration', 'anime-cel-shaded', 'Anime / Cel-Shaded', 'Bright colors with hard-edged shadows.')
+    ) AS v(service_slug, style_slug, name, description) ON s.slug = v.service_slug
     RETURNING style_id, service_id, name
 )
 

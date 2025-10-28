@@ -1470,6 +1470,7 @@ export type Database = {
         Row: {
           base_price: number;
           comm_link: string | null;
+          cover_image_url: string | null;
           created_at: string | null;
           description: string | null;
           is_active: boolean;
@@ -1480,6 +1481,7 @@ export type Database = {
         Insert: {
           base_price: number;
           comm_link?: string | null;
+          cover_image_url?: string | null;
           created_at?: string | null;
           description?: string | null;
           is_active?: boolean;
@@ -1490,6 +1492,7 @@ export type Database = {
         Update: {
           base_price?: number;
           comm_link?: string | null;
+          cover_image_url?: string | null;
           created_at?: string | null;
           description?: string | null;
           is_active?: boolean;
@@ -1576,18 +1579,21 @@ export type Database = {
           description: string | null;
           name: string;
           service_id: string;
+          slug: string;
           style_id: string;
         };
         Insert: {
           description?: string | null;
           name: string;
           service_id: string;
+          slug: string;
           style_id?: string;
         };
         Update: {
           description?: string | null;
           name?: string;
           service_id?: string;
+          slug?: string;
           style_id?: string;
         };
         Relationships: [
