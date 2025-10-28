@@ -48,7 +48,7 @@ export default function ServiceDetail({
     id: picture.picture_id ?? `${idx}`,
     url: signedUrls.get(picture.image_url) ?? picture.image_url,
     alt: `${service.name} example ${idx + 1}`,
-    title: picture.caption,
+    title: picture.caption ?? service.name,
   }));
 
   const handleBack = () => {
