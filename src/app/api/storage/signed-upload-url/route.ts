@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-
     const client = getTuturuuuClient();
 
     // Generate signed upload URL using tuturuuu SDK
