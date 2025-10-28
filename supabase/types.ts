@@ -1304,7 +1304,8 @@ export type Database = {
           image_url: string;
           is_primary_example: boolean;
           picture_id: string;
-          style_id: string;
+          service_id: string;
+          style_id: string | null;
           uploaded_at: string | null;
         };
         Insert: {
@@ -1312,7 +1313,8 @@ export type Database = {
           image_url: string;
           is_primary_example?: boolean;
           picture_id?: string;
-          style_id: string;
+          service_id: string;
+          style_id?: string | null;
           uploaded_at?: string | null;
         };
         Update: {
@@ -1320,10 +1322,18 @@ export type Database = {
           image_url?: string;
           is_primary_example?: boolean;
           picture_id?: string;
-          style_id?: string;
+          service_id?: string;
+          style_id?: string | null;
           uploaded_at?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "pictures_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["service_id"];
+          },
           {
             foreignKeyName: "pictures_style_id_fkey";
             columns: ["style_id"];
@@ -1459,6 +1469,7 @@ export type Database = {
       services: {
         Row: {
           base_price: number;
+          comm_link: string | null;
           created_at: string | null;
           description: string | null;
           is_active: boolean;
@@ -1468,6 +1479,7 @@ export type Database = {
         };
         Insert: {
           base_price: number;
+          comm_link?: string | null;
           created_at?: string | null;
           description?: string | null;
           is_active?: boolean;
@@ -1477,6 +1489,7 @@ export type Database = {
         };
         Update: {
           base_price?: number;
+          comm_link?: string | null;
           created_at?: string | null;
           description?: string | null;
           is_active?: boolean;

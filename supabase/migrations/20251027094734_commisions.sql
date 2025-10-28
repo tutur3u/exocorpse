@@ -94,21 +94,55 @@ CREATE TABLE styles (
 CREATE INDEX idx_styles_service_id ON styles (service_id);
 
 -----------------------------------------------------------------------
--- 7. PICTURES Table (No Change)
+-- 7. PICTURES Table
 -----------------------------------------------------------------------
 CREATE TABLE pictures (
     picture_id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
-    style_id UUID NOT NULL REFERENCES styles(style_id) ON DELETE CASCADE,
+    style_id UUID REFERENCES styles(style_id) ON DELETE CASCADE,
+    service_id UUID NOT NULL REFERENCES services(service_id) ON DELETE CASCADE,
     image_url VARCHAR(512) NOT NULL, 
     caption VARCHAR(512),
     is_primary_example BOOLEAN NOT NULL DEFAULT FALSE,
-    uploaded_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    uploaded_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraint: A picture must have either a style_id OR be directly linked to a service
+    -- If style_id is NULL, it's a service-level picture. If style_id is set, it's a style-level picture.
+    CONSTRAINT pictures_style_or_service_check 
+        CHECK (style_id IS NOT NULL OR service_id IS NOT NULL)
 );
 
 CREATE INDEX idx_pictures_style_id ON pictures (style_id);
+CREATE INDEX idx_pictures_service_id ON pictures (service_id);
 
 -----------------------------------------------------------------------
--- 8. ROW LEVEL SECURITY (RLS) POLICIES
+-- 8. TRIGGER FUNCTION FOR PICTURES (Validates style-service consistency)
+-- Ensures that if a picture has a style, the service_id matches the style's parent service
+-----------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION validate_picture_style_service()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- If style_id is provided, verify it belongs to the service_id
+    IF NEW.style_id IS NOT NULL THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM styles
+            WHERE style_id = NEW.style_id
+            AND service_id = NEW.service_id
+        ) THEN
+            RAISE EXCEPTION 'Style % does not belong to service %', NEW.style_id, NEW.service_id;
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_picture_style_service
+BEFORE INSERT OR UPDATE ON pictures
+FOR EACH ROW
+EXECUTE FUNCTION validate_picture_style_service();
+
+-----------------------------------------------------------------------
+-- 9. ROW LEVEL SECURITY (RLS) POLICIES
 -----------------------------------------------------------------------
 -- Enable RLS on all tables and apply consistent policies:
 -- - Public read access for all users

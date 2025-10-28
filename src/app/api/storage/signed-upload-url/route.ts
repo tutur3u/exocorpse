@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Creating signed upload URL:", { directory, filename });
 
     const client = getTuturuuuClient();
 

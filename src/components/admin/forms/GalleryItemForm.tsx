@@ -219,7 +219,7 @@ export default function GalleryItemForm({
   return (
     <>
       <div
-        className="fixed inset-0 z-[60] flex h-screen w-screen items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-60 flex h-screen w-screen items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
         onClick={handleBackdropClick}
         onKeyDown={handleBackdropKeyDown}
         role="button"
@@ -227,7 +227,7 @@ export default function GalleryItemForm({
         aria-label="Close dialog"
       >
         <div
-          className="relative z-[70] flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+          className="relative z-70 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
