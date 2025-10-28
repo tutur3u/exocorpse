@@ -13,9 +13,9 @@ export interface CompressionOptions {
 const DEFAULT_OPTIONS: Required<CompressionOptions> = {
   maxWidth: 2048,
   maxHeight: 2048,
-  quality: 0.92, // Higher quality - still compresses well
-  outputFormat: "image/jpeg",
-  skipCompressionUnder: 500 * 1024, // Skip files under 500KB
+  quality: 0.65, // Higher quality - still compresses well
+  outputFormat: "image/webp",
+  skipCompressionUnder: 100 * 1024, // Skip files under 100KB
 };
 
 /**
