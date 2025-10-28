@@ -30,8 +30,13 @@ export async function compressImage(
 ): Promise<string> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
-  // Skip compression for small files to save time
+  // Skip compression for small files to save time, but still convert format if needed
   if (file.size < opts.skipCompressionUnder) {
+    // If outputFormat is not the file's original format, still convert it
+    if (opts.outputFormat !== file.type && file.type.startsWith("image/")) {
+      return convertImageFormat(file, opts.outputFormat);
+    }
+    // Otherwise return as-is
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
@@ -55,6 +60,60 @@ export async function compressImage(
 
   // Fallback to main thread compression
   return compressImageMainThread(file, opts);
+}
+
+/**
+ * Convert an image to a different format without compression
+ */
+async function convertImageFormat(
+  file: File,
+  targetFormat: "image/webp" | "image/jpeg" | "image/png",
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const img = new Image();
+
+      img.onload = () => {
+        // Create canvas with image's natural dimensions
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d", {
+          alpha: targetFormat === "image/webp",
+        });
+        if (!ctx) {
+          reject(new Error("Failed to get canvas context"));
+          return;
+        }
+
+        // Draw the image without resizing
+        ctx.drawImage(img, 0, 0);
+
+        // Convert to target format
+        try {
+          const dataUrl = canvas.toDataURL(targetFormat, 1);
+          resolve(dataUrl);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      img.onerror = () => {
+        reject(new Error("Failed to load image"));
+      };
+
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read file"));
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
