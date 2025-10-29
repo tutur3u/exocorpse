@@ -7,6 +7,8 @@ import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import { InitialBlogDataProvider } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
 import { InitialCommissionDataProvider } from "@/contexts/InitialCommissionDataContext";
+import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
+import { InitialPortfolioDataProvider } from "@/contexts/InitialPortfolioDataContext";
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
 import { useSound } from "@/contexts/SoundContext";
@@ -14,24 +16,29 @@ import { WindowProvider } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 
 type HomeClientProps = {
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
   commissionParams: CommissionSearchParams;
+  portfolioParams: PortfolioSearchParams;
   initialWikiData: InitialWikiData;
   initialBlogData: InitialBlogData;
   initialCommissionData: InitialCommissionData;
+  initialPortfolioData: InitialPortfolioData;
 };
 
 export default function HomeClient({
   wikiParams,
   blogParams,
   commissionParams,
+  portfolioParams,
   initialWikiData,
   initialBlogData,
   initialCommissionData,
+  initialPortfolioData,
 }: HomeClientProps) {
   const isMobile = useMobileDetection();
   const { isBootComplete, setBootComplete } = useSound();
@@ -47,7 +54,9 @@ export default function HomeClient({
     blogParams["blog-page-size"] ||
     commissionParams["commission-tab"] ||
     commissionParams["blacklist-page"] ||
-    commissionParams["blacklist-page-size"]
+    commissionParams["blacklist-page-size"] ||
+    portfolioParams["portfolio-tab"] ||
+    portfolioParams["portfolio-piece"]
   );
 
   // Show boot screen only on first visit to root index (no content params)
@@ -55,35 +64,30 @@ export default function HomeClient({
     return <BootScreen onBootComplete={() => setBootComplete(true)} />;
   }
 
-  if (isMobile) {
-    return (
+  const Component = isMobile ? MobileLayout : Desktop;
+  type WindowProviderProps = React.ComponentProps<typeof WindowProvider>;
+  const commonProps: Omit<WindowProviderProps, "children"> = {
+    wikiParams,
+    blogParams,
+    commissionParams,
+    portfolioParams,
+  };
+
+  return (
+    <InitialPortfolioDataProvider initialData={initialPortfolioData}>
       <InitialCommissionDataProvider value={initialCommissionData}>
         <InitialBlogDataProvider initialData={initialBlogData}>
           <InitialWikiDataProvider initialData={initialWikiData}>
-            <MobileLayout
-              wikiParams={wikiParams}
-              blogParams={blogParams}
-              commissionParams={commissionParams}
-            />
+            {isMobile ? (
+              <MobileLayout {...commonProps} />
+            ) : (
+              <WindowProvider {...commonProps}>
+                <Desktop />
+              </WindowProvider>
+            )}
           </InitialWikiDataProvider>
         </InitialBlogDataProvider>
       </InitialCommissionDataProvider>
-    );
-  }
-
-  return (
-    <InitialCommissionDataProvider value={initialCommissionData}>
-      <InitialBlogDataProvider initialData={initialBlogData}>
-        <InitialWikiDataProvider initialData={initialWikiData}>
-          <WindowProvider
-            wikiParams={wikiParams}
-            blogParams={blogParams}
-            commissionParams={commissionParams}
-          >
-            <Desktop />
-          </WindowProvider>
-        </InitialWikiDataProvider>
-      </InitialBlogDataProvider>
-    </InitialCommissionDataProvider>
+    </InitialPortfolioDataProvider>
   );
 }

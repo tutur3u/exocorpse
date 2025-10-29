@@ -1,33 +1,39 @@
 "use client";
 
+import { useInitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import { getArtPieces, getWritingPieces } from "@/lib/actions/portfolio";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import PortfolioClient from "./PortfolioClient";
-import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
 
 export default function Portfolio() {
-  const [artPieces, setArtPieces] = useState<ArtPiece[]>([]);
-  const [writingPieces, setWritingPieces] = useState<WritingPiece[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialData = useInitialPortfolioData();
+  // Track if user has navigated to gallery view (back from detail)
+  const [viewingGallery, setViewingGallery] = useState(
+    initialData.artPieces.length > 0 || initialData.writingPieces.length > 0,
+  );
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [art, writing] = await Promise.all([
-          getArtPieces(),
-          getWritingPieces(),
-        ]);
-        setArtPieces(art);
-        setWritingPieces(writing);
-      } catch (error) {
-        console.error("Failed to load portfolio data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const { data: artPieces = [], isLoading: isLoadingArt } = useQuery({
+    queryKey: ["portfolio", "art"],
+    queryFn: getArtPieces,
+    initialData:
+      initialData.artPieces.length > 0 ? initialData.artPieces : undefined,
+    // Only enable query if viewing gallery or already have data
+    enabled: viewingGallery || initialData.artPieces.length > 0,
+  });
 
-    loadData();
-  }, []);
+  const { data: writingPieces = [], isLoading: isLoadingWriting } = useQuery({
+    queryKey: ["portfolio", "writing"],
+    queryFn: getWritingPieces,
+    initialData:
+      initialData.writingPieces.length > 0
+        ? initialData.writingPieces
+        : undefined,
+    // Only enable query if viewing gallery or already have data
+    enabled: viewingGallery || initialData.writingPieces.length > 0,
+  });
+
+  const loading = viewingGallery && (isLoadingArt || isLoadingWriting);
 
   if (loading) {
     return (
@@ -43,6 +49,10 @@ export default function Portfolio() {
   }
 
   return (
-    <PortfolioClient artPieces={artPieces} writingPieces={writingPieces} />
+    <PortfolioClient
+      artPieces={artPieces}
+      writingPieces={writingPieces}
+      onNavigateToGallery={() => setViewingGallery(true)}
+    />
   );
 }

@@ -2,12 +2,19 @@ import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
+import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
 import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import {
+  getArtPieceBySlug,
+  getArtPieces,
+  getWritingPieceBySlug,
+  getWritingPieces,
+} from "@/lib/actions/portfolio";
 import type { Character, Story } from "@/lib/actions/wiki";
 import {
   getCharacterBySlug,
@@ -15,7 +22,6 @@ import {
   getCharacterFactions,
   getCharacterGallery,
   getCharacterOutfits,
-  getCharactersByStorySlug,
   getCharactersByWorldSlug,
   getCharacterWorlds,
   getFactionBySlug,
@@ -30,6 +36,7 @@ import {
   serializeBlogSearchParams,
 } from "@/lib/blog-search-params";
 import { loadCommissionSearchParams } from "@/lib/commission-search-params";
+import { loadPortfolioSearchParams } from "@/lib/portfolio-search-params";
 import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
@@ -213,16 +220,19 @@ async function HomeContent({
   wikiParamsData,
   blogParamsData,
   commissionParamsData,
+  portfolioParamsData,
 }: {
   wikiParamsData: Awaited<ReturnType<typeof loadWikiSearchParams>>;
   blogParamsData: Awaited<ReturnType<typeof loadBlogSearchParams>>;
   commissionParamsData: Awaited<ReturnType<typeof loadCommissionSearchParams>>;
+  portfolioParamsData: Awaited<ReturnType<typeof loadPortfolioSearchParams>>;
 }) {
   const DEFAULT_PAGE_SIZE = 10;
 
   const wikiParams = wikiParamsData;
   const blogParams = blogParamsData;
   const commissionParams = commissionParamsData;
+  const portfolioParams = portfolioParamsData;
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -266,8 +276,55 @@ async function HomeContent({
     blacklistPageSize: blacklistData.pageSize,
   };
 
-  // Only fetch data server-side if user has params (navigating to content)
-  // Otherwise, client-side fetching is fine (root visit with no params)
+  // Fetch initial portfolio data based on params
+  let artPieces: Awaited<ReturnType<typeof getArtPieces>> = [];
+  let writingPieces: Awaited<ReturnType<typeof getWritingPieces>> = [];
+  let selectedArtPiece: Awaited<ReturnType<typeof getArtPieceBySlug>> = null;
+  let selectedWritingPiece: Awaited<ReturnType<typeof getWritingPieceBySlug>> =
+    null;
+
+  if (portfolioParams["portfolio-piece"]) {
+    // If we have a specific piece slug, fetch only that piece and infer tab if needed
+    if (portfolioParams["portfolio-tab"] === "art") {
+      selectedArtPiece = await getArtPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+    } else if (portfolioParams["portfolio-tab"] === "writing") {
+      selectedWritingPiece = await getWritingPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+    } else if (!portfolioParams["portfolio-tab"]) {
+      // Tab is missing, need to infer - try art first, then writing
+      const artPiece = await getArtPieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
+      if (artPiece) {
+        selectedArtPiece = artPiece;
+        portfolioParams["portfolio-tab"] = "art";
+      } else {
+        selectedWritingPiece = await getWritingPieceBySlug(
+          portfolioParams["portfolio-piece"],
+        );
+        if (selectedWritingPiece) {
+          portfolioParams["portfolio-tab"] = "writing";
+        }
+      }
+    }
+  } else {
+    // No specific piece requested, fetch all pieces for the portfolio list
+    [artPieces, writingPieces] = await Promise.all([
+      getArtPieces(),
+      getWritingPieces(),
+    ]);
+  }
+
+  const initialPortfolioData: InitialPortfolioData = {
+    artPieces,
+    writingPieces,
+    selectedArtPiece,
+    selectedWritingPiece,
+    params: portfolioParams,
+  };
   const hasWikiParams = !!(
     wikiParams.story ||
     wikiParams.world ||
@@ -359,12 +416,14 @@ async function HomeContent({
       initialWikiData.characters = characters;
       initialWikiData.factions = factions;
 
-      // If a specific character is selected, pre-fetch all its detail data
+      // If a specific character is selected, fetch only that character
       if (wikiParams.character) {
-        const selectedCharacter = characters.find(
-          (c: Character) => c.slug === wikiParams.character,
+        const selectedCharacter = await getCharacterBySlug(
+          wikiParams.story,
+          wikiParams.world,
+          wikiParams.character,
         );
-        if (selectedCharacter) {
+        if (selectedCharacter && selectedCharacter.id) {
           const [gallery, outfits, factions, worlds] = await Promise.all([
             getCharacterGallery(selectedCharacter.id),
             getCharacterOutfits(selectedCharacter.id),
@@ -381,16 +440,14 @@ async function HomeContent({
         }
       }
     } else if (wikiParams.character) {
-      // Fetch all characters in story if character is selected without world
-      initialWikiData.characters = await getCharactersByStorySlug(
+      // Fetch specific character directly without fetching all characters
+      const selectedCharacter = await getCharacterBySlugInStory(
         wikiParams.story,
+        wikiParams.character,
       );
+      if (selectedCharacter && selectedCharacter.id) {
+        initialWikiData.characters = [selectedCharacter as Character];
 
-      // Pre-fetch character detail data for character viewed without world
-      const selectedCharacter = initialWikiData.characters.find(
-        (c: Character) => c.slug === wikiParams.character,
-      );
-      if (selectedCharacter) {
         const [gallery, outfits, factions, worlds] = await Promise.all([
           getCharacterGallery(selectedCharacter.id),
           getCharacterOutfits(selectedCharacter.id),
@@ -413,9 +470,11 @@ async function HomeContent({
       wikiParams={wikiParams}
       blogParams={blogParams}
       commissionParams={commissionParams}
+      portfolioParams={portfolioParams}
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
+      initialPortfolioData={initialPortfolioData}
     />
   );
 }
@@ -433,6 +492,7 @@ async function HomeContentWrapper({
   const wikiParamsData = await loadWikiSearchParams(searchParams);
   const blogParamsData = await loadBlogSearchParams(searchParams);
   const commissionParamsData = await loadCommissionSearchParams(searchParams);
+  const portfolioParamsData = await loadPortfolioSearchParams(searchParams);
 
   // Pass resolved params to cached component
   return (
@@ -440,6 +500,7 @@ async function HomeContentWrapper({
       wikiParamsData={wikiParamsData}
       blogParamsData={blogParamsData}
       commissionParamsData={commissionParamsData}
+      portfolioParamsData={portfolioParamsData}
     />
   );
 }

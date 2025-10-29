@@ -8,6 +8,7 @@ import Wiki from "@/components/apps/Wiki";
 import { TASKBAR_HEIGHT } from "@/constants";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
 import React, {
@@ -86,11 +87,13 @@ export function WindowProvider({
   wikiParams,
   blogParams,
   commissionParams,
+  portfolioParams,
 }: {
   children: React.ReactNode;
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
   commissionParams: CommissionSearchParams;
+  portfolioParams: PortfolioSearchParams;
 }) {
   const hasWikiParams =
     wikiParams.story ||
@@ -108,6 +111,9 @@ export function WindowProvider({
     commissionParams["blacklist-page"] ||
     commissionParams["blacklist-page-size"];
 
+  const hasPortfolioParams =
+    portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"];
+
   // Initialize windows with appropriate window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
@@ -117,16 +123,21 @@ export function WindowProvider({
   // Using useEffect with empty deps to ensure it only runs once on mount
   useEffect(() => {
     if (
-      (hasWikiParams || hasBlogParams || hasCommissionParams) &&
+      (hasWikiParams ||
+        hasBlogParams ||
+        hasCommissionParams ||
+        hasPortfolioParams) &&
       !initializedRef.current
     ) {
       initializedRef.current = true;
-      let appId: "wiki" | "blog" | "commission" = "blog";
+      let appId: "wiki" | "blog" | "commission" | "portfolio" = "blog";
 
       if (hasWikiParams) {
         appId = "wiki";
       } else if (hasCommissionParams) {
         appId = "commission";
+      } else if (hasPortfolioParams) {
+        appId = "portfolio";
       }
 
       const config = APP_CONFIGS.find((c) => c.id === appId);
