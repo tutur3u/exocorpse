@@ -2,10 +2,17 @@
 
 import BlacklistTab from "@/components/apps/commission/BlacklistTab";
 import InfoTab from "@/components/apps/commission/InfoTab";
-import PricingTab from "@/components/apps/commission/PricingTab";
+import ServiceDetail from "@/components/apps/commission/ServiceDetail";
+import ServicesTab from "@/components/apps/commission/ServicesTab";
 import TermsOfServiceTab from "@/components/apps/commission/TermsOfServiceTab";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
-import { parseAsStringLiteral, useQueryStates } from "nuqs";
+import {
+  getActiveServices,
+  getServiceBySlug,
+  type ServiceWithDetails,
+} from "@/lib/actions/commissions";
+import { useQuery } from "@tanstack/react-query";
+import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 
 type CommissionClientProps = {
   initialData: InitialCommissionData;
@@ -18,10 +25,12 @@ export default function CommissionClient({
     {
       "commission-tab": parseAsStringLiteral([
         "info",
-        "pricing",
+        "services",
         "tos",
         "blacklist",
       ] as const),
+      service: parseAsString,
+      style: parseAsString,
     },
     {
       shallow: true,
@@ -30,11 +39,41 @@ export default function CommissionClient({
   );
 
   const activeTabParam = params["commission-tab"];
-  const activeTab = activeTabParam ?? "info";
+  const serviceSlug = params.service;
+  const styleSlug = params.style;
 
-  const handleTabChange = (tab: "info" | "pricing" | "tos" | "blacklist") => {
+  // If a service is selected, show that instead of the tab content
+  const activeTab = serviceSlug ? "services" : (activeTabParam ?? "info");
+
+  // Query all services for the services tab (if not already loaded)
+  const shouldFetchAllServices = activeTab === "services" && !serviceSlug;
+
+  const { data: allServices } = useQuery<ServiceWithDetails[], Error>({
+    queryKey: ["commission-services"],
+    queryFn: getActiveServices,
+    enabled: shouldFetchAllServices,
+    initialData:
+      initialData.services.length > 0 ? () => initialData.services : undefined,
+  });
+
+  // Query for selected service - fetch when serviceSlug changes
+  const { data: selectedService = null } = useQuery<
+    ServiceWithDetails | null,
+    Error
+  >({
+    queryKey: ["commission-service", serviceSlug],
+    queryFn: async () => {
+      if (!serviceSlug) return null;
+      return getServiceBySlug(serviceSlug);
+    },
+    enabled: !!serviceSlug,
+  });
+
+  const handleTabChange = (tab: "info" | "services" | "tos" | "blacklist") => {
     setParams({
       "commission-tab": tab,
+      service: null,
+      style: null,
     });
   };
 
@@ -53,13 +92,13 @@ export default function CommissionClient({
         </button>
         <button
           className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === "pricing"
+            activeTab === "services"
               ? "border-b-2 border-blue-500 bg-gray-100 dark:bg-gray-800"
               : "hover:bg-gray-50 dark:hover:bg-gray-900"
           }`}
-          onClick={() => handleTabChange("pricing")}
+          onClick={() => handleTabChange("services")}
         >
-          Pricing
+          Services
         </button>
         <button
           className={`px-6 py-3 font-medium transition-colors ${
@@ -84,7 +123,18 @@ export default function CommissionClient({
       </div>
       <div className="flex-1 overflow-auto p-6">
         {activeTab === "info" && <InfoTab />}
-        {activeTab === "pricing" && <PricingTab />}
+        {activeTab === "services" && (
+          <>
+            {serviceSlug && selectedService ? (
+              <ServiceDetail
+                service={selectedService}
+                selectedStyleSlug={styleSlug}
+              />
+            ) : (
+              <ServicesTab services={allServices || []} />
+            )}
+          </>
+        )}
         {activeTab === "tos" && <TermsOfServiceTab />}
         {activeTab === "blacklist" && (
           <BlacklistTab

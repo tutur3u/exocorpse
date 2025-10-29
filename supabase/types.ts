@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      addons: {
+        Row: {
+          addon_id: string;
+          description: string | null;
+          is_exclusive: boolean;
+          name: string;
+          price_impact: number;
+        };
+        Insert: {
+          addon_id?: string;
+          description?: string | null;
+          is_exclusive?: boolean;
+          name: string;
+          price_impact?: number;
+        };
+        Update: {
+          addon_id?: string;
+          description?: string | null;
+          is_exclusive?: boolean;
+          name?: string;
+          price_impact?: number;
+        };
+        Relationships: [];
+      };
       art_pieces: {
         Row: {
           artist_name: string | null;
@@ -1274,6 +1298,51 @@ export type Database = {
           },
         ];
       };
+      pictures: {
+        Row: {
+          caption: string | null;
+          image_url: string;
+          is_primary_example: boolean;
+          picture_id: string;
+          service_id: string;
+          style_id: string | null;
+          uploaded_at: string | null;
+        };
+        Insert: {
+          caption?: string | null;
+          image_url: string;
+          is_primary_example?: boolean;
+          picture_id?: string;
+          service_id: string;
+          style_id?: string | null;
+          uploaded_at?: string | null;
+        };
+        Update: {
+          caption?: string | null;
+          image_url?: string;
+          is_primary_example?: boolean;
+          picture_id?: string;
+          service_id?: string;
+          style_id?: string | null;
+          uploaded_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pictures_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["service_id"];
+          },
+          {
+            foreignKeyName: "pictures_style_id_fkey";
+            columns: ["style_id"];
+            isOneToOne: false;
+            referencedRelation: "styles";
+            referencedColumns: ["style_id"];
+          },
+        ];
+      };
       relationship_types: {
         Row: {
           category: string | null;
@@ -1364,6 +1433,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      service_addons: {
+        Row: {
+          addon_id: string;
+          addon_is_exclusive: boolean;
+          service_id: string;
+        };
+        Insert: {
+          addon_id: string;
+          addon_is_exclusive: boolean;
+          service_id: string;
+        };
+        Update: {
+          addon_id?: string;
+          addon_is_exclusive?: boolean;
+          service_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_addons_addon_id_fkey";
+            columns: ["addon_id"];
+            isOneToOne: false;
+            referencedRelation: "addons";
+            referencedColumns: ["addon_id"];
+          },
+          {
+            foreignKeyName: "service_addons_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["service_id"];
+          },
+        ];
+      };
+      services: {
+        Row: {
+          base_price: number;
+          comm_link: string | null;
+          cover_image_url: string | null;
+          created_at: string | null;
+          description: string | null;
+          is_active: boolean;
+          name: string;
+          service_id: string;
+          slug: string;
+        };
+        Insert: {
+          base_price: number;
+          comm_link?: string | null;
+          cover_image_url?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          is_active?: boolean;
+          name: string;
+          service_id?: string;
+          slug: string;
+        };
+        Update: {
+          base_price?: number;
+          comm_link?: string | null;
+          cover_image_url?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          is_active?: boolean;
+          name?: string;
+          service_id?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
       stories: {
         Row: {
           content: string | null;
@@ -1435,6 +1573,38 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["visibility_level"] | null;
         };
         Relationships: [];
+      };
+      styles: {
+        Row: {
+          description: string | null;
+          name: string;
+          service_id: string;
+          slug: string;
+          style_id: string;
+        };
+        Insert: {
+          description?: string | null;
+          name: string;
+          service_id: string;
+          slug: string;
+          style_id?: string;
+        };
+        Update: {
+          description?: string | null;
+          name?: string;
+          service_id?: string;
+          slug?: string;
+          style_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "styles_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["service_id"];
+          },
+        ];
       };
       tags: {
         Row: {
@@ -1792,6 +1962,10 @@ export type Database = {
           relationship_type_name: string;
         }[];
       };
+      replace_service_addons: {
+        Args: { p_addons: string[]; p_service: string };
+        Returns: Json;
+      };
       search_entities: {
         Args: { search_query: string };
         Returns: {
@@ -1801,6 +1975,10 @@ export type Database = {
           entity_type: string;
           rank: number;
         }[];
+      };
+      set_primary_picture: {
+        Args: { p_picture_id: string; p_style_id: string };
+        Returns: Json;
       };
       show_limit: { Args: never; Returns: number };
       show_trgm: { Args: { "": string }; Returns: string[] };

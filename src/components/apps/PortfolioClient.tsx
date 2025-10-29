@@ -23,7 +23,10 @@ export default function PortfolioClient({
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
     {
-      "portfolio-tab": parseAsStringLiteral(["art", "writing"] as const),
+      "portfolio-tab": parseAsStringLiteral([
+        "art",
+        "writing",
+      ] as const).withDefault("art"),
       "portfolio-piece": parseAsString,
     },
     {
@@ -36,7 +39,7 @@ export default function PortfolioClient({
   const initialData = useInitialPortfolioData();
 
   // Initialize state from params or defaults
-  const activeTab = (params["portfolio-tab"] ?? "art") as "art" | "writing";
+  const activeTab = params["portfolio-tab"] as "art" | "writing";
   const selectedPieceId = params["portfolio-piece"];
 
   // Find selected pieces based on URL params
@@ -107,37 +110,57 @@ export default function PortfolioClient({
   const filteredArtPieces = filterItems(artPieces);
   const filteredWritingPieces = filterItems(writingPieces);
 
-  // Batch fetch signed URLs for art images
-  // Include both gallery pieces and the selected art piece
-  const artImagePaths = [
-    ...artPieces.flatMap((art) => [art.image_url, art.thumbnail_url]),
-    ...(selectedArt ? [selectedArt.image_url, selectedArt.thumbnail_url] : []),
-  ];
+  // Batch fetch signed URLs for art images - only for the active tab
+  // Include both gallery pieces and the selected art piece (if it belongs to this tab)
+  const artImagePaths = useMemo(() => {
+    if (activeTab !== "art") return [];
 
-  const filteredArtImagePaths = artImagePaths.filter(
-    (p): p is string => !!p && !p.startsWith("http"),
-  );
-  const { signedUrls: artImageUrls } = useBatchStorageUrls(
-    filteredArtImagePaths,
-  );
+    const paths: (string | null)[] = [
+      ...artPieces.flatMap((art) => [art.image_url, art.thumbnail_url]),
+    ];
 
-  // Batch fetch signed URLs for writing cover images
-  // Include both gallery pieces and the selected writing piece
-  const writingImagePaths = [
-    ...writingPieces.flatMap((writing) => [
-      writing.cover_image,
-      writing.thumbnail_url,
-    ]),
-    ...(selectedWriting
-      ? [selectedWriting.cover_image, selectedWriting.thumbnail_url]
-      : []),
-  ];
-  const filteredWritingImagePaths = writingImagePaths.filter(
-    (p): p is string => !!p && !p.startsWith("http"),
-  );
-  const { signedUrls: writingImageUrls } = useBatchStorageUrls(
-    filteredWritingImagePaths,
-  );
+    // Only include selectedArt if it belongs to the art tab
+    if (selectedArt) {
+      paths.push(selectedArt.image_url, selectedArt.thumbnail_url);
+    }
+
+    // Deduplicate and filter out null/http URLs
+    const uniquePaths = Array.from(
+      new Set(paths.filter((p): p is string => !!p && !p.startsWith("http"))),
+    );
+
+    return uniquePaths;
+  }, [activeTab, artPieces, selectedArt]);
+
+  const { signedUrls: artImageUrls } = useBatchStorageUrls(artImagePaths);
+
+  // Batch fetch signed URLs for writing cover images - only for the active tab
+  // Include both gallery pieces and the selected writing piece (if it belongs to this tab)
+  const writingImagePaths = useMemo(() => {
+    if (activeTab !== "writing") return [];
+
+    const paths: (string | null)[] = [
+      ...writingPieces.flatMap((writing) => [
+        writing.cover_image,
+        writing.thumbnail_url,
+      ]),
+    ];
+
+    // Only include selectedWriting if it belongs to the writing tab
+    if (selectedWriting) {
+      paths.push(selectedWriting.cover_image, selectedWriting.thumbnail_url);
+    }
+
+    // Deduplicate and filter out null/http URLs
+    const uniquePaths = Array.from(
+      new Set(paths.filter((p): p is string => !!p && !p.startsWith("http"))),
+    );
+
+    return uniquePaths;
+  }, [activeTab, writingPieces, selectedWriting]);
+
+  const { signedUrls: writingImageUrls } =
+    useBatchStorageUrls(writingImagePaths);
 
   // Convert art pieces to gallery format with signed URLs
   const galleryImages = filteredArtPieces.map((art) => ({

@@ -5,7 +5,7 @@
       "name": "exocorpse",
       "dependencies": {
         "@tanstack/react-query": "^5.90.5",
-        "@tuturuuu/supabase": "npm:@jsr/tuturuuu__supabase@^0.1.1",
+        "@tuturuuu/supabase": "^0.2.3",
         "@types/dompurify": "^3.2.0",
         "@types/sanitize-html": "^2.16.0",
         "@vercel/analytics": "^1.5.0",
@@ -179,8 +179,6 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@jsr/tuturuuu__types": ["@jsr/tuturuuu__types@0.1.5", "https://npm.jsr.io/~/11/@jsr/tuturuuu__types/0.1.5.tgz", {}, "sha512-l8mYvmE7IjfgfdcXqDpmAqHj9wVB133dscD6LJCNLE0LA2is7EnawVapaCYhWttXMICFkHwKHggElcLDS97CGQ=="],
-
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@0.2.12", "", { "dependencies": { "@emnapi/core": "^1.4.3", "@emnapi/runtime": "^1.4.3", "@tybys/wasm-util": "^0.10.0" } }, "sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ=="],
 
     "@next/env": ["@next/env@16.0.0", "", {}, "sha512-s5j2iFGp38QsG1LWRQaE2iUY3h1jc014/melHFfLdrsMJPqxqDQwWNwyQTcNoUSGZlCVZuM7t7JDMmSyRilsnA=="],
@@ -283,7 +281,7 @@
 
     "@tiptap/react": ["@tiptap/react@3.8.0", "", { "dependencies": { "@types/use-sync-external-store": "^0.0.6", "fast-deep-equal": "^3.1.3", "use-sync-external-store": "^1.4.0" }, "optionalDependencies": { "@tiptap/extension-bubble-menu": "^3.8.0", "@tiptap/extension-floating-menu": "^3.8.0" }, "peerDependencies": { "@tiptap/core": "^3.8.0", "@tiptap/pm": "^3.8.0", "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0", "@types/react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0", "react": "^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-ABEdqimvAdFJ9NY6waFu6z+vybs8EIALkOK7z2b+SrT+imPk+IXzLPmDj3n+PAkrdgGJRuSwXxpQbU/H+NR/4w=="],
 
-    "@tuturuuu/supabase": ["@jsr/tuturuuu__supabase@0.1.1", "https://npm.jsr.io/~/11/@jsr/tuturuuu__supabase/0.1.1.tgz", { "dependencies": { "@jsr/tuturuuu__types": "^0.1.5", "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.75.0", "next": "^16.0.0-canary.1" } }, "sha512-9GZv7iZ/162DbH1e3o9btSrz84oRCXuY1Wr+Wp0xAuLgskrbB5yzvZVOWJV0P+dh141l1DCNiTJPp+SHKC3CJw=="],
+    "@tuturuuu/supabase": ["@tuturuuu/supabase@0.2.3", "", { "dependencies": { "@supabase/ssr": "^0.7.0", "@supabase/supabase-js": "^2.76.1", "@tuturuuu/types": "0.2.3", "zod": "^4.1.12" }, "peerDependencies": { "next": ">=15.0.0", "react": ">=18.0.0", "react-dom": ">=18.0.0" } }, "sha512-vEeEwrPRr3EMn/ebdRY2orj61OyZh+hKPAgXC/iar2sSnj693U69dUe/tnHTLq1YqrL+cvnyc9tDP3nEwdNsDQ=="],
 
     "@tuturuuu/types": ["@tuturuuu/types@0.2.3", "", { "dependencies": { "@tiptap/react": "^3.8.0", "react": "^19.2.0", "react-dom": "^19.2.0", "zod": "^4.1.12" } }, "sha512-ExU75AVZjSPdfrWuqzacr/iHTxMlUMDFWOGN7MpO2Et1qnb65SAs86p/OXJIQ3a4DcdC5TDSGMfRIqS6v/0s1w=="],
 

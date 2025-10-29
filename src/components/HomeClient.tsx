@@ -55,6 +55,8 @@ export default function HomeClient({
     commissionParams["commission-tab"] ||
     commissionParams["blacklist-page"] ||
     commissionParams["blacklist-page-size"] ||
+    commissionParams.service ||
+    commissionParams.style ||
     portfolioParams["portfolio-tab"] ||
     portfolioParams["portfolio-piece"]
   );
@@ -64,7 +66,6 @@ export default function HomeClient({
     return <BootScreen onBootComplete={() => setBootComplete(true)} />;
   }
 
-  const Component = isMobile ? MobileLayout : Desktop;
   type WindowProviderProps = React.ComponentProps<typeof WindowProvider>;
   const commonProps: Omit<WindowProviderProps, "children"> = {
     wikiParams,

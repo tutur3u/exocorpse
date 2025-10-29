@@ -19,6 +19,14 @@ type StorageImageProps = Omit<ImageProps, "src"> & {
    * This is useful when batch fetching URLs for better performance
    */
   signedUrl?: string | null;
+  /**
+   * Image width - defaults to 500 if not provided
+   */
+  width?: number;
+  /**
+   * Image height - defaults to 500 if not provided
+   */
+  height?: number;
 };
 
 /**

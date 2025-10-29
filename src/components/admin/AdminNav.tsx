@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type NavItem = {
   href: string;
@@ -30,6 +30,8 @@ const navSections: NavSection[] = [
     items: [
       { href: "/admin/portfolio", label: "Portfolio" },
       { href: "/admin/blog-posts", label: "Blog Posts" },
+      { href: "/admin/services", label: "Commission Services" },
+      { href: "/admin/addons", label: "Add-ons" },
       { href: "/admin/blacklist", label: "Blacklist" },
     ],
   },

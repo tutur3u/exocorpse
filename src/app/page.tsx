@@ -9,6 +9,7 @@ import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import { getActiveServices, getServiceBySlug } from "@/lib/actions/commissions";
 import {
   getArtPieceBySlug,
   getArtPieces,
@@ -263,17 +264,50 @@ async function HomeContent({
   const blacklistPage = commissionParams["blacklist-page"] ?? 1;
   const blacklistPageSize =
     commissionParams["blacklist-page-size"] ?? DEFAULT_PAGE_SIZE;
+  const serviceSlug = commissionParams.service;
+  const styleSlug = commissionParams.style;
 
-  const blacklistData =
-    commissionTab === "blacklist"
-      ? await getBlacklistedUsersPaginated(blacklistPage, blacklistPageSize)
-      : { data: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE };
+  // Fetch commission data based on tab and params
+  let blacklistData: Awaited<ReturnType<typeof getBlacklistedUsersPaginated>> =
+    {
+      data: [],
+      total: 0,
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+    };
+  let commissionServices: Awaited<ReturnType<typeof getActiveServices>> = [];
+  let selectedCommissionService: Awaited<ReturnType<typeof getServiceBySlug>> =
+    null;
+
+  if (commissionTab === "blacklist") {
+    blacklistData = await getBlacklistedUsersPaginated(
+      blacklistPage,
+      blacklistPageSize,
+    );
+  }
+
+  // Always fetch services if on services tab or if a service slug is present
+  if (commissionTab === "services") {
+    if (serviceSlug) {
+      // Fetch specific service with all details
+      selectedCommissionService = await getServiceBySlug(serviceSlug);
+    } else {
+      // Fetch all active services for the services list
+      commissionServices = await getActiveServices();
+    }
+  } else if (serviceSlug) {
+    // Service slug present but not on services tab - still fetch the service
+    selectedCommissionService = await getServiceBySlug(serviceSlug);
+  }
 
   const initialCommissionData: InitialCommissionData = {
     blacklistedUsers: blacklistData.data,
     blacklistTotal: blacklistData.total,
     blacklistPage: blacklistData.page,
     blacklistPageSize: blacklistData.pageSize,
+    services: commissionServices,
+    selectedService: selectedCommissionService,
+    selectedStyleSlug: styleSlug,
   };
 
   // Fetch initial portfolio data based on params

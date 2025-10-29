@@ -1,10 +1,9 @@
 "use client";
 
+import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
+import StorageImage from "@/components/shared/StorageImage";
 import { useState } from "react";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
-import Lightbox, { type LightboxContent } from "../shared/Lightbox";
-
-/* eslint-disable @next/next/no-img-element */
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -133,11 +132,15 @@ export function MasonryGallery({
                 className="group relative cursor-pointer overflow-hidden transition-transform hover:scale-[1.02]"
                 onClick={() => handleImageClick(image, index)}
               >
-                <img
+                <StorageImage
                   src={image.url}
                   alt={image.alt || image.title || `Gallery image ${index + 1}`}
-                  className="block w-full"
-                  loading="lazy"
+                  width={image.width || 500}
+                  height={image.height || 500}
+                  className="block max-h-96 w-full object-cover"
+                  fallback={
+                    <div className="max-h-96 w-full bg-gray-200 dark:bg-gray-700" />
+                  }
                 />
                 {showOverlay && (image.metadata?.author || image.title) && (
                   <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">

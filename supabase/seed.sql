@@ -1185,6 +1185,105 @@ INSERT INTO blacklisted_users (username, reasoning, timestamp) VALUES
 );
 
 
+BEGIN;
+
+-- Use Common Table Expressions (CTEs) to insert parent rows and capture
+-- their generated UUIDs for use in subsequent child-table inserts.
+
+WITH new_services AS (
+    INSERT INTO services (name, slug, description, base_price, is_active, comm_link)
+    VALUES
+        ('Digital Sketch', 'digital-sketch', 'A clean, monochrome digital sketch.', 50.00, true, '/comm/sketch'),
+        ('Full-Color Illustration', 'full-color-illustration', 'A fully rendered illustration with complex shading and background.', 300.00, true, '/comm/full-color'),
+        ('Animated GIF', 'animated-gif', 'A short, looping animation.', 150.00, false, '/comm/gif')
+    RETURNING service_id, slug
+),
+
+new_addons AS (
+    INSERT INTO addons (name, is_exclusive, description, price_impact)
+    VALUES
+        -- 1. Non-Exclusive: Can be applied to multiple services
+        ('Extra Character', false, 'Adds one additional character to the piece.', 100.00),
+        ('Commercial Use License', false, 'Grants license for commercial use.', 250.00),
+        
+        -- 2. Exclusive: Can only be applied to ONE service
+        ('24-Hour Rush Delivery', true, 'Guaranteed delivery within 24 hours.', 75.00),
+        ('Printed & Shipped', true, 'High-quality Giclée print, framed and shipped.', 120.00)
+    RETURNING addon_id, name
+),
+
+-- 3. Link Services and Addons
+-- The trigger 'trg_set_addon_exclusive_flag' will automatically populate
+-- the 'addon_is_exclusive' column in this table during insertion.
+-- We provide a dummy value (false) that will be overwritten by the trigger.
+service_addon_links AS (
+    INSERT INTO service_addons (service_id, addon_id, addon_is_exclusive)
+    SELECT
+        s.service_id,
+        a.addon_id,
+        false -- This will be overwritten by the trigger
+    FROM new_services s, new_addons a
+    WHERE
+        -- Test Case 1: Non-exclusive 'Extra Character' for 'Digital Sketch'
+        (s.slug = 'digital-sketch' AND a.name = 'Extra Character') OR
+        
+        -- Test Case 2: Non-exclusive 'Extra Character' for 'Full-Color Illustration' (ALLOWED)
+        (s.slug = 'full-color-illustration' AND a.name = 'Extra Character') OR
+        
+        -- Test Case 3: Non-exclusive 'Commercial Use License' for 'Full-Color Illustration'
+        (s.slug = 'full-color-illustration' AND a.name = 'Commercial Use License') OR
+        
+        -- Test Case 4: Exclusive '24-Hour Rush Delivery' for 'Digital Sketch' (ALLOWED)
+        (s.slug = 'digital-sketch' AND a.name = '24-Hour Rush Delivery') OR
+        
+        -- Test Case 5: Exclusive 'Printed & Shipped' for 'Full-Color Illustration' (ALLOWED)
+        (s.slug = 'full-color-illustration' AND a.name = 'Printed & Shipped')
+        
+    -- NOTE: Attempting to add a 6th entry like:
+    -- (s.slug = 'full-color-illustration' AND a.name = '24-Hour Rush Delivery')
+    -- would FAIL due to the 'idx_exclusive_addon_service' unique index.
+    RETURNING service_id, addon_id
+),
+
+-- 4. Create Styles for the services
+new_styles AS (
+    INSERT INTO styles (service_id, name, slug, description)
+    SELECT
+        s.service_id,
+        v.name,
+        v.style_slug,
+        v.description
+    FROM new_services s
+    -- Use a VALUES list to join against the service slugs and provide style slugs
+    JOIN ( VALUES
+        ('digital-sketch', 'clean-lineart', 'Clean Lineart', 'Crisp, black and white lineart.'),
+        ('full-color-illustration', 'painterly', 'Painterly', 'A textured, blended digital painting style.'),
+        ('full-color-illustration', 'anime-cel-shaded', 'Anime / Cel-Shaded', 'Bright colors with hard-edged shadows.')
+    ) AS v(service_slug, style_slug, name, description) ON s.slug = v.service_slug
+    RETURNING style_id, service_id, name
+)
+
+-- 5. Create Pictures for the styles
+INSERT INTO pictures (style_id, service_id, image_url, caption, is_primary_example)
+SELECT
+    st.style_id,
+    st.service_id,
+    v.image_url,
+    v.caption,
+    v.is_primary_example
+FROM new_styles st
+JOIN ( VALUES
+    ('Clean Lineart', '/img/placeholder-1.jpg', 'Example of lineart portrait.', true),
+    ('Clean Lineart', '/img/placeholder-2.jpg', 'Group sketch.', false),
+    ('Painterly', '/img/placeholder-3.jpg', 'Landscape in painterly style.', true),
+    ('Anime / Cel-Shaded', '/img/placeholder-4.jpg', 'Cel-shaded character design.', true),
+    ('Anime / Cel-Shaded', '/img/placeholder-5.jpg', 'Action scene.', false)
+) AS v(style_name, image_url, caption, is_primary_example) ON st.name = v.style_name;
+
+
+COMMIT;
+
+
 -- ============================================================================
 -- VERIFICATION QUERIES
 -- ============================================================================

@@ -1,6 +1,7 @@
 "use client";
 
 import type { BlacklistedUser } from "@/lib/actions/blacklist";
+import type { ServiceWithDetails } from "@/lib/actions/commissions";
 import { createContext, useContext } from "react";
 
 export type InitialCommissionData = {
@@ -8,6 +9,9 @@ export type InitialCommissionData = {
   blacklistTotal: number;
   blacklistPage: number;
   blacklistPageSize: number;
+  services: ServiceWithDetails[];
+  selectedService: ServiceWithDetails | null;
+  selectedStyleSlug: string | null;
 };
 
 const InitialCommissionDataContext = createContext<
