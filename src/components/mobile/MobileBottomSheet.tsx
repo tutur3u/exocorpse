@@ -1,6 +1,7 @@
 "use client";
 
 import { useMobile } from "@/contexts/MobileContext";
+import type { AppId } from "@/types/window";
 import { useEffect, useRef, useState } from "react";
 import Icon from "../shared/Icon";
 
@@ -11,10 +12,10 @@ function AppButton({
   icon,
   onSelect,
 }: {
-  appId: string;
+  appId: AppId;
   title: string;
   icon: string;
-  onSelect: (id: string) => void;
+  onSelect: (id: AppId) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
