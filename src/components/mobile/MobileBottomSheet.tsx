@@ -28,7 +28,7 @@ function AppButton({
     >
       <Icon
         name={icon}
-        size={256}
+        size={32}
         alt={title}
         className="h-12 w-12"
         isHovered={isHovered}
