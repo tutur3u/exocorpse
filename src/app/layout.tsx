@@ -1,3 +1,4 @@
+import { CursorProvider } from "@/contexts/CursorContext";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
@@ -31,10 +32,12 @@ export default function RootLayout({
       <body className={`${baskervvile.variable} antialiased`}>
         <Analytics />
         <NuqsAdapter>
-          <SoundProvider>
-            <QueryProvider>{children}</QueryProvider>
-            <Toaster position="top-center" />
-          </SoundProvider>
+          <CursorProvider>
+            <SoundProvider>
+              <QueryProvider>{children}</QueryProvider>
+              <Toaster position="top-center" />
+            </SoundProvider>
+          </CursorProvider>
         </NuqsAdapter>
       </body>
     </html>

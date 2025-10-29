@@ -168,3 +168,158 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Cursor definitions */
+:root {
+  --cursor-normal: url("/cursor/Normal.cur"), auto;
+  --cursor-link: url("/cursor/Link.cur"), pointer;
+  --cursor-move: url("/cursor/Move.cur"), move;
+  --cursor-text: url("/cursor/Text.cur"), text;
+  --cursor-busy: url("/cursor/Busy.ani"), auto;
+  --cursor-working: url("/cursor/Working.ani"), auto;
+  --cursor-help: url("/cursor/Help.cur"), help;
+  --cursor-unavailable: url("/cursor/Unavailable.cur"), not-allowed;
+  --cursor-vertical: url("/cursor/Vertical.cur"), ns-resize;
+  --cursor-horizontal: url("/cursor/EW-Resize.cur"), ew-resize;
+  --cursor-diagonal1: url("/cursor/NWSE-Resize.cur"), nwse-resize;
+  --cursor-diagonal2: url("/cursor/NESW-Resize.cur"), nesw-resize;
+  --cursor-handwriting: url("/cursor/Handwriting.cur"), auto;
+  --cursor-person: url("/cursor/Person.cur"), auto;
+  --cursor-pin: url("/cursor/Pin.cur"), auto;
+  --cursor-precision: url("/cursor/Precision.cur"), auto;
+  --cursor-alternate: url("/cursor/Alternate.cur"), auto;
+}
+
+/* Global cursor */
+html,
+body,
+* {
+  cursor: var(--cursor-normal) !important;
+}
+
+/* Cursor utilities */
+.cursor-default {
+  cursor: var(--cursor-normal) !important;
+}
+
+.cursor-link {
+  cursor: var(--cursor-link) !important;
+}
+
+.cursor-pointer {
+  cursor: var(--cursor-link) !important;
+}
+
+.cursor-move {
+  cursor: var(--cursor-move) !important;
+}
+
+.cursor-text {
+  cursor: var(--cursor-text) !important;
+}
+
+.cursor-busy {
+  cursor: var(--cursor-busy) !important;
+}
+
+.cursor-working {
+  cursor: var(--cursor-working) !important;
+}
+
+.cursor-help {
+  cursor: var(--cursor-help) !important;
+}
+
+.cursor-not-allowed {
+  cursor: var(--cursor-unavailable) !important;
+}
+
+.cursor-ns-resize {
+  cursor: var(--cursor-vertical) !important;
+}
+
+.cursor-ew-resize {
+  cursor: var(--cursor-horizontal) !important;
+}
+
+.cursor-nwse-resize {
+  cursor: var(--cursor-diagonal1) !important;
+}
+
+.cursor-nesw-resize {
+  cursor: var(--cursor-diagonal2) !important;
+}
+
+.cursor-hand {
+  cursor: var(--cursor-person) !important;
+}
+
+.cursor-pin {
+  cursor: var(--cursor-pin) !important;
+}
+
+.cursor-precision {
+  cursor: var(--cursor-precision) !important;
+}
+
+.cursor-handwriting {
+  cursor: var(--cursor-handwriting) !important;
+}
+
+.cursor-alternate {
+  cursor: var(--cursor-alternate) !important;
+}
+
+/* Window-specific cursor adjustments */
+.window-drag-handle,
+.window-drag-handle * {
+  cursor: var(--cursor-move) !important;
+}
+
+/* Button cursor */
+button,
+button *,
+[role="button"],
+[role="button"] *,
+a,
+a * {
+  cursor: var(--cursor-link) !important;
+}
+
+button:disabled,
+button:disabled *,
+[role="button"][aria-disabled="true"],
+[role="button"][aria-disabled="true"] *,
+a:has([aria-disabled="true"]),
+a:has([aria-disabled="true"]) * {
+  cursor: var(--cursor-unavailable) !important;
+}
+
+/* Input field cursor */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+  cursor: var(--cursor-text) !important;
+}
+
+/* Resize handles cursor */
+.resize-handle,
+.resize-handle-ns {
+  cursor: var(--cursor-vertical) !important;
+}
+
+.resize-handle-ew {
+  cursor: var(--cursor-horizontal) !important;
+}
+
+.resize-handle-nwse {
+  cursor: var(--cursor-diagonal1) !important;
+}
+
+.resize-handle-nesw {
+  cursor: var(--cursor-diagonal2) !important;
+}
