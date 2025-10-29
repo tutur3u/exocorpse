@@ -29,7 +29,14 @@ export default function MobileLayout({
       commissionParams={commissionParams}
       portfolioParams={portfolioParams}
     >
-      <div className="relative h-screen w-screen overflow-hidden bg-[url(/background-image.webp)] bg-cover bg-center bg-no-repeat">
+      <div className="relative h-screen w-screen overflow-hidden bg-cover bg-center">
+        <Image
+          src="/background-image.webp"
+          alt="Background Image"
+          fill
+          className="object-cover"
+          loading="eager"
+        />
         {/* Desktop Notice Banner */}
         <DesktopNoticeBanner />
 

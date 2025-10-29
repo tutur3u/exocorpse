@@ -15,26 +15,6 @@ interface TerminalMessage {
 const BOOT_IMAGES = ["Fenrys.webp", "Morris.webp"];
 const BACKGROUND_IMAGE = "/background-image.webp";
 
-// Preload images to ensure they're ready before display
-const preloadImages = async (): Promise<void> => {
-  const imagesToPreload = [
-    BACKGROUND_IMAGE,
-    ...BOOT_IMAGES.map((img) => `/boot/${img}`),
-  ];
-
-  const preloadPromises = imagesToPreload.map(
-    (src) =>
-      new Promise<void>((resolve) => {
-        const img = new window.Image();
-        img.onload = () => resolve();
-        img.onerror = () => resolve(); // Resolve even on error to not block
-        img.src = src;
-      }),
-  );
-
-  await Promise.all(preloadPromises);
-};
-
 const TERMINAL_MESSAGES: Omit<TerminalMessage, "displayedText" | "isTyping">[] =
   [
     { id: "1", text: "> password detected...", delay: 300 },
@@ -55,7 +35,6 @@ export default function BootScreen({
   const { playSound, stopSound } = useSound();
   const [currentTime, setCurrentTime] = useState("");
   const [randomBootImage, setRandomBootImage] = useState<string>("");
-  const [imagesReady, setImagesReady] = useState(false);
   const [messages, setMessages] = useState<TerminalMessage[]>(
     TERMINAL_MESSAGES.map((msg) => ({
       ...msg,
@@ -63,13 +42,6 @@ export default function BootScreen({
       isTyping: false,
     })),
   );
-
-  // Preload images on mount
-  useEffect(() => {
-    preloadImages().then(() => {
-      setImagesReady(true);
-    });
-  }, []);
 
   // Select random boot image on mount
   useEffect(() => {
@@ -169,13 +141,15 @@ export default function BootScreen({
     };
   }, [playSound, onBootComplete, stopSound, currentTime]);
 
-  // Don't render until images are preloaded
-  if (!imagesReady) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-[url(/background-image.webp)] bg-cover bg-center">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-cover bg-center">
+      <Image
+        src={BACKGROUND_IMAGE}
+        alt="Background Image"
+        fill
+        preload={true}
+        className="object-cover"
+      />
       {/* Animated background pattern (optional subtle effect) */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-linear-to-br from-red-900/20 via-transparent to-blue-900/20" />
@@ -192,7 +166,7 @@ export default function BootScreen({
                 alt="Boot Avatar"
                 width={192}
                 height={192}
-                priority
+                preload={true}
                 className="h-full w-full object-cover"
               />
             ) : (

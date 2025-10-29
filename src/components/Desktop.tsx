@@ -14,9 +14,16 @@ export default function Desktop() {
 
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden bg-[url(/background-image.webp)] bg-cover bg-center bg-no-repeat"
+      className="relative h-screen w-screen overflow-hidden bg-cover bg-center bg-no-repeat"
       onClick={() => setSelectedIconId(null)}
     >
+      <Image
+        src="/background-image.webp"
+        alt="Background Image"
+        fill
+        className="object-cover"
+        loading="eager"
+      />
       {/* Desktop Icons - Logo at Top, Icons Centered */}
       <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center gap-6">
         {/* Logo - Top of screen */}
