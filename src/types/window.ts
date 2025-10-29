@@ -4,6 +4,7 @@ export type AppId = "about" | "portfolio" | "commission" | "wiki" | "blog";
 export interface WindowConfig {
   id: AppId;
   title: string;
+  /** Icon name (for PNG/GIF icons) or emoji fallback */
   icon: string;
   component: React.ComponentType;
   defaultSize: { width: number; height: number };

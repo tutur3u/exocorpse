@@ -5,6 +5,49 @@ import type { AppId } from "@/types/window";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import MusicPlayer from "./MusicPlayer";
+import Icon from "./shared/Icon";
+
+// TaskbarButton component to manage individual button hover state
+function TaskbarButton({
+  appId,
+  title,
+  icon,
+  isOpen,
+  isMinimized,
+  onClick,
+}: {
+  appId: AppId;
+  title: string;
+  icon: string;
+  isOpen: boolean;
+  isMinimized: boolean;
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`flex h-10 items-center gap-2 rounded px-3 transition-colors ${
+        isOpen
+          ? "bg-white dark:bg-gray-700"
+          : "hover:bg-gray-300 dark:hover:bg-gray-700"
+      } ${isMinimized ? "opacity-60" : ""}`}
+      title={title}
+    >
+      <Icon
+        name={icon}
+        size={32}
+        alt={title}
+        className="h-6 w-6"
+        isHovered={isHovered}
+      />
+      <span className="text-sm font-medium">{title}</span>
+    </button>
+  );
+}
 
 export default function Taskbar() {
   const {
@@ -102,7 +145,7 @@ export default function Taskbar() {
   };
 
   return (
-    <div className="fixed right-0 bottom-0 left-0 z-[10000] flex h-12 items-center gap-1 border-t border-gray-300 bg-gray-200 px-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+    <div className="fixed right-0 bottom-0 left-0 z-10000 flex h-12 items-center gap-1 border-t border-gray-300 bg-gray-200 px-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       {/* OS Icon - Left aligned */}
       <button
         onClick={handleOSIconClick}
@@ -127,19 +170,15 @@ export default function Taskbar() {
         const isMinimized = isWindowMinimized(app.id);
 
         return (
-          <button
+          <TaskbarButton
             key={app.id}
-            onClick={() => handleTaskbarClick(app.id)}
-            className={`flex h-10 items-center gap-2 rounded px-3 transition-colors ${
-              isOpen
-                ? "bg-white dark:bg-gray-700"
-                : "hover:bg-gray-300 dark:hover:bg-gray-700"
-            } ${isMinimized ? "opacity-60" : ""}`}
+            appId={app.id}
             title={app.title}
-          >
-            <span className="text-xl">{app.icon}</span>
-            <span className="text-sm font-medium">{app.title}</span>
-          </button>
+            icon={app.icon}
+            isOpen={isOpen}
+            isMinimized={isMinimized}
+            onClick={() => handleTaskbarClick(app.id)}
+          />
         );
       })}
 

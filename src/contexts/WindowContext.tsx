@@ -43,7 +43,7 @@ export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "about",
     title: "About Me",
-    icon: "👤",
+    icon: "Butterflies", // Using the Butterflies icon for About Me
     component: AboutMe,
     defaultSize: { width: 600, height: 400 },
     defaultPosition: { x: 100, y: 100 },
@@ -51,7 +51,7 @@ export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "portfolio",
     title: "Portfolio",
-    icon: "📁",
+    icon: "Portfolio",
     component: Portfolio,
     defaultSize: { width: 700, height: 500 },
     defaultPosition: { x: 150, y: 150 },
@@ -59,7 +59,7 @@ export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "commission",
     title: "Commission",
-    icon: "💼",
+    icon: "Commission",
     component: Commission,
     defaultSize: { width: 650, height: 450 },
     defaultPosition: { x: 200, y: 200 },
@@ -67,7 +67,7 @@ export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "wiki",
     title: "Wiki",
-    icon: "📚",
+    icon: "World_Wiki",
     component: Wiki,
     defaultSize: { width: 600, height: 500 },
     defaultPosition: { x: 250, y: 150 },
@@ -75,7 +75,7 @@ export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "blog",
     title: "Blog",
-    icon: "📝",
+    icon: "Blog",
     component: Blog,
     defaultSize: { width: 700, height: 600 },
     defaultPosition: { x: 150, y: 100 },

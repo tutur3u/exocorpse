@@ -2,6 +2,40 @@
 
 import { useMobile } from "@/contexts/MobileContext";
 import { useEffect, useRef, useState } from "react";
+import Icon from "../shared/Icon";
+
+// AppButton component to manage individual app button hover state
+function AppButton({
+  appId,
+  title,
+  icon,
+  onSelect,
+}: {
+  appId: string;
+  title: string;
+  icon: string;
+  onSelect: (id: string) => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      onClick={() => onSelect(appId)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-2xl bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+    >
+      <Icon
+        name={icon}
+        size={256}
+        alt={title}
+        className="h-12 w-12"
+        isHovered={isHovered}
+      />
+      <span className="text-sm font-medium">{title}</span>
+    </button>
+  );
+}
 
 export default function MobileBottomSheet() {
   const {
@@ -97,7 +131,7 @@ export default function MobileBottomSheet() {
       {/* Backdrop */}
       {sheetState !== "closed" && (
         <div
-          className="animate-fadeIn fixed inset-0 z-[998] bg-black/50 backdrop-blur-sm"
+          className="animate-fadeIn fixed inset-0 z-998 bg-black/50 backdrop-blur-sm"
           onClick={handleBackdropClick}
         />
       )}
@@ -105,7 +139,7 @@ export default function MobileBottomSheet() {
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className="fixed right-0 bottom-0 left-0 z-[999] rounded-t-3xl bg-white shadow-2xl transition-all duration-300 ease-out dark:bg-gray-900"
+        className="fixed right-0 bottom-0 left-0 z-999 rounded-t-3xl bg-white shadow-2xl transition-all duration-300 ease-out dark:bg-gray-900"
         style={{
           height: getSheetHeight(),
           transform: isDragging
@@ -160,14 +194,13 @@ export default function MobileBottomSheet() {
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4">
                 {apps.map((app) => (
-                  <button
+                  <AppButton
                     key={app.id}
-                    onClick={() => selectApp(app.id)}
-                    className="flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-2xl bg-gray-50 p-6 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                  >
-                    <span className="text-4xl">{app.icon}</span>
-                    <span className="text-sm font-medium">{app.title}</span>
-                  </button>
+                    appId={app.id}
+                    title={app.title}
+                    icon={app.icon}
+                    onSelect={selectApp}
+                  />
                 ))}
               </div>
             </div>
