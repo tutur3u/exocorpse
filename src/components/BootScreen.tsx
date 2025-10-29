@@ -1,6 +1,7 @@
 "use client";
 
 import { useSound } from "@/contexts/SoundContext";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface TerminalMessage {
@@ -10,6 +11,29 @@ interface TerminalMessage {
   displayedText: string;
   isTyping: boolean;
 }
+
+const BOOT_IMAGES = ["Fenrys.webp", "Morris.webp"];
+const BACKGROUND_IMAGE = "/background-image.webp";
+
+// Preload images to ensure they're ready before display
+const preloadImages = async (): Promise<void> => {
+  const imagesToPreload = [
+    BACKGROUND_IMAGE,
+    ...BOOT_IMAGES.map((img) => `/boot/${img}`),
+  ];
+
+  const preloadPromises = imagesToPreload.map(
+    (src) =>
+      new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Resolve even on error to not block
+        img.src = src;
+      }),
+  );
+
+  await Promise.all(preloadPromises);
+};
 
 const TERMINAL_MESSAGES: Omit<TerminalMessage, "displayedText" | "isTyping">[] =
   [
@@ -30,6 +54,8 @@ export default function BootScreen({
 }) {
   const { playSound, stopSound } = useSound();
   const [currentTime, setCurrentTime] = useState("");
+  const [randomBootImage, setRandomBootImage] = useState<string>("");
+  const [imagesReady, setImagesReady] = useState(false);
   const [messages, setMessages] = useState<TerminalMessage[]>(
     TERMINAL_MESSAGES.map((msg) => ({
       ...msg,
@@ -37,6 +63,19 @@ export default function BootScreen({
       isTyping: false,
     })),
   );
+
+  // Preload images on mount
+  useEffect(() => {
+    preloadImages().then(() => {
+      setImagesReady(true);
+    });
+  }, []);
+
+  // Select random boot image on mount
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * BOOT_IMAGES.length);
+    setRandomBootImage(BOOT_IMAGES[randomIndex]);
+  }, []);
 
   // Update local time
   useEffect(() => {
@@ -130,11 +169,13 @@ export default function BootScreen({
     };
   }, [playSound, onBootComplete, stopSound, currentTime]);
 
+  // Don't render until images are preloaded
+  if (!imagesReady) {
+    return null;
+  }
+
   return (
-    <div
-      className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-black bg-cover bg-center"
-      style={{ backgroundImage: "url('/background-image.png')" }}
-    >
+    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-[url(/background-image.webp)] bg-cover bg-center">
       {/* Animated background pattern (optional subtle effect) */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-linear-to-br from-red-900/20 via-transparent to-blue-900/20" />
@@ -144,9 +185,17 @@ export default function BootScreen({
       <div className="relative z-10 flex flex-col items-center justify-center gap-8">
         {/* User Avatar */}
         <div className="animate-fadeIn">
-          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-linear-to-br from-gray-300 to-gray-400 shadow-lg">
-            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gray-400 bg-gray-200">
-              {/* Simple user icon */}
+          <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full">
+            {randomBootImage ? (
+              <Image
+                src={`/boot/${randomBootImage}`}
+                alt="Boot Avatar"
+                width={192}
+                height={192}
+                priority
+                className="h-full w-full object-cover"
+              />
+            ) : (
               <svg
                 className="h-16 w-16 text-gray-600"
                 fill="currentColor"
@@ -154,7 +203,7 @@ export default function BootScreen({
               >
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
               </svg>
-            </div>
+            )}
           </div>
         </div>
 

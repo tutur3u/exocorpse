@@ -14,10 +14,7 @@ export default function Desktop() {
 
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: "url('/background-image.png')",
-      }}
+      className="relative h-screen w-screen overflow-hidden bg-[url(/background-image.webp)] bg-cover bg-center bg-no-repeat"
       onClick={() => setSelectedIconId(null)}
     >
       {/* Desktop Icons - Logo at Top, Icons Centered */}
@@ -25,7 +22,7 @@ export default function Desktop() {
         {/* Logo - Top of screen */}
         <div className="pointer-events-auto relative h-40 w-96">
           <Image
-            src="/desktop-logo.png"
+            src="/desktop-logo.webp"
             alt="EXOCORPSE & MORS Logo"
             fill
             className="object-contain"

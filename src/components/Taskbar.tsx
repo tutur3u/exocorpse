@@ -110,7 +110,7 @@ export default function Taskbar() {
         title="Minimize all windows"
       >
         <Image
-          src="/exocorpse.png"
+          src="/exocorpse.webp"
           alt="OS Icon"
           width={32}
           height={32}
