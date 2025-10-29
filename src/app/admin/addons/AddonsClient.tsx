@@ -108,9 +108,8 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
 
   // Filter addons
   const filteredAddons = addons.filter((addon) => {
-    const matchesSearch =
-      addon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      addon.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const haystack = `${addon.name} ${addon.description ?? ""}`.toLowerCase();
+    const matchesSearch = haystack.includes(searchTerm.toLowerCase());
 
     const matchesFilter =
       filterType === "all" ||
@@ -133,6 +132,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setEditingAddon(null);
             setShowAddonForm(true);
@@ -229,6 +229,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
 
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     setEditingAddon(addon);
                     setShowAddonForm(true);
@@ -238,6 +239,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
                   Edit
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteAddonId(addon.addon_id);
                     setShowDeleteConfirm(true);

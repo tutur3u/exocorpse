@@ -1962,6 +1962,10 @@ export type Database = {
           relationship_type_name: string;
         }[];
       };
+      replace_service_addons: {
+        Args: { p_addons: string[]; p_service: string };
+        Returns: Json;
+      };
       search_entities: {
         Args: { search_query: string };
         Returns: {
@@ -1971,6 +1975,10 @@ export type Database = {
           entity_type: string;
           rank: number;
         }[];
+      };
+      set_primary_picture: {
+        Args: { p_picture_id: string; p_style_id: string };
+        Returns: Json;
       };
       show_limit: { Args: never; Returns: number };
       show_trgm: { Args: { "": string }; Returns: string[] };

@@ -79,6 +79,25 @@ BEFORE INSERT ON service_addons
 FOR EACH ROW
 EXECUTE FUNCTION set_addon_exclusive_flag();
 
+
+CREATE OR REPLACE FUNCTION prevent_exclusive_flag_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.is_exclusive = TRUE AND OLD.is_exclusive = FALSE THEN
+        IF (SELECT COUNT(DISTINCT service_id) FROM service_addons WHERE addon_id = NEW.addon_id) > 1 THEN
+            RAISE EXCEPTION 'Cannot set addon to exclusive: already associated with multiple services';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_prevent_exclusive_change
+BEFORE UPDATE ON addons
+FOR EACH ROW
+WHEN (OLD.is_exclusive IS DISTINCT FROM NEW.is_exclusive)
+EXECUTE FUNCTION prevent_exclusive_flag_change();
+
 -----------------------------------------------------------------------
 -- 6. STYLES Table (No Change)
 -----------------------------------------------------------------------

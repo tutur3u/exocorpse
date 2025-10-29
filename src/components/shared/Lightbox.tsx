@@ -56,7 +56,7 @@ export default function Lightbox({
 
   const lightboxContent = (
     <div
-      className="bg-opacity-95 animate-fadeIn fixed inset-0 z-[10001] flex flex-col bg-black p-4"
+      className="bg-opacity-95 animate-fadeIn fixed inset-0 z-10001 flex flex-col bg-black p-4"
       onClick={onClose}
       aria-hidden="true"
     >

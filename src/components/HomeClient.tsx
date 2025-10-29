@@ -66,7 +66,6 @@ export default function HomeClient({
     return <BootScreen onBootComplete={() => setBootComplete(true)} />;
   }
 
-  const Component = isMobile ? MobileLayout : Desktop;
   type WindowProviderProps = React.ComponentProps<typeof WindowProvider>;
   const commonProps: Omit<WindowProviderProps, "children"> = {
     wikiParams,

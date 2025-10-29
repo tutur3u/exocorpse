@@ -47,6 +47,19 @@ export default function ServicesClient({
     useState(false);
   const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null);
 
+  // Style delete state
+  const [showDeleteStyleConfirm, setShowDeleteStyleConfirm] = useState(false);
+  const [pendingDeleteStyleId, setPendingDeleteStyleId] = useState<
+    string | null
+  >(null);
+
+  // Picture delete state
+  const [showDeletePictureConfirm, setShowDeletePictureConfirm] =
+    useState(false);
+  const [pendingDeletePictureId, setPendingDeletePictureId] = useState<
+    string | null
+  >(null);
+
   // Query services
   const { data: services = initialServices } = useQuery({
     queryKey: ["admin-services"],
@@ -112,6 +125,7 @@ export default function ServicesClient({
     onSuccess: () => {
       toastWithSound.success("Service deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["exclusive-addon-services"] });
       setShowDeleteServiceConfirm(false);
       setDeleteServiceId(null);
       if (selectedServiceId === deleteServiceId) {
@@ -217,6 +231,7 @@ export default function ServicesClient({
     }) => linkAddonToService(serviceId, addonId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-service-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["exclusive-addon-services"] });
     },
     onError: (error: Error) => {
       toastWithSound.error(error.message || "Failed to link add-on");
@@ -233,6 +248,7 @@ export default function ServicesClient({
     }) => unlinkAddonFromService(serviceId, addonId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-service-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["exclusive-addon-services"] });
     },
     onError: () => {
       toastWithSound.error("Failed to unlink add-on");
@@ -309,18 +325,23 @@ export default function ServicesClient({
     [updateStyleMutation],
   );
 
-  const handleDeleteStyle = useCallback(
-    async (styleId: string) => {
-      if (
-        confirm(
-          "Are you sure you want to delete this style? This will also delete all associated pictures.",
-        )
-      ) {
-        deleteStyleMutation.mutate(styleId);
-      }
-    },
-    [deleteStyleMutation],
-  );
+  const handleDeleteStyle = useCallback(async (styleId: string) => {
+    setPendingDeleteStyleId(styleId);
+    setShowDeleteStyleConfirm(true);
+  }, []);
+
+  const handleConfirmDeleteStyle = useCallback(() => {
+    if (pendingDeleteStyleId) {
+      deleteStyleMutation.mutate(pendingDeleteStyleId);
+      setShowDeleteStyleConfirm(false);
+      setPendingDeleteStyleId(null);
+    }
+  }, [pendingDeleteStyleId, deleteStyleMutation]);
+
+  const handleCancelDeleteStyle = useCallback(() => {
+    setShowDeleteStyleConfirm(false);
+    setPendingDeleteStyleId(null);
+  }, []);
 
   const handleCreatePicture = useCallback(
     async (data: Parameters<typeof createPicture>[0]) => {
@@ -346,17 +367,26 @@ export default function ServicesClient({
     });
   }, [queryClient, selectedServiceId]);
 
-  const handleDeletePicture = useCallback(
-    async (pictureId: string) => {
-      if (confirm("Are you sure you want to delete this picture?")) {
-        deletePictureMutation.mutate(pictureId);
-      }
-    },
-    [deletePictureMutation],
-  );
+  const handleDeletePicture = useCallback(async (pictureId: string) => {
+    setPendingDeletePictureId(pictureId);
+    setShowDeletePictureConfirm(true);
+  }, []);
+
+  const handleConfirmDeletePicture = useCallback(() => {
+    if (pendingDeletePictureId) {
+      deletePictureMutation.mutate(pendingDeletePictureId);
+      setShowDeletePictureConfirm(false);
+      setPendingDeletePictureId(null);
+    }
+  }, [pendingDeletePictureId, deletePictureMutation]);
+
+  const handleCancelDeletePicture = useCallback(() => {
+    setShowDeletePictureConfirm(false);
+    setPendingDeletePictureId(null);
+  }, []);
 
   const currentServiceAddons =
-    selectedServiceData?.service_addons?.map((sa: any) => sa.addon_id) || [];
+    selectedServiceData?.service_addons?.map((sa) => sa.addon_id) || [];
 
   // Get available addons, excluding exclusive addons linked to other services
   const availableAddons = useMemo(() => {
@@ -431,6 +461,7 @@ export default function ServicesClient({
           </p>
         </div>
         <button
+          type="button"
           onClick={() => handleOpenForm()}
           className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
@@ -482,12 +513,14 @@ export default function ServicesClient({
               <div className="border-t border-gray-200 p-4 dark:border-gray-700">
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => handleOpenForm(service)}
                     className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
                   >
                     Edit
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setDeleteServiceId(service.service_id);
                       setShowDeleteServiceConfirm(true);
@@ -534,6 +567,28 @@ export default function ServicesClient({
           setShowDeleteServiceConfirm(false);
           setDeleteServiceId(null);
         }}
+        confirmText="Delete"
+        isDangerous
+      />
+
+      {/* Style Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={showDeleteStyleConfirm}
+        title="Delete Style"
+        message="Are you sure you want to delete this style? This will also delete all associated pictures."
+        onConfirm={handleConfirmDeleteStyle}
+        onCancel={handleCancelDeleteStyle}
+        confirmText="Delete"
+        isDangerous
+      />
+
+      {/* Picture Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={showDeletePictureConfirm}
+        title="Delete Picture"
+        message="Are you sure you want to delete this picture?"
+        onConfirm={handleConfirmDeletePicture}
+        onCancel={handleCancelDeletePicture}
         confirmText="Delete"
         isDangerous
       />

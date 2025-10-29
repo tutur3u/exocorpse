@@ -3,7 +3,11 @@
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { Tables } from "../../../supabase/types";
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "../../../supabase/types";
 
 // ============================================================================
 // TYPES
@@ -53,6 +57,7 @@ export async function getAllServices() {
 /**
  * Get all services with full details (pictures, styles, addons)
  * This is useful for displaying service listings with images
+ * Note: Service-level pictures (not tied to styles) can be fetched separately using getPicturesForService()
  */
 export async function getAllServicesWithDetails() {
   const supabase = await getSupabaseServer();
@@ -71,8 +76,7 @@ export async function getAllServicesWithDetails() {
       styles (
         *,
         pictures (*)
-      ),
-      pictures (*)
+      )
     `,
     )
     .order("name", { ascending: true });
@@ -82,7 +86,21 @@ export async function getAllServicesWithDetails() {
     return [];
   }
 
-  return data || [];
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Fetch all service-level pictures in a single batched query
+  const serviceIds = data.map((service) => service.service_id);
+  const picturesByService = await getPicturesForServices(serviceIds);
+
+  // Merge pictures into each service
+  const servicesWithPictures = data.map((service) => ({
+    ...service,
+    pictures: picturesByService[service.service_id] || [],
+  }));
+
+  return servicesWithPictures;
 }
 
 /**
@@ -105,8 +123,7 @@ export async function getServiceById(serviceId: string) {
       styles (
         *,
         pictures (*)
-      ),
-      pictures (*)
+      )
     `,
     )
     .eq("service_id", serviceId)
@@ -117,7 +134,13 @@ export async function getServiceById(serviceId: string) {
     return null;
   }
 
-  return data;
+  // Fetch service-level pictures separately (where style_id IS NULL)
+  const servicePictures = await getPicturesForService(serviceId);
+
+  return {
+    ...data,
+    pictures: servicePictures,
+  };
 }
 
 /**
@@ -142,8 +165,7 @@ export async function getServiceBySlug(
       styles (
         *,
         pictures (*)
-      ),
-      pictures (*)
+      )
     `,
     )
     .eq("slug", slug)
@@ -154,7 +176,13 @@ export async function getServiceBySlug(
     return null;
   }
 
-  return (data as ServiceWithDetails) ?? null;
+  // Fetch service-level pictures separately (where style_id IS NULL)
+  const servicePictures = await getPicturesForService(data.service_id);
+
+  return {
+    ...data,
+    pictures: servicePictures,
+  } as ServiceWithDetails;
 }
 
 /**
@@ -177,8 +205,7 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
       styles (
         *,
         pictures (*)
-      ),
-      pictures (*)
+      )
     `,
     )
     .eq("is_active", true)
@@ -189,7 +216,21 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
     return [];
   }
 
-  return (data as ServiceWithDetails[]) || [];
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Fetch all service-level pictures in a single batched query
+  const serviceIds = data.map((service) => service.service_id);
+  const picturesByService = await getPicturesForServices(serviceIds);
+
+  // Merge pictures into each service
+  const servicesWithPictures = data.map((service) => ({
+    ...service,
+    pictures: picturesByService[service.service_id] || [],
+  }));
+
+  return servicesWithPictures as ServiceWithDetails[];
 }
 
 // ============================================================================
@@ -199,14 +240,12 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
 /**
  * Create a new service
  */
-export async function createService(service: {
-  name: string;
-  slug: string;
-  description?: string;
-  base_price: number;
-  is_active?: boolean;
-  comm_link?: string;
-}) {
+export async function createService(
+  service: Pick<
+    TablesInsert<"services">,
+    "name" | "slug" | "description" | "base_price" | "is_active" | "comm_link"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -229,7 +268,7 @@ export async function createService(service: {
  */
 export async function updateService(
   serviceId: string,
-  updates: Partial<Omit<Service, "service_id" | "created_at">>,
+  updates: Omit<TablesUpdate<"services">, "service_id" | "created_at">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -255,6 +294,14 @@ export async function updateService(
 export async function deleteService(serviceId: string) {
   const { supabase } = await verifyAuth();
 
+  // First, get all pictures associated with this service (including style pictures)
+  // This includes both service-level pictures and style-level pictures
+  const { data: pictures } = await supabase
+    .from("pictures")
+    .select("image_url")
+    .eq("service_id", serviceId);
+
+  // Delete the service (this will cascade delete all styles, pictures, and service_addons)
   const { error } = await supabase
     .from("services")
     .delete()
@@ -263,6 +310,25 @@ export async function deleteService(serviceId: string) {
   if (error) {
     console.error("Error deleting service:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (pictures && pictures.length > 0) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+        for (const picture of pictures) {
+          const imageUrl = picture.image_url;
+          // Only delete if it's a storage path (not an external URL)
+          if (imageUrl && !imageUrl.startsWith("http")) {
+            await deleteFile(imageUrl);
+          }
+        }
+      } catch (imgError) {
+        console.error("Error deleting service pictures:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 
   revalidatePath("/admin/services");
@@ -377,12 +443,12 @@ export async function getExclusiveAddonServices() {
 /**
  * Create a new addon
  */
-export async function createAddon(addon: {
-  name: string;
-  description?: string;
-  price_impact: number;
-  is_exclusive?: boolean;
-}) {
+export async function createAddon(
+  addon: Pick<
+    TablesInsert<"addons">,
+    "name" | "description" | "price_impact" | "is_exclusive"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -405,7 +471,7 @@ export async function createAddon(addon: {
  */
 export async function updateAddon(
   addonId: string,
-  updates: Partial<Omit<Addon, "addon_id">>,
+  updates: Omit<TablesUpdate<"addons">, "addon_id">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -503,26 +569,32 @@ export async function unlinkAddonFromService(
 export async function setServiceAddons(serviceId: string, addonIds: string[]) {
   const { supabase } = await verifyAuth();
 
-  // First, remove all existing links
-  await supabase.from("service_addons").delete().eq("service_id", serviceId);
+  // Call the atomic RPC function to replace service addons
+  const { data, error } = await supabase.rpc("replace_service_addons", {
+    p_service: serviceId,
+    p_addons: addonIds,
+  });
 
-  // Then, add new links
-  if (addonIds.length > 0) {
-    const { error } = await supabase.from("service_addons").insert(
-      addonIds.map((addonId) => ({
-        service_id: serviceId,
-        addon_id: addonId,
-        addon_is_exclusive: false, // Will be set by trigger
-      })),
-    );
+  if (error) {
+    console.error("Error calling replace_service_addons RPC:", error);
+    throw error;
+  }
 
-    if (error) {
-      console.error("Error setting service addons:", error);
-      throw error;
-    }
+  // Check the result from the RPC function
+  const result = data as {
+    success: boolean;
+    message?: string;
+    error?: string;
+    deleted_count?: number;
+    inserted_count?: number;
+  };
+  if (result && !result.success) {
+    console.error("Error replacing service addons:", result);
+    throw new Error(result.message || "Failed to replace service addons");
   }
 
   revalidatePath("/admin/services");
+  return result;
 }
 
 // ============================================================================
@@ -586,12 +658,12 @@ export async function getStyleById(styleId: string) {
 /**
  * Create a new style
  */
-export async function createStyle(style: {
-  service_id: string;
-  name: string;
-  slug: string;
-  description?: string;
-}) {
+export async function createStyle(
+  style: Pick<
+    TablesInsert<"styles">,
+    "service_id" | "name" | "slug" | "description"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -614,7 +686,7 @@ export async function createStyle(style: {
  */
 export async function updateStyle(
   styleId: string,
-  updates: Partial<Omit<Style, "style_id" | "service_id">>,
+  updates: Omit<TablesUpdate<"styles">, "style_id" | "service_id">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -640,6 +712,13 @@ export async function updateStyle(
 export async function deleteStyle(styleId: string) {
   const { supabase } = await verifyAuth();
 
+  // First, get all pictures associated with this style to delete their storage files
+  const { data: pictures } = await supabase
+    .from("pictures")
+    .select("image_url")
+    .eq("style_id", styleId);
+
+  // Delete the style (this will cascade delete all associated pictures)
   const { error } = await supabase
     .from("styles")
     .delete()
@@ -648,6 +727,25 @@ export async function deleteStyle(styleId: string) {
   if (error) {
     console.error("Error deleting style:", error);
     throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (pictures && pictures.length > 0) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+        for (const picture of pictures) {
+          const imageUrl = picture.image_url;
+          // Only delete if it's a storage path (not an external URL)
+          if (imageUrl && !imageUrl.startsWith("http")) {
+            await deleteFile(imageUrl);
+          }
+        }
+      } catch (imgError) {
+        console.error("Error deleting style pictures:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 
   revalidatePath("/admin/services");
@@ -699,6 +797,41 @@ export async function getPicturesForService(serviceId: string) {
 }
 
 /**
+ * Get all service-level pictures for multiple services in a single query
+ * Returns a map of service_id -> Picture[]
+ */
+export async function getPicturesForServices(serviceIds: string[]) {
+  if (serviceIds.length === 0) {
+    return {};
+  }
+
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("pictures")
+    .select("*")
+    .in("service_id", serviceIds)
+    .is("style_id", null)
+    .order("uploaded_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching service pictures:", error);
+    return {};
+  }
+
+  // Group pictures by service_id
+  const picturesByService: Record<string, Picture[]> = {};
+  (data || []).forEach((picture) => {
+    if (!picturesByService[picture.service_id]) {
+      picturesByService[picture.service_id] = [];
+    }
+    picturesByService[picture.service_id].push(picture);
+  });
+
+  return picturesByService;
+}
+
+/**
  * Get a single picture by ID
  */
 export async function getPictureById(pictureId: string) {
@@ -725,13 +858,12 @@ export async function getPictureById(pictureId: string) {
 /**
  * Create a new picture
  */
-export async function createPicture(picture: {
-  service_id: string;
-  style_id?: string | null;
-  image_url: string;
-  caption?: string;
-  is_primary_example?: boolean;
-}) {
+export async function createPicture(
+  picture: Pick<
+    TablesInsert<"pictures">,
+    "service_id" | "style_id" | "image_url" | "caption" | "is_primary_example"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -754,11 +886,24 @@ export async function createPicture(picture: {
  */
 export async function updatePicture(
   pictureId: string,
-  updates: Partial<
-    Omit<Picture, "picture_id" | "service_id" | "style_id" | "uploaded_at">
+  updates: Pick<
+    TablesUpdate<"pictures">,
+    "image_url" | "caption" | "is_primary_example"
   >,
 ) {
   const { supabase } = await verifyAuth();
+
+  // If image_url is being updated, get the old URL first to delete it from storage
+  let oldImageUrl: string | null = null;
+  if (updates.image_url) {
+    const { data: oldPicture } = await supabase
+      .from("pictures")
+      .select("image_url")
+      .eq("picture_id", pictureId)
+      .single();
+
+    oldImageUrl = oldPicture?.image_url || null;
+  }
 
   const { data, error } = await supabase
     .from("pictures")
@@ -772,6 +917,22 @@ export async function updatePicture(
     throw error;
   }
 
+  // Clean up old storage image asynchronously (fire and forget)
+  if (oldImageUrl && updates.image_url && oldImageUrl !== updates.image_url) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+        // Only delete if it's a storage path (not an external URL)
+        if (!oldImageUrl.startsWith("http")) {
+          await deleteFile(oldImageUrl);
+        }
+      } catch (imgError) {
+        console.error("Error deleting old picture image:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
+  }
+
   revalidatePath("/admin/services");
   return data;
 }
@@ -782,6 +943,14 @@ export async function updatePicture(
 export async function deletePicture(pictureId: string) {
   const { supabase } = await verifyAuth();
 
+  // First, get the picture to find its image
+  const { data: picture } = await supabase
+    .from("pictures")
+    .select("image_url")
+    .eq("picture_id", pictureId)
+    .single();
+
+  // Delete the database row
   const { error } = await supabase
     .from("pictures")
     .delete()
@@ -790,6 +959,23 @@ export async function deletePicture(pictureId: string) {
   if (error) {
     console.error("Error deleting picture:", error);
     throw error;
+  }
+
+  // Clean up storage image asynchronously (fire and forget)
+  if (picture?.image_url) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+        const imageUrl = picture.image_url;
+        // Only delete if it's a storage path (not an external URL)
+        if (imageUrl && !imageUrl.startsWith("http")) {
+          await deleteFile(imageUrl);
+        }
+      } catch (imgError) {
+        console.error("Error deleting picture image:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
   }
 
   revalidatePath("/admin/services");
@@ -801,25 +987,30 @@ export async function deletePicture(pictureId: string) {
 export async function setPrimaryPicture(styleId: string, pictureId: string) {
   const { supabase } = await verifyAuth();
 
-  // First, unset all primary flags for this style
-  await supabase
-    .from("pictures")
-    .update({ is_primary_example: false })
-    .eq("style_id", styleId);
-
-  // Then set the new primary
-  const { data, error } = await supabase
-    .from("pictures")
-    .update({ is_primary_example: true })
-    .eq("picture_id", pictureId)
-    .select()
-    .single();
+  // Call the atomic RPC function to set the primary picture
+  const { data, error } = await supabase.rpc("set_primary_picture", {
+    p_style_id: styleId,
+    p_picture_id: pictureId,
+  });
 
   if (error) {
-    console.error("Error setting primary picture:", error);
+    console.error("Error calling set_primary_picture RPC:", error);
     throw error;
   }
 
+  // Check the result from the RPC function
+  const result = data as {
+    success: boolean;
+    message?: string;
+    error_code?: string;
+    picture_id?: string;
+    style_id?: string;
+  };
+  if (result && !result.success) {
+    console.error("Error setting primary picture:", result);
+    throw new Error(result.message || "Failed to set primary picture");
+  }
+
   revalidatePath("/admin/services");
-  return data;
+  return result;
 }

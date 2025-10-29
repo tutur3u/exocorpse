@@ -14,6 +14,7 @@ import type {
 } from "@/lib/actions/commissions";
 import { deleteFile } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
+import type { KeyboardEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import PictureForm from "./PictureForm";
@@ -61,11 +62,11 @@ type ServiceFormProps = {
   ) => Promise<Style | void>;
   onDeleteStyle?: (styleId: string) => Promise<void>;
   // Handlers for pictures
-  onCreatePicture?: (data: PicturePayload) => Promise<Picture | void>;
+  onCreatePicture?: (data: PicturePayload) => Promise<Picture>;
   onUpdatePicture?: (
     pictureId: string,
     data: PicturePayload,
-  ) => Promise<Picture | void>;
+  ) => Promise<Picture>;
   onDeletePicture?: (pictureId: string) => Promise<void>;
   onPictureComplete?: () => Promise<void>;
   // Handlers for addons
@@ -265,7 +266,7 @@ export default function ServiceForm({
     handleExit(onCancel);
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleBackdropKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
       handleExit(onCancel);
@@ -550,9 +551,9 @@ export default function ServiceForm({
                   {/* Pre-link Add-ons Section (only for new services) */}
                   {!service && nonExclusiveAddons.length > 0 && (
                     <div>
-                      <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Pre-link Add-ons
-                      </label>
+                      </p>
                       <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
                         Select non-exclusive add-ons to link to this service
                         now. You can modify these later.
@@ -934,7 +935,7 @@ export default function ServiceForm({
       )}
 
       {/* Picture Form */}
-      {showPictureForm && service && (
+      {showPictureForm && service && onCreatePicture && (
         <PictureForm
           serviceId={service.service_id}
           styleId={pictureStyleId}
@@ -942,7 +943,7 @@ export default function ServiceForm({
           onSubmit={
             editingPicture && onUpdatePicture
               ? (data) => onUpdatePicture(editingPicture.picture_id, data)
-              : onCreatePicture || (() => Promise.resolve())
+              : onCreatePicture
           }
           onComplete={async () => {
             // Refetch service data to get updated pictures
