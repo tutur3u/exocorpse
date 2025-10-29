@@ -60,7 +60,6 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
     document.body.style.setProperty("cursor", cursorValue, "important");
   }, []);
 
-
   // Listen for cursor changes when hovering over interactive elements
   useEffect(() => {
     const handleMouseOver = (e: MouseEvent) => {
