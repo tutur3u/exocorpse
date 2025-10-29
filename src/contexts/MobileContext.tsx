@@ -38,31 +38,31 @@ export const MOBILE_APPS: MobileApp[] = [
   {
     id: "about",
     title: "About Me",
-    icon: "👤",
+    icon: "Butterflies",
     component: AboutMe,
   },
   {
     id: "portfolio",
     title: "Portfolio",
-    icon: "📁",
+    icon: "Portfolio",
     component: Portfolio,
   },
   {
     id: "commission",
     title: "Commission",
-    icon: "💼",
+    icon: "Commission",
     component: Commission,
   },
   {
     id: "blog",
     title: "Blog",
-    icon: "📝",
+    icon: "Blog",
     component: Blog,
   },
   {
     id: "wiki",
     title: "Wiki",
-    icon: "📚",
+    icon: "World_Wiki",
     component: Wiki,
   },
 ];

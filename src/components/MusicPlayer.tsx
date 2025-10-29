@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Howl } from "howler"; // Make sure you have 'howler' installed
+import { useEffect, useRef, useState } from "react";
+import Icon from "./shared/Icon";
 
 export default function MusicPlayer() {
   // A ref to hold the Howl instance
@@ -13,6 +14,10 @@ export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5); // Howler's volume is 0.0 to 1.0
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [isPlayButtonHovered, setIsPlayButtonHovered] = useState(false);
+  const [isVolumeButtonHovered, setIsVolumeButtonHovered] = useState(false);
+  const [isVolumeMuteButtonHovered, setIsVolumeMuteButtonHovered] =
+    useState(false);
 
   // Initialize Howler on component mount
   useEffect(() => {
@@ -116,35 +121,73 @@ export default function MusicPlayer() {
               }}
             />
             <button
+              type="button"
               onClick={toggleMute}
-              className="text-lg transition-colors hover:text-blue-500"
+              onMouseEnter={() => setIsVolumeMuteButtonHovered(true)}
+              onMouseLeave={() => setIsVolumeMuteButtonHovered(false)}
+              className="flex h-8 w-8 items-center justify-center transition-colors hover:text-blue-500"
               title={volume > 0 ? "Mute" : "Unmute"}
             >
-              {volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
+              <Icon
+                name={
+                  volume === 0
+                    ? "Speaker_0"
+                    : volume < 0.5
+                      ? "Speaker_1"
+                      : "Speaker_2"
+                }
+                size={32}
+                alt={volume > 0 ? "Mute" : "Unmute"}
+                className="h-6 w-6"
+                isHovered={isVolumeMuteButtonHovered}
+              />
             </button>
           </div>
         </div>
       )}
 
-      {/* Play/Pause Button (No changes needed) */}
+      {/* Play/Pause Button */}
       <button
+        type="button"
         onClick={togglePlay}
-        className="flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+        onMouseEnter={() => setIsPlayButtonHovered(true)}
+        onMouseLeave={() => setIsPlayButtonHovered(false)}
+        className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
         title={isPlaying ? "Pause" : "Play"}
       >
-        {isPlaying ? "⏸️" : "▶️"}
+        <Icon
+          name={isPlaying ? "Pause" : "Play"}
+          size={32}
+          alt={isPlaying ? "Pause" : "Play"}
+          className="h-6 w-6"
+          isHovered={isPlayButtonHovered}
+        />
       </button>
 
-      {/* Volume Button (No changes needed) */}
+      {/* Volume Button */}
       <div className="relative">
         <button
+          type="button"
           onClick={() => setShowVolumeSlider(!showVolumeSlider)}
-          className="flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+          onMouseEnter={() => setIsVolumeButtonHovered(true)}
+          onMouseLeave={() => setIsVolumeButtonHovered(false)}
+          className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
           title="Volume"
         >
-          {volume === 0 ? "🔇" : volume < 0.5 ? "🔉" : "🔊"}
+          <Icon
+            name={
+              volume === 0
+                ? "Speaker_0"
+                : volume < 0.5
+                  ? "Speaker_1"
+                  : "Speaker_2"
+            }
+            size={32}
+            alt="Volume"
+            className="h-6 w-6"
+            isHovered={isVolumeButtonHovered}
+          />
         </button>
-        {/* The complex autoplay-muted logic is removed, as Howler simplifies this. */}
       </div>
     </div>
   );

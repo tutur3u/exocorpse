@@ -26,11 +26,12 @@ export default async function LoginPage(props: {
         <div>
           <Image
             className="mx-auto"
-            src="/exocorpse.png"
+            src="/exocorpse.webp"
             alt="ExoCorpse Logo"
             width={100}
             height={100}
             priority={false}
+            unoptimized={true}
           />
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Sign in to your account

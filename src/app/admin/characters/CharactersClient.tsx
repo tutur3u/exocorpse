@@ -65,6 +65,7 @@ function CharacterCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
+            unoptimized={true}
           />
         ) : (
           <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />

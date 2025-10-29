@@ -265,6 +265,16 @@ export default function Window({ id, title, children }: WindowProps) {
       dragHandleClassName="window-drag-handle"
       disableDragging={isMaximized}
       enableResizing={!isMaximized}
+      resizeHandleClasses={{
+        top: "resize-handle resize-handle-ns",
+        bottom: "resize-handle resize-handle-ns",
+        left: "resize-handle resize-handle-ew",
+        right: "resize-handle resize-handle-ew",
+        topLeft: "resize-handle resize-handle-nwse",
+        topRight: "resize-handle resize-handle-nesw",
+        bottomLeft: "resize-handle resize-handle-nesw",
+        bottomRight: "resize-handle resize-handle-nwse",
+      }}
       style={{
         zIndex: window.zIndex,
       }}
