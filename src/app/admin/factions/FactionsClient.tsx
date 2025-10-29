@@ -356,7 +356,7 @@ export default function FactionsClient({
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Cover Image / Gradient */}
-              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-rose-400">
+              <div className="relative h-48 overflow-hidden bg-linear-to-br from-purple-400 via-pink-400 to-rose-400">
                 {faction.logo_url || faction.banner_image ? (
                   <>
                     <StorageImage
@@ -369,10 +369,10 @@ export default function FactionsClient({
                       height={192}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                   </>
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                 )}
               </div>
 

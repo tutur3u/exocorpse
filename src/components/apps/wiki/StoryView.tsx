@@ -229,7 +229,7 @@ export default function StoryView({
                     className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
                   >
                     {/* World Image/Gradient */}
-                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+                    <div className="relative h-40 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
                       {world.theme_background_image ? (
                         <StorageImage
                           src={world.theme_background_image}

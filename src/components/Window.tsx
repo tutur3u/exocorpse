@@ -38,6 +38,8 @@ export default function Window({ id, title, children }: WindowProps) {
       "commission-tab": parseAsString,
       "blacklist-page": parseAsString,
       "blacklist-page-size": parseAsString,
+      service: parseAsString,
+      style: parseAsString,
       "portfolio-tab": parseAsString,
       "portfolio-piece": parseAsString,
       "story-tab": parseAsString,
@@ -204,6 +206,8 @@ export default function Window({ id, title, children }: WindowProps) {
         "commission-tab": null,
         "blacklist-page": null,
         "blacklist-page-size": null,
+        service: null,
+        style: null,
       });
     }
 

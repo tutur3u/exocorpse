@@ -35,3 +35,18 @@ export function sanitizeFilename(filename: string): string {
 
   return finalName + sanitizedExt;
 }
+
+/**
+ * Convert an image filename to use .webp extension
+ * This is used when saving compressed images that are always stored as webp
+ * @param filename - Original filename
+ * @returns Filename with .webp extension
+ */
+export function getWebpFilename(filename: string): string {
+  const sanitized = sanitizeFilename(filename);
+  // Remove the existing extension and add .webp
+  const lastDotIndex = sanitized.lastIndexOf(".");
+  const nameWithoutExt =
+    lastDotIndex > 0 ? sanitized.slice(0, lastDotIndex) : sanitized;
+  return `${nameWithoutExt}.webp`;
+}

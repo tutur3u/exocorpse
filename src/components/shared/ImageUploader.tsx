@@ -1,10 +1,10 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
+import { getWebpFilename } from "@/lib/fileUtils";
 import {
   compressImage,
   formatBytes,
   getDataUrlSize,
 } from "@/lib/imageCompression";
-import { sanitizeFilename } from "@/lib/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
@@ -115,11 +115,12 @@ export default function ImageUploader({
 
       try {
         // Compress the image before upload
+        // Always compress to webp format
         const compressedDataUrl = await compressImage(file, {
           maxWidth: 2048,
           maxHeight: 2048,
-          quality: 0.92,
-          outputFormat: file.type === "image/png" ? "image/png" : "image/jpeg",
+          quality: 0.7,
+          outputFormat: "image/webp",
           skipCompressionUnder: 500 * 1024,
         });
 
@@ -133,16 +134,16 @@ export default function ImageUploader({
           setUploadProgress("Uploading...");
         }
 
-        // Convert data URL back to File with sanitized filename
+        // Convert data URL back to File with sanitized filename and webp extension
         const response = await fetch(compressedDataUrl);
         const blob = await response.blob();
-        const sanitizedName = sanitizeFilename(file.name);
-        const compressedFile = new File([blob], sanitizedName, {
+        const webpFilename = getWebpFilename(file.name);
+        const compressedFile = new File([blob], webpFilename, {
           type: blob.type,
         });
 
         // Build full storage path
-        const fullPath = `${uploadPath}/${sanitizedName}`;
+        const fullPath = `${uploadPath}/${webpFilename}`;
 
         // Get signed upload URL from server
         const signedUrlResponse = await fetch(

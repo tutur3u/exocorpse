@@ -125,7 +125,7 @@ export default function CharacterDetail({
       <div className="border-b bg-linear-to-r from-gray-50 to-gray-100 px-6 py-4 dark:border-gray-800 dark:from-gray-900 dark:to-gray-950">
         <div className="flex items-start gap-4 @md:gap-6">
           {/* Profile Image */}
-          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
             {character.profile_image ? (
               <StorageImage
                 src={character.profile_image}
