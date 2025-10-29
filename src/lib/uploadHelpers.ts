@@ -2,8 +2,8 @@
  * Helper utilities for handling deferred image uploads
  */
 
+import { getWebpFilename } from "./fileUtils";
 import { compressImage } from "./imageCompression";
-import { sanitizeFilename } from "./fileUtils";
 
 export interface PendingUpload {
   file: File;
@@ -23,22 +23,23 @@ export async function uploadPendingFile(
   uploadPath: string,
 ): Promise<string> {
   // Compress the image and convert back to File
+  // Always compress to webp format
   const compressedDataUrl = await compressImage(file, {
     maxWidth: 2048,
     maxHeight: 2048,
-    quality: 0.92,
-    outputFormat: file.type === "image/png" ? "image/png" : "image/jpeg",
-    skipCompressionUnder: 500 * 1024,
+    quality: 0.65,
+    outputFormat: "image/webp",
+    skipCompressionUnder: 100 * 1024,
   });
 
-  // Convert data URL back to File with sanitized filename
+  // Convert data URL back to File with sanitized filename and webp extension
   const response = await fetch(compressedDataUrl);
   const blob = await response.blob();
-  const sanitizedName = sanitizeFilename(file.name);
-  const compressedFile = new File([blob], sanitizedName, { type: blob.type });
+  const webpFilename = getWebpFilename(file.name);
+  const compressedFile = new File([blob], webpFilename, { type: blob.type });
 
   // Build full storage path
-  const fullPath = `${uploadPath}/${sanitizedName}`;
+  const fullPath = `${uploadPath}/${webpFilename}`;
 
   // Get signed upload URL from server
   const signedUrlResponse = await fetch("/api/storage/signed-upload-url", {
