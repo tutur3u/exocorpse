@@ -99,7 +99,7 @@ export default function ServiceDetail({
               </h1>
               <p className="mt-2 text-xl text-gray-700 dark:text-gray-300">
                 starting from:{" "}
-                <span className="font-bold">{service.base_price}$</span>
+                <span className="font-bold">€{service.base_price}</span>
               </p>
             </div>
 
@@ -152,7 +152,7 @@ export default function ServiceDetail({
                           sa.addons.price_impact > 0 &&
                           sa.addons.price_impact < 1
                             ? "%"
-                            : "$"}
+                            : "€"}
                         </span>
                       </div>
                     </li>

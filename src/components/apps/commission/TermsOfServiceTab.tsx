@@ -43,7 +43,7 @@ In the case of a complex design, I will charge around 10% extra, depending on ho
 
 In the case of an extra character: I will charge around 70% extra, which caps at 3 total. However, if you request more than 3, you must inform me of such.
 
-In the case of revisions, revisions during sketches are free and unlimited, while the final version gets one free revision before having to pay +5 USD for each revision after.
+In the case of revisions, revisions during sketches are free and unlimited, while the final version gets one free revision before having to pay +5 EUR for each revision after.
 
 ## COMMERCIAL
 

@@ -177,7 +177,7 @@ export default function AddonForm({
                   htmlFor="price_impact"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Price Impact (USD) <span className="text-red-500">*</span>
+                  Price Impact (EUR) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"

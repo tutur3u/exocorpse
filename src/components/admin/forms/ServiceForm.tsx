@@ -483,7 +483,7 @@ export default function ServiceForm({
                       htmlFor="base_price"
                       className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      Base Price (USD) <span className="text-red-500">*</span>
+                      Base Price (EUR) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -583,7 +583,7 @@ export default function ServiceForm({
                                 {addon.name}
                               </p>
                               <p className="text-xs text-gray-600 dark:text-gray-400">
-                                +${addon.price_impact.toFixed(2)}
+                                +€{addon.price_impact.toFixed(2)}
                               </p>
                               {addon.description && (
                                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -860,7 +860,7 @@ export default function ServiceForm({
                             {addon.name}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            +${addon.price_impact.toFixed(2)}
+                            +€{addon.price_impact.toFixed(2)}
                           </p>
                           {addon.description && (
                             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

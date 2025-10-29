@@ -909,7 +909,7 @@ The Marrow is more than just a building—it''s the beating heart of the entire 
 Construction of The Marrow began in 2008, two years before Exocorpse''s official founding. The project required:
 
 - 847 workers sworn to secrecy
-- $2.3 billion in funding
+- €2.3 billion in funding
 - 18 months of continuous construction
 - Complete destruction of all records after completion
 
