@@ -60,16 +60,6 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
     document.body.style.setProperty("cursor", cursorValue, "important");
   }, []);
 
-  // Set initial cursor on mount
-  useEffect(() => {
-    const cursorValue = `var(--cursor-normal)`;
-    document.documentElement.style.setProperty(
-      "cursor",
-      cursorValue,
-      "important",
-    );
-    document.body.style.setProperty("cursor", cursorValue, "important");
-  }, []);
 
   // Listen for cursor changes when hovering over interactive elements
   useEffect(() => {
@@ -150,35 +140,12 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
       } else if (target.classList.contains("cursor-alternate")) {
         setCursor("alternate");
       }
-      // Check if hovering over text content (paragraphs, headings, spans, etc.)
-      else if (
-        target.tagName === "P" ||
-        target.tagName === "SPAN" ||
-        target.tagName === "H1" ||
-        target.tagName === "H2" ||
-        target.tagName === "H3" ||
-        target.tagName === "H4" ||
-        target.tagName === "H5" ||
-        target.tagName === "H6" ||
-        target.tagName === "LI" ||
-        target.tagName === "TD" ||
-        target.tagName === "TH" ||
-        target.classList.contains("text-content")
-      ) {
-        setCursor("vertical");
-      }
-    };
-
-    const handleMouseOut = () => {
-      resetCursor();
     };
 
     document.addEventListener("mouseover", handleMouseOver);
-    document.addEventListener("mouseout", handleMouseOut);
 
     return () => {
       document.removeEventListener("mouseover", handleMouseOver);
-      document.removeEventListener("mouseout", handleMouseOut);
     };
   }, [setCursor, resetCursor]);
 

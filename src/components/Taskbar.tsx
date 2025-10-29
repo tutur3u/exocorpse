@@ -148,6 +148,7 @@ export default function Taskbar() {
     <div className="fixed right-0 bottom-0 left-0 z-10000 flex h-12 items-center gap-1 border-t border-gray-300 bg-gray-200 px-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       {/* OS Icon - Left aligned */}
       <button
+        type="button"
         onClick={handleOSIconClick}
         className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
         title="Minimize all windows"
@@ -189,6 +190,7 @@ export default function Taskbar() {
       {/* Date/Time with Toggle - Windows Style (time on top, date on bottom) */}
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => setIsLocalTime(!isLocalTime)}
           className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
           title="Toggle between local time and Vietnam time (GMT +7)"

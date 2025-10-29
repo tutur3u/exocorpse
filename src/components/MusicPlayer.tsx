@@ -121,6 +121,7 @@ export default function MusicPlayer() {
               }}
             />
             <button
+              type="button"
               onClick={toggleMute}
               onMouseEnter={() => setIsVolumeMuteButtonHovered(true)}
               onMouseLeave={() => setIsVolumeMuteButtonHovered(false)}
@@ -147,6 +148,7 @@ export default function MusicPlayer() {
 
       {/* Play/Pause Button */}
       <button
+        type="button"
         onClick={togglePlay}
         onMouseEnter={() => setIsPlayButtonHovered(true)}
         onMouseLeave={() => setIsPlayButtonHovered(false)}
@@ -165,6 +167,7 @@ export default function MusicPlayer() {
       {/* Volume Button */}
       <div className="relative">
         <button
+          type="button"
           onClick={() => setShowVolumeSlider(!showVolumeSlider)}
           onMouseEnter={() => setIsVolumeButtonHovered(true)}
           onMouseLeave={() => setIsVolumeButtonHovered(false)}

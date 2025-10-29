@@ -21,6 +21,7 @@ function AppButton({
 
   return (
     <button
+      type="button"
       onClick={() => onSelect(appId)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -166,6 +167,7 @@ export default function MobileBottomSheet() {
             </h2>
             {selectedApp && (
               <button
+                type="button"
                 onClick={goBackToAppList}
                 className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Back to app list"
