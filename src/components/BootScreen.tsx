@@ -1,5 +1,3 @@
-"use client";
-
 import { useSound } from "@/contexts/SoundContext";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -38,7 +36,7 @@ export default function BootScreen({
 }) {
   const { playSound, stopSound } = useSound();
   const [currentTime, setCurrentTime] = useState("");
-  const randomBootImage = getRandomBootImage();
+  const [randomBootImage] = useState(() => getRandomBootImage());
   const [messages, setMessages] = useState<TerminalMessage[]>(
     TERMINAL_MESSAGES.map((msg) => ({
       ...msg,
@@ -133,8 +131,12 @@ export default function BootScreen({
     });
 
     return () => {
-      timeouts.forEach((timeout) => clearTimeout(timeout));
-      intervals.forEach((interval) => clearInterval(interval));
+      timeouts.forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+      intervals.forEach((interval) => {
+        clearInterval(interval);
+      });
       stopSound("boot");
     };
   }, [playSound, onBootComplete, stopSound, currentTime]);
