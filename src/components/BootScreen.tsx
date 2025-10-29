@@ -15,6 +15,10 @@ interface TerminalMessage {
 const BOOT_IMAGES = ["Fenrys.webp", "Morris.webp"];
 const BACKGROUND_IMAGE = "/background-image.webp";
 
+const getRandomBootImage = () => {
+  return BOOT_IMAGES[Math.floor(Math.random() * BOOT_IMAGES.length)];
+};
+
 const TERMINAL_MESSAGES: Omit<TerminalMessage, "displayedText" | "isTyping">[] =
   [
     { id: "1", text: "> password detected...", delay: 300 },
@@ -34,7 +38,7 @@ export default function BootScreen({
 }) {
   const { playSound, stopSound } = useSound();
   const [currentTime, setCurrentTime] = useState("");
-  const [randomBootImage, setRandomBootImage] = useState<string>("");
+  const randomBootImage = getRandomBootImage();
   const [messages, setMessages] = useState<TerminalMessage[]>(
     TERMINAL_MESSAGES.map((msg) => ({
       ...msg,
@@ -42,12 +46,6 @@ export default function BootScreen({
       isTyping: false,
     })),
   );
-
-  // Select random boot image on mount
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * BOOT_IMAGES.length);
-    setRandomBootImage(BOOT_IMAGES[randomIndex]);
-  }, []);
 
   // Update local time
   useEffect(() => {
@@ -160,24 +158,14 @@ export default function BootScreen({
         {/* User Avatar */}
         <div className="animate-fadeIn">
           <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full">
-            {randomBootImage ? (
-              <Image
-                src={`/boot/${randomBootImage}`}
-                alt="Boot Avatar"
-                width={192}
-                height={192}
-                preload={true}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <svg
-                className="h-16 w-16 text-gray-600"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            )}
+            <Image
+              src={`/boot/${randomBootImage}`}
+              alt="Boot Avatar"
+              width={192}
+              height={192}
+              preload={true}
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
 

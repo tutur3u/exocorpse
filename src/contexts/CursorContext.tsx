@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -37,8 +38,13 @@ const CursorContext = createContext<CursorContextType | undefined>(undefined);
 
 export function CursorProvider({ children }: { children: React.ReactNode }) {
   const [currentCursor, setCurrentCursor] = useState<CursorType>("normal");
+  const currentCursorRef = useRef<CursorType>("normal");
+  useEffect(() => {
+    currentCursorRef.current = currentCursor;
+  }, [currentCursor]);
 
   const setCursor = useCallback((cursor: CursorType) => {
+    if (currentCursorRef.current === cursor) return; // Avoid redundant work
     setCurrentCursor(cursor);
     const cursorValue = `var(--cursor-${cursor})`;
     document.documentElement.style.setProperty(
@@ -60,94 +66,138 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
     document.body.style.setProperty("cursor", cursorValue, "important");
   }, []);
 
-
-  // Listen for cursor changes when hovering over interactive elements
+  // Listen for cursor changes with requestAnimationFrame throttling
   useEffect(() => {
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
+    let rafId = 0;
+    let lastTarget: EventTarget | null = null;
 
-      // Check if hovering over text input fields (use text cursor)
+    const processTarget = (el: HTMLElement) => {
+      // Quick exits based on tagName and classes
+      const tag = el.tagName;
+      const classList = el.classList;
+
+      // Inputs/text areas/selects or forced text cursor
       if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "SELECT" ||
-        target.classList.contains("cursor-text")
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        classList.contains("cursor-text")
       ) {
         setCursor("text");
+        return;
       }
-      // Check if hovering over buttons or links
-      else if (
-        target.tagName === "BUTTON" ||
-        target.tagName === "A" ||
-        target.role === "button" ||
-        target.classList.contains("cursor-pointer") ||
-        target.classList.contains("cursor-link") ||
-        target.closest("button") ||
-        target.closest("a") ||
-        target.closest('[role="button"]') ||
-        target.closest(".cursor-pointer")
+
+      // Disabled/unavailable
+      if (
+        (el as HTMLButtonElement).disabled ||
+        el.getAttribute("aria-disabled") === "true" ||
+        classList.contains("cursor-not-allowed")
       ) {
-        setCursor("link");
+        setCursor("unavailable");
+        return;
       }
-      // Check if hovering over move handles
-      else if (
-        target.classList.contains("window-drag-handle") ||
-        target.closest(".window-drag-handle")
-      ) {
+
+      // Move/drag handles
+      const dragHandle = classList.contains("window-drag-handle")
+        ? el
+        : (el.closest(".window-drag-handle") as HTMLElement | null);
+      if (dragHandle) {
         setCursor("move");
+        return;
       }
-      // Check if hovering over resize handles
-      else if (
-        target.classList.contains("resize-handle") ||
-        target.closest(".resize-handle")
-      ) {
-        const classes = target.className;
-        if (classes.includes("resize-handle-ew")) {
+
+      // Resize handles
+      const resizeEl = classList.contains("resize-handle")
+        ? el
+        : (el.closest(".resize-handle") as HTMLElement | null);
+      if (resizeEl) {
+        const cls = resizeEl.className;
+        if (cls.includes("resize-handle-ew")) {
           setCursor("horizontal");
-        } else if (classes.includes("resize-handle-ns")) {
+        } else if (cls.includes("resize-handle-ns")) {
           setCursor("vertical");
-        } else if (classes.includes("resize-handle-nwse")) {
+        } else if (cls.includes("resize-handle-nwse")) {
           setCursor("diagonal1");
-        } else if (classes.includes("resize-handle-nesw")) {
+        } else if (cls.includes("resize-handle-nesw")) {
           setCursor("diagonal2");
         } else {
           setCursor("move");
         }
+        return;
       }
-      // Check for disabled elements
-      else if (
-        (target as HTMLButtonElement).disabled ||
-        target.getAttribute("aria-disabled") === "true" ||
-        target.classList.contains("cursor-not-allowed")
+
+      // Buttons/links/pointer-intent
+      if (
+        tag === "BUTTON" ||
+        tag === "A" ||
+        (el as any).role === "button" ||
+        classList.contains("cursor-pointer") ||
+        classList.contains("cursor-link") ||
+        el.closest('button,a,[role="button"],.cursor-pointer')
       ) {
-        setCursor("unavailable");
+        setCursor("link");
+        return;
       }
-      // Check for custom cursor classes
-      else if (target.classList.contains("cursor-help")) {
+
+      // Custom cursor classes
+      if (classList.contains("cursor-help")) {
         setCursor("help");
-      } else if (target.classList.contains("cursor-busy")) {
-        setCursor("busy");
-      } else if (target.classList.contains("cursor-working")) {
-        setCursor("working");
-      } else if (target.classList.contains("cursor-handwriting")) {
-        setCursor("handwriting");
-      } else if (target.classList.contains("cursor-person")) {
-        setCursor("person");
-      } else if (target.classList.contains("cursor-pin")) {
-        setCursor("pin");
-      } else if (target.classList.contains("cursor-precision")) {
-        setCursor("precision");
-      } else if (target.classList.contains("cursor-alternate")) {
-        setCursor("alternate");
+        return;
       }
+      if (classList.contains("cursor-busy")) {
+        setCursor("busy");
+        return;
+      }
+      if (classList.contains("cursor-working")) {
+        setCursor("working");
+        return;
+      }
+      if (classList.contains("cursor-handwriting")) {
+        setCursor("handwriting");
+        return;
+      }
+      if (classList.contains("cursor-person")) {
+        setCursor("person");
+        return;
+      }
+      if (classList.contains("cursor-pin")) {
+        setCursor("pin");
+        return;
+      }
+      if (classList.contains("cursor-precision")) {
+        setCursor("precision");
+        return;
+      }
+      if (classList.contains("cursor-alternate")) {
+        setCursor("alternate");
+        return;
+      }
+
+      // Default: do nothing; we keep whatever cursor is set until another element dictates
     };
 
-    document.addEventListener("mouseover", handleMouseOver);
+    const schedule = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        const el = (lastTarget as HTMLElement) || document.body;
+        if (el) processTarget(el);
+      });
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      lastTarget = e.target;
+      schedule();
+    };
+
+    // pointermove + rAF throttling; use passive where supported
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
 
     return () => {
-      document.removeEventListener("mouseover", handleMouseOver);
+      if (rafId) cancelAnimationFrame(rafId);
+      document.removeEventListener("pointermove", onPointerMove as any);
     };
-  }, [setCursor, resetCursor]);
+  }, [setCursor]);
 
   return (
     <CursorContext.Provider value={{ currentCursor, setCursor, resetCursor }}>
