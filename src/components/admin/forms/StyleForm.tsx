@@ -39,7 +39,7 @@ export default function StyleForm({
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
+  const { register, handleSubmit: formHandleSubmit, setValue } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 

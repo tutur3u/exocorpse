@@ -386,7 +386,7 @@ export default function ServicesClient({
   }, []);
 
   const currentServiceAddons =
-    selectedServiceData?.service_addons?.map((sa: any) => sa.addon_id) || [];
+    selectedServiceData?.service_addons?.map((sa) => sa.addon_id) || [];
 
   // Get available addons, excluding exclusive addons linked to other services
   const availableAddons = useMemo(() => {

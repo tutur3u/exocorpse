@@ -3,7 +3,11 @@
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { Tables } from "../../../supabase/types";
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "../../../supabase/types";
 
 // ============================================================================
 // TYPES
@@ -82,16 +86,19 @@ export async function getAllServicesWithDetails() {
     return [];
   }
 
-  // Fetch service-level pictures separately for each service (where style_id IS NULL)
-  const servicesWithPictures = await Promise.all(
-    (data || []).map(async (service) => {
-      const servicePictures = await getPicturesForService(service.service_id);
-      return {
-        ...service,
-        pictures: servicePictures,
-      };
-    }),
-  );
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Fetch all service-level pictures in a single batched query
+  const serviceIds = data.map((service) => service.service_id);
+  const picturesByService = await getPicturesForServices(serviceIds);
+
+  // Merge pictures into each service
+  const servicesWithPictures = data.map((service) => ({
+    ...service,
+    pictures: picturesByService[service.service_id] || [],
+  }));
 
   return servicesWithPictures;
 }
@@ -209,16 +216,19 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
     return [];
   }
 
-  // Fetch service-level pictures separately for each service (where style_id IS NULL)
-  const servicesWithPictures = await Promise.all(
-    (data || []).map(async (service) => {
-      const servicePictures = await getPicturesForService(service.service_id);
-      return {
-        ...service,
-        pictures: servicePictures,
-      };
-    }),
-  );
+  if (!data || data.length === 0) {
+    return [];
+  }
+
+  // Fetch all service-level pictures in a single batched query
+  const serviceIds = data.map((service) => service.service_id);
+  const picturesByService = await getPicturesForServices(serviceIds);
+
+  // Merge pictures into each service
+  const servicesWithPictures = data.map((service) => ({
+    ...service,
+    pictures: picturesByService[service.service_id] || [],
+  }));
 
   return servicesWithPictures as ServiceWithDetails[];
 }
@@ -230,14 +240,12 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
 /**
  * Create a new service
  */
-export async function createService(service: {
-  name: string;
-  slug: string;
-  description?: string;
-  base_price: number;
-  is_active?: boolean;
-  comm_link?: string;
-}) {
+export async function createService(
+  service: Pick<
+    TablesInsert<"services">,
+    "name" | "slug" | "description" | "base_price" | "is_active" | "comm_link"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -260,7 +268,7 @@ export async function createService(service: {
  */
 export async function updateService(
   serviceId: string,
-  updates: Partial<Omit<Service, "service_id" | "created_at">>,
+  updates: Omit<TablesUpdate<"services">, "service_id" | "created_at">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -435,12 +443,12 @@ export async function getExclusiveAddonServices() {
 /**
  * Create a new addon
  */
-export async function createAddon(addon: {
-  name: string;
-  description?: string;
-  price_impact: number;
-  is_exclusive?: boolean;
-}) {
+export async function createAddon(
+  addon: Pick<
+    TablesInsert<"addons">,
+    "name" | "description" | "price_impact" | "is_exclusive"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -463,7 +471,7 @@ export async function createAddon(addon: {
  */
 export async function updateAddon(
   addonId: string,
-  updates: Partial<Omit<Addon, "addon_id">>,
+  updates: Omit<TablesUpdate<"addons">, "addon_id">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -650,12 +658,12 @@ export async function getStyleById(styleId: string) {
 /**
  * Create a new style
  */
-export async function createStyle(style: {
-  service_id: string;
-  name: string;
-  slug: string;
-  description?: string;
-}) {
+export async function createStyle(
+  style: Pick<
+    TablesInsert<"styles">,
+    "service_id" | "name" | "slug" | "description"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -678,7 +686,7 @@ export async function createStyle(style: {
  */
 export async function updateStyle(
   styleId: string,
-  updates: Partial<Omit<Style, "style_id" | "service_id">>,
+  updates: Omit<TablesUpdate<"styles">, "style_id" | "service_id">,
 ) {
   const { supabase } = await verifyAuth();
 
@@ -789,6 +797,41 @@ export async function getPicturesForService(serviceId: string) {
 }
 
 /**
+ * Get all service-level pictures for multiple services in a single query
+ * Returns a map of service_id -> Picture[]
+ */
+export async function getPicturesForServices(serviceIds: string[]) {
+  if (serviceIds.length === 0) {
+    return {};
+  }
+
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("pictures")
+    .select("*")
+    .in("service_id", serviceIds)
+    .is("style_id", null)
+    .order("uploaded_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching service pictures:", error);
+    return {};
+  }
+
+  // Group pictures by service_id
+  const picturesByService: Record<string, Picture[]> = {};
+  (data || []).forEach((picture) => {
+    if (!picturesByService[picture.service_id]) {
+      picturesByService[picture.service_id] = [];
+    }
+    picturesByService[picture.service_id].push(picture);
+  });
+
+  return picturesByService;
+}
+
+/**
  * Get a single picture by ID
  */
 export async function getPictureById(pictureId: string) {
@@ -815,13 +858,12 @@ export async function getPictureById(pictureId: string) {
 /**
  * Create a new picture
  */
-export async function createPicture(picture: {
-  service_id: string;
-  style_id?: string | null;
-  image_url: string;
-  caption?: string;
-  is_primary_example?: boolean;
-}) {
+export async function createPicture(
+  picture: Pick<
+    TablesInsert<"pictures">,
+    "service_id" | "style_id" | "image_url" | "caption" | "is_primary_example"
+  >,
+) {
   const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
@@ -844,8 +886,9 @@ export async function createPicture(picture: {
  */
 export async function updatePicture(
   pictureId: string,
-  updates: Partial<
-    Omit<Picture, "picture_id" | "service_id" | "style_id" | "uploaded_at">
+  updates: Pick<
+    TablesUpdate<"pictures">,
+    "image_url" | "caption" | "is_primary_example"
   >,
 ) {
   const { supabase } = await verifyAuth();

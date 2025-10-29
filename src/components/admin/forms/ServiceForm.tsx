@@ -14,6 +14,7 @@ import type {
 } from "@/lib/actions/commissions";
 import { deleteFile } from "@/lib/actions/storage";
 import { cleanFormData } from "@/lib/forms";
+import type { KeyboardEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import PictureForm from "./PictureForm";
@@ -265,7 +266,7 @@ export default function ServiceForm({
     handleExit(onCancel);
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleBackdropKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
       handleExit(onCancel);

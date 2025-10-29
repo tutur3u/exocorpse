@@ -37,7 +37,7 @@ export default function AddonForm({
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
+  const { register, handleSubmit: formHandleSubmit, watch } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 

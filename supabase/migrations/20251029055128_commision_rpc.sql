@@ -7,6 +7,7 @@ RETURNS jsonb AS $$
 DECLARE
   v_error_message TEXT;
   v_deleted_count INT;
+  v_inserted_count INT := 0;
 BEGIN
   -- Delete all existing service addon links for this service
   DELETE FROM service_addons WHERE service_id = p_service;
@@ -14,8 +15,9 @@ BEGIN
   
   -- Insert new addon links if any are provided
   IF array_length(p_addons, 1) IS NOT NULL AND array_length(p_addons, 1) > 0 THEN
-    INSERT INTO service_addons (service_id, addon_id, addon_is_exclusive)
-    SELECT p_service, UNNEST(p_addons), FALSE;
+    INSERT INTO service_addons (service_id, addon_id)
+    SELECT p_service, UNNEST(ARRAY(SELECT DISTINCT UNNEST(p_addons)));
+    GET DIAGNOSTICS v_inserted_count = ROW_COUNT;
   END IF;
   
   -- Return success response
@@ -23,7 +25,7 @@ BEGIN
     'success', TRUE,
     'message', 'Service addons updated successfully',
     'deleted_count', v_deleted_count,
-    'inserted_count', COALESCE(array_length(p_addons, 1), 0)
+    'inserted_count', v_inserted_count
   );
   
 EXCEPTION WHEN OTHERS THEN
