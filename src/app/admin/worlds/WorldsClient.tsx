@@ -230,7 +230,7 @@ export default function WorldsClient({
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Cover Image / Gradient */}
-              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-indigo-400 via-cyan-400 to-teal-400">
+              <div className="relative h-48 overflow-hidden bg-linear-to-br from-indigo-400 via-cyan-400 to-teal-400">
                 {world.theme_background_image ? (
                   <>
                     <StorageImage
@@ -243,10 +243,10 @@ export default function WorldsClient({
                       height={192}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                   </>
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                 )}
               </div>
 

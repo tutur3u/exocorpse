@@ -119,10 +119,6 @@ export default function ConfirmDialog({
   );
 }
 
-/**
- * @deprecated Use ConfirmDialog instead. It now handles both deletion and exit scenarios.
- * For exit dialogs, use isDangerous={true} and customize the title/message/buttons.
- */
 export function ConfirmExitDialog({
   isOpen,
   onConfirm,

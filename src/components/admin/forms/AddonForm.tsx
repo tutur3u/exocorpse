@@ -4,6 +4,7 @@ import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Addon } from "@/lib/actions/commissions";
 import { cleanFormData } from "@/lib/forms";
+import type { KeyboardEvent } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -73,7 +74,7 @@ export default function AddonForm({
     handleExit(onCancel);
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleBackdropKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
       handleExit(onCancel);
@@ -101,6 +102,29 @@ export default function AddonForm({
             <h2 id="addon-form-title" className="text-2xl font-bold">
               {addon ? "Edit Add-on" : "Create New Add-on"}
             </h2>
+            <button
+              type="button"
+              aria-label="Close dialog"
+              onClick={handleCancelClick}
+              className="absolute top-4 right-4 rounded p-2 text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:hover:bg-gray-700"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                role="img"
+                aria-labelledby="close-icon-title"
+              >
+                <title id="close-icon-title">Close Dialog</title>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
           <form onSubmit={handleFormSubmit} className="flex flex-1 flex-col">
@@ -214,7 +238,10 @@ export default function AddonForm({
                         className="h-5 w-5 text-blue-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
+                        role="img"
+                        aria-labelledby="info-icon-title"
                       >
+                        <title id="info-icon-title">Info Icon</title>
                         <path
                           fillRule="evenodd"
                           d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"

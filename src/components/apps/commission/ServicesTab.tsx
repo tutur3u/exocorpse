@@ -99,6 +99,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
 
           return (
             <button
+              type="button"
               key={service.service_id}
               onClick={() => handleServiceClick(service.slug)}
               className="group relative overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl dark:bg-gray-800"

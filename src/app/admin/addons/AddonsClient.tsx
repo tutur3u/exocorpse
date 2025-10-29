@@ -133,6 +133,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setEditingAddon(null);
             setShowAddonForm(true);
@@ -229,6 +230,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
 
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     setEditingAddon(addon);
                     setShowAddonForm(true);
@@ -238,6 +240,7 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
                   Edit
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteAddonId(addon.addon_id);
                     setShowDeleteConfirm(true);

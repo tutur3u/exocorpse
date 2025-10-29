@@ -1,11 +1,9 @@
 "use client";
 
+import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
+import StorageImage from "@/components/shared/StorageImage";
 import { useState } from "react";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
-import Lightbox, { type LightboxContent } from "../shared/Lightbox";
-import StorageImage from "../shared/StorageImage";
-
-/* eslint-disable @next/next/no-img-element */
 
 const isDevelopment = process.env.NODE_ENV === "development";
 

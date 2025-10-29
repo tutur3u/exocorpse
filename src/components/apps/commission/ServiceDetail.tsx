@@ -41,7 +41,7 @@ export default function ServiceDetail({
       (style) => style.pictures?.map((pic) => pic.image_url) || [],
     ),
   ];
-  const { signedUrls } = useBatchStorageUrls(allPicturePaths);
+  const { signedUrls, loading } = useBatchStorageUrls(allPicturePaths);
 
   // Convert pictures to gallery format with signed URLs and metadata
   const galleryImages = displayPictures.map((picture, idx) => ({
@@ -69,6 +69,7 @@ export default function ServiceDetail({
       {/* Header with back button */}
       <div className="mb-4 flex items-center border-b border-gray-300 pb-4 dark:border-gray-700">
         <button
+          type="button"
           onClick={handleBack}
           className="flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
@@ -83,7 +84,7 @@ export default function ServiceDetail({
           <div className="h-full lg:col-span-2">
             <MasonryGallery
               images={galleryImages}
-              isLoading={displayPictures.length > 0 && signedUrls.size === 0}
+              isLoading={loading}
               columnsBreakpoints={{ 350: 1, 750: 2, 1024: 2, 1280: 2 }}
               maxWidth="max-w-3xl"
             />
@@ -113,6 +114,7 @@ export default function ServiceDetail({
                     const isActive = selectedStyle?.style_id === style.style_id;
                     return (
                       <button
+                        type="button"
                         key={style.style_id}
                         onClick={() => handleStyleChange(style.slug)}
                         className={`rounded-lg px-4 py-2 font-medium transition ${
