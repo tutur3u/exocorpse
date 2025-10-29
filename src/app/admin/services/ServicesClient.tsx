@@ -461,7 +461,7 @@ export default function ServicesClient({
           </p>
         </div>
         <button
-          type="button" 
+          type="button"
           onClick={() => handleOpenForm()}
           className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
@@ -513,14 +513,14 @@ export default function ServicesClient({
               <div className="border-t border-gray-200 p-4 dark:border-gray-700">
                 <div className="flex gap-2">
                   <button
-                    type="button" 
+                    type="button"
                     onClick={() => handleOpenForm(service)}
                     className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
                   >
                     Edit
                   </button>
                   <button
-                    type="button" 
+                    type="button"
                     onClick={() => {
                       setDeleteServiceId(service.service_id);
                       setShowDeleteServiceConfirm(true);
