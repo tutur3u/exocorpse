@@ -198,6 +198,9 @@ export default function ImageUploader({
           queryKey: ["storage-urls-batch"],
           exact: false,
         });
+        await queryClient.invalidateQueries({
+          queryKey: ["storageAnalytics"],
+        });
 
         setPendingFile(null);
         setUploadProgress("Complete!");
@@ -275,6 +278,11 @@ export default function ImageUploader({
     if (onFileSelect) {
       onFileSelect(null);
     }
+
+    // Invalidate storage analytics after deletion
+    await queryClient.invalidateQueries({
+      queryKey: ["storageAnalytics"],
+    });
   };
 
   return (

@@ -349,3 +349,29 @@ export async function cleanupExpiredCacheEntries(): Promise<{
     };
   }
 }
+
+/**
+ * Get storage analytics for the entire workspace
+ * Shows total size, file count, storage limit, and file statistics
+ */
+export async function getStorageAnalytics() {
+  // Verify authentication
+  await verifyAuth();
+
+  try {
+    const client = getTuturuuuClient();
+    const analytics = await client.storage.getAnalytics();
+
+    return {
+      success: true,
+      data: analytics.data,
+    };
+  } catch (error) {
+    console.error("Error fetching storage analytics:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch storage analytics",
+    );
+  }
+}
