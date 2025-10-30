@@ -446,7 +446,7 @@ export async function getExclusiveAddonServices() {
 export async function createAddon(
   addon: Pick<
     TablesInsert<"addons">,
-    "name" | "description" | "price_impact" | "is_exclusive"
+    "name" | "description" | "price_impact" | "is_exclusive" | "percentage"
   >,
 ) {
   const { supabase } = await verifyAuth();

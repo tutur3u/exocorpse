@@ -141,11 +141,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
                         {service.service_addons.slice(0, 2).map((sa) => (
                           <li key={sa.addon_id}>
                             • {sa.addons?.name}: +{sa.addons?.price_impact}
-                            {typeof sa.addons?.price_impact === "number" &&
-                            sa.addons.price_impact > 0 &&
-                            sa.addons.price_impact < 1
-                              ? "%"
-                              : "$"}
+                            {sa.addons?.percentage ? "%" : "$"}
                           </li>
                         ))}
                         {service.service_addons.length > 2 && (

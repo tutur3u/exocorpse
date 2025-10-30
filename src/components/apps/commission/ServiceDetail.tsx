@@ -148,11 +148,7 @@ export default function ServiceDetail({
                         <span className="font-medium">{sa.addons?.name}</span>:{" "}
                         <span className="text-green-600 dark:text-green-400">
                           +{sa.addons?.price_impact}
-                          {typeof sa.addons?.price_impact === "number" &&
-                          sa.addons.price_impact > 0 &&
-                          sa.addons.price_impact < 1
-                            ? "%"
-                            : "€"}
+                          {sa.addons?.percentage ? "%" : "€"}
                         </span>
                       </div>
                     </li>

@@ -1,9 +1,12 @@
-import { getAllAddons } from "@/lib/actions/commissions";
+import { getAllAddons, getAllServices } from "@/lib/actions/commissions";
 import AddonsClient from "./AddonsClient";
 
 export default async function AddonsAdminPage() {
   // Load initial data on the server
-  const addons = await getAllAddons();
+  const [addons, services] = await Promise.all([
+    getAllAddons(),
+    getAllServices(),
+  ]);
 
-  return <AddonsClient initialAddons={addons} />;
+  return <AddonsClient initialAddons={addons} initialServices={services} />;
 }

@@ -1,0 +1,1 @@
+alter table "public"."addons" add column "percentage" boolean not null default false;

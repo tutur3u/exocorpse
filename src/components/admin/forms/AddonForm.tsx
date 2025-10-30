@@ -2,7 +2,7 @@
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
-import type { Addon } from "@/lib/actions/commissions";
+import type { Addon, Service } from "@/lib/actions/commissions";
 import { cleanFormData } from "@/lib/forms";
 import type { KeyboardEvent } from "react";
 import { useState } from "react";
@@ -12,11 +12,15 @@ type AddonFormData = {
   name: string;
   description?: string;
   price_impact: number;
+  percentage: boolean;
   is_exclusive: boolean;
+  service_ids?: string[];
 };
 
 type AddonFormProps = {
   addon?: Addon;
+  availableServices?: Service[];
+  linkedServiceIds?: string[];
   onSubmit: (data: AddonFormData) => Promise<Addon | void>;
   onComplete: () => void;
   onCancel: () => void;
@@ -24,6 +28,8 @@ type AddonFormProps = {
 
 export default function AddonForm({
   addon,
+  availableServices = [],
+  linkedServiceIds = [],
   onSubmit,
   onComplete,
   onCancel,
@@ -33,7 +39,9 @@ export default function AddonForm({
       name: addon?.name || "",
       description: addon?.description || "",
       price_impact: addon?.price_impact || 0,
+      percentage: addon?.percentage ?? false,
       is_exclusive: addon?.is_exclusive ?? false,
+      service_ids: linkedServiceIds,
     },
   });
 
@@ -43,8 +51,12 @@ export default function AddonForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(
+    new Set(linkedServiceIds),
+  );
 
   const isExclusive = watch("is_exclusive");
+  const maxServicesAllowed = isExclusive ? 1 : availableServices.length;
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
@@ -53,6 +65,9 @@ export default function AddonForm({
     try {
       // Clean up empty strings to undefined
       const cleanData: AddonFormData = cleanFormData(data, ["description"], []);
+
+      // Add selected service IDs
+      cleanData.service_ids = Array.from(selectedServiceIds);
 
       // Submit the addon data
       await onSubmit(cleanData);
@@ -65,6 +80,23 @@ export default function AddonForm({
       setLoading(false);
     }
   });
+
+  const handleServiceToggle = (serviceId: string) => {
+    const newSelection = new Set(selectedServiceIds);
+
+    if (isExclusive && newSelection.size >= 1 && !newSelection.has(serviceId)) {
+      // For exclusive addons, can only have 1 service
+      return;
+    }
+
+    if (newSelection.has(serviceId)) {
+      newSelection.delete(serviceId);
+    } else {
+      newSelection.add(serviceId);
+    }
+
+    setSelectedServiceIds(newSelection);
+  };
 
   const handleBackdropClick = () => {
     handleExit(onCancel);
@@ -84,7 +116,7 @@ export default function AddonForm({
   return (
     <>
       <div
-        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center overflow-y-scroll bg-black p-4"
         role="button"
         tabIndex={0}
         aria-label="Close and discard changes"
@@ -92,7 +124,7 @@ export default function AddonForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="animate-slideUp flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden overflow-y-scroll rounded-lg bg-white dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -177,7 +209,7 @@ export default function AddonForm({
                   htmlFor="price_impact"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Price Impact (EUR) <span className="text-red-500">*</span>
+                  Price Impact <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -197,68 +229,158 @@ export default function AddonForm({
                 </p>
               </div>
 
-              {/* Is Exclusive */}
-              <div className="rounded-md border border-gray-300 p-4 dark:border-gray-600">
-                <div className="flex items-start">
-                  <div className="flex h-5 items-center">
-                    <input
-                      type="checkbox"
-                      id="is_exclusive"
-                      {...register("is_exclusive")}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label
-                      htmlFor="is_exclusive"
-                      className="font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Exclusive Add-on
-                    </label>
-                    <p className="mt-1 text-gray-500 dark:text-gray-400">
-                      {isExclusive ? (
-                        <>
-                          This add-on can only be linked to{" "}
-                          <strong>one service</strong>. Once linked, it cannot
-                          be assigned to other services.
-                        </>
-                      ) : (
-                        <>
-                          This add-on can be shared across{" "}
-                          <strong>multiple services</strong>.
-                        </>
-                      )}
-                    </p>
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {/* Percentage Toggle */}
+                <div className="rounded-md border border-gray-300 p-4 dark:border-gray-600">
+                  <div className="flex items-start">
+                    <div className="flex h-5 items-center">
+                      <input
+                        type="checkbox"
+                        id="percentage"
+                        {...register("percentage")}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label
+                        htmlFor="percentage"
+                        className="font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Display as Percentage
+                      </label>
+                      <p className="mt-1 text-gray-500 dark:text-gray-400">
+                        When enabled, the price impact will be displayed as a
+                        percentage (%) instead of EUR (€)
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 rounded-md bg-blue-50 p-3 dark:bg-blue-900/20">
-                  <div className="flex">
-                    <div className="shrink-0">
-                      <svg
-                        className="h-5 w-5 text-blue-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        role="img"
-                        aria-labelledby="info-icon-title"
-                      >
-                        <title id="info-icon-title">Info Icon</title>
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+
+                {/* Is Exclusive */}
+                <div className="rounded-md border border-gray-300 p-4 dark:border-gray-600">
+                  <div className="flex items-start">
+                    <div className="flex h-5 items-center">
+                      <input
+                        type="checkbox"
+                        id="is_exclusive"
+                        {...register("is_exclusive")}
+                        disabled={selectedServiceIds.size > 1}
+                        className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 ${
+                          selectedServiceIds.size > 1
+                            ? "cursor-not-allowed opacity-50"
+                            : ""
+                        }`}
+                      />
                     </div>
-                    <div className="ml-3 flex-1 text-sm text-blue-700 dark:text-blue-300">
-                      <p>
-                        <strong>Note:</strong> Exclusivity cannot be changed
-                        after the add-on is linked to a service. Choose
-                        carefully!
+                    <div className="ml-3 text-sm">
+                      <label
+                        htmlFor="is_exclusive"
+                        className={`font-medium ${
+                          selectedServiceIds.size > 1
+                            ? "cursor-not-allowed text-gray-400 dark:text-gray-500"
+                            : "text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        Exclusive Add-on
+                      </label>
+                      <p className="mt-1 text-gray-500 dark:text-gray-400">
+                        {selectedServiceIds.size > 1 ? (
+                          <>
+                            Cannot mark as exclusive:{" "}
+                            <strong>multiple services selected</strong>. Remove
+                            services to enable this option.
+                          </>
+                        ) : isExclusive ? (
+                          <>
+                            This add-on can only be linked to{" "}
+                            <strong>one service</strong>. Once linked, it cannot
+                            be assigned to other services.
+                          </>
+                        ) : (
+                          <>
+                            This add-on can be shared across{" "}
+                            <strong>multiple services</strong>.
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Link to Services */}
+              {availableServices.length > 0 && (
+                <div>
+                  <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Link to Services
+                    {isExclusive && selectedServiceIds.size > 0 && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        (Linked: {selectedServiceIds.size}/{maxServicesAllowed})
+                      </span>
+                    )}
+                    {!isExclusive && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        (Linked: {selectedServiceIds.size})
+                      </span>
+                    )}
+                  </label>
+                  <div className="space-y-2 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700/50">
+                    {availableServices.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No services available. Create a service first.
+                      </p>
+                    ) : (
+                      availableServices.map((service) => {
+                        const isSelected = selectedServiceIds.has(
+                          service.service_id,
+                        );
+                        const isDisabled =
+                          isExclusive &&
+                          !isSelected &&
+                          selectedServiceIds.size >= maxServicesAllowed;
+
+                        return (
+                          <label
+                            key={service.service_id}
+                            className={`flex cursor-pointer items-center gap-2 rounded p-2 transition-colors ${
+                              isDisabled
+                                ? "cursor-not-allowed bg-gray-100 opacity-50 dark:bg-gray-600"
+                                : "hover:bg-white dark:hover:bg-gray-600"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              disabled={isDisabled}
+                              onChange={() =>
+                                handleServiceToggle(service.service_id)
+                              }
+                              className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 ${
+                                isDisabled ? "cursor-not-allowed" : ""
+                              }`}
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {service.name}
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                                €{service.base_price.toFixed(2)}
+                              </span>
+                            </div>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                  {isExclusive && selectedServiceIds.size > 0 && (
+                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                      ⚠️ This exclusive add-on is linked to{" "}
+                      {selectedServiceIds.size} service. It cannot be linked to
+                      additional services.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Footer */}

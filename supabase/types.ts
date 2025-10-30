@@ -15,6 +15,7 @@ export type Database = {
           description: string | null;
           is_exclusive: boolean;
           name: string;
+          percentage: boolean;
           price_impact: number;
         };
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           description?: string | null;
           is_exclusive?: boolean;
           name: string;
+          percentage?: boolean;
           price_impact?: number;
         };
         Update: {
@@ -29,6 +31,7 @@ export type Database = {
           description?: string | null;
           is_exclusive?: boolean;
           name?: string;
+          percentage?: boolean;
           price_impact?: number;
         };
         Relationships: [];
