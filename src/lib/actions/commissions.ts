@@ -1014,3 +1014,39 @@ export async function setPrimaryPicture(styleId: string, pictureId: string) {
   revalidatePath("/admin/services");
   return result;
 }
+
+/**
+ * Get a map of addon IDs to service IDs they are linked to
+ * Used to display which services each addon is linked to
+ */
+export async function getLinkedServicesMap() {
+  const supabase = await getSupabaseServer();
+
+  const linkedMap: Record<string, Set<string>> = {};
+
+  // Get all service-addon relationships
+  const { data: serviceAddonsData, error: serviceAddonsError } = await supabase
+    .from("service_addons")
+    .select("service_id, addon_id");
+
+  if (serviceAddonsError) {
+    console.error("Error fetching service addons:", serviceAddonsError);
+    return {};
+  }
+
+  // Build the map
+  (serviceAddonsData || []).forEach((serviceAddon) => {
+    if (!linkedMap[serviceAddon.addon_id]) {
+      linkedMap[serviceAddon.addon_id] = new Set();
+    }
+    linkedMap[serviceAddon.addon_id].add(serviceAddon.service_id);
+  });
+
+  // Convert Sets to arrays for serialization
+  const serializedMap: Record<string, string[]> = {};
+  Object.entries(linkedMap).forEach(([addonId, serviceIds]) => {
+    serializedMap[addonId] = Array.from(serviceIds);
+  });
+
+  return serializedMap;
+}

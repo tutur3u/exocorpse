@@ -124,7 +124,7 @@ export default function AddonForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="animate-slideUp flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden overflow-y-scroll rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex max-h-[90vh] w-full max-w-2xl flex-col overflow-y-scroll rounded-lg bg-white dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -311,7 +311,7 @@ export default function AddonForm({
               {/* Link to Services */}
               {availableServices.length > 0 && (
                 <div>
-                  <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Link to Services
                     {isExclusive && selectedServiceIds.size > 0 && (
                       <span className="ml-2 text-xs text-gray-500">
@@ -323,54 +323,48 @@ export default function AddonForm({
                         (Linked: {selectedServiceIds.size})
                       </span>
                     )}
-                  </label>
+                  </div>
                   <div className="space-y-2 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700/50">
-                    {availableServices.length === 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No services available. Create a service first.
-                      </p>
-                    ) : (
-                      availableServices.map((service) => {
-                        const isSelected = selectedServiceIds.has(
-                          service.service_id,
-                        );
-                        const isDisabled =
-                          isExclusive &&
-                          !isSelected &&
-                          selectedServiceIds.size >= maxServicesAllowed;
+                    {availableServices.map((service) => {
+                      const isSelected = selectedServiceIds.has(
+                        service.service_id,
+                      );
+                      const isDisabled =
+                        isExclusive &&
+                        !isSelected &&
+                        selectedServiceIds.size >= maxServicesAllowed;
 
-                        return (
-                          <label
-                            key={service.service_id}
-                            className={`flex cursor-pointer items-center gap-2 rounded p-2 transition-colors ${
-                              isDisabled
-                                ? "cursor-not-allowed bg-gray-100 opacity-50 dark:bg-gray-600"
-                                : "hover:bg-white dark:hover:bg-gray-600"
+                      return (
+                        <label
+                          key={service.service_id}
+                          className={`flex cursor-pointer items-center gap-2 rounded p-2 transition-colors ${
+                            isDisabled
+                              ? "cursor-not-allowed bg-gray-100 opacity-50 dark:bg-gray-600"
+                              : "hover:bg-white dark:hover:bg-gray-600"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            onChange={() =>
+                              handleServiceToggle(service.service_id)
+                            }
+                            className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 ${
+                              isDisabled ? "cursor-not-allowed" : ""
                             }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              disabled={isDisabled}
-                              onChange={() =>
-                                handleServiceToggle(service.service_id)
-                              }
-                              className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-500 dark:bg-gray-600 ${
-                                isDisabled ? "cursor-not-allowed" : ""
-                              }`}
-                            />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                {service.name}
-                              </span>
-                              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                                €{service.base_price.toFixed(2)}
-                              </span>
-                            </div>
-                          </label>
-                        );
-                      })
-                    )}
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {service.name}
+                            </span>
+                            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                              €{service.base_price.toFixed(2)}
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
                   {isExclusive && selectedServiceIds.size > 0 && (
                     <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">

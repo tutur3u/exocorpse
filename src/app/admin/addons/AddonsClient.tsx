@@ -5,7 +5,6 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   createAddon,
   deleteAddon,
-  getAddonsForService,
   getAllAddons,
   getAllServices,
   linkAddonToService,
@@ -16,16 +15,18 @@ import {
 } from "@/lib/actions/commissions";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type AddonsClientProps = {
   initialAddons: Addon[];
   initialServices: Service[];
+  initialLinkedServices: Record<string, string[]>;
 };
 
 export default function AddonsClient({
   initialAddons,
   initialServices,
+  initialLinkedServices,
 }: AddonsClientProps) {
   const queryClient = useQueryClient();
 
@@ -37,9 +38,14 @@ export default function AddonsClient({
   const [filterType, setFilterType] = useState<"all" | "exclusive" | "shared">(
     "all",
   );
-  const [linkedServicesByAddon, setLinkedServicesByAddon] = useState<
-    Record<string, Set<string>>
-  >({});
+
+  // Convert initial linked services from arrays to Sets
+  const linkedServicesByAddon = Object.fromEntries(
+    Object.entries(initialLinkedServices).map(([addonId, serviceIds]) => [
+      addonId,
+      new Set(serviceIds),
+    ]),
+  );
 
   // Query addons
   const { data: addons = initialAddons } = useQuery({
@@ -55,31 +61,16 @@ export default function AddonsClient({
     initialData: initialServices,
   });
 
-  // Fetch linked services for all addons when they load
-  const loadLinkedServices = useCallback(async () => {
-    const linkedMap: Record<string, Set<string>> = {};
-
-    for (const service of services) {
-      try {
-        const addonsForService = await getAddonsForService(service.service_id);
-        addonsForService.forEach((addon: any) => {
-          if (!linkedMap[addon.addon_id]) {
-            linkedMap[addon.addon_id] = new Set();
-          }
-          linkedMap[addon.addon_id].add(service.service_id);
-        });
-      } catch (error) {
-        console.error("Error fetching linked services:", error);
-      }
-    }
-
-    setLinkedServicesByAddon(linkedMap);
+  // Create a memoized lookup map for services by ID for O(1) lookups
+  const servicesMap = useMemo(() => {
+    return services.reduce(
+      (acc, service) => {
+        acc[service.service_id] = service;
+        return acc;
+      },
+      {} as Record<string, Service>,
+    );
   }, [services]);
-
-  // Load linked services on mount
-  useEffect(() => {
-    loadLinkedServices();
-  }, [loadLinkedServices]);
 
   // MUTATIONS
   const createAddonMutation = useMutation({
@@ -156,7 +147,14 @@ export default function AddonsClient({
 
   // HANDLERS
   const handleCreateAddon = useCallback(
-    async (data: any) => {
+    async (data: {
+      name: string;
+      description?: string;
+      price_impact: number;
+      percentage: boolean;
+      is_exclusive: boolean;
+      service_ids?: string[];
+    }) => {
       const addon = await createAddonMutation.mutateAsync({
         name: data.name,
         description: data.description,
@@ -176,17 +174,23 @@ export default function AddonsClient({
         await Promise.all(linkPromises);
 
         // Reload linked services
-        await loadLinkedServices();
         queryClient.invalidateQueries({ queryKey: ["admin-addons"] });
       }
 
       return addon;
     },
-    [createAddonMutation, linkAddonMutation, loadLinkedServices, queryClient],
+    [createAddonMutation, linkAddonMutation, queryClient],
   );
 
   const handleUpdateAddon = useCallback(
-    async (data: any) => {
+    async (data: {
+      name: string;
+      description?: string;
+      price_impact: number;
+      percentage: boolean;
+      is_exclusive: boolean;
+      service_ids?: string[];
+    }) => {
       if (!editingAddon) return;
 
       const addon = await updateAddonMutation.mutateAsync({
@@ -216,24 +220,23 @@ export default function AddonsClient({
           (id: string) => !oldServiceIds.has(id),
         );
 
-        // Execute unlink operations
-        for (const serviceId of toUnlink) {
-          await unlinkAddonMutation.mutateAsync({
-            serviceId: serviceId as string,
+        // Execute unlink and link operations in parallel
+        const unlinkPromises = toUnlink.map((serviceId) =>
+          unlinkAddonMutation.mutateAsync({
+            serviceId,
             addonId: editingAddon.addon_id,
-          });
-        }
+          }),
+        );
 
-        // Execute link operations
-        for (const serviceId of toLink) {
-          await linkAddonMutation.mutateAsync({
-            serviceId: serviceId as string,
+        const linkPromises = toLink.map((serviceId) =>
+          linkAddonMutation.mutateAsync({
+            serviceId,
             addonId: editingAddon.addon_id,
-          });
-        }
+          }),
+        );
 
-        // Reload linked services
-        await loadLinkedServices();
+        await Promise.all([...unlinkPromises, ...linkPromises]);
+
         queryClient.invalidateQueries({ queryKey: ["admin-addons"] });
       }
 
@@ -245,7 +248,6 @@ export default function AddonsClient({
       linkAddonMutation,
       unlinkAddonMutation,
       linkedServicesByAddon,
-      loadLinkedServices,
       queryClient,
     ],
   );
@@ -392,9 +394,7 @@ export default function AddonsClient({
                   <div className="flex flex-wrap gap-1">
                     {Array.from(linkedServicesByAddon[addon.addon_id]).map(
                       (serviceId) => {
-                        const service = services.find(
-                          (s) => s.service_id === serviceId,
-                        );
+                        const service = servicesMap[serviceId];
                         return service ? (
                           <span
                             key={serviceId}
