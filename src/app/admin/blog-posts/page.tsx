@@ -1,3 +1,4 @@
+import StorageAnalytics from "@/components/admin/StorageAnalytics";
 import { getAllBlogPostsPaginated } from "@/lib/actions/blog";
 import BlogPostsClient from "./BlogPostsClient";
 
@@ -23,7 +24,12 @@ export default async function BlogPostsPage({
   try {
     const initialData = await getAllBlogPostsPaginated(page, pageSize);
 
-    return <BlogPostsClient initialData={initialData} pageSize={pageSize} />;
+    return (
+      <div className="space-y-4">
+        <StorageAnalytics />
+        <BlogPostsClient initialData={initialData} />
+      </div>
+    );
   } catch (error) {
     console.error("Error fetching blog posts:", error);
     return <div>Error fetching blog posts</div>;

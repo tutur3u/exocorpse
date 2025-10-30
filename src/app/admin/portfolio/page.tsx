@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/auth/utils";
+import StorageAnalytics from "@/components/admin/StorageAnalytics";
 import {
   getAllArtPiecesAdmin,
   getAllWritingPiecesAdmin,
@@ -6,8 +6,6 @@ import {
 import PortfolioClient from "./PortfolioClient";
 
 export default async function PortfolioPage() {
-  // Require authentication
-  await requireAuth();
 
   // Fetch initial data
   const [artPieces, writingPieces] = await Promise.all([
@@ -16,7 +14,8 @@ export default async function PortfolioPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen space-y-4 bg-gray-50 dark:bg-gray-900">
+      <StorageAnalytics />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">

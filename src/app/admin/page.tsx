@@ -1,8 +1,12 @@
+import StorageAnalytics from "@/components/admin/StorageAnalytics";
 import Link from "next/link";
 
 export default function AdminDashboard() {
   return (
     <div className="space-y-8">
+      {/* Storage Analytics Section */}
+      <StorageAnalytics />
+
       {/* Header Section */}
       <div className="rounded-xl border border-gray-200 bg-linear-to-r from-blue-50 to-purple-50 p-8 dark:border-gray-800 dark:from-blue-950/30 dark:to-purple-950/30">
         <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
