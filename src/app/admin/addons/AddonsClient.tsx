@@ -6,18 +6,28 @@ import {
   createAddon,
   deleteAddon,
   getAllAddons,
+  getAllServices,
+  linkAddonToService,
+  unlinkAddonFromService,
   updateAddon,
   type Addon,
+  type Service,
 } from "@/lib/actions/commissions";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type AddonsClientProps = {
   initialAddons: Addon[];
+  initialServices: Service[];
+  initialLinkedServices: Record<string, string[]>;
 };
 
-export default function AddonsClient({ initialAddons }: AddonsClientProps) {
+export default function AddonsClient({
+  initialAddons,
+  initialServices,
+  initialLinkedServices,
+}: AddonsClientProps) {
   const queryClient = useQueryClient();
 
   const [showAddonForm, setShowAddonForm] = useState(false);
@@ -29,12 +39,38 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
     "all",
   );
 
+  // Convert initial linked services from arrays to Sets
+  const linkedServicesByAddon = Object.fromEntries(
+    Object.entries(initialLinkedServices).map(([addonId, serviceIds]) => [
+      addonId,
+      new Set(serviceIds),
+    ]),
+  );
+
   // Query addons
   const { data: addons = initialAddons } = useQuery({
     queryKey: ["admin-addons"],
     queryFn: getAllAddons,
     initialData: initialAddons,
   });
+
+  // Query services
+  const { data: services = initialServices } = useQuery({
+    queryKey: ["admin-services"],
+    queryFn: getAllServices,
+    initialData: initialServices,
+  });
+
+  // Create a memoized lookup map for services by ID for O(1) lookups
+  const servicesMap = useMemo(() => {
+    return services.reduce(
+      (acc, service) => {
+        acc[service.service_id] = service;
+        return acc;
+      },
+      {} as Record<string, Service>,
+    );
+  }, [services]);
 
   // MUTATIONS
   const createAddonMutation = useMutation({
@@ -81,23 +117,139 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
     },
   });
 
+  const linkAddonMutation = useMutation({
+    mutationFn: ({
+      serviceId,
+      addonId,
+    }: {
+      serviceId: string;
+      addonId: string;
+    }) => linkAddonToService(serviceId, addonId),
+    onError: (error: Error) => {
+      toastWithSound.error(error.message || "Failed to link add-on to service");
+    },
+  });
+
+  const unlinkAddonMutation = useMutation({
+    mutationFn: ({
+      serviceId,
+      addonId,
+    }: {
+      serviceId: string;
+      addonId: string;
+    }) => unlinkAddonFromService(serviceId, addonId),
+    onError: (error: Error) => {
+      toastWithSound.error(
+        error.message || "Failed to unlink add-on from service",
+      );
+    },
+  });
+
   // HANDLERS
   const handleCreateAddon = useCallback(
-    async (data: Parameters<typeof createAddon>[0]) => {
-      return createAddonMutation.mutateAsync(data);
+    async (data: {
+      name: string;
+      description?: string;
+      price_impact: number;
+      percentage: boolean;
+      is_exclusive: boolean;
+      service_ids?: string[];
+    }) => {
+      const addon = await createAddonMutation.mutateAsync({
+        name: data.name,
+        description: data.description,
+        price_impact: data.price_impact,
+        percentage: data.percentage,
+        is_exclusive: data.is_exclusive,
+      });
+
+      if (addon && data.service_ids && data.service_ids.length > 0) {
+        // Link to services
+        const linkPromises = data.service_ids.map((serviceId: string) =>
+          linkAddonMutation.mutateAsync({
+            serviceId,
+            addonId: addon.addon_id,
+          }),
+        );
+        await Promise.all(linkPromises);
+
+        // Reload linked services
+        queryClient.invalidateQueries({ queryKey: ["admin-addons"] });
+      }
+
+      return addon;
     },
-    [createAddonMutation],
+    [createAddonMutation, linkAddonMutation, queryClient],
   );
 
   const handleUpdateAddon = useCallback(
-    async (data: Parameters<typeof createAddon>[0]) => {
+    async (data: {
+      name: string;
+      description?: string;
+      price_impact: number;
+      percentage: boolean;
+      is_exclusive: boolean;
+      service_ids?: string[];
+    }) => {
       if (!editingAddon) return;
-      return updateAddonMutation.mutateAsync({
+
+      const addon = await updateAddonMutation.mutateAsync({
         id: editingAddon.addon_id,
-        updates: data,
+        updates: {
+          name: data.name,
+          description: data.description,
+          price_impact: data.price_impact,
+          percentage: data.percentage,
+          is_exclusive: data.is_exclusive,
+        },
       });
+
+      // Handle service linking changes
+      if (data.service_ids) {
+        const oldServiceIds =
+          linkedServicesByAddon[editingAddon.addon_id] || new Set<string>();
+        const newServiceIds = new Set<string>(data.service_ids);
+
+        // Find services to unlink
+        const toUnlink = Array.from(oldServiceIds).filter(
+          (id: string) => !newServiceIds.has(id),
+        );
+
+        // Find services to link
+        const toLink = Array.from(newServiceIds).filter(
+          (id: string) => !oldServiceIds.has(id),
+        );
+
+        // Execute unlink and link operations in parallel
+        const unlinkPromises = toUnlink.map((serviceId) =>
+          unlinkAddonMutation.mutateAsync({
+            serviceId,
+            addonId: editingAddon.addon_id,
+          }),
+        );
+
+        const linkPromises = toLink.map((serviceId) =>
+          linkAddonMutation.mutateAsync({
+            serviceId,
+            addonId: editingAddon.addon_id,
+          }),
+        );
+
+        await Promise.all([...unlinkPromises, ...linkPromises]);
+
+        queryClient.invalidateQueries({ queryKey: ["admin-addons"] });
+      }
+
+      return addon;
     },
-    [editingAddon, updateAddonMutation],
+    [
+      editingAddon,
+      updateAddonMutation,
+      linkAddonMutation,
+      unlinkAddonMutation,
+      linkedServicesByAddon,
+      queryClient,
+    ],
   );
 
   const handleDeleteAddon = useCallback(() => {
@@ -211,7 +363,8 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
                     {addon.name}
                   </h3>
                   <p className="mt-1 text-lg font-bold text-blue-600 dark:text-blue-400">
-                    +${addon.price_impact.toFixed(2)}
+                    +{addon.price_impact.toFixed(2)}
+                    {addon.percentage ? "%" : "€"}
                   </p>
                 </div>
                 {addon.is_exclusive && (
@@ -225,6 +378,35 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
                 <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                   {addon.description}
                 </p>
+              )}
+
+              {/* Linked Services */}
+              {linkedServicesByAddon[addon.addon_id]?.size > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                    Linked to {linkedServicesByAddon[addon.addon_id].size}{" "}
+                    service
+                    {linkedServicesByAddon[addon.addon_id].size !== 1
+                      ? "s"
+                      : ""}
+                    :
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {Array.from(linkedServicesByAddon[addon.addon_id]).map(
+                      (serviceId) => {
+                        const service = servicesMap[serviceId];
+                        return service ? (
+                          <span
+                            key={serviceId}
+                            className="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          >
+                            {service.name}
+                          </span>
+                        ) : null;
+                      },
+                    )}
+                  </div>
+                </div>
               )}
 
               <div className="flex gap-2">
@@ -258,6 +440,14 @@ export default function AddonsClient({ initialAddons }: AddonsClientProps) {
       {showAddonForm && (
         <AddonForm
           addon={editingAddon || undefined}
+          availableServices={services}
+          linkedServiceIds={
+            editingAddon
+              ? Array.from(
+                  linkedServicesByAddon[editingAddon.addon_id] || new Set(),
+                )
+              : []
+          }
           onSubmit={editingAddon ? handleUpdateAddon : handleCreateAddon}
           onComplete={() => {
             setShowAddonForm(false);
