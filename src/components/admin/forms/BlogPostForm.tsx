@@ -374,7 +374,8 @@ export default function BlogPostForm({
                   }
                   onFileSelect={(file) => setPendingCoverImage(file)}
                   onBeforeChange={async (oldValue, newValue) => {
-                    if (oldValue) await handleDeleteOldImage(oldValue);
+                    if (oldValue && oldValue !== newValue)
+                      await handleDeleteOldImage(oldValue);
                   }}
                   enableUpload={!!post}
                   uploadPath={post ? `blog/${post.id}` : undefined}

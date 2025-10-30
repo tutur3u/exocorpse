@@ -7,9 +7,9 @@ import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { deleteCharacterGalleryImage } from "@/lib/actions/storage";
 import { updateCharacterGalleryItem } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
-import type { Tables } from "../../../../supabase/types";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import type { Tables } from "../../../../supabase/types";
 
 type CharacterGalleryItem = Tables<"character_gallery">;
 
@@ -313,7 +313,8 @@ export default function GalleryItemForm({
                   }
                   onFileSelect={(file) => setPendingFile("image_url", file)}
                   onBeforeChange={async (oldValue, newValue) => {
-                    if (oldValue) await handleDeleteOldImage(oldValue);
+                    if (oldValue && oldValue !== newValue)
+                      await handleDeleteOldImage(oldValue);
                   }}
                   enableUpload={!!galleryItem}
                   uploadPath={
