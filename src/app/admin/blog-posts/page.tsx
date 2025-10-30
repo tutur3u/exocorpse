@@ -27,7 +27,7 @@ export default async function BlogPostsPage({
     return (
       <div className="space-y-4">
         <StorageAnalytics />
-        <BlogPostsClient initialData={initialData} />
+        <BlogPostsClient initialData={initialData} pageSize={pageSize} />
       </div>
     );
   } catch (error) {
