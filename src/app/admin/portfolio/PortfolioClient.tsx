@@ -11,11 +11,12 @@ import {
   createWritingPiece,
   deleteArtPiece,
   deleteWritingPiece,
-  updateArtPiece,
-  updateWritingPiece,
   getAllArtPiecesAdmin,
   getAllWritingPiecesAdmin,
+  updateArtPiece,
+  updateWritingPiece,
 } from "@/lib/actions/portfolio";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ export default function PortfolioClient({
   initialArtPieces,
   initialWritingPieces,
 }: PortfolioClientProps) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"art" | "writing">("art");
 
   // Art state
@@ -139,6 +141,7 @@ export default function PortfolioClient({
     try {
       await deleteArtPiece(deletingArt.id);
       setArtPieces((prev) => prev.filter((item) => item.id !== deletingArt.id));
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
       toast.success("Artwork deleted successfully");
     } catch (error) {
       console.error("Failed to delete artwork:", error);
@@ -220,6 +223,7 @@ export default function PortfolioClient({
       setWritingPieces((prev) =>
         prev.filter((item) => item.id !== deletingWriting.id),
       );
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
       toast.success("Writing deleted successfully");
     } catch (error) {
       console.error("Failed to delete writing:", error);

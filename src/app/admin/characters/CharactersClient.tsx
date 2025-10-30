@@ -323,6 +323,7 @@ export default function CharactersClient({
       queryClient.invalidateQueries({
         queryKey: ["characters", selectedStoryId],
       });
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
       toastWithSound.success("Character deleted successfully!");
     },
     onError: (error) => {

@@ -214,6 +214,7 @@ export default function ServicesClient({
     onSuccess: () => {
       toastWithSound.success("Picture deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["admin-service-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
     },
     onError: () => {
       toastWithSound.error("Failed to delete picture");

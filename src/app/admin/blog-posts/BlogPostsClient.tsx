@@ -3,6 +3,7 @@
 import BlogPostForm from "@/components/admin/forms/BlogPostForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StorageImage from "@/components/shared/StorageImage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   type BlogPost,
   createBlogPost,
@@ -10,7 +11,6 @@ import {
   getAllBlogPostsPaginated,
   updateBlogPost,
 } from "@/lib/actions/blog";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import { generatePaginationRange } from "@/lib/pagination";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -111,6 +111,7 @@ export default function BlogPostsClient({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
       queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
       toastWithSound.success("Blog post deleted successfully!");
     },
     onError: (error) => {

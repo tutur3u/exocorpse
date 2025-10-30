@@ -18,6 +18,7 @@ import {
   updateCharacterGalleryItem,
 } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -83,6 +84,7 @@ export default function CharacterForm({
   onComplete,
   onCancel,
 }: CharacterFormProps) {
+  const queryClient = useQueryClient();
   const {
     setPendingFile,
     uploadPendingFiles,
@@ -438,6 +440,10 @@ export default function CharacterForm({
       // Then delete from database
       await deleteCharacterGalleryItem(item.id);
       setGalleryItems((prev) => prev.filter((i) => i.id !== item.id));
+
+      // Invalidate storage analytics
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
+
       toast.success("Gallery item deleted");
     } catch (err) {
       console.error("Failed to delete gallery item:", err);
