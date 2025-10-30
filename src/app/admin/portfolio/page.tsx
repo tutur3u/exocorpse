@@ -6,7 +6,6 @@ import {
 import PortfolioClient from "./PortfolioClient";
 
 export default async function PortfolioPage() {
-
   // Fetch initial data
   const [artPieces, writingPieces] = await Promise.all([
     getAllArtPiecesAdmin(),
