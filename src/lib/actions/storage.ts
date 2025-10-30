@@ -3,7 +3,6 @@
 import {
   DEFAULT_SIGNED_URL_EXPIRATION,
   MAX_SIGNED_URL_EXPIRATION,
-  REVALIDATE_TIME,
   STORAGE_URL_STALE_TIME,
 } from "@/constants";
 import { verifyAuth } from "@/lib/auth/utils";
@@ -187,7 +186,6 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
 
     // Otherwise, fetch a new signed URL from the SDK
     const client = getTuturuuuClient();
-    const expiresIn = REVALIDATE_TIME; // Use the configured revalidation time
 
     const result = await client.storage.share(path, {
       expiresIn: MAX_SIGNED_URL_EXPIRATION,
