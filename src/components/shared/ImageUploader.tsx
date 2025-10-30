@@ -177,7 +177,8 @@ export default function ImageUploader({
           throw new Error(`Upload failed: ${uploadResponse.statusText}`);
         }
         // Call onBeforeChange to delete the old image if it exists
-        if (onBeforeChange && value) {
+        // But skip if the paths are the same (upsert case - SDK handles it)
+        if (onBeforeChange && value && value !== path) {
           try {
             setUploadProgress("Cleaning up...");
             await onBeforeChange(value, path);

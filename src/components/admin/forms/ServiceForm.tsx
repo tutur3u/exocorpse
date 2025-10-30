@@ -449,10 +449,12 @@ export default function ServiceForm({
                               : undefined
                           }
                           enableUpload={!!service}
-                          onBeforeChange={async (oldValue, _newValue) => {
+                          onBeforeChange={async (oldValue, newValue) => {
                             // Delete old file if it was a storage path (not http/data/pending)
+                            // Skip deletion if paths are the same (upsert case)
                             if (
                               oldValue &&
+                              oldValue !== newValue &&
                               !oldValue.startsWith("http") &&
                               !oldValue.startsWith("data:") &&
                               !oldValue.startsWith("pending:")

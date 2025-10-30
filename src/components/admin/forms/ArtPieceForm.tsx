@@ -326,7 +326,8 @@ export default function ArtPieceForm({
                   }
                   onFileSelect={(file) => setPendingFile("image_url", file)}
                   onBeforeChange={async (oldValue, newValue) => {
-                    if (oldValue) await handleDeleteOldImage(oldValue);
+                    if (oldValue && oldValue !== newValue)
+                      await handleDeleteOldImage(oldValue);
                   }}
                   enableUpload={!!artPiece}
                   uploadPath={

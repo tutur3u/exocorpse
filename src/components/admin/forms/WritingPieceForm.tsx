@@ -373,7 +373,8 @@ export default function WritingPieceForm({
                   }
                   onFileSelect={(file) => setPendingCoverImage(file)}
                   onBeforeChange={async (oldValue, newValue) => {
-                    if (oldValue) await handleDeleteOldImage(oldValue);
+                    if (oldValue && oldValue !== newValue)
+                      await handleDeleteOldImage(oldValue);
                   }}
                   enableUpload={!!writingPiece}
                   uploadPath={

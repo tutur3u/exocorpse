@@ -4,6 +4,7 @@ import {
   DEFAULT_SIGNED_URL_EXPIRATION,
   MAX_SIGNED_URL_EXPIRATION,
   REVALIDATE_TIME,
+  STORAGE_URL_STALE_TIME,
 } from "@/constants";
 import { verifyAuth } from "@/lib/auth/utils";
 import {
@@ -193,7 +194,7 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     }
 
     // Calculate the expiration timestamp
-    const expiresAt = new Date(now.getTime() + expiresIn * 1000);
+    const expiresAt = new Date(now.getTime() + STORAGE_URL_STALE_TIME);
 
     const sbAdmin = await getSupabaseAdminServer();
 
