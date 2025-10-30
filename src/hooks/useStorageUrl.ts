@@ -51,7 +51,7 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
     enabled: !!path && enabled,
     // Cache for 6 days (1 day before storage URL expiration)
     staleTime: STORAGE_URL_STALE_TIME,
-    // Keep in cache for 7 days 
+    // Keep in cache for 7 days
     gcTime: STORAGE_URL_GC_TIME,
     // Don't retry on file not found errors
     retry: (failureCount, error) => {
