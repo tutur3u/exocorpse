@@ -15,6 +15,11 @@ import { TuturuuuClient } from "tuturuuu";
 
 // Initialize the Tuturuuu client with API key from environment
 // Make sure to add TUTURUUU_API_KEY to your .env file (NOT .env.local with NEXT_PUBLIC_ prefix!)
+
+const getExpirationTime = (now: Date) => {
+  return new Date(now.getTime() + STORAGE_URL_STALE_TIME);
+};
+
 function getTuturuuuClient() {
   const apiKey = process.env.TUTURUUU_API_KEY;
   if (!apiKey) {
@@ -185,7 +190,7 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     const expiresIn = REVALIDATE_TIME; // Use the configured revalidation time
 
     const result = await client.storage.share(path, {
-      expiresIn: Math.min(expiresIn, MAX_SIGNED_URL_EXPIRATION),
+      expiresIn: MAX_SIGNED_URL_EXPIRATION,
     });
 
     if (!result.data.signedUrl) {
@@ -194,7 +199,7 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     }
 
     // Calculate the expiration timestamp
-    const expiresAt = new Date(now.getTime() + STORAGE_URL_STALE_TIME);
+    const expiresAt = getExpirationTime(now);
 
     const sbAdmin = await getSupabaseAdminServer();
 
@@ -265,14 +270,13 @@ export async function batchGetCachedSignedUrls(
     // If we have paths that need fetching, get them from the SDK
     if (pathsToFetch.length > 0) {
       const client = getTuturuuuClient();
-      const expiresIn = REVALIDATE_TIME;
 
       const result = await client.storage.createSignedUrls(
         pathsToFetch,
-        Math.min(expiresIn, MAX_SIGNED_URL_EXPIRATION),
+        MAX_SIGNED_URL_EXPIRATION,
       );
 
-      const expiresAt = new Date(now.getTime() + expiresIn * 1000);
+      const expiresAt = getExpirationTime(now);
       const upsertData: Array<{
         resource_path: string;
         url: string;
