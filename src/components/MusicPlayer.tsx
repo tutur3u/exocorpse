@@ -4,7 +4,11 @@ import { Howl } from "howler"; // Make sure you have 'howler' installed
 import { useEffect, useRef, useState } from "react";
 import Icon from "./shared/Icon";
 
-export default function MusicPlayer() {
+export default function MusicPlayer({
+  isMobile = false,
+}: {
+  isMobile?: boolean;
+}) {
   // A ref to hold the Howl instance
   const soundRef = useRef<Howl | null>(null);
 
@@ -102,7 +106,13 @@ export default function MusicPlayer() {
 
       {/* Volume Slider Popup (No changes needed) */}
       {showVolumeSlider && (
-        <div className="absolute right-0 bottom-full mb-2 rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+        <div
+          className={
+            isMobile
+              ? "absolute top-full right-0 z-50 mt-2 rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+              : "absolute right-0 bottom-full mb-2 rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+          }
+        >
           <div className="flex flex-col items-center gap-2">
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
               {Math.round(volume * 100)}%
@@ -152,7 +162,11 @@ export default function MusicPlayer() {
         onClick={togglePlay}
         onMouseEnter={() => setIsPlayButtonHovered(true)}
         onMouseLeave={() => setIsPlayButtonHovered(false)}
-        className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+        className={
+          isMobile
+            ? "flex h-12 w-12 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+            : "flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+        }
         title={isPlaying ? "Pause" : "Play"}
       >
         <Icon
@@ -171,7 +185,11 @@ export default function MusicPlayer() {
           onClick={() => setShowVolumeSlider(!showVolumeSlider)}
           onMouseEnter={() => setIsVolumeButtonHovered(true)}
           onMouseLeave={() => setIsVolumeButtonHovered(false)}
-          className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+          className={
+            isMobile
+              ? "flex h-12 w-12 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+              : "flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+          }
           title="Volume"
         >
           <Icon
