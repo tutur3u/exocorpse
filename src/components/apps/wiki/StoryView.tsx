@@ -184,7 +184,7 @@ export default function StoryView({
               </div>
             ) : (
               <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="text-gray-500 dark:text-gray-400 story-text">
+                <p className="story-text text-gray-500 dark:text-gray-400">
                   No synopsis available for this story yet.
                 </p>
               </div>
