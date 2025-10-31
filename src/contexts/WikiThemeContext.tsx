@@ -18,11 +18,7 @@ const WikiThemeContext = createContext<WikiThemeContextType | undefined>(
   undefined,
 );
 
-export function WikiThemeProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function WikiThemeProvider({ children }: { children: React.ReactNode }) {
   const [currentObject, setCurrentObjectState] = useState<WikiObject>(null);
   const [objectType, setObjectType] = useState<
     "world" | "character" | "faction" | null
@@ -100,4 +96,3 @@ export function useWikiTheme() {
   }
   return context;
 }
-
