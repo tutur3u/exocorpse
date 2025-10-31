@@ -30,19 +30,26 @@ export function StoryThemeProvider({
           "--story-primary",
           currentStory.theme_primary_color,
         );
+      } else {
+        root.style.setProperty("--story-primary", "#3b82f6");
       }
+
       if (currentStory.theme_secondary_color) {
         root.style.setProperty(
           "--story-secondary",
           currentStory.theme_secondary_color,
         );
+      } else {
+        root.style.setProperty("--story-secondary", "#2563eb");
       }
+
       if (currentStory.theme_background_color) {
         root.style.setProperty(
           "--story-bg",
           currentStory.theme_background_color,
         );
       }
+
       if (currentStory.theme_text_color) {
         root.style.setProperty("--story-text", currentStory.theme_text_color);
       }

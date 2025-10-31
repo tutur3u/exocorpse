@@ -3,6 +3,7 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { type Faction } from "@/lib/actions/wiki";
+import { cn } from "@/lib/utils";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 type FactionViewProps = {
@@ -45,9 +46,7 @@ export default function FactionView({ faction }: FactionViewProps) {
       {/* Header for factions without banner */}
       {!faction.logo_url && !faction.banner_image && (
         <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent">
-            {faction.name}
-          </h1>
+          <h1 className="wiki-title mb-2 text-4xl font-bold">{faction.name}</h1>
           {faction.summary && (
             <p className="text-lg text-gray-600 dark:text-gray-400">
               {faction.summary}
@@ -56,12 +55,12 @@ export default function FactionView({ faction }: FactionViewProps) {
           {/* Faction Info Pills */}
           <div className="mt-3 flex flex-wrap gap-2">
             {faction.faction_type && (
-              <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+              <span className="wiki-badge-primary rounded-full px-3 py-1 text-sm font-medium">
                 {faction.faction_type}
               </span>
             )}
             {faction.status && (
-              <span className="rounded-full bg-pink-100 px-3 py-1 text-sm font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-300">
+              <span className="wiki-badge-secondary rounded-full px-3 py-1 text-sm font-medium">
                 {faction.status}
               </span>
             )}
@@ -80,29 +79,31 @@ export default function FactionView({ faction }: FactionViewProps) {
           <button
             type="button"
             onClick={() => setActiveTab("overview")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "overview"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "wiki-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Overview
             {activeTab === "overview" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-purple-600 to-pink-600" />
+              <div className="wiki-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("details")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "details"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "wiki-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Details
             {activeTab === "details" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-purple-600 to-pink-600" />
+              <div className="wiki-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
         </div>
