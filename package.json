@@ -34,6 +34,7 @@
     "format:fix": "prettier --write ."
   },
   "dependencies": {
+    "@sglara/cn": "^1.0.0",
     "@tanstack/react-query": "^5.90.5",
     "@tuturuuu/supabase": "^0.2.3",
     "@types/dompurify": "^3.2.0",

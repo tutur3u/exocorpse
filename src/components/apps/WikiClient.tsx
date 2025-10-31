@@ -2,6 +2,7 @@
 
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
+import { useWikiTheme } from "@/contexts/WikiThemeContext";
 import {
   type Character,
   type Faction,
@@ -32,6 +33,7 @@ type WikiClientProps = {
 
 export default function WikiClient({ stories, initialData }: WikiClientProps) {
   const { setCurrentStory } = useStoryTheme();
+  const { setCurrentObject } = useWikiTheme();
 
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
@@ -200,6 +202,26 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   const viewingFaction = factionSlug
     ? worldFactions.find((f) => f.slug === factionSlug) || null
     : null;
+
+  // Apply wiki object theme when viewing world, character, or faction
+  useEffect(() => {
+    if (viewMode === "world" && selectedWorld) {
+      setCurrentObject(selectedWorld, "world");
+    } else if (viewMode === "character" && viewingCharacter) {
+      setCurrentObject(viewingCharacter, "character");
+    } else if (viewMode === "faction" && viewingFaction) {
+      setCurrentObject(viewingFaction, "faction");
+    } else {
+      // Clear wiki theme when not viewing a world/character/faction
+      setCurrentObject(null, null);
+    }
+  }, [
+    viewMode,
+    selectedWorld,
+    viewingCharacter,
+    viewingFaction,
+    setCurrentObject,
+  ]);
 
   // Only show loading if we're actually fetching and don't have the core data needed for the current view
   // Character/faction detail views will handle their own loading states for additional data

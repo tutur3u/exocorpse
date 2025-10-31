@@ -1,5 +1,147 @@
 @import "tailwindcss";
 
+/* CSS Custom Properties for wiki theming */
+:root {
+  --wiki-primary: #3b82f6;
+  --wiki-secondary: #2563eb;
+
+  /* Story theming defaults */
+  --story-primary: #3b82f6;
+  --story-secondary: #2563eb;
+  --story-bg: transparent;
+  --story-text: inherit;
+  --story-bg-image: none;
+}
+
+/* Story theme color utilities using CSS custom properties */
+.story-title {
+  background: linear-gradient(
+    to right,
+    var(--story-primary),
+    var(--story-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.story-tab-active {
+  color: var(--story-primary);
+}
+
+.story-tab-underline {
+  background: linear-gradient(
+    to right,
+    var(--story-primary),
+    var(--story-secondary)
+  );
+}
+
+.story-badge-primary {
+  background-color: color-mix(in srgb, var(--story-primary) 20%, transparent);
+  color: var(--story-primary);
+}
+
+.story-badge-secondary {
+  background-color: color-mix(in srgb, var(--story-secondary) 20%, transparent);
+  color: var(--story-secondary);
+}
+
+.story-gradient-horizontal {
+  background: linear-gradient(
+    to right,
+    var(--story-primary),
+    var(--story-secondary)
+  );
+}
+
+.story-gradient-vertical {
+  background: linear-gradient(
+    to bottom,
+    var(--story-primary),
+    var(--story-secondary)
+  );
+}
+
+.story-gradient-reverse {
+  background: linear-gradient(
+    to right,
+    var(--story-secondary),
+    var(--story-primary)
+  );
+}
+
+.story-bg {
+  background-color: var(--story-bg);
+}
+
+.story-text {
+  color: var(--story-text);
+}
+
+.story-container {
+  background: var(--story-bg);
+  color: var(--story-text);
+}
+
+/* Theme color utilities using CSS custom properties */
+.wiki-title {
+  background: linear-gradient(
+    to right,
+    var(--wiki-primary),
+    var(--wiki-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wiki-tab-active {
+  color: var(--wiki-primary);
+}
+
+.wiki-tab-underline {
+  background: linear-gradient(
+    to right,
+    var(--wiki-primary),
+    var(--wiki-secondary)
+  );
+}
+
+.wiki-badge-primary {
+  background-color: color-mix(in srgb, var(--wiki-primary) 20%, transparent);
+  color: var(--wiki-primary);
+}
+
+.wiki-badge-secondary {
+  background-color: color-mix(in srgb, var(--wiki-secondary) 20%, transparent);
+  color: var(--wiki-secondary);
+}
+
+.wiki-gradient-horizontal {
+  background: linear-gradient(
+    to right,
+    var(--wiki-primary),
+    var(--wiki-secondary)
+  );
+}
+
+.wiki-gradient-vertical {
+  background: linear-gradient(
+    to bottom,
+    var(--wiki-primary),
+    var(--wiki-secondary)
+  );
+}
+
+.wiki-gradient-reverse {
+  background: linear-gradient(
+    to right,
+    var(--wiki-secondary),
+    var(--wiki-primary)
+  );
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {

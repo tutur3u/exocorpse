@@ -12,6 +12,7 @@ import {
   getCharacterOutfits,
   getCharacterWorlds,
 } from "@/lib/actions/wiki";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -148,7 +149,7 @@ export default function CharacterDetail({
 
           {/* Character Info */}
           <div className="min-w-0 flex-1">
-            <h1 className="mb-1 bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
+            <h1 className="wiki-title mb-1 text-2xl font-bold">
               {character.name}
             </h1>
             {character.nickname && (
@@ -163,7 +164,7 @@ export default function CharacterDetail({
             )}
             <div className="flex flex-wrap gap-1.5 text-xs">
               {character.age && (
-                <span className="rounded-full bg-linear-to-r from-blue-500 to-blue-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="wiki-gradient-horizontal rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.age} years old
                 </span>
               )}
@@ -173,7 +174,7 @@ export default function CharacterDetail({
                 </span>
               )}
               {character.species && (
-                <span className="rounded-full bg-linear-to-r from-purple-500 to-purple-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="wiki-gradient-reverse rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.species}
                 </span>
               )}
@@ -199,15 +200,16 @@ export default function CharacterDetail({
                   tab.id as "overview" | "outfits" | "lore" | "gallery",
                 )
               }
-              className={`relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200 ${
+              className={cn(
+                "relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200",
                 activeTab === tab.id
-                  ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                  : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-              }`}
+                  ? "wiki-tab-active bg-white shadow-sm dark:bg-gray-900"
+                  : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+              )}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+                <div className="wiki-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
               )}
             </button>
           ))}
@@ -233,7 +235,7 @@ export default function CharacterDetail({
                 {character.personality_summary && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-2 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-blue-600 to-purple-600"></span>
+                      <span className="wiki-gradient-vertical h-5 w-1 rounded-full"></span>
                       Personality
                     </h3>
                     <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">

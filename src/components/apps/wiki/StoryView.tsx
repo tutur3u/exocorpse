@@ -11,6 +11,7 @@ import {
   type Story,
   type World,
 } from "@/lib/actions/wiki";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
@@ -97,9 +98,7 @@ export default function StoryView({
       {/* Header for stories without banner */}
       {!story.theme_background_image && (
         <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent">
-            {story.title}
-          </h1>
+          <h1 className="story-title mb-2 text-4xl font-bold">{story.title}</h1>
           {story.summary && (
             <p className="text-lg text-gray-600 dark:text-gray-400">
               {story.summary}
@@ -114,57 +113,61 @@ export default function StoryView({
           <button
             type="button"
             onClick={() => setActiveTab("synopsis")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "synopsis"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "story-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Synopsis
             {activeTab === "synopsis" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="story-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("worlds")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "worlds"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "story-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Worlds ({worlds.length})
             {activeTab === "worlds" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="story-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("characters")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "characters"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "story-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Characters ({charactersLoading ? "..." : characters.length})
             {activeTab === "characters" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="story-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("factions")}
-            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === "factions"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
-            }`}
+                ? "story-tab-active bg-white shadow-sm dark:bg-gray-900"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200",
+            )}
           >
             Factions ({factionsLoading ? "..." : factions.length})
             {activeTab === "factions" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="story-tab-underline absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
         </div>
@@ -176,12 +179,12 @@ export default function StoryView({
         {activeTab === "synopsis" && (
           <div className="animate-fadeIn mx-auto max-w-4xl">
             {story.content ? (
-              <div className="prose prose-lg dark:prose-invert max-w-none">
+              <div className="prose prose-lg dark:prose-invert story-text max-w-none">
                 <MarkdownRenderer content={story.content} />
               </div>
             ) : (
               <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500 dark:text-gray-400 story-text">
                   No synopsis available for this story yet.
                 </p>
               </div>
@@ -214,7 +217,7 @@ export default function StoryView({
                   <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     No worlds yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="story-text text-gray-600 dark:text-gray-400">
                     This story doesn&apos;t have any worlds yet
                   </p>
                 </div>
@@ -309,7 +312,7 @@ export default function StoryView({
                   <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     No characters yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="story-text">
                     This story doesn&apos;t have any characters yet
                   </p>
                 </div>
@@ -406,7 +409,7 @@ export default function StoryView({
                   <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                     No factions yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="story-text text-gray-600 dark:text-gray-400">
                     This story doesn&apos;t have any factions yet
                   </p>
                 </div>
