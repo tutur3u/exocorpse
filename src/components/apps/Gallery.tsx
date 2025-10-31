@@ -134,6 +134,7 @@ export function MasonryGallery({
               >
                 <StorageImage
                   src={image.url}
+                  signedUrl={image.url}
                   alt={image.alt || image.title || `Gallery image ${index + 1}`}
                   width={image.width || 500}
                   height={image.height || 500}
