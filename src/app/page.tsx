@@ -13,6 +13,8 @@ import { getActiveServices, getServiceBySlug } from "@/lib/actions/commissions";
 import {
   getArtPieceBySlug,
   getArtPieces,
+  getGamePieceBySlug,
+  getGamePieces,
   getWritingPieceBySlug,
   getWritingPieces,
 } from "@/lib/actions/portfolio";
@@ -313,9 +315,11 @@ async function HomeContent({
   // Fetch initial portfolio data based on params
   let artPieces: Awaited<ReturnType<typeof getArtPieces>> = [];
   let writingPieces: Awaited<ReturnType<typeof getWritingPieces>> = [];
+  let gamePieces: Awaited<ReturnType<typeof getGamePieces>> = [];
   let selectedArtPiece: Awaited<ReturnType<typeof getArtPieceBySlug>> = null;
   let selectedWritingPiece: Awaited<ReturnType<typeof getWritingPieceBySlug>> =
     null;
+  let selectedGamePiece: Awaited<ReturnType<typeof getGamePieceBySlug>> = null;
 
   if (portfolioParams["portfolio-piece"]) {
     // If we have a specific piece slug, fetch only that piece and infer tab if needed
@@ -327,8 +331,12 @@ async function HomeContent({
       selectedWritingPiece = await getWritingPieceBySlug(
         portfolioParams["portfolio-piece"],
       );
+    } else if (portfolioParams["portfolio-tab"] === "games") {
+      selectedGamePiece = await getGamePieceBySlug(
+        portfolioParams["portfolio-piece"],
+      );
     } else if (!portfolioParams["portfolio-tab"]) {
-      // Tab is missing, need to infer - try art first, then writing
+      // Tab is missing, need to infer - try art first, then writing, then games
       const artPiece = await getArtPieceBySlug(
         portfolioParams["portfolio-piece"],
       );
@@ -341,22 +349,32 @@ async function HomeContent({
         );
         if (selectedWritingPiece) {
           portfolioParams["portfolio-tab"] = "writing";
+        } else {
+          selectedGamePiece = await getGamePieceBySlug(
+            portfolioParams["portfolio-piece"],
+          );
+          if (selectedGamePiece) {
+            portfolioParams["portfolio-tab"] = "games";
+          }
         }
       }
     }
   } else {
     // No specific piece requested, fetch all pieces for the portfolio list
-    [artPieces, writingPieces] = await Promise.all([
+    [artPieces, writingPieces, gamePieces] = await Promise.all([
       getArtPieces(),
       getWritingPieces(),
+      getGamePieces(),
     ]);
   }
 
   const initialPortfolioData: InitialPortfolioData = {
     artPieces,
     writingPieces,
+    gamePieces,
     selectedArtPiece,
     selectedWritingPiece,
+    selectedGamePiece,
     params: portfolioParams,
   };
   const hasWikiParams = !!(

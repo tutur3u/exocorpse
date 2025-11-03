@@ -7,6 +7,8 @@ import type { Tables } from "../../../supabase/types";
 
 export type ArtPiece = Tables<"art_pieces">;
 export type WritingPiece = Tables<"writing_pieces">;
+export type GamePiece = Tables<"game_pieces">;
+export type GamePieceGalleryImage = Tables<"game_piece_gallery_images">;
 
 // ============================================================================
 // ART PIECES - READ OPERATIONS
@@ -417,6 +419,326 @@ export async function deleteWritingPiece(id: string) {
       } catch (imgError) {
         console.error("Error deleting writing piece images:", imgError);
         // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
+  }
+}
+
+// ============================================================================
+// GAME PIECES - READ OPERATIONS
+// ============================================================================
+
+/**
+ * Fetch all game pieces (public)
+ */
+export async function getGamePieces() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .select("*, game_piece_gallery_images(*)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching game pieces:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch all game pieces (admin only)
+ */
+export async function getAllGamePiecesAdmin() {
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .select("*, game_piece_gallery_images(*)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all game pieces:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch a single game piece by ID with gallery images
+ */
+export async function getGamePieceById(id: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .select(
+      `
+      *,
+      game_piece_gallery_images (
+        *
+      )
+    `,
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching game piece:", error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Fetch a single game piece by slug with gallery images
+ */
+export async function getGamePieceBySlug(slug: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .select(
+      `
+      *,
+      game_piece_gallery_images (
+        *
+      )
+    `,
+    )
+    .eq("slug", slug)
+    .single();
+
+  if (error) {
+    console.error("Error fetching game piece:", error);
+    return null;
+  }
+
+  return data;
+}
+
+// ============================================================================
+// GAME PIECES - WRITE OPERATIONS
+// ============================================================================
+
+/**
+ * Create a new game piece
+ */
+export async function createGamePiece(gamePiece: {
+  title: string;
+  slug: string;
+  description?: string;
+  cover_image_url?: string;
+  game_url?: string;
+}) {
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .insert(gamePiece)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating game piece:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Update an existing game piece
+ */
+export async function updateGamePiece(
+  id: string,
+  updates: Partial<Omit<GamePiece, "id" | "created_at">>,
+) {
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating game piece:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Delete a game piece (hard delete)
+ */
+export async function deleteGamePiece(id: string) {
+  const { supabase } = await verifyAuth();
+
+  // First, get the game piece to find its cover image
+  const { data: gamePiece } = await supabase
+    .from("game_pieces")
+    .select("cover_image_url")
+    .eq("id", id)
+    .single();
+
+  // Get all gallery images before deleting
+  const { data: galleryImages } = await supabase
+    .from("game_piece_gallery_images")
+    .select("image_url")
+    .eq("game_piece_id", id);
+
+  // Delete the database row (cascade will delete gallery images)
+  const { error } = await supabase.from("game_pieces").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting game piece:", error);
+    throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  // Don't await this to avoid blocking the response
+  if (gamePiece || galleryImages) {
+    (async () => {
+      try {
+        const { deleteGameImage } = await import("./storage");
+
+        // Delete cover image
+        if (
+          gamePiece?.cover_image_url &&
+          !gamePiece.cover_image_url.startsWith("http")
+        ) {
+          await deleteGameImage(gamePiece.cover_image_url);
+        }
+
+        // Delete all gallery images
+        if (galleryImages && galleryImages.length > 0) {
+          for (const img of galleryImages) {
+            if (img.image_url && !img.image_url.startsWith("http")) {
+              await deleteGameImage(img.image_url);
+            }
+          }
+        }
+      } catch (imgError) {
+        console.error("Error deleting game piece images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
+  }
+}
+
+// ============================================================================
+// GAME PIECE GALLERY IMAGES - OPERATIONS
+// ============================================================================
+
+/**
+ * Get all gallery images for a game piece
+ */
+export async function getGamePieceGalleryImages(gamePieceId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("game_piece_gallery_images")
+    .select("*")
+    .eq("game_piece_id", gamePieceId)
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching gallery images:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Add a gallery image to a game piece
+ */
+export async function addGamePieceGalleryImage(galleryImage: {
+  game_piece_id: string;
+  image_url: string;
+  description?: string;
+  display_order?: number;
+}) {
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("game_piece_gallery_images")
+    .insert(galleryImage)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding gallery image:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Update a gallery image
+ */
+export async function updateGamePieceGalleryImage(
+  id: string,
+  updates: Partial<Omit<GamePieceGalleryImage, "id" | "game_piece_id">>,
+) {
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("game_piece_gallery_images")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating gallery image:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Delete a gallery image
+ */
+export async function deleteGamePieceGalleryImage(id: string) {
+  const { supabase } = await verifyAuth();
+
+  // First, get the image URL to delete from storage
+  const { data: galleryImage } = await supabase
+    .from("game_piece_gallery_images")
+    .select("image_url")
+    .eq("id", id)
+    .single();
+
+  // Delete the database row
+  const { error } = await supabase
+    .from("game_piece_gallery_images")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting gallery image:", error);
+    throw error;
+  }
+
+  // Clean up storage image asynchronously (fire and forget)
+  if (galleryImage?.image_url) {
+    (async () => {
+      try {
+        const { deleteGameImage } = await import("./storage");
+        if (!galleryImage.image_url.startsWith("http")) {
+          await deleteGameImage(galleryImage.image_url);
+        }
+      } catch (imgError) {
+        console.error("Error deleting gallery image from storage:", imgError);
       }
     })();
   }

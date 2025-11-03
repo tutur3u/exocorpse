@@ -159,6 +159,14 @@ export async function deleteBlogImage(path: string) {
 }
 
 /**
+ * Delete game piece image (cover or gallery)
+ * @param path - Full path to the game piece image
+ */
+export async function deleteGameImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
  * Get a cached signed URL or fetch a new one if expired
  * This implements a database-level cache to reduce load on the tuturuuu SDK
  * @param path - Path to the file in storage

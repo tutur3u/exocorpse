@@ -1,14 +1,26 @@
 "use client";
 
-import type { ArtPiece, WritingPiece } from "@/lib/actions/portfolio";
+import type {
+  ArtPiece,
+  GamePiece,
+  GamePieceGalleryImage,
+  WritingPiece,
+} from "@/lib/actions/portfolio";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import { createContext, useContext, type ReactNode } from "react";
+
+// Extended type for game piece with gallery images (from server query)
+export type GamePieceWithGallery = GamePiece & {
+  game_piece_gallery_images?: GamePieceGalleryImage[];
+};
 
 export type InitialPortfolioData = {
   artPieces: ArtPiece[];
   writingPieces: WritingPiece[];
+  gamePieces: GamePiece[];
   selectedArtPiece: ArtPiece | null;
   selectedWritingPiece: WritingPiece | null;
+  selectedGamePiece: GamePieceWithGallery | null;
   params: PortfolioSearchParams;
 };
 
