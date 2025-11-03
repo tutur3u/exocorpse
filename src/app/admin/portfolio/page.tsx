@@ -1,15 +1,17 @@
 import StorageAnalytics from "@/components/admin/StorageAnalytics";
 import {
   getAllArtPiecesAdmin,
+  getAllGamePiecesAdmin,
   getAllWritingPiecesAdmin,
 } from "@/lib/actions/portfolio";
 import PortfolioClient from "./PortfolioClient";
 
 export default async function PortfolioPage() {
   // Fetch initial data
-  const [artPieces, writingPieces] = await Promise.all([
+  const [artPieces, writingPieces, gamePieces] = await Promise.all([
     getAllArtPiecesAdmin(),
     getAllWritingPiecesAdmin(),
+    getAllGamePiecesAdmin(),
   ]);
 
   return (
@@ -21,13 +23,14 @@ export default async function PortfolioPage() {
             Portfolio Management
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Manage your art and writing portfolio pieces
+            Manage your art, writing, and game portfolio pieces
           </p>
         </div>
 
         <PortfolioClient
           initialArtPieces={artPieces}
           initialWritingPieces={writingPieces}
+          initialGamePieces={gamePieces}
         />
       </div>
     </div>

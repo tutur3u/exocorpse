@@ -1203,12 +1203,12 @@ new_addons AS (
     INSERT INTO addons (name, is_exclusive, description, price_impact, percentage)
     VALUES
         -- 1. Non-Exclusive: Can be applied to multiple services
-        ('Extra Character', false, 'Adds one additional character to the piece.', 100.00),
-        ('Commercial Use License', false, 'Grants license for commercial use.', 250.00),
+        ('Extra Character', false, 'Adds one additional character to the piece.', 100.00, false),
+        ('Commercial Use License', false, 'Grants license for commercial use.', 250.00, false),
         
         -- 2. Exclusive: Can only be applied to ONE service
         ('24-Hour Rush Delivery', true, 'Guaranteed delivery within 24 hours.', 75.00, true),
-        ('Printed & Shipped', true, 'High-quality Giclée print, framed and shipped.', 120.00)
+        ('Printed & Shipped', true, 'High-quality Giclée print, framed and shipped.', 120.00, true)
     RETURNING addon_id, name
 ),
 

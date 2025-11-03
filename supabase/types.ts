@@ -1046,6 +1046,74 @@ export type Database = {
           },
         ];
       };
+      game_piece_gallery_images: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          display_order: number | null;
+          game_piece_id: string;
+          id: string;
+          image_url: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          game_piece_id: string;
+          id?: string;
+          image_url: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          game_piece_id?: string;
+          id?: string;
+          image_url?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "game_piece_gallery_images_game_piece_id_fkey";
+            columns: ["game_piece_id"];
+            isOneToOne: false;
+            referencedRelation: "game_pieces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      game_pieces: {
+        Row: {
+          cover_image_url: string | null;
+          created_at: string | null;
+          description: string | null;
+          game_url: string | null;
+          id: string;
+          title: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          cover_image_url?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          game_url?: string | null;
+          id?: string;
+          title: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          cover_image_url?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          game_url?: string | null;
+          id?: string;
+          title?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       locations: {
         Row: {
           banner_image: string | null;
