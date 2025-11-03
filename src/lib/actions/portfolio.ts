@@ -436,7 +436,7 @@ export async function getGamePieces() {
 
   const { data, error } = await supabase
     .from("game_pieces")
-    .select("*")
+    .select("*, game_piece_gallery_images(*)")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -455,7 +455,7 @@ export async function getAllGamePiecesAdmin() {
 
   const { data, error } = await supabase
     .from("game_pieces")
-    .select("*")
+    .select("*, game_piece_gallery_images(*)")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -493,6 +493,33 @@ export async function getGamePieceById(id: string) {
   return data;
 }
 
+/**
+ * Fetch a single game piece by slug with gallery images
+ */
+export async function getGamePieceBySlug(slug: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("game_pieces")
+    .select(
+      `
+      *,
+      game_piece_gallery_images (
+        *
+      )
+    `,
+    )
+    .eq("slug", slug)
+    .single();
+
+  if (error) {
+    console.error("Error fetching game piece:", error);
+    return null;
+  }
+
+  return data;
+}
+
 // ============================================================================
 // GAME PIECES - WRITE OPERATIONS
 // ============================================================================
@@ -502,6 +529,7 @@ export async function getGamePieceById(id: string) {
  */
 export async function createGamePiece(gamePiece: {
   title: string;
+  slug: string;
   description?: string;
   cover_image_url?: string;
   game_url?: string;

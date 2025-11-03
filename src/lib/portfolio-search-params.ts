@@ -13,7 +13,7 @@ import {
 
 // Define the search params structure for portfolio navigation
 export const portfolioSearchParams = {
-  "portfolio-tab": parseAsStringLiteral(["art", "writing"] as const),
+  "portfolio-tab": parseAsStringLiteral(["art", "writing", "games"] as const),
   "portfolio-piece": parseAsString,
 };
 
@@ -38,6 +38,6 @@ export const serializePortfolioSearchParams = createSerializer(
 
 // Type for the parsed search params
 export type PortfolioSearchParams = {
-  "portfolio-tab": "art" | "writing" | null;
+  "portfolio-tab": "art" | "writing" | "games" | null;
   "portfolio-piece": string | null;
 };

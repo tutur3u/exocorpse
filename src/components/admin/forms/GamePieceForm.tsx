@@ -2,6 +2,7 @@
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 
 type GamePieceFormData = {
   title: string;
+  slug: string;
   description?: string;
   cover_image_url?: string;
   game_url?: string;
@@ -50,6 +52,7 @@ export default function GamePieceForm({
   // Get form values from game piece data
   const getFormValues = (): GamePieceFormData => ({
     title: gamePiece?.title ?? "",
+    slug: gamePiece?.slug ?? "",
     description: gamePiece?.description ?? "",
     cover_image_url: gamePiece?.cover_image_url ?? "",
     game_url: gamePiece?.game_url ?? "",
@@ -74,6 +77,7 @@ export default function GamePieceForm({
 
   const queryClient = useQueryClient();
   const coverImageUrl = watch("cover_image_url");
+  const description = watch("description");
 
   // Reset form when game piece changes to clear dirty state
   useEffect(() => {
@@ -89,14 +93,35 @@ export default function GamePieceForm({
     enabled: !!gamePiece?.id,
   });
 
+  // Auto-generate slug from title
+  const handleTitleChange = (value: string) => {
+    setValue("title", value, { shouldDirty: true });
+    if (!gamePiece) {
+      const slugValue = value
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const finalSlug = slugValue || `art-${Date.now()}`;
+      setValue("slug", finalSlug, { shouldDirty: true });
+    }
+  };
+
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Validate required title
+      // Validate required fields
       if (!data.title || data.title.trim() === "") {
         setError("Title is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!data.slug || data.slug.trim() === "") {
+        setError("Slug is required");
         setLoading(false);
         return;
       }
@@ -295,26 +320,45 @@ export default function GamePieceForm({
               <input
                 type="text"
                 id="title"
-                {...register("title", { required: true })}
+                {...register("title", {
+                  required: true,
+                  onChange: (e) => handleTitleChange(e.target.value),
+                })}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
-            {/* Description */}
+            {/* Slug */}
             <div>
               <label
-                htmlFor="description"
+                htmlFor="slug"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Description
+                Slug *
               </label>
-              <textarea
-                id="description"
-                rows={4}
-                {...register("description")}
+              <input
+                type="text"
+                id="slug"
+                {...register("slug", { required: true })}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="url-friendly-name"
               />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                URL-friendly identifier (e.g., &quot;my-game&quot;)
+              </p>
             </div>
+
+            {/* Description */}
+            <MarkdownEditor
+              label="Description"
+              value={description || ""}
+              onChange={(value) =>
+                setValue("description", value, { shouldDirty: true })
+              }
+              placeholder="Enter a description for your game (supports markdown formatting)..."
+              helpText="Describe your game using markdown. You can add formatting, lists, links, and more."
+              rows={8}
+            />
 
             {/* Game URL */}
             <div>

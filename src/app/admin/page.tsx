@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                 Portfolio
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                Showcase art and writing works
+                Showcase art, writing, and game works
               </p>
             </div>
           </Link>

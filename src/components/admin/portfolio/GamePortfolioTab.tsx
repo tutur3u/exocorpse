@@ -41,6 +41,7 @@ export default function GamePortfolioTab({
 
   const handleGameSubmit = async (data: {
     title: string;
+    slug: string;
     description?: string;
     cover_image_url?: string;
     game_url?: string;

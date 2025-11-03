@@ -1091,6 +1091,7 @@ export type Database = {
           description: string | null;
           game_url: string | null;
           id: string;
+          slug: string;
           title: string;
           updated_at: string | null;
         };
@@ -1100,6 +1101,7 @@ export type Database = {
           description?: string | null;
           game_url?: string | null;
           id?: string;
+          slug: string;
           title: string;
           updated_at?: string | null;
         };
@@ -1109,6 +1111,7 @@ export type Database = {
           description?: string | null;
           game_url?: string | null;
           id?: string;
+          slug?: string;
           title?: string;
           updated_at?: string | null;
         };

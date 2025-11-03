@@ -130,7 +130,7 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
       if (
         tag === "BUTTON" ||
         tag === "A" ||
-        (el as any).role === "button" ||
+        (el).role === "button" ||
         classList.contains("cursor-pointer") ||
         classList.contains("cursor-link") ||
         el.closest('button,a,[role="button"],.cursor-pointer')
@@ -195,7 +195,7 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      document.removeEventListener("pointermove", onPointerMove as any);
+      document.removeEventListener("pointermove", onPointerMove);
     };
   }, [setCursor]);
 

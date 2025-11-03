@@ -138,7 +138,7 @@ export default function ServiceDetail({
                   add ons:
                 </h3>
                 <ul className="space-y-2">
-                  {service.service_addons.map((sa: any) => (
+                  {service.service_addons.map((sa) => (
                     <li
                       key={sa.addon_id}
                       className="flex items-start text-gray-700 dark:text-gray-300"

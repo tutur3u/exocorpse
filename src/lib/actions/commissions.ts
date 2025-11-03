@@ -427,7 +427,7 @@ export async function getExclusiveAddonServices() {
 
   // Create a map of addon_id -> service_id for exclusive addons
   const exclusiveMap: Record<string, string> = {};
-  data?.forEach((item: any) => {
+  data?.forEach((item) => {
     if (item.addons?.is_exclusive) {
       exclusiveMap[item.addon_id] = item.service_id;
     }
