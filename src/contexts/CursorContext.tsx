@@ -130,7 +130,7 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
       if (
         tag === "BUTTON" ||
         tag === "A" ||
-        (el).role === "button" ||
+        el.role === "button" ||
         classList.contains("cursor-pointer") ||
         classList.contains("cursor-link") ||
         el.closest('button,a,[role="button"],.cursor-pointer')
