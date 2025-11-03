@@ -1226,19 +1226,19 @@ service_addon_links AS (
     WHERE
         -- Test Case 1: Non-exclusive 'Extra Character' for 'Digital Sketch'
         (s.slug = 'digital-sketch' AND a.name = 'Extra Character') OR
-        
+
         -- Test Case 2: Non-exclusive 'Extra Character' for 'Full-Color Illustration' (ALLOWED)
         (s.slug = 'full-color-illustration' AND a.name = 'Extra Character') OR
-        
+
         -- Test Case 3: Non-exclusive 'Commercial Use License' for 'Full-Color Illustration'
         (s.slug = 'full-color-illustration' AND a.name = 'Commercial Use License') OR
-        
+
         -- Test Case 4: Exclusive '24-Hour Rush Delivery' for 'Digital Sketch' (ALLOWED)
         (s.slug = 'digital-sketch' AND a.name = '24-Hour Rush Delivery') OR
-        
+
         -- Test Case 5: Exclusive 'Printed & Shipped' for 'Full-Color Illustration' (ALLOWED)
         (s.slug = 'full-color-illustration' AND a.name = 'Printed & Shipped')
-        
+
     -- NOTE: Attempting to add a 6th entry like:
     -- (s.slug = 'full-color-illustration' AND a.name = '24-Hour Rush Delivery')
     -- would FAIL due to the 'idx_exclusive_addon_service' unique index.

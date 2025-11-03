@@ -1,8 +1,7 @@
 "use client";
 
+import { AlertCircle, HelpCircle, Sparkles, User } from "lucide-react";
 import { type ComponentType, useState } from "react";
-import { FaInfoCircle, FaQuestionCircle, FaUser } from "react-icons/fa";
-import { IoSparkles } from "react-icons/io5";
 import AboutTab from "./about/AboutTab";
 import DniTab from "./about/DniTab";
 import FaqTab from "./about/FaqTab";
@@ -17,10 +16,10 @@ interface TabConfig {
 }
 
 const tabs: TabConfig[] = [
-  { id: "about", label: "About", icon: FaUser },
-  { id: "faq", label: "FAQ", icon: FaQuestionCircle },
-  { id: "dni", label: "DNI", icon: FaInfoCircle },
-  { id: "socials", label: "Socials", icon: IoSparkles },
+  { id: "about", label: "About", icon: User },
+  { id: "faq", label: "FAQ", icon: HelpCircle },
+  { id: "dni", label: "DNI", icon: AlertCircle },
+  { id: "socials", label: "Socials", icon: Sparkles },
 ];
 
 export default function AboutMe() {
@@ -44,10 +43,7 @@ export default function AboutMe() {
   return (
     <div className="flex h-full flex-col">
       {/* Tab Navigation */}
-      <div
-        className="flex border-b border-gray-300 dark:border-gray-700"
-        role="tablist"
-      >
+      <div className="grid grid-cols-4 gap-2" role="tablist">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             type="button"
@@ -57,14 +53,14 @@ export default function AboutMe() {
             aria-selected={activeTab === id}
             aria-controls={`${id}-panel`}
             tabIndex={activeTab === id ? 0 : -1}
-            className={`flex items-center gap-2 px-6 py-3 font-medium transition-all ${
+            className={`flex items-center justify-center gap-2 font-medium transition-all md:px-4 md:py-3 ${
               activeTab === id
                 ? "border-b-2 border-blue-500 bg-gray-100 text-blue-600 dark:bg-gray-800 dark:text-blue-400"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
             }`}
             onClick={() => setActiveTab(id)}
           >
-            <Icon className="h-4 w-4" aria-hidden="true" />
+            <Icon className="h-5 w-5 md:h-4 md:w-4" aria-hidden="true" />
             {label}
           </button>
         ))}
