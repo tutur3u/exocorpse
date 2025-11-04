@@ -21,12 +21,14 @@ type CharacterDetailProps = {
   character: Character;
   onWorldClick?: (worldSlug: string) => void;
   onFactionClick?: (factionSlug: string) => void;
+  onCharacterClick?: (characterSlug: string) => void;
 };
 
 export default function CharacterDetail({
   character,
   onWorldClick,
   onFactionClick,
+  onCharacterClick,
 }: CharacterDetailProps) {
   const [activeTab, setActiveTab] = useQueryState(
     "character-tab",
@@ -481,9 +483,12 @@ export default function CharacterDetail({
                       const relType = relationship.relationship_type;
 
                       return (
-                        <div
+                        <button
                           key={relationship.id}
-                          className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50"
+                          onClick={() =>
+                            onCharacterClick?.(relatedCharacter?.slug || "")
+                          }
+                          className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700"
                         >
                           <div className="flex items-start gap-4 p-4">
                             {/* Character Profile Image */}
@@ -581,7 +586,7 @@ export default function CharacterDetail({
                               )}
                             </div>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
