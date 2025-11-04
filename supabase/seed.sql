@@ -216,17 +216,17 @@ VALUES
         'f'
     );
 
-INSERT INTO relationship_types (id, story_id, name, slug, description, category, color, icon, is_mutual, reverse_name, is_default) VALUES
-  (extensions.uuid_generate_v4(), NULL, 'Friend', 'friend', 'Close friendship', 'social', '#4ade80', '👥', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Family', 'family', 'Family relation', 'family', '#f59e0b', '👨‍👩‍👧‍👦', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Parent', 'parent', 'Parent relationship', 'family', '#f59e0b', '👪', false, 'Child', true),
-  (extensions.uuid_generate_v4(), NULL, 'Sibling', 'sibling', 'Sibling relationship', 'family', '#f59e0b', '👫', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Romantic Partner', 'romantic-partner', 'Romantic relationship', 'romantic', '#ec4899', '💕', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Rival', 'rival', 'Competitive rivalry', 'antagonistic', '#ef4444', '⚔️', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Enemy', 'enemy', 'Hostile relationship', 'antagonistic', '#dc2626', '💢', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Mentor', 'mentor', 'Teaching relationship', 'professional', '#3b82f6', '📚', false, 'Student', true),
-  (extensions.uuid_generate_v4(), NULL, 'Colleague', 'colleague', 'Work relationship', 'professional', '#06b6d4', '💼', true, NULL, true),
-  (extensions.uuid_generate_v4(), NULL, 'Acquaintance', 'acquaintance', 'Casual relationship', 'social', '#94a3b8', '👋', true, NULL, true);
+INSERT INTO relationship_types (id, name, description, is_mutual, reverse_name) VALUES
+  (extensions.uuid_generate_v4(), 'Friend', 'Close friendship', true, NULL),
+  (extensions.uuid_generate_v4(), 'Family', 'Family relation', true, NULL),
+  (extensions.uuid_generate_v4(), 'Parent', 'Parent relationship', false, 'Child'),
+  (extensions.uuid_generate_v4(), 'Sibling', 'Sibling relationship', true, NULL),
+  (extensions.uuid_generate_v4(), 'Romantic Partner', 'Romantic relationship', true, NULL),
+  (extensions.uuid_generate_v4(), 'Rival', 'Competitive rivalry', true, NULL),
+  (extensions.uuid_generate_v4(), 'Enemy', 'Hostile relationship', true, NULL),
+  (extensions.uuid_generate_v4(), 'Mentor', 'Teaching relationship', false, 'Student'),
+  (extensions.uuid_generate_v4(), 'Colleague', 'Work relationship', true, NULL),
+  (extensions.uuid_generate_v4(), 'Acquaintance', 'Casual relationship', true, NULL);
 
 -- ============================================================================
 -- DEFAULT EVENT TYPES (Global)
@@ -647,12 +647,12 @@ Among Pulse operatives, he''s respected for his combat prowess. Among Neuros, he
   -- ============================================================================
 
   -- Get relationship type IDs
-  SELECT id INTO v_mentor_rel_type_id FROM relationship_types WHERE slug = 'mentor' LIMIT 1;
-  SELECT id INTO v_rival_rel_type_id FROM relationship_types WHERE slug = 'rival' LIMIT 1;
+  SELECT id INTO v_mentor_rel_type_id FROM relationship_types WHERE name = 'Mentor' LIMIT 1;
+  SELECT id INTO v_rival_rel_type_id FROM relationship_types WHERE name = 'Rival' LIMIT 1;
 
-  INSERT INTO character_relationships (character_a_id, character_b_id, relationship_type_id, description, is_mutual) VALUES
-    (v_char3_id, v_char1_id, v_mentor_rel_type_id, 'Viktor mentored Kazuki during his early years in Exocorpse', false),
-    (v_char2_id, v_char3_id, v_rival_rel_type_id, 'Aisha and Viktor have a professional rivalry, each believing their approach is superior', true);
+  INSERT INTO character_relationships (character_a_id, character_b_id, relationship_type_id, description) VALUES
+    (v_char3_id, v_char1_id, v_mentor_rel_type_id, 'Viktor mentored Kazuki during his early years in Exocorpse'),
+    (v_char2_id, v_char3_id, v_rival_rel_type_id, 'Aisha and Viktor have a professional rivalry, each believing their approach is superior');
 
   -- ============================================================================
   -- CHARACTER OUTFITS

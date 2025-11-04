@@ -13,7 +13,6 @@ RETURNS TABLE (
   id UUID,
   relationship_id UUID,
   description TEXT,
-  is_mutual BOOLEAN,
   
   -- Related character details
   related_character jsonb,
@@ -28,7 +27,6 @@ BEGIN
     cr.id AS id,
     cr.id AS relationship_id,
     cr.description,
-    cr.is_mutual,
     
     -- Related character (character_b) as JSONB
     jsonb_build_object(
@@ -47,15 +45,11 @@ BEGIN
       'personality_summary', c.personality_summary
     ) AS related_character,
     
-    -- Relationship type as JSONB
+    -- Relationship type as JSONB (simplified schema)
     jsonb_build_object(
       'id', rt.id,
       'name', rt.name,
-      'slug', rt.slug,
       'description', rt.description,
-      'category', rt.category,
-      'color', rt.color,
-      'icon', rt.icon,
       'is_mutual', rt.is_mutual,
       'reverse_name', rt.reverse_name
     ) AS relationship_type
@@ -68,12 +62,11 @@ BEGIN
 
   UNION ALL
 
-  -- Reverse relationships (where the character is character_b and relationship is mutual)
+  -- Reverse relationships (where the character is character_b and relationship type is mutual)
   SELECT
     cr.id AS id,
     cr.id AS relationship_id,
     cr.description,
-    cr.is_mutual,
     
     -- Related character (character_a) as JSONB
     jsonb_build_object(
@@ -92,24 +85,20 @@ BEGIN
       'personality_summary', c.personality_summary
     ) AS related_character,
     
-    -- Relationship type as JSONB (with reverse name if applicable)
+    -- Relationship type as JSONB (with reverse name if applicable, simplified schema)
     jsonb_build_object(
       'id', rt.id,
       'name', COALESCE(rt.reverse_name, rt.name),
-      'slug', rt.slug,
       'description', rt.description,
-      'category', rt.category,
-      'color', rt.color,
-      'icon', rt.icon,
       'is_mutual', rt.is_mutual,
-      'reverse_name', rt.name  -- Swap: show the forward name as reverse
+      'reverse_name', rt.name
     ) AS relationship_type
     
   FROM character_relationships cr
   JOIN characters c ON cr.character_a_id = c.id
   LEFT JOIN relationship_types rt ON cr.relationship_type_id = rt.id
   WHERE cr.character_b_id = character_uuid
-    AND cr.is_mutual = true
+    AND rt.is_mutual = true
     AND c.deleted_at IS NULL;
 END;
 $$ LANGUAGE plpgsql STABLE;

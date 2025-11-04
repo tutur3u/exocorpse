@@ -555,18 +555,10 @@ export default function CharacterDetail({
                               </div>
 
                               <div className="mt-1.5 flex items-center gap-2">
-                                <span
-                                  className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                                  style={{
-                                    backgroundColor: relType.color
-                                      ? `${relType.color}20`
-                                      : "#e5e7eb",
-                                    color: relType.color || "#374151",
-                                  }}
-                                >
+                                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
                                   {relType.name}
                                 </span>
-                                {relationship.is_mutual && (
+                                {relType.is_mutual && (
                                   <span className="text-xs text-gray-500 dark:text-gray-400">
                                     (mutual)
                                   </span>
