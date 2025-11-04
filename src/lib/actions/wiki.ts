@@ -810,6 +810,129 @@ export async function getCharacterOutfits(characterId: string) {
 }
 
 /**
+ * Create a new character outfit
+ */
+export async function createCharacterOutfit(data: {
+  character_id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  reference_images?: string[];
+  color_palette?: string;
+  notes?: string;
+  is_default?: boolean;
+  display_order?: number;
+  outfit_type_id?: string;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("character_outfits")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating character outfit:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update a character outfit
+ */
+export async function updateCharacterOutfit(
+  id: string,
+  updates: {
+    name?: string;
+    description?: string;
+    image_url?: string;
+    reference_images?: string[];
+    color_palette?: string;
+    notes?: string;
+    is_default?: boolean;
+    display_order?: number;
+    outfit_type_id?: string;
+  },
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("character_outfits")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating character outfit:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Delete a character outfit
+ */
+export async function deleteCharacterOutfit(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // First, get the outfit item to find its images
+  const { data: outfit } = await supabase
+    .from("character_outfits")
+    .select("image_url, reference_images")
+    .eq("id", id)
+    .single();
+
+  // Hard delete the outfit
+  const { error } = await supabase
+    .from("character_outfits")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting character outfit:", error);
+    throw error;
+  }
+
+  // Return the deleted outfit data so caller can clean up images
+  return outfit;
+}
+
+/**
+ * Reorder character outfits
+ */
+export async function reorderCharacterOutfits(
+  items: { id: string; display_order: number }[],
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // Update each item's display_order
+  const updates = items.map((item) =>
+    supabase
+      .from("character_outfits")
+      .update({ display_order: item.display_order })
+      .eq("id", item.id),
+  );
+
+  const results = await Promise.all(updates);
+
+  // Check for errors
+  const errors = results.filter((r) => r.error);
+  if (errors.length > 0) {
+    console.error("Error reordering character outfits:", errors);
+    throw new Error("Failed to reorder outfit items");
+  }
+}
+
+/**
  * Fetch all factions for a story by story slug (across all worlds)
  */
 export async function getFactionsByStorySlug(storySlug: string) {
