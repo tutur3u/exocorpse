@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
@@ -8,6 +9,7 @@ import { MultiSelect } from "@/components/shared/MultiSelect";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   deleteCharacterGalleryImage,
   deleteCharacterOutfitImage,
@@ -27,7 +29,7 @@ import {
 } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { Tables } from "../../../../supabase/types";
@@ -191,6 +193,13 @@ export default function CharacterForm({
   const [showOutfitForm, setShowOutfitForm] = useState(false);
   const [editingOutfitItem, setEditingOutfitItem] =
     useState<CharacterOutfitItem | null>(null);
+  const [deleteGalleryConfirm, setDeleteGalleryConfirm] = useState(false);
+  const [galleryItemToDelete, setGalleryItemToDelete] =
+    useState<CharacterGalleryItem | null>(null);
+  const [deleteOutfitConfirm, setDeleteOutfitConfirm] = useState(false);
+  const [outfitItemToDelete, setOutfitItemToDelete] =
+    useState<CharacterOutfitItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
@@ -213,6 +222,39 @@ export default function CharacterForm({
     enabled: !!character?.id,
     retry: 1,
   });
+
+  // Batch fetch all gallery and outfit image URLs
+  // Collect all image paths from gallery and outfit items
+  const imagePaths = useMemo(() => {
+    const paths: (string | null)[] = [];
+
+    // Add gallery item images and thumbnails
+    galleryItems.forEach((item) => {
+      if (item.image_url) paths.push(item.image_url);
+      if (item.thumbnail_url) paths.push(item.thumbnail_url);
+    });
+
+    // Add outfit item images and reference images
+    outfitItems.forEach((item) => {
+      if (item.image_url) paths.push(item.image_url);
+      if (item.reference_images && Array.isArray(item.reference_images)) {
+        item.reference_images.forEach((refImg) => {
+          if (refImg) paths.push(refImg);
+        });
+      }
+    });
+
+    // Filter out HTTP URLs and data URLs, keep only storage paths
+    return paths.filter(
+      (p): p is string =>
+        !!p &&
+        !p.startsWith("http://") &&
+        !p.startsWith("https://") &&
+        !p.startsWith("data:"),
+    );
+  }, [galleryItems, outfitItems]);
+
+  const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
@@ -406,42 +448,45 @@ export default function CharacterForm({
     setEditingGalleryItem(null);
   };
 
-  const handleDeleteGalleryItem = async (item: CharacterGalleryItem) => {
-    if (!confirm("Are you sure you want to delete this gallery item?")) {
-      return;
-    }
+  const handleConfirmDeleteGalleryItem = async () => {
+    if (!galleryItemToDelete) return;
 
+    setIsDeleting(true);
     try {
       // Delete images from storage first
       const deletePromises: Promise<unknown>[] = [];
 
       // Delete main image if it's a storage path
       if (
-        item.image_url &&
-        !item.image_url.startsWith("http") &&
-        !item.image_url.startsWith("data:") &&
-        item.image_url.includes("characters/")
+        galleryItemToDelete.image_url &&
+        !galleryItemToDelete.image_url.startsWith("http") &&
+        !galleryItemToDelete.image_url.startsWith("data:") &&
+        galleryItemToDelete.image_url.includes("characters/")
       ) {
         deletePromises.push(
-          deleteCharacterGalleryImage(item.image_url).catch((err) => {
-            console.error("Error deleting gallery image:", err);
-            return undefined;
-          }),
+          deleteCharacterGalleryImage(galleryItemToDelete.image_url).catch(
+            (err) => {
+              console.error("Error deleting gallery image:", err);
+              return undefined;
+            },
+          ),
         );
       }
 
       // Delete thumbnail if it's a storage path
       if (
-        item.thumbnail_url &&
-        !item.thumbnail_url.startsWith("http") &&
-        !item.thumbnail_url.startsWith("data:") &&
-        item.thumbnail_url.includes("characters/")
+        galleryItemToDelete.thumbnail_url &&
+        !galleryItemToDelete.thumbnail_url.startsWith("http") &&
+        !galleryItemToDelete.thumbnail_url.startsWith("data:") &&
+        galleryItemToDelete.thumbnail_url.includes("characters/")
       ) {
         deletePromises.push(
-          deleteCharacterGalleryImage(item.thumbnail_url).catch((err) => {
-            console.error("Error deleting gallery thumbnail:", err);
-            return undefined;
-          }),
+          deleteCharacterGalleryImage(galleryItemToDelete.thumbnail_url).catch(
+            (err) => {
+              console.error("Error deleting gallery thumbnail:", err);
+              return undefined;
+            },
+          ),
         );
       }
 
@@ -449,7 +494,7 @@ export default function CharacterForm({
       await Promise.all(deletePromises);
 
       // Then delete from database
-      await deleteCharacterGalleryItem(item.id);
+      await deleteCharacterGalleryItem(galleryItemToDelete.id);
       queryClient.invalidateQueries({
         queryKey: ["character-gallery", character?.id],
       });
@@ -458,9 +503,13 @@ export default function CharacterForm({
       queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
 
       toast.success("Gallery item deleted");
+      setDeleteGalleryConfirm(false);
+      setGalleryItemToDelete(null);
     } catch (err) {
       console.error("Failed to delete gallery item:", err);
       toast.error("Failed to delete gallery item");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -525,32 +574,41 @@ export default function CharacterForm({
   };
 
   const handleDeleteOutfitItem = async (item: CharacterOutfitItem) => {
-    if (!confirm("Are you sure you want to delete this outfit?")) {
-      return;
-    }
+    setOutfitItemToDelete(item);
+    setDeleteOutfitConfirm(true);
+  };
 
+  const handleConfirmDeleteOutfitItem = async () => {
+    if (!outfitItemToDelete) return;
+
+    setIsDeleting(true);
     try {
       // Delete images from storage first
       const deletePromises: Promise<unknown>[] = [];
 
       // Delete main image if it's a storage path
       if (
-        item.image_url &&
-        !item.image_url.startsWith("http") &&
-        !item.image_url.startsWith("data:") &&
-        item.image_url.includes("characters/")
+        outfitItemToDelete.image_url &&
+        !outfitItemToDelete.image_url.startsWith("http") &&
+        !outfitItemToDelete.image_url.startsWith("data:") &&
+        outfitItemToDelete.image_url.includes("characters/")
       ) {
         deletePromises.push(
-          deleteCharacterOutfitImage(item.image_url).catch((err) => {
-            console.error("Error deleting outfit image:", err);
-            return undefined;
-          }),
+          deleteCharacterOutfitImage(outfitItemToDelete.image_url).catch(
+            (err) => {
+              console.error("Error deleting outfit image:", err);
+              return undefined;
+            },
+          ),
         );
       }
 
       // Delete reference images if they're storage paths
-      if (item.reference_images && item.reference_images.length > 0) {
-        item.reference_images.forEach((refImage) => {
+      if (
+        outfitItemToDelete.reference_images &&
+        outfitItemToDelete.reference_images.length > 0
+      ) {
+        outfitItemToDelete.reference_images.forEach((refImage) => {
           if (
             !refImage.startsWith("http") &&
             !refImage.startsWith("data:") &&
@@ -570,7 +628,7 @@ export default function CharacterForm({
       await Promise.all(deletePromises);
 
       // Then delete from database
-      await deleteCharacterOutfit(item.id);
+      await deleteCharacterOutfit(outfitItemToDelete.id);
       queryClient.invalidateQueries({
         queryKey: ["character-outfits", character?.id],
       });
@@ -579,9 +637,13 @@ export default function CharacterForm({
       queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
 
       toast.success("Outfit deleted");
+      setDeleteOutfitConfirm(false);
+      setOutfitItemToDelete(null);
     } catch (err) {
       console.error("Failed to delete outfit:", err);
       toast.error("Failed to delete outfit");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1363,6 +1425,7 @@ export default function CharacterForm({
                               alt={item.title}
                               fill
                               className="object-cover"
+                              signedUrl={imageUrls.get(item.image_url) ?? null}
                             />
                             {item.is_featured && (
                               <div className="absolute top-2 left-2 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-white">
@@ -1379,7 +1442,10 @@ export default function CharacterForm({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteGalleryItem(item)}
+                                onClick={() => {
+                                  setGalleryItemToDelete(item);
+                                  setDeleteGalleryConfirm(true);
+                                }}
                                 className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
                               >
                                 Delete
@@ -1457,6 +1523,9 @@ export default function CharacterForm({
                                 alt={item.name}
                                 fill
                                 className="object-cover"
+                                signedUrl={
+                                  imageUrls.get(item.image_url) ?? null
+                                }
                               />
                             ) : (
                               <div className="flex h-full items-center justify-center">
@@ -1490,7 +1559,10 @@ export default function CharacterForm({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteOutfitItem(item)}
+                                onClick={() => {
+                                  setOutfitItemToDelete(item);
+                                  setDeleteOutfitConfirm(true);
+                                }}
                                 className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
                               >
                                 Delete
@@ -1567,6 +1639,32 @@ export default function CharacterForm({
           }}
         />
       )}
+
+      <ConfirmDeleteDialog
+        isOpen={deleteGalleryConfirm}
+        onConfirm={handleConfirmDeleteGalleryItem}
+        onCancel={() => {
+          setDeleteGalleryConfirm(false);
+          setGalleryItemToDelete(null);
+        }}
+        title="Delete Gallery Item"
+        message="Are you sure you want to delete this gallery item? This action cannot be undone."
+        confirmText="Delete"
+        loading={isDeleting}
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteOutfitConfirm}
+        onConfirm={handleConfirmDeleteOutfitItem}
+        onCancel={() => {
+          setDeleteOutfitConfirm(false);
+          setOutfitItemToDelete(null);
+        }}
+        title="Delete Outfit"
+        message="Are you sure you want to delete this outfit? This action cannot be undone."
+        confirmText="Delete"
+        loading={isDeleting}
+      />
     </>
   );
 }

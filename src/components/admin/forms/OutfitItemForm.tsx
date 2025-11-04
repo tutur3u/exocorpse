@@ -39,9 +39,7 @@ type OutfitItemSubmitData = {
 type OutfitItemFormProps = {
   characterId: string;
   outfitItem?: CharacterOutfitItem;
-  onSubmit: (
-    data: OutfitItemSubmitData,
-  ) => Promise<CharacterOutfitItem | void>;
+  onSubmit: (data: OutfitItemSubmitData) => Promise<CharacterOutfitItem | void>;
   onComplete: () => void;
   onCancel: () => void;
 };
@@ -289,9 +287,8 @@ export default function OutfitItemForm({
                     if (oldValue && oldValue !== newValue)
                       await handleDeleteOldImage(oldValue);
                   }}
-                  enableUpload={!!outfitItem}
                   uploadPath={
-                    outfitItem && characterId
+                    characterId
                       ? `characters/${characterId}/outfits`
                       : undefined
                   }
@@ -433,4 +430,3 @@ export default function OutfitItemForm({
     </>
   );
 }
-

@@ -3,8 +3,8 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import type { Character, RelationshipType } from "@/lib/actions/wiki";
 import { useEffect, useState } from "react";
-import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import StorageImage from "../shared/StorageImage";
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
 export interface CharacterRelationshipWithDetails {
   id: string;

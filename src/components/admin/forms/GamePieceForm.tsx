@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
@@ -74,6 +75,11 @@ export default function GamePieceForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteImageConfirm, setDeleteImageConfirm] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<{
+    image: GamePieceGalleryImage;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const queryClient = useQueryClient();
   const coverImageUrl = watch("cover_image_url");
@@ -163,22 +169,21 @@ export default function GamePieceForm({
     }
   });
 
-  const handleDeleteGalleryImage = async (
-    imageId: string,
-    imageUrl: string,
-  ) => {
-    if (!confirm("Are you sure you want to delete this gallery image?")) {
-      return;
+  const handleDeleteGalleryImage = (imageId: string, imageUrl: string) => {
+    const image = galleryImages.find((img) => img.id === imageId);
+    if (image) {
+      setImageToDelete({ image });
+      setDeleteImageConfirm(true);
     }
+  };
 
+  const handleConfirmDeleteGalleryImage = async () => {
+    if (!imageToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteGamePieceGalleryImage(imageId);
+      await deleteGamePieceGalleryImage(imageToDelete.image.id);
       toast.success("Gallery image deleted");
-
-      // Delete from storage if it's not an external URL
-      if (!imageUrl.startsWith("http")) {
-        await deleteGameImage(imageUrl);
-      }
 
       // Refetch gallery images
       if (gamePiece?.id) {
@@ -186,9 +191,14 @@ export default function GamePieceForm({
           queryKey: ["game-piece-gallery", gamePiece.id],
         });
       }
+
+      setDeleteImageConfirm(false);
+      setImageToDelete(null);
     } catch (err) {
       console.error("Error deleting gallery image:", err);
       toast.error("Failed to delete gallery image");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -615,6 +625,19 @@ export default function GamePieceForm({
         isOpen={showConfirmDialog}
         onConfirm={confirmExit}
         onCancel={cancelExit}
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteImageConfirm}
+        onConfirm={handleConfirmDeleteGalleryImage}
+        onCancel={() => {
+          setDeleteImageConfirm(false);
+          setImageToDelete(null);
+        }}
+        title="Delete Gallery Image"
+        message="Are you sure you want to delete this gallery image? This action cannot be undone."
+        confirmText="Delete"
+        loading={isDeleting}
       />
     </>
   );

@@ -316,9 +316,8 @@ export default function GalleryItemForm({
                     if (oldValue && oldValue !== newValue)
                       await handleDeleteOldImage(oldValue);
                   }}
-                  enableUpload={!!galleryItem}
                   uploadPath={
-                    galleryItem && characterId
+                    characterId
                       ? `characters/${characterId}/gallery`
                       : undefined
                   }
