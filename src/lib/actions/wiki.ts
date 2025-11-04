@@ -1836,7 +1836,6 @@ export type CharacterRelationshipEnhanced = {
   id: string;
   relationship_id: string;
   description: string | null;
-  is_mutual: boolean | null;
   related_character: {
     id: string;
     name: string;
@@ -1855,11 +1854,7 @@ export type CharacterRelationshipEnhanced = {
   relationship_type: {
     id: string;
     name: string;
-    slug: string;
     description: string | null;
-    category: string | null;
-    color: string | null;
-    icon: string | null;
     is_mutual: boolean | null;
     reverse_name: string | null;
   };
@@ -1868,22 +1863,13 @@ export type CharacterRelationshipEnhanced = {
 /**
  * Get all relationship types (global and story-specific)
  */
-export async function getRelationshipTypes(storyId?: string) {
+export async function getRelationshipTypes(_storyId?: string) {
   const supabase = await getSupabaseServer();
 
-  let query = supabase
+  const { data, error } = await supabase
     .from("relationship_types")
     .select("*")
     .order("name", { ascending: true });
-
-  // Get global types (story_id is null) and story-specific types
-  if (storyId) {
-    query = query.or(`story_id.is.null,story_id.eq.${storyId}`);
-  } else {
-    query = query.is("story_id", null);
-  }
-
-  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching relationship types:", error);
@@ -1949,7 +1935,6 @@ export async function createCharacterRelationship(data: {
   character_b_id: string;
   relationship_type_id: string;
   description?: string;
-  is_mutual?: boolean;
 }) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();
@@ -2050,6 +2035,100 @@ export async function getAvailableCharactersForRelationship(
 
   if (error) {
     console.error("Error fetching available characters:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// ============================================================================
+// RELATIONSHIP TYPE MANAGEMENT OPERATIONS
+// ============================================================================
+
+/**
+ * Create a new relationship type
+ */
+export async function createRelationshipType(data: {
+  name: string;
+  description?: string;
+  is_mutual?: boolean;
+  reverse_name?: string;
+}) {
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("relationship_types")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating relationship type:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update an existing relationship type
+ */
+export async function updateRelationshipType(
+  id: string,
+  updates: Partial<
+    Pick<
+      RelationshipType,
+      "name" | "description" | "is_mutual" | "reverse_name"
+    >
+  >,
+) {
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("relationship_types")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating relationship type:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Delete a relationship type
+ */
+export async function deleteRelationshipType(id: string) {
+  const { supabase } = await verifyAuth();
+
+  const { error } = await supabase
+    .from("relationship_types")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting relationship type:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get all relationship types for a story (including global types)
+ */
+export async function getAllRelationshipTypes(_storyId?: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("relationship_types")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching relationship types:", error);
     return [];
   }
 

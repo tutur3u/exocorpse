@@ -1,9 +1,6 @@
 -- ============================================================================
--- ENHANCED GET_CHARACTER_RELATIONSHIPS FUNCTION
+-- MODIFIED GET_CHARACTER_RELATIONSHIPS FUNCTION (Includes all B-side relationships)
 -- ============================================================================
--- This migration replaces the existing get_character_relationships function
--- with an enhanced version that returns comprehensive character details
--- and full relationship type information.
 
 DROP FUNCTION IF EXISTS get_character_relationships(UUID);
 
@@ -62,7 +59,7 @@ BEGIN
 
   UNION ALL
 
-  -- Reverse relationships (where the character is character_b and relationship type is mutual)
+  -- Reverse relationships (where the character is character_b, now includes non-mutual)
   SELECT
     cr.id AS id,
     cr.id AS relationship_id,
@@ -85,7 +82,7 @@ BEGIN
       'personality_summary', c.personality_summary
     ) AS related_character,
     
-    -- Relationship type as JSONB (with reverse name if applicable, simplified schema)
+    -- Relationship type as JSONB (uses reverse name if defined)
     jsonb_build_object(
       'id', rt.id,
       'name', COALESCE(rt.reverse_name, rt.name),
@@ -97,13 +94,11 @@ BEGIN
   FROM character_relationships cr
   JOIN characters c ON cr.character_a_id = c.id
   LEFT JOIN relationship_types rt ON cr.relationship_type_id = rt.id
-  WHERE cr.character_b_id = character_uuid
-    AND rt.is_mutual = true
+  WHERE cr.character_b_id = character_uuid -- **Condition for mutuality has been removed**
     AND c.deleted_at IS NULL;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
--- Add comment to document the function
+-- Update comment to reflect the change
 COMMENT ON FUNCTION get_character_relationships(UUID) IS 
-'Returns all relationships for a character with full character details and relationship type info as JSONB objects. Includes both forward relationships and reverse mutual relationships.';
-
+'Returns all relationships for a character with full character details and relationship type info as JSONB objects. Includes both forward relationships and ALL reverse relationships (mutual or not).';
