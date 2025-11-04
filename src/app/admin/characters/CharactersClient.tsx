@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import FactionManager from "@/components/admin/FactionManager";
 import RelationshipManager from "@/components/admin/RelationshipManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
@@ -221,6 +222,10 @@ export default function CharactersClient({
   // Confirm dialog states
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Relationship type delete confirmation state
+  const [deleteRelationshipTypeConfirmId, setDeleteRelationshipTypeConfirmId] =
+    useState<string | null>(null);
 
   // Preview states
   const [previewCharacter, setPreviewCharacter] = useState<Character | null>(
@@ -1175,16 +1180,8 @@ export default function CharactersClient({
                               Edit
                             </button>
                             <button
-                              onClick={async () => {
-                                if (
-                                  confirm(
-                                    `Are you sure you want to delete the relationship type "${type.name}"? This action cannot be undone.`,
-                                  )
-                                ) {
-                                  await deleteRelationshipTypeMutation.mutateAsync(
-                                    type.id,
-                                  );
-                                }
+                              onClick={() => {
+                                setDeleteRelationshipTypeConfirmId(type.id);
                               }}
                               className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                             >
@@ -1213,6 +1210,29 @@ export default function CharactersClient({
             </div>
           </div>
         </div>
+      )}
+
+      {deleteRelationshipTypeConfirmId && (
+        <ConfirmDeleteDialog
+          isOpen={true}
+          title="Delete Relationship Type"
+          message={`Are you sure you want to delete the relationship type "${
+            allRelationshipTypes.find(
+              (t) => t.id === deleteRelationshipTypeConfirmId,
+            )?.name
+          }"? This action cannot be undone.`}
+          confirmText="Delete"
+          loading={deleteRelationshipTypeMutation.isPending}
+          onConfirm={async () => {
+            await deleteRelationshipTypeMutation.mutateAsync(
+              deleteRelationshipTypeConfirmId,
+            );
+            setDeleteRelationshipTypeConfirmId(null);
+          }}
+          onCancel={() => {
+            setDeleteRelationshipTypeConfirmId(null);
+          }}
+        />
       )}
     </div>
   );

@@ -2,8 +2,9 @@
 
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import type { Character, RelationshipType } from "@/lib/actions/wiki";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
+import StorageImage from "../shared/StorageImage";
 
 export interface CharacterRelationshipWithDetails {
   id: string;
@@ -79,8 +80,9 @@ function RelationshipCard({
         {/* Profile Image */}
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           {profileUrl ? (
-            <Image
-              src={profileUrl}
+            <StorageImage
+              src={otherCharacter.profile_image}
+              signedUrl={profileUrl}
               alt={otherCharacter.name}
               fill
               sizes="48px"
@@ -188,6 +190,7 @@ export default function RelationshipManager({
 }: RelationshipManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Form state
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
@@ -273,10 +276,13 @@ export default function RelationshipManager({
   };
 
   const handleDelete = async (relationshipId: string) => {
-    if (!confirm("Are you sure you want to delete this relationship?")) {
-      return;
+    setLoading(true);
+    try {
+      await onDelete(relationshipId);
+      setDeleteConfirmId(null);
+    } finally {
+      setLoading(false);
     }
-    await onDelete(relationshipId);
   };
 
   const handleBackdropClick = () => {
@@ -521,7 +527,7 @@ export default function RelationshipManager({
                     setEditingId(relationship.id);
                     setShowForm(true);
                   }}
-                  onDelete={() => handleDelete(relationship.id)}
+                  onDelete={() => setDeleteConfirmId(relationship.id)}
                 />
               ))
             )}
@@ -539,6 +545,14 @@ export default function RelationshipManager({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={!!deleteConfirmId}
+        onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+        onCancel={() => setDeleteConfirmId(null)}
+        loading={loading}
+      />
     </div>
   );
 }
