@@ -35,6 +35,7 @@ import {
   removeCharacterFromFaction,
   type Story,
   updateCharacter,
+  updateCharacterRelationship,
   updateRelationshipType,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
@@ -478,6 +479,26 @@ export default function CharactersClient({
     },
   });
 
+  const updateRelationshipMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Parameters<typeof updateCharacterRelationship>[1];
+    }) => updateCharacterRelationship(id, data),
+    onSuccess: () => {
+      if (!managingRelationshipCharacter) return;
+      queryClient.invalidateQueries({
+        queryKey: ["characterRelationships", managingRelationshipCharacter.id],
+      });
+      toastWithSound.success("Relationship updated!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to update relationship: ${error.message}`);
+    },
+  });
+
   const createRelationshipTypeMutation = useMutation({
     mutationFn: createRelationshipType,
     onSuccess: () => {
@@ -626,6 +647,22 @@ export default function CharactersClient({
 
   const handleDeleteRelationship = async (relationshipId: string) => {
     await deleteRelationshipMutation.mutateAsync(relationshipId);
+  };
+
+  const handleEditRelationship = async (
+    relationshipId: string,
+    data: {
+      relationshipTypeId: string;
+      description?: string;
+    },
+  ) => {
+    await updateRelationshipMutation.mutateAsync({
+      id: relationshipId,
+      data: {
+        relationship_type_id: data.relationshipTypeId,
+        description: data.description,
+      },
+    });
   };
 
   const handleSubmitRelationshipType = async (data: {
@@ -920,6 +957,7 @@ export default function CharactersClient({
               availableCharacters={availableCharactersForRelationship}
               relationshipTypes={relationshipTypes}
               onAdd={handleAddRelationship}
+              onEdit={handleEditRelationship}
               onDelete={handleDeleteRelationship}
               onClose={() => {
                 setShowRelationshipManager(false);
