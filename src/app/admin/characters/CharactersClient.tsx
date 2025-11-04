@@ -1,8 +1,7 @@
 "use client";
 
-import FactionManager, {
-  type FactionMembership,
-} from "@/components/admin/FactionManager";
+import FactionManager from "@/components/admin/FactionManager";
+import RelationshipManager from "@/components/admin/RelationshipManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
 import CharacterDetail from "@/components/apps/CharacterDetail";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -13,19 +12,25 @@ import {
   addCharacterToFaction,
   type Character,
   createCharacter,
+  createCharacterRelationship,
   deleteCharacter,
+  deleteCharacterRelationship,
   getAllCharacters,
   getAllWorlds,
+  getAvailableCharactersForRelationship,
   getCharacterFactions,
+  getCharacterRelationshipRecords,
   getCharactersByStoryId,
   getCharactersByWorldId,
   getCharacterWorlds,
   getFactionsByCharacterWorldIds,
   getPublishedStories,
+  getRelationshipTypes,
   getWorldsByStoryId,
   removeCharacterFromFaction,
   type Story,
   updateCharacter,
+  updateCharacterRelationship,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,6 +47,7 @@ function CharacterCard({
   onEdit,
   onDelete,
   onManageFactions,
+  onManageRelationships,
   onPreview,
   profileUrl,
   bannerUrl,
@@ -50,6 +56,7 @@ function CharacterCard({
   onEdit: (character: Character) => void;
   onDelete: (id: string) => void;
   onManageFactions: (id: string, name: string) => void;
+  onManageRelationships: (id: string, name: string) => void;
   onPreview: (character: Character) => void;
   profileUrl: string | null;
   bannerUrl: string | null;
@@ -135,6 +142,13 @@ function CharacterCard({
           >
             Manage Factions
           </button>
+          <button
+            type="button"
+            onClick={() => onManageRelationships(character.id, character.name)}
+            className="w-full rounded-lg bg-pink-100 px-3 py-2 text-sm font-medium text-pink-700 transition-colors hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:hover:bg-pink-900/50"
+          >
+            Manage Relationships
+          </button>
         </div>
         <div className="flex gap-2">
           <button
@@ -176,9 +190,14 @@ export default function CharactersClient({
     id: string;
     name: string;
   } | null>(null);
-  const [entityMemberships, setEntityMemberships] = useState<
-    FactionMembership[]
-  >([]);
+
+  // Relationship management states
+  const [showRelationshipManager, setShowRelationshipManager] = useState(false);
+  const [managingRelationshipCharacter, setManagingRelationshipCharacter] =
+    useState<{
+      id: string;
+      name: string;
+    } | null>(null);
 
   // Confirm dialog states
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -217,13 +236,56 @@ export default function CharactersClient({
         : getAllCharacters(),
   });
 
+  // Fetch faction memberships for character
+  const { data: entityMemberships = [] } = useQuery({
+    queryKey: ["characterFactions", managingCharacter?.id],
+    queryFn: () => getCharacterFactions(managingCharacter!.id),
+    enabled: !!managingCharacter?.id && showFactionManager,
+  });
+
+  // Fetch available factions based on character's worlds
   const { data: factions = [] } = useQuery({
     queryKey: ["factions", managingCharacter?.id],
     queryFn: () => {
       if (!managingCharacter) return [];
       return getFactionsByCharacterWorldIds(managingCharacter.id);
     },
-    enabled: !!managingCharacter?.id,
+    enabled: !!managingCharacter?.id && showFactionManager,
+  });
+
+  // Fetch relationship types (global and story-specific)
+  const { data: relationshipTypes = [] } = useQuery({
+    queryKey: ["relationshipTypes", selectedStoryId],
+    queryFn: () => getRelationshipTypes(selectedStoryId || undefined),
+    enabled: showRelationshipManager,
+  });
+
+  // Fetch character relationships
+  const { data: characterRelationships = [] } = useQuery({
+    queryKey: ["characterRelationships", managingRelationshipCharacter?.id],
+    queryFn: () =>
+      getCharacterRelationshipRecords(managingRelationshipCharacter!.id),
+    enabled: !!managingRelationshipCharacter?.id && showRelationshipManager,
+  });
+
+  // Fetch available characters for relationships
+  const { data: availableCharactersForRelationship = [] } = useQuery({
+    queryKey: [
+      "availableCharactersForRelationship",
+      managingRelationshipCharacter?.id,
+      selectedStoryId,
+    ],
+    queryFn: async () => {
+      if (!managingRelationshipCharacter) return [];
+      // Get worlds for this character to filter available characters
+      const worlds = await getCharacterWorlds(managingRelationshipCharacter.id);
+      const worldIds = worlds.map((w) => w.world_id);
+      return getAvailableCharactersForRelationship(
+        managingRelationshipCharacter.id,
+        worldIds,
+      );
+    },
+    enabled: !!managingRelationshipCharacter?.id && showRelationshipManager,
   });
 
   // Query for character worlds when editing
@@ -333,10 +395,11 @@ export default function CharactersClient({
 
   const addToFactionMutation = useMutation({
     mutationFn: addCharacterToFaction,
-    onSuccess: async () => {
+    onSuccess: () => {
       if (!managingCharacter) return;
-      const memberships = await getCharacterFactions(managingCharacter.id);
-      setEntityMemberships(memberships);
+      queryClient.invalidateQueries({
+        queryKey: ["characterFactions", managingCharacter.id],
+      });
       toastWithSound.success("Character added to faction!");
     },
     onError: (error) => {
@@ -348,16 +411,65 @@ export default function CharactersClient({
 
   const removeFromFactionMutation = useMutation({
     mutationFn: removeCharacterFromFaction,
-    onSuccess: async () => {
+    onSuccess: () => {
       if (!managingCharacter) return;
-      const memberships = await getCharacterFactions(managingCharacter.id);
-      setEntityMemberships(memberships);
+      queryClient.invalidateQueries({
+        queryKey: ["characterFactions", managingCharacter.id],
+      });
       toastWithSound.success("Character removed from faction!");
     },
     onError: (error) => {
       toastWithSound.error(
         `Failed to remove character from faction: ${error.message}`,
       );
+    },
+  });
+
+  const addRelationshipMutation = useMutation({
+    mutationFn: createCharacterRelationship,
+    onSuccess: () => {
+      if (!managingRelationshipCharacter) return;
+      queryClient.invalidateQueries({
+        queryKey: ["characterRelationships", managingRelationshipCharacter.id],
+      });
+      toastWithSound.success("Relationship added!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to add relationship: ${error.message}`);
+    },
+  });
+
+  const updateRelationshipMutation = useMutation({
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Parameters<typeof updateCharacterRelationship>[1];
+    }) => updateCharacterRelationship(id, updates),
+    onSuccess: () => {
+      if (!managingRelationshipCharacter) return;
+      queryClient.invalidateQueries({
+        queryKey: ["characterRelationships", managingRelationshipCharacter.id],
+      });
+      toastWithSound.success("Relationship updated!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to update relationship: ${error.message}`);
+    },
+  });
+
+  const deleteRelationshipMutation = useMutation({
+    mutationFn: deleteCharacterRelationship,
+    onSuccess: () => {
+      if (!managingRelationshipCharacter) return;
+      queryClient.invalidateQueries({
+        queryKey: ["characterRelationships", managingRelationshipCharacter.id],
+      });
+      toastWithSound.success("Relationship deleted!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to delete relationship: ${error.message}`);
     },
   });
 
@@ -402,11 +514,10 @@ export default function CharactersClient({
     setShowForm(true);
   };
 
-  const handleOpenFactionManager = async (id: string, name: string) => {
+  const handleOpenFactionManager = (id: string, name: string) => {
     setManagingCharacter({ id, name });
     setShowFactionManager(true);
-    const memberships = await getCharacterFactions(id);
-    setEntityMemberships(memberships);
+    // React Query will automatically fetch when enabled becomes true
   };
 
   const handleAddToFaction = async (factionId: string, role?: string) => {
@@ -421,6 +532,52 @@ export default function CharactersClient({
 
   const handleRemoveFromFaction = async (membershipId: string) => {
     await removeFromFactionMutation.mutateAsync(membershipId);
+  };
+
+  const handleOpenRelationshipManager = (id: string, name: string) => {
+    setManagingRelationshipCharacter({ id, name });
+    setShowRelationshipManager(true);
+    // React Query will automatically fetch when enabled becomes true
+  };
+
+  const handleAddRelationship = async (data: {
+    relatedCharacterId: string;
+    relationshipTypeId: string;
+    description?: string;
+    isMutual?: boolean;
+  }) => {
+    if (!managingRelationshipCharacter) return;
+    await addRelationshipMutation.mutateAsync({
+      character_a_id: managingRelationshipCharacter.id,
+      character_b_id: data.relatedCharacterId,
+      relationship_type_id: data.relationshipTypeId,
+      description: data.description,
+      is_mutual: data.isMutual,
+    });
+  };
+
+  const handleUpdateRelationship = async (
+    relationshipId: string,
+    data: {
+      relationshipTypeId?: string;
+      description?: string;
+      isMutual?: boolean;
+    },
+  ) => {
+    const updates: Parameters<typeof updateCharacterRelationship>[1] = {};
+    if (data.relationshipTypeId)
+      updates.relationship_type_id = data.relationshipTypeId;
+    if (data.description !== undefined) updates.description = data.description;
+    if (data.isMutual !== undefined) updates.is_mutual = data.isMutual;
+
+    await updateRelationshipMutation.mutateAsync({
+      id: relationshipId,
+      updates,
+    });
+  };
+
+  const handleDeleteRelationship = async (relationshipId: string) => {
+    await deleteRelationshipMutation.mutateAsync(relationshipId);
   };
 
   return (
@@ -595,6 +752,7 @@ export default function CharactersClient({
               onEdit={handleEdit}
               onDelete={handleDelete}
               onManageFactions={handleOpenFactionManager}
+              onManageRelationships={handleOpenRelationshipManager}
               onPreview={setPreviewCharacter}
               profileUrl={
                 character.profile_image
@@ -642,7 +800,25 @@ export default function CharactersClient({
           onClose={() => {
             setShowFactionManager(false);
             setManagingCharacter(null);
-            setEntityMemberships([]);
+            // React Query will clean up automatically
+          }}
+        />
+      )}
+
+      {showRelationshipManager && managingRelationshipCharacter && (
+        <RelationshipManager
+          characterId={managingRelationshipCharacter.id}
+          characterName={managingRelationshipCharacter.name}
+          relationships={characterRelationships}
+          availableCharacters={availableCharactersForRelationship}
+          relationshipTypes={relationshipTypes}
+          onAdd={handleAddRelationship}
+          onUpdate={handleUpdateRelationship}
+          onDelete={handleDeleteRelationship}
+          onClose={() => {
+            setShowRelationshipManager(false);
+            setManagingRelationshipCharacter(null);
+            // React Query will clean up automatically
           }}
         />
       )}

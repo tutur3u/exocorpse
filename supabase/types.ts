@@ -2028,12 +2028,12 @@ export type Database = {
       get_character_relationships: {
         Args: { character_uuid: string };
         Returns: {
+          description: string;
+          id: string;
           is_mutual: boolean;
-          related_character_id: string;
-          related_character_name: string;
-          relationship_description: string;
-          relationship_type_id: string;
-          relationship_type_name: string;
+          related_character: Json;
+          relationship_id: string;
+          relationship_type: Json;
         }[];
       };
       replace_service_addons: {

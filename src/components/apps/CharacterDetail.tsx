@@ -10,6 +10,7 @@ import {
   getCharacterFactions,
   getCharacterGallery,
   getCharacterOutfits,
+  getCharacterRelationships,
   getCharacterWorlds,
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
@@ -29,7 +30,13 @@ export default function CharacterDetail({
 }: CharacterDetailProps) {
   const [activeTab, setActiveTab] = useQueryState(
     "character-tab",
-    parseAsStringLiteral(["overview", "outfits", "lore", "gallery"] as const)
+    parseAsStringLiteral([
+      "overview",
+      "relationships",
+      "outfits",
+      "lore",
+      "gallery",
+    ] as const)
       .withDefault("overview")
       .withOptions({ history: "push", shallow: true }),
   );
@@ -72,6 +79,15 @@ export default function CharacterDetail({
       : undefined,
   });
 
+  const { data: relationships = [], isLoading: relationshipsLoading } =
+    useQuery({
+      queryKey: ["character-relationships", character.id],
+      queryFn: () => getCharacterRelationships(character.id),
+      initialData: hasInitialDetailData
+        ? initialData.characterDetail?.relationships
+        : undefined,
+    });
+
   // Batch fetch signed URLs for gallery and outfit images
   const imagePaths = [
     ...gallery.map((item) => item.image_url),
@@ -87,10 +103,12 @@ export default function CharacterDetail({
     (galleryLoading && gallery.length === 0) ||
     (outfitsLoading && outfits.length === 0) ||
     (factionsLoading && factions.length === 0) ||
-    (worldsLoading && characterWorlds.length === 0);
+    (worldsLoading && characterWorlds.length === 0) ||
+    (relationshipsLoading && relationships.length === 0);
 
   const tabs = [
     { id: "overview", label: "Overview" },
+    { id: "relationships", label: `Relationships (${relationships.length})` },
     { id: "outfits", label: `Outfits (${outfits.length})` },
     { id: "lore", label: "Lore & Backstory" },
     { id: "gallery", label: `Gallery (${gallery.length})` },
@@ -196,7 +214,12 @@ export default function CharacterDetail({
               type="button"
               onClick={() =>
                 setActiveTab(
-                  tab.id as "overview" | "outfits" | "lore" | "gallery",
+                  tab.id as
+                    | "overview"
+                    | "relationships"
+                    | "outfits"
+                    | "lore"
+                    | "gallery",
                 )
               }
               className={`relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200 ${
@@ -421,6 +444,146 @@ export default function CharacterDetail({
                         </p>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Relationships Tab */}
+            {activeTab === "relationships" && (
+              <div className="animate-fadeIn">
+                {relationships.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                      <svg
+                        className="h-8 w-8 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <title>No relationships icon</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                      No relationships documented yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {relationships.map((relationship) => {
+                      const relatedCharacter = relationship.related_character;
+                      const relType = relationship.relationship_type;
+
+                      return (
+                        <div
+                          key={relationship.id}
+                          className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50"
+                        >
+                          <div className="flex items-start gap-4 p-4">
+                            {/* Character Profile Image */}
+                            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                              {relatedCharacter?.profile_image ? (
+                                <StorageImage
+                                  src={relatedCharacter.profile_image}
+                                  alt={relatedCharacter.name}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
+                                  fallback={
+                                    <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">
+                                      {relatedCharacter.name.charAt(0)}
+                                    </div>
+                                  }
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <svg
+                                    className="h-8 w-8 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <title>Character icon</title>
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Relationship Info */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {relatedCharacter.name}
+                                  </h4>
+                                  {relatedCharacter.title && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {relatedCharacter.title}
+                                    </p>
+                                  )}
+                                </div>
+                                {/* Character metadata badges */}
+                                <div className="flex shrink-0 gap-1.5 text-xs">
+                                  {relatedCharacter.age && (
+                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                      {relatedCharacter.age}
+                                    </span>
+                                  )}
+                                  {relatedCharacter.species && (
+                                    <span className="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                      {relatedCharacter.species}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="mt-1.5 flex items-center gap-2">
+                                <span
+                                  className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                                  style={{
+                                    backgroundColor: relType.color
+                                      ? `${relType.color}20`
+                                      : "#e5e7eb",
+                                    color: relType.color || "#374151",
+                                  }}
+                                >
+                                  {relType.name}
+                                </span>
+                                {relationship.is_mutual && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    (mutual)
+                                  </span>
+                                )}
+                              </div>
+
+                              {relationship.description && (
+                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                  {relationship.description}
+                                </p>
+                              )}
+
+                              {relatedCharacter.personality_summary && (
+                                <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic dark:text-gray-500">
+                                  {relatedCharacter.personality_summary}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
