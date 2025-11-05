@@ -82,6 +82,10 @@ export default function RelationshipTypeForm({
     setIsSubmitting(true);
     try {
       const cleanedData = cleanFormData(data);
+      // Clear reverse_name for mutual relationships to prevent asymmetric labels
+      if (cleanedData.is_mutual) {
+        cleanedData.reverse_name = undefined;
+      }
       await onSubmit(cleanedData);
       dialogRef.current?.close();
       onComplete();

@@ -14,8 +14,8 @@ export default function ConfirmDeleteDialog({
   isOpen,
   onConfirm,
   onCancel,
-  title = "Delete Relationship",
-  message = "Are you sure you want to delete this relationship? This action cannot be undone.",
+  title = "Delete Item",
+  message = "Are you sure you want to delete this item? This action cannot be undone.",
   confirmText = "Delete",
   loading = false,
 }: ConfirmDeleteDialogProps) {

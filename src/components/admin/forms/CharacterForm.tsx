@@ -10,11 +10,7 @@ import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
-import {
-  deleteCharacterGalleryImage,
-  deleteCharacterOutfitImage,
-  deleteFile,
-} from "@/lib/actions/storage";
+import { deleteCharacterOutfitImage, deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import {
   createCharacterGalleryItem,
@@ -453,47 +449,7 @@ export default function CharacterForm({
 
     setIsDeleting(true);
     try {
-      // Delete images from storage first
-      const deletePromises: Promise<unknown>[] = [];
-
-      // Delete main image if it's a storage path
-      if (
-        galleryItemToDelete.image_url &&
-        !galleryItemToDelete.image_url.startsWith("http") &&
-        !galleryItemToDelete.image_url.startsWith("data:") &&
-        galleryItemToDelete.image_url.includes("characters/")
-      ) {
-        deletePromises.push(
-          deleteCharacterGalleryImage(galleryItemToDelete.image_url).catch(
-            (err) => {
-              console.error("Error deleting gallery image:", err);
-              return undefined;
-            },
-          ),
-        );
-      }
-
-      // Delete thumbnail if it's a storage path
-      if (
-        galleryItemToDelete.thumbnail_url &&
-        !galleryItemToDelete.thumbnail_url.startsWith("http") &&
-        !galleryItemToDelete.thumbnail_url.startsWith("data:") &&
-        galleryItemToDelete.thumbnail_url.includes("characters/")
-      ) {
-        deletePromises.push(
-          deleteCharacterGalleryImage(galleryItemToDelete.thumbnail_url).catch(
-            (err) => {
-              console.error("Error deleting gallery thumbnail:", err);
-              return undefined;
-            },
-          ),
-        );
-      }
-
-      // Wait for all storage deletions to complete
-      await Promise.all(deletePromises);
-
-      // Then delete from database
+      // Delete from database
       await deleteCharacterGalleryItem(galleryItemToDelete.id);
       queryClient.invalidateQueries({
         queryKey: ["character-gallery", character?.id],
@@ -583,7 +539,9 @@ export default function CharacterForm({
 
     setIsDeleting(true);
     try {
-      // Delete images from storage first
+      // Delete from DB
+      const deletedFromDB = await deleteCharacterOutfit(outfitItemToDelete.id);
+      // Then Delete images from storage
       const deletePromises: Promise<unknown>[] = [];
 
       // Delete main image if it's a storage path
@@ -591,7 +549,8 @@ export default function CharacterForm({
         outfitItemToDelete.image_url &&
         !outfitItemToDelete.image_url.startsWith("http") &&
         !outfitItemToDelete.image_url.startsWith("data:") &&
-        outfitItemToDelete.image_url.includes("characters/")
+        outfitItemToDelete.image_url.includes("characters/") &&
+        deletedFromDB
       ) {
         deletePromises.push(
           deleteCharacterOutfitImage(outfitItemToDelete.image_url).catch(
@@ -606,7 +565,8 @@ export default function CharacterForm({
       // Delete reference images if they're storage paths
       if (
         outfitItemToDelete.reference_images &&
-        outfitItemToDelete.reference_images.length > 0
+        outfitItemToDelete.reference_images.length > 0 &&
+        deletedFromDB
       ) {
         outfitItemToDelete.reference_images.forEach((refImage) => {
           if (
@@ -627,8 +587,6 @@ export default function CharacterForm({
       // Wait for all storage deletions to complete
       await Promise.all(deletePromises);
 
-      // Then delete from database
-      await deleteCharacterOutfit(outfitItemToDelete.id);
       queryClient.invalidateQueries({
         queryKey: ["character-outfits", character?.id],
       });

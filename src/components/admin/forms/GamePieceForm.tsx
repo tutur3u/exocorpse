@@ -169,7 +169,7 @@ export default function GamePieceForm({
     }
   });
 
-  const handleDeleteGalleryImage = (imageId: string, imageUrl: string) => {
+  const handleDeleteGalleryImage = (imageId: string) => {
     const image = galleryImages.find((img) => img.id === imageId);
     if (image) {
       setImageToDelete({ image });
@@ -514,9 +514,7 @@ export default function GamePieceForm({
                             {/* Delete Button */}
                             <button
                               type="button"
-                              onClick={() =>
-                                handleDeleteGalleryImage(img.id, img.image_url)
-                              }
+                              onClick={() => handleDeleteGalleryImage(img.id)}
                               className="absolute top-2 right-2 rounded-full bg-red-600 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-700"
                               title="Delete image"
                             >
