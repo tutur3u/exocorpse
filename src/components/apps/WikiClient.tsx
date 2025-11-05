@@ -290,13 +290,13 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   };
 
   const handleCharacterClickFromFaction = (characterSlug: string) => {
-      setParams({
-        story: storySlug,
-        world: worldSlug,
-        character: characterSlug,
-        faction: null,
-        "character-tab": null,
-      });
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: characterSlug,
+      faction: null,
+      "character-tab": null,
+    });
   };
 
   const handleNavigate = (mode: ViewMode) => {
