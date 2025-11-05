@@ -22,11 +22,8 @@ import type { Character, Story } from "@/lib/actions/wiki";
 import {
   getCharacterBySlug,
   getCharacterBySlugInStory,
-  getCharacterFactions,
-  getCharacterGallery,
-  getCharacterOutfits,
+  getCharacterDetailData,
   getCharactersByWorldSlug,
-  getCharacterWorlds,
   getFactionBySlug,
   getFactionsByWorldSlug,
   getPublishedStories,
@@ -476,18 +473,10 @@ async function HomeContent({
           wikiParams.character,
         );
         if (selectedCharacter && selectedCharacter.id) {
-          const [gallery, outfits, factions, worlds] = await Promise.all([
-            getCharacterGallery(selectedCharacter.id),
-            getCharacterOutfits(selectedCharacter.id),
-            getCharacterFactions(selectedCharacter.id),
-            getCharacterWorlds(selectedCharacter.id),
-          ]);
+          const detailData = await getCharacterDetailData(selectedCharacter.id);
           initialWikiData.characterDetail = {
             characterId: selectedCharacter.id,
-            gallery,
-            outfits,
-            factions,
-            worlds,
+            ...detailData,
           };
         }
       }
@@ -500,18 +489,10 @@ async function HomeContent({
       if (selectedCharacter && selectedCharacter.id) {
         initialWikiData.characters = [selectedCharacter as Character];
 
-        const [gallery, outfits, factions, worlds] = await Promise.all([
-          getCharacterGallery(selectedCharacter.id),
-          getCharacterOutfits(selectedCharacter.id),
-          getCharacterFactions(selectedCharacter.id),
-          getCharacterWorlds(selectedCharacter.id),
-        ]);
+        const detailData = await getCharacterDetailData(selectedCharacter.id);
         initialWikiData.characterDetail = {
           characterId: selectedCharacter.id,
-          gallery,
-          outfits,
-          factions,
-          worlds,
+          ...detailData,
         };
       }
     }

@@ -17,6 +17,9 @@ export type CharacterDetailData = {
   worlds: Awaited<
     ReturnType<typeof import("@/lib/actions/wiki").getCharacterWorlds>
   >;
+  relationships: Awaited<
+    ReturnType<typeof import("@/lib/actions/wiki").getCharacterRelationships>
+  >;
 };
 
 export type InitialWikiData = {

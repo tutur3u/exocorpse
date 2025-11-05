@@ -541,6 +541,102 @@ export async function getCharacterGallery(characterId: string) {
 }
 
 /**
+ * Get all character detail data in a single database query
+ * This is optimized for initial page load to reduce database round trips
+ */
+export async function getCharacterDetailData(characterId: string): Promise<{
+  gallery: Awaited<ReturnType<typeof getCharacterGallery>>;
+  outfits: Awaited<ReturnType<typeof getCharacterOutfits>>;
+  factions: Awaited<ReturnType<typeof getCharacterFactions>>;
+  worlds: Awaited<ReturnType<typeof getCharacterWorlds>>;
+  relationships: CharacterRelationshipEnhanced[];
+}> {
+  const supabase = await getSupabaseServer();
+
+  // Fetch the character with all related data in a single query
+  const { data: character, error: characterError } = await supabase
+    .from("characters")
+    .select(
+      `
+      id,
+      character_gallery (
+        *
+      ),
+      character_outfits (
+        *,
+        outfit_types (*)
+      ),
+      character_factions (
+        *,
+        factions (*)
+      ),
+      character_worlds (
+        *,
+        worlds!inner (*)
+      )
+    `,
+    )
+    .eq("id", characterId)
+    .is("character_worlds.worlds.deleted_at", null)
+    .single();
+
+  if (characterError) {
+    console.error("Error fetching character detail data:", characterError);
+    return {
+      gallery: [],
+      outfits: [],
+      factions: [],
+      worlds: [],
+      relationships: [],
+    };
+  }
+
+  // Sort gallery by display_order
+  const gallery = (character?.character_gallery || []).sort(
+    (a, b) => (a.display_order || 0) - (b.display_order || 0),
+  );
+
+  // Sort outfits by display_order
+  const outfits = (character?.character_outfits || []).sort(
+    (a, b) => (a.display_order || 0) - (b.display_order || 0),
+  );
+
+  // Sort factions by created_at (newest first)
+  const factions = (character?.character_factions || []).sort((a, b) => {
+    const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  // Sort worlds by created_at (newest first)
+  const worlds = (character?.character_worlds || []).sort((a, b) => {
+    const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  // Fetch relationships separately using RPC (can't be joined easily)
+  const { data: relationships, error: relError } = await supabase.rpc(
+    "get_character_relationships",
+    {
+      character_uuid: characterId,
+    },
+  );
+
+  if (relError) {
+    console.error("Error fetching character relationships:", relError);
+  }
+
+  return {
+    gallery,
+    outfits,
+    factions,
+    worlds,
+    relationships: (relationships || []) as CharacterRelationshipEnhanced[],
+  };
+}
+
+/**
  * Create a new character gallery item
  */
 export async function createCharacterGalleryItem(data: {
@@ -1465,6 +1561,9 @@ export async function addCharacterToFaction(data: {
   faction_id: string;
   role?: string;
   rank?: string;
+  join_date?: string;
+  leave_date?: string;
+  notes?: string;
   is_current?: boolean;
 }) {
   // Verify authentication and get supabase client
@@ -1603,4 +1702,296 @@ export async function removeCharacterFromWorld(id: string) {
     console.error("Error removing character from world:", error);
     throw error;
   }
+}
+
+// ============================================================================
+// CHARACTER-RELATIONSHIP OPERATIONS
+// ============================================================================
+
+export type CharacterRelationship = Tables<"character_relationships">;
+export type RelationshipType = Tables<"relationship_types">;
+
+// Enhanced relationship return type from RPC function
+export type CharacterRelationshipEnhanced = {
+  id: string;
+  relationship_id: string;
+  description: string | null;
+  related_character: {
+    id: string;
+    name: string;
+    slug: string;
+    nickname: string | null;
+    title: string | null;
+    age: number | null;
+    species: string | null;
+    gender: string | null;
+    pronouns: string | null;
+    status: string | null;
+    occupation: string | null;
+    profile_image: string | null;
+    personality_summary: string | null;
+  };
+  relationship_type: {
+    id: string;
+    name: string;
+    description: string | null;
+    is_mutual: boolean | null;
+    reverse_name: string | null;
+  };
+};
+
+/**
+ * Get all relationships for a character using the enhanced database function
+ * Returns comprehensive character and relationship type details
+ */
+export async function getCharacterRelationships(
+  characterId: string,
+): Promise<CharacterRelationshipEnhanced[]> {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase.rpc("get_character_relationships", {
+    character_uuid: characterId,
+  });
+
+  if (error) {
+    console.error("Error fetching character relationships:", error);
+    return [];
+  }
+
+  return (data || []) as CharacterRelationshipEnhanced[];
+}
+
+/**
+ * Get raw relationship records for a character (for editing)
+ */
+export async function getCharacterRelationshipRecords(characterId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("character_relationships")
+    .select(
+      `
+      *,
+      character_a:characters!character_relationships_character_a_id_fkey(id, name, profile_image),
+      character_b:characters!character_relationships_character_b_id_fkey(id, name, profile_image),
+      relationship_type:relationship_types(*)
+    `,
+    )
+    .or(`character_a_id.eq.${characterId},character_b_id.eq.${characterId}`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching character relationship records:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Create a new character relationship
+ */
+export async function createCharacterRelationship(data: {
+  character_a_id: string;
+  character_b_id: string;
+  relationship_type_id: string;
+  description?: string;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("character_relationships")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating character relationship:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update an existing character relationship
+ */
+export async function updateCharacterRelationship(
+  id: string,
+  updates: Partial<
+    Omit<CharacterRelationship, "id" | "created_at" | "updated_at">
+  >,
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("character_relationships")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error updating character relationship:", error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Character relationship not found");
+  }
+
+  return data;
+}
+
+/**
+ * Delete a character relationship
+ */
+export async function deleteCharacterRelationship(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { error } = await supabase
+    .from("character_relationships")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting character relationship:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get characters available for relationships (excludes the given character)
+ */
+export async function getAvailableCharactersForRelationship(
+  characterId: string,
+  worldIds?: string[],
+) {
+  const supabase = await getSupabaseServer();
+
+  let query = supabase
+    .from("characters")
+    .select("*")
+    .neq("id", characterId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  // If world IDs provided, filter by characters in those worlds
+  if (worldIds && worldIds.length > 0) {
+    const { data: characterWorlds } = await supabase
+      .from("character_worlds")
+      .select("character_id")
+      .in("world_id", worldIds);
+
+    if (characterWorlds && characterWorlds.length > 0) {
+      const characterIds = characterWorlds.map((cw) => cw.character_id);
+      query = query.in("id", characterIds);
+    }
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching available characters:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// ============================================================================
+// RELATIONSHIP TYPE MANAGEMENT OPERATIONS
+// ============================================================================
+
+/**
+ * Create a new relationship type
+ */
+export async function createRelationshipType(data: {
+  name: string;
+  description?: string;
+  is_mutual?: boolean;
+  reverse_name?: string;
+}) {
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("relationship_types")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating relationship type:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update an existing relationship type
+ */
+export async function updateRelationshipType(
+  id: string,
+  updates: Partial<
+    Pick<
+      RelationshipType,
+      "name" | "description" | "is_mutual" | "reverse_name"
+    >
+  >,
+) {
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("relationship_types")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating relationship type:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Delete a relationship type
+ */
+export async function deleteRelationshipType(id: string) {
+  const { supabase } = await verifyAuth();
+
+  const { error } = await supabase
+    .from("relationship_types")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting relationship type:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get all relationship types for a story (including global types)
+ */
+export async function getAllRelationshipTypes(_storyId?: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("relationship_types")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching relationship types:", error);
+    return [];
+  }
+
+  return data || [];
 }

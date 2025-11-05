@@ -279,6 +279,26 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     });
   };
 
+  const handleCharacterClickFromCharacter = (characterSlug: string) => {
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: characterSlug,
+      faction: null,
+      "character-tab": null,
+    });
+  };
+
+  const handleCharacterClickFromFaction = (characterSlug: string) => {
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: characterSlug,
+      faction: null,
+      "character-tab": null,
+    });
+  };
+
   const handleNavigate = (mode: ViewMode) => {
     if (mode === "stories") {
       setParams({
@@ -392,6 +412,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
             character={viewingCharacter}
             onWorldClick={handleWorldClickFromCharacter}
             onFactionClick={handleFactionClickFromCharacter}
+            onCharacterClick={handleCharacterClickFromCharacter}
           />
         </div>
       );
@@ -411,7 +432,10 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
               onNavigate={handleNavigate}
             />
           </div>
-          <FactionView faction={viewingFaction} />
+          <FactionView
+            faction={viewingFaction}
+            onCharacterClick={handleCharacterClickFromFaction}
+          />
         </div>
       );
     }

@@ -2,6 +2,7 @@
 
 import FactionManager, {
   type FactionMembership,
+  type MembershipUpdate,
 } from "@/components/admin/FactionManager";
 import FactionForm from "@/components/admin/forms/FactionForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -9,6 +10,7 @@ import StorageImage from "@/components/shared/StorageImage";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   addCharacterToFaction,
+  type CharacterFaction,
   createFaction,
   deleteFaction,
   type Faction,
@@ -19,6 +21,7 @@ import {
   getWorldsByStoryId,
   removeCharacterFromFaction,
   type Story,
+  updateCharacterFaction,
   updateFaction,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
@@ -162,6 +165,29 @@ export default function FactionsClient({
     },
   });
 
+  const updateMemberMutation = useMutation({
+    mutationFn: ({
+      membershipId,
+      updates,
+    }: {
+      membershipId: string;
+      updates: Partial<
+        Omit<
+          CharacterFaction,
+          "id" | "created_at" | "character_id" | "faction_id"
+        >
+      >;
+    }) => updateCharacterFaction(membershipId, updates),
+    onSuccess: async ({ faction_id }) => {
+      const memberships = await getFactionMembers(faction_id);
+      setEntityMemberships(memberships);
+      toastWithSound.success("Member updated successfully!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to update member: ${error.message}`);
+    },
+  });
+
   const handleCreate = async (data: Parameters<typeof createFaction>[0]) => {
     const newFaction = await createMutation.mutateAsync(data);
     return newFaction;
@@ -173,7 +199,7 @@ export default function FactionsClient({
       id: editingFaction.id,
       data,
     });
-    return updated || undefined;
+    return updated;
   };
 
   const handleComplete = () => {
@@ -202,18 +228,36 @@ export default function FactionsClient({
     setEntityMemberships(memberships);
   };
 
-  const handleAddMember = async (characterId: string, role?: string) => {
+  const handleAddMember = async (
+    characterId: string,
+    updates: MembershipUpdate,
+  ) => {
     if (!managingFaction) return;
     await addMemberMutation.mutateAsync({
       character_id: characterId,
       faction_id: managingFaction.id,
-      role,
+      role: updates.role || undefined,
+      rank: updates.rank || undefined,
+      join_date: updates.join_date || undefined,
+      leave_date: updates.leave_date || undefined,
+      notes: updates.notes || undefined,
       is_current: true,
     });
   };
 
   const handleRemoveMember = async (membershipId: string) => {
     await removeMemberMutation.mutateAsync(membershipId);
+  };
+
+  const handleEditMember = async (
+    membershipId: string,
+    updates: MembershipUpdate,
+  ) => {
+    if (!managingFaction) return;
+    await updateMemberMutation.mutateAsync({
+      membershipId,
+      updates,
+    });
   };
 
   const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
@@ -444,6 +488,7 @@ export default function FactionsClient({
           availableEntities={characters}
           memberships={entityMemberships}
           onAdd={handleAddMember}
+          onEdit={handleEditMember}
           onRemove={handleRemoveMember}
           onClose={() => {
             setShowMemberManager(false);

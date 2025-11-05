@@ -421,7 +421,6 @@ export type Database = {
           created_at: string | null;
           description: string | null;
           id: string;
-          is_mutual: boolean | null;
           relationship_type_id: string;
           updated_at: string | null;
         };
@@ -431,7 +430,6 @@ export type Database = {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          is_mutual?: boolean | null;
           relationship_type_id: string;
           updated_at?: string | null;
         };
@@ -441,7 +439,6 @@ export type Database = {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          is_mutual?: boolean | null;
           relationship_type_id?: string;
           updated_at?: string | null;
         };
@@ -1419,69 +1416,33 @@ export type Database = {
       };
       relationship_types: {
         Row: {
-          category: string | null;
-          color: string | null;
           created_at: string | null;
-          created_by: string | null;
           description: string | null;
-          icon: string | null;
           id: string;
-          is_default: boolean | null;
           is_mutual: boolean | null;
           name: string;
           reverse_name: string | null;
-          slug: string;
-          story_id: string | null;
           updated_at: string | null;
         };
         Insert: {
-          category?: string | null;
-          color?: string | null;
           created_at?: string | null;
-          created_by?: string | null;
           description?: string | null;
-          icon?: string | null;
           id?: string;
-          is_default?: boolean | null;
           is_mutual?: boolean | null;
           name: string;
           reverse_name?: string | null;
-          slug: string;
-          story_id?: string | null;
           updated_at?: string | null;
         };
         Update: {
-          category?: string | null;
-          color?: string | null;
           created_at?: string | null;
-          created_by?: string | null;
           description?: string | null;
-          icon?: string | null;
           id?: string;
-          is_default?: boolean | null;
           is_mutual?: boolean | null;
           name?: string;
           reverse_name?: string | null;
-          slug?: string;
-          story_id?: string | null;
           updated_at?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "relationship_types_story_id_fkey";
-            columns: ["story_id"];
-            isOneToOne: false;
-            referencedRelation: "stories";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "relationship_types_story_id_fkey";
-            columns: ["story_id"];
-            isOneToOne: false;
-            referencedRelation: "story_hierarchy";
-            referencedColumns: ["story_id"];
-          },
-        ];
+        Relationships: [];
       };
       resource_urls: {
         Row: {
@@ -2028,12 +1989,11 @@ export type Database = {
       get_character_relationships: {
         Args: { character_uuid: string };
         Returns: {
-          is_mutual: boolean;
-          related_character_id: string;
-          related_character_name: string;
-          relationship_description: string;
-          relationship_type_id: string;
-          relationship_type_name: string;
+          description: string;
+          id: string;
+          related_character: Json;
+          relationship_id: string;
+          relationship_type: Json;
         }[];
       };
       replace_service_addons: {
