@@ -135,6 +135,14 @@ export async function deleteCharacterGalleryImage(path: string) {
 }
 
 /**
+ * Delete character outfit image
+ * @param path - Full path to the character outfit image
+ */
+export async function deleteCharacterOutfitImage(path: string) {
+  return deleteFile(path);
+}
+
+/**
  * Delete artwork image
  * @param path - Full path to the artwork image
  */

@@ -1,96 +1,76 @@
 "use client";
 
+import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
-import { deleteCharacterGalleryImage } from "@/lib/actions/storage";
-import { updateCharacterGalleryItem } from "@/lib/actions/wiki";
+import { deleteCharacterOutfitImage } from "@/lib/actions/storage";
+import { updateCharacterOutfit } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Tables } from "../../../../supabase/types";
 
-type CharacterGalleryItem = Tables<"character_gallery">;
+type CharacterOutfitItem = Tables<"character_outfits">;
 
-type GalleryItemFormData = {
-  title: string;
+type OutfitItemFormData = {
+  name: string;
   description?: string;
-  image_url: string;
-  thumbnail_url?: string;
-  artist_name?: string;
-  artist_url?: string;
-  commission_date?: string;
-  tags?: string;
-  is_featured?: boolean;
+  image_url?: string;
+  reference_images?: string;
+  color_palette?: string;
+  notes?: string;
+  is_default?: boolean;
+  outfit_type_id?: string;
 };
 
-type GalleryItemSubmitData = {
-  title: string;
+type OutfitItemSubmitData = {
+  name: string;
   description?: string;
-  image_url: string;
-  thumbnail_url?: string;
-  artist_name?: string;
-  artist_url?: string;
-  commission_date?: string;
-  tags?: string[];
-  is_featured?: boolean;
+  image_url?: string;
+  reference_images?: string[];
+  color_palette?: string;
+  notes?: string;
+  is_default?: boolean;
+  outfit_type_id?: string;
 };
 
-type GalleryItemFormProps = {
+type OutfitItemFormProps = {
   characterId: string;
-  galleryItem?: CharacterGalleryItem;
-  onSubmit: (
-    data: GalleryItemSubmitData,
-  ) => Promise<CharacterGalleryItem | void>;
+  outfitItem?: CharacterOutfitItem;
+  onSubmit: (data: OutfitItemSubmitData) => Promise<CharacterOutfitItem | void>;
   onComplete: () => void;
   onCancel: () => void;
 };
 
-export default function GalleryItemForm({
+export default function OutfitItemForm({
   characterId,
-  galleryItem,
+  outfitItem,
   onSubmit,
   onComplete,
   onCancel,
-}: GalleryItemFormProps) {
+}: OutfitItemFormProps) {
   const {
     setPendingFile,
     uploadPendingFiles,
     uploadProgress,
     hasPendingFiles,
   } = usePendingUploads();
-  // Format date from database to YYYY-MM-DD
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString || dateString.length < 10) return "";
 
-    // If already in YYYY-MM-DD or ISO format, extract the date portion
-    if (dateString[4] === "-" && dateString[7] === "-") {
-      return dateString.slice(0, 10);
-    }
-
-    // Otherwise, parse and format using local date to avoid timezone skew
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  // Get form values from gallery item data
-  const getFormValues = (): GalleryItemFormData => ({
-    title: galleryItem?.title ?? "",
-    description: galleryItem?.description ?? "",
-    image_url: galleryItem?.image_url ?? "",
-    thumbnail_url: galleryItem?.thumbnail_url ?? "",
-    artist_name: galleryItem?.artist_name ?? "",
-    artist_url: galleryItem?.artist_url ?? "",
-    commission_date: formatDate(galleryItem?.commission_date) ?? "",
-    tags: galleryItem?.tags?.join(", ") ?? "",
-    is_featured: galleryItem?.is_featured ?? false,
+  // Get form values from outfit item data
+  const getFormValues = (): OutfitItemFormData => ({
+    name: outfitItem?.name ?? "",
+    description: outfitItem?.description ?? "",
+    image_url: outfitItem?.image_url ?? "",
+    reference_images: outfitItem?.reference_images?.join(", ") ?? "",
+    color_palette: outfitItem?.color_palette ?? "",
+    notes: outfitItem?.notes ?? "",
+    is_default: outfitItem?.is_default ?? false,
+    outfit_type_id: outfitItem?.outfit_type_id ?? "",
   });
 
-  const form = useForm<GalleryItemFormData>({
+  const form = useForm<OutfitItemFormData>({
     defaultValues: getFormValues(),
   });
 
@@ -108,61 +88,52 @@ export default function GalleryItemForm({
   const [error, setError] = useState<string | null>(null);
 
   const imageUrl = watch("image_url");
+  const colorPalette = watch("color_palette");
 
-  // Reset form when gallery item changes to clear dirty state
+  // Reset form when outfit item changes to clear dirty state
   useEffect(() => {
     reset(getFormValues());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [galleryItem?.id, reset]);
+  }, [outfitItem?.id, reset]);
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Validate required image_url (unless pending)
-      if (
-        !data.image_url ||
-        (data.image_url.trim() === "" && !hasPendingFiles)
-      ) {
-        setError("Gallery image is required");
-        setLoading(false);
-        return;
-      }
-
       // Clean up empty strings to undefined
-      const cleanData: GalleryItemFormData = cleanFormData(data, [
+      const cleanData: OutfitItemFormData = cleanFormData(data, [
         "description",
-        "thumbnail_url",
-        "artist_name",
-        "artist_url",
-        "commission_date",
-        "tags",
+        "image_url",
+        "reference_images",
+        "color_palette",
+        "notes",
+        "outfit_type_id",
       ]);
 
-      // Convert tags from comma-separated string to array
-      const tagsArray = cleanData.tags
-        ? cleanData.tags
+      // Convert reference_images from comma-separated string to array
+      const referenceImagesArray = cleanData.reference_images
+        ? cleanData.reference_images
             .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag.length > 0)
+            .map((url) => url.trim())
+            .filter((url) => url.length > 0)
         : undefined;
 
-      const submitData: GalleryItemSubmitData = {
+      const submitData: OutfitItemSubmitData = {
         ...cleanData,
-        tags: tagsArray,
+        reference_images: referenceImagesArray,
       };
 
-      // Submit the gallery item data
+      // Submit the outfit item data
       const result = await onSubmit(submitData);
 
       // If we got a result and have pending files, upload them
       if (result && hasPendingFiles) {
         const uploadSuccess = await uploadPendingFiles(
           result.id,
-          `characters/${characterId}/gallery`,
+          `characters/${characterId}/outfits`,
           async (updates) => {
-            await updateCharacterGalleryItem(result.id, updates);
+            await updateCharacterOutfit(result.id, updates);
           },
         );
 
@@ -193,7 +164,7 @@ export default function GalleryItemForm({
       oldPath.includes("characters/")
     ) {
       try {
-        await deleteCharacterGalleryImage(oldPath);
+        await deleteCharacterOutfitImage(oldPath);
       } catch (err) {
         console.error("Error deleting old image:", err);
         // Don't throw - allow the upload to continue even if deletion fails
@@ -235,7 +206,7 @@ export default function GalleryItemForm({
           {/* Header */}
           <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {galleryItem ? "Edit Gallery Item" : "Add Gallery Item"}
+              {outfitItem ? "Edit Outfit" : "Add Outfit"}
             </h2>
             <button
               type="button"
@@ -306,8 +277,8 @@ export default function GalleryItemForm({
               {/* Image Upload */}
               <div>
                 <ImageUploader
-                  label="Gallery Image *"
-                  value={imageUrl}
+                  label="Outfit Image"
+                  value={imageUrl || ""}
                   onChange={(value) =>
                     setValue("image_url", value, { shouldDirty: true })
                   }
@@ -318,32 +289,32 @@ export default function GalleryItemForm({
                   }}
                   uploadPath={
                     characterId
-                      ? `characters/${characterId}/gallery`
+                      ? `characters/${characterId}/outfits`
                       : undefined
                   }
-                  disableUrlInput={!!galleryItem}
+                  disableUrlInput={!!outfitItem}
                   helpText={
-                    galleryItem
+                    outfitItem
                       ? "Upload a new image to replace the current one"
                       : "Enter an image URL. Upload will be available after creation."
                   }
                 />
               </div>
 
-              {/* Title */}
+              {/* Name */}
               <div>
                 <label
-                  htmlFor="title"
+                  htmlFor="name"
                   className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Title *
+                  Name *
                 </label>
                 <input
                   type="text"
-                  id="title"
-                  {...register("title", { required: true })}
+                  id="name"
+                  {...register("name", { required: true })}
                   className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter title"
+                  placeholder="Enter outfit name"
                 />
               </div>
 
@@ -360,94 +331,72 @@ export default function GalleryItemForm({
                   {...register("description")}
                   rows={4}
                   className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Optional description of the artwork"
+                  placeholder="Optional description of the outfit"
                 />
               </div>
 
-              {/* Artist Information */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="artist_name"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Artist Name
-                  </label>
-                  <input
-                    type="text"
-                    id="artist_name"
-                    {...register("artist_name")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="Artist name"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="artist_url"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Artist URL
-                  </label>
-                  <input
-                    type="url"
-                    id="artist_url"
-                    {...register("artist_url")}
-                    className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-
-              {/* Commission Date */}
+              {/* Color Palette */}
               <div>
-                <label
-                  htmlFor="commission_date"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Commission Date
-                </label>
-                <input
-                  type="date"
-                  id="commission_date"
-                  {...register("commission_date")}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                <ColorPicker
+                  label="Color Palette"
+                  value={colorPalette || ""}
+                  onChange={(value) =>
+                    setValue("color_palette", value, { shouldDirty: true })
+                  }
+                  helpText="Primary color for this outfit"
                 />
               </div>
 
-              {/* Tags */}
+              {/* Reference Images */}
               <div>
                 <label
-                  htmlFor="tags"
+                  htmlFor="reference_images"
                   className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Tags
+                  Reference Images
                 </label>
                 <input
                   type="text"
-                  id="tags"
-                  {...register("tags")}
+                  id="reference_images"
+                  {...register("reference_images")}
                   className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="full body, portrait, action (comma separated)"
+                  placeholder="https://example.com/ref1.jpg, https://example.com/ref2.jpg"
                 />
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Separate tags with commas
+                  Separate multiple URLs with commas
                 </p>
               </div>
 
-              {/* Featured Toggle */}
+              {/* Notes */}
+              <div>
+                <label
+                  htmlFor="notes"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  {...register("notes")}
+                  rows={3}
+                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Additional notes about the outfit"
+                />
+              </div>
+
+              {/* Default Toggle */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id="is_featured"
-                  {...register("is_featured")}
+                  id="is_default"
+                  {...register("is_default")}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                 />
                 <label
-                  htmlFor="is_featured"
+                  htmlFor="is_default"
                   className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Featured
+                  Set as default outfit
                 </label>
               </div>
             </div>
@@ -466,7 +415,7 @@ export default function GalleryItemForm({
                 disabled={loading}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
-                {loading ? "Saving..." : galleryItem ? "Update" : "Create"}
+                {loading ? "Saving..." : outfitItem ? "Update" : "Create"}
               </button>
             </div>
           </form>

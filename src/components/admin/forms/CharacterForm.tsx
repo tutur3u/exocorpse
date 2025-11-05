@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
@@ -8,24 +9,31 @@ import { MultiSelect } from "@/components/shared/MultiSelect";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
-import { deleteCharacterGalleryImage, deleteFile } from "@/lib/actions/storage";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { deleteCharacterOutfitImage, deleteFile } from "@/lib/actions/storage";
 import type { Character, CharacterDetail, World } from "@/lib/actions/wiki";
 import {
   createCharacterGalleryItem,
+  createCharacterOutfit,
   deleteCharacterGalleryItem,
+  deleteCharacterOutfit,
   getCharacterGallery,
+  getCharacterOutfits,
   updateCharacter,
   updateCharacterGalleryItem,
+  updateCharacterOutfit,
 } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { Tables } from "../../../../supabase/types";
 import GalleryItemForm from "./GalleryItemForm";
+import OutfitItemForm from "./OutfitItemForm";
 
 type CharacterGalleryItem = Tables<"character_gallery">;
+type CharacterOutfitItem = Tables<"character_outfits">;
 
 type CharacterFormData = {
   world_ids: string[]; // Changed from world_id to world_ids
@@ -174,12 +182,20 @@ export default function CharacterForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character?.id, reset]);
 
-  // Gallery state
-  const [galleryItems, setGalleryItems] = useState<CharacterGalleryItem[]>([]);
+  // UI state
   const [showGalleryForm, setShowGalleryForm] = useState(false);
   const [editingGalleryItem, setEditingGalleryItem] =
     useState<CharacterGalleryItem | null>(null);
-  const [loadingGallery, setLoadingGallery] = useState(false);
+  const [showOutfitForm, setShowOutfitForm] = useState(false);
+  const [editingOutfitItem, setEditingOutfitItem] =
+    useState<CharacterOutfitItem | null>(null);
+  const [deleteGalleryConfirm, setDeleteGalleryConfirm] = useState(false);
+  const [galleryItemToDelete, setGalleryItemToDelete] =
+    useState<CharacterGalleryItem | null>(null);
+  const [deleteOutfitConfirm, setDeleteOutfitConfirm] = useState(false);
+  const [outfitItemToDelete, setOutfitItemToDelete] =
+    useState<CharacterOutfitItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
@@ -187,19 +203,54 @@ export default function CharacterForm({
   const colorScheme = watch("color_scheme");
   const selectedWorldIds = watch("world_ids");
 
-  // Load gallery items when editing a character
-  useEffect(() => {
-    if (character?.id) {
-      setLoadingGallery(true);
-      getCharacterGallery(character.id)
-        .then(setGalleryItems)
-        .catch((err) => {
-          console.error("Failed to load gallery:", err);
-          toast.error("Failed to load character gallery");
-        })
-        .finally(() => setLoadingGallery(false));
-    }
-  }, [character?.id]);
+  // Fetch gallery items using react-query
+  const { data: galleryItems = [], isLoading: loadingGallery } = useQuery({
+    queryKey: ["character-gallery", character?.id],
+    queryFn: () => getCharacterGallery(character?.id || ""),
+    enabled: !!character?.id,
+    retry: 1,
+  });
+
+  // Fetch outfit items using react-query
+  const { data: outfitItems = [], isLoading: loadingOutfits } = useQuery({
+    queryKey: ["character-outfits", character?.id],
+    queryFn: () => getCharacterOutfits(character?.id || ""),
+    enabled: !!character?.id,
+    retry: 1,
+  });
+
+  // Batch fetch all gallery and outfit image URLs
+  // Collect all image paths from gallery and outfit items
+  const imagePaths = useMemo(() => {
+    const paths: (string | null)[] = [];
+
+    // Add gallery item images and thumbnails
+    galleryItems.forEach((item) => {
+      if (item.image_url) paths.push(item.image_url);
+      if (item.thumbnail_url) paths.push(item.thumbnail_url);
+    });
+
+    // Add outfit item images and reference images
+    outfitItems.forEach((item) => {
+      if (item.image_url) paths.push(item.image_url);
+      if (item.reference_images && Array.isArray(item.reference_images)) {
+        item.reference_images.forEach((refImg) => {
+          if (refImg) paths.push(refImg);
+        });
+      }
+    });
+
+    // Filter out HTTP URLs and data URLs, keep only storage paths
+    return paths.filter(
+      (p): p is string =>
+        !!p &&
+        !p.startsWith("http://") &&
+        !p.startsWith("https://") &&
+        !p.startsWith("data:"),
+    );
+  }, [galleryItems, outfitItems]);
+
+  const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
@@ -363,9 +414,9 @@ export default function CharacterForm({
           editingGalleryItem.id,
           data,
         );
-        setGalleryItems((prev) =>
-          prev.map((item) => (item.id === updated.id ? updated : item)),
-        );
+        queryClient.invalidateQueries({
+          queryKey: ["character-gallery", character?.id],
+        });
         toast.success("Gallery item updated");
         return updated;
       } else {
@@ -375,7 +426,9 @@ export default function CharacterForm({
           ...data,
           display_order: galleryItems.length,
         });
-        setGalleryItems((prev) => [...prev, newItem]);
+        queryClient.invalidateQueries({
+          queryKey: ["character-gallery", character?.id],
+        });
         toast.success("Gallery item added");
         return newItem;
       }
@@ -389,65 +442,166 @@ export default function CharacterForm({
   const handleGalleryComplete = () => {
     setShowGalleryForm(false);
     setEditingGalleryItem(null);
-    // Refetch gallery items to get updated image paths after deferred upload
-    if (character?.id) {
-      getCharacterGallery(character.id).then(setGalleryItems);
-    }
   };
 
-  const handleDeleteGalleryItem = async (item: CharacterGalleryItem) => {
-    if (!confirm("Are you sure you want to delete this gallery item?")) {
-      return;
-    }
+  const handleConfirmDeleteGalleryItem = async () => {
+    if (!galleryItemToDelete) return;
 
+    setIsDeleting(true);
     try {
-      // Delete images from storage first
-      const deletePromises: Promise<unknown>[] = [];
-
-      // Delete main image if it's a storage path
-      if (
-        item.image_url &&
-        !item.image_url.startsWith("http") &&
-        !item.image_url.startsWith("data:") &&
-        item.image_url.includes("characters/")
-      ) {
-        deletePromises.push(
-          deleteCharacterGalleryImage(item.image_url).catch((err) => {
-            console.error("Error deleting gallery image:", err);
-            return undefined;
-          }),
-        );
-      }
-
-      // Delete thumbnail if it's a storage path
-      if (
-        item.thumbnail_url &&
-        !item.thumbnail_url.startsWith("http") &&
-        !item.thumbnail_url.startsWith("data:") &&
-        item.thumbnail_url.includes("characters/")
-      ) {
-        deletePromises.push(
-          deleteCharacterGalleryImage(item.thumbnail_url).catch((err) => {
-            console.error("Error deleting gallery thumbnail:", err);
-            return undefined;
-          }),
-        );
-      }
-
-      // Wait for all storage deletions to complete
-      await Promise.all(deletePromises);
-
-      // Then delete from database
-      await deleteCharacterGalleryItem(item.id);
-      setGalleryItems((prev) => prev.filter((i) => i.id !== item.id));
+      // Delete from database
+      await deleteCharacterGalleryItem(galleryItemToDelete.id);
+      queryClient.invalidateQueries({
+        queryKey: ["character-gallery", character?.id],
+      });
 
       // Invalidate storage analytics
       queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
 
       toast.success("Gallery item deleted");
+      setDeleteGalleryConfirm(false);
+      setGalleryItemToDelete(null);
     } catch (err) {
       console.error("Failed to delete gallery item:", err);
       toast.error("Failed to delete gallery item");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Outfit handlers
+  const handleAddOutfitItem = () => {
+    setEditingOutfitItem(null);
+    setShowOutfitForm(true);
+  };
+
+  const handleEditOutfitItem = (item: CharacterOutfitItem) => {
+    setEditingOutfitItem(item);
+    setShowOutfitForm(true);
+  };
+
+  const handleOutfitFormSubmit = async (data: {
+    name: string;
+    description?: string;
+    image_url?: string;
+    reference_images?: string[];
+    color_palette?: string;
+    notes?: string;
+    is_default?: boolean;
+    outfit_type_id?: string;
+  }) => {
+    if (!character?.id) {
+      toast.error("Please save the character first before adding outfit items");
+      return undefined;
+    }
+
+    try {
+      if (editingOutfitItem) {
+        // Update existing item
+        const updated = await updateCharacterOutfit(editingOutfitItem.id, data);
+        queryClient.invalidateQueries({
+          queryKey: ["character-outfits", character?.id],
+        });
+        toast.success("Outfit updated");
+        return updated;
+      } else {
+        // Create new item
+        const newItem = await createCharacterOutfit({
+          character_id: character.id,
+          ...data,
+          display_order: outfitItems.length,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["character-outfits", character?.id],
+        });
+        toast.success("Outfit added");
+        return newItem;
+      }
+    } catch (err) {
+      console.error("Failed to save outfit:", err);
+      toast.error("Failed to save outfit");
+      throw err;
+    }
+  };
+
+  const handleOutfitComplete = () => {
+    setShowOutfitForm(false);
+    setEditingOutfitItem(null);
+  };
+
+  const handleDeleteOutfitItem = async (item: CharacterOutfitItem) => {
+    setOutfitItemToDelete(item);
+    setDeleteOutfitConfirm(true);
+  };
+
+  const handleConfirmDeleteOutfitItem = async () => {
+    if (!outfitItemToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // Delete from DB
+      const deletedFromDB = await deleteCharacterOutfit(outfitItemToDelete.id);
+      // Then Delete images from storage
+      const deletePromises: Promise<unknown>[] = [];
+
+      // Delete main image if it's a storage path
+      if (
+        outfitItemToDelete.image_url &&
+        !outfitItemToDelete.image_url.startsWith("http") &&
+        !outfitItemToDelete.image_url.startsWith("data:") &&
+        outfitItemToDelete.image_url.includes("characters/") &&
+        deletedFromDB
+      ) {
+        deletePromises.push(
+          deleteCharacterOutfitImage(outfitItemToDelete.image_url).catch(
+            (err) => {
+              console.error("Error deleting outfit image:", err);
+              return undefined;
+            },
+          ),
+        );
+      }
+
+      // Delete reference images if they're storage paths
+      if (
+        outfitItemToDelete.reference_images &&
+        outfitItemToDelete.reference_images.length > 0 &&
+        deletedFromDB
+      ) {
+        outfitItemToDelete.reference_images.forEach((refImage) => {
+          if (
+            !refImage.startsWith("http") &&
+            !refImage.startsWith("data:") &&
+            refImage.includes("characters/")
+          ) {
+            deletePromises.push(
+              deleteCharacterOutfitImage(refImage).catch((err) => {
+                console.error("Error deleting outfit reference image:", err);
+                return undefined;
+              }),
+            );
+          }
+        });
+      }
+
+      // Wait for all storage deletions to complete
+      await Promise.all(deletePromises);
+
+      queryClient.invalidateQueries({
+        queryKey: ["character-outfits", character?.id],
+      });
+
+      // Invalidate storage analytics
+      queryClient.invalidateQueries({ queryKey: ["storageAnalytics"] });
+
+      toast.success("Outfit deleted");
+      setDeleteOutfitConfirm(false);
+      setOutfitItemToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete outfit:", err);
+      toast.error("Failed to delete outfit");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1229,6 +1383,7 @@ export default function CharacterForm({
                               alt={item.title}
                               fill
                               className="object-cover"
+                              signedUrl={imageUrls.get(item.image_url) ?? null}
                             />
                             {item.is_featured && (
                               <div className="absolute top-2 left-2 rounded bg-yellow-500 px-2 py-1 text-xs font-medium text-white">
@@ -1245,7 +1400,10 @@ export default function CharacterForm({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteGalleryItem(item)}
+                                onClick={() => {
+                                  setGalleryItemToDelete(item);
+                                  setDeleteGalleryConfirm(true);
+                                }}
                                 className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
                               >
                                 Delete
@@ -1254,6 +1412,123 @@ export default function CharacterForm({
                             <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/80 to-transparent p-2">
                               <p className="truncate text-xs font-medium text-white">
                                 {item.title}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Outfits Section */}
+                  <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-medium">
+                          Outfits ({outfitItems.length})
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {character
+                            ? "Manage character outfits and costumes"
+                            : "Save the character first to add outfits"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddOutfitItem}
+                        disabled={!character}
+                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Add Outfit
+                      </button>
+                    </div>
+
+                    {loadingOutfits ? (
+                      <div className="py-8 text-center text-sm text-gray-500">
+                        Loading outfits...
+                      </div>
+                    ) : outfitItems.length === 0 ? (
+                      <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
+                        <svg
+                          className="mx-auto h-12 w-12 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                          />
+                        </svg>
+                        <p className="mt-2 text-sm text-gray-500">
+                          {character
+                            ? "No outfits yet"
+                            : "Create the character first to add outfits"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-4 @lg:grid-cols-4">
+                        {outfitItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
+                          >
+                            {item.image_url ? (
+                              <StorageImage
+                                src={item.image_url}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                signedUrl={
+                                  imageUrls.get(item.image_url) ?? null
+                                }
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <svg
+                                  className="h-12 w-12 text-gray-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                            {item.is_default && (
+                              <div className="absolute top-2 left-2 rounded bg-green-500 px-2 py-1 text-xs font-medium text-white">
+                                Default
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => handleEditOutfitItem(item)}
+                                className="rounded bg-white px-3 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOutfitItemToDelete(item);
+                                  setDeleteOutfitConfirm(true);
+                                }}
+                                className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/80 to-transparent p-2">
+                              <p className="truncate text-xs font-medium text-white">
+                                {item.name}
                               </p>
                             </div>
                           </div>
@@ -1309,6 +1584,45 @@ export default function CharacterForm({
           }}
         />
       )}
+
+      {showOutfitForm && character?.id && (
+        <OutfitItemForm
+          characterId={character.id}
+          outfitItem={editingOutfitItem || undefined}
+          onSubmit={handleOutfitFormSubmit}
+          onComplete={handleOutfitComplete}
+          onCancel={() => {
+            setShowOutfitForm(false);
+            setEditingOutfitItem(null);
+          }}
+        />
+      )}
+
+      <ConfirmDeleteDialog
+        isOpen={deleteGalleryConfirm}
+        onConfirm={handleConfirmDeleteGalleryItem}
+        onCancel={() => {
+          setDeleteGalleryConfirm(false);
+          setGalleryItemToDelete(null);
+        }}
+        title="Delete Gallery Item"
+        message="Are you sure you want to delete this gallery item? This action cannot be undone."
+        confirmText="Delete"
+        loading={isDeleting}
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteOutfitConfirm}
+        onConfirm={handleConfirmDeleteOutfitItem}
+        onCancel={() => {
+          setDeleteOutfitConfirm(false);
+          setOutfitItemToDelete(null);
+        }}
+        title="Delete Outfit"
+        message="Are you sure you want to delete this outfit? This action cannot be undone."
+        confirmText="Delete"
+        loading={isDeleting}
+      />
     </>
   );
 }
