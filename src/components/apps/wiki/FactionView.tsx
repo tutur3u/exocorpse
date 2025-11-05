@@ -23,6 +23,7 @@ interface FactionMember {
   notes: string | null;
   characters?: {
     id: string;
+    slug: string;
     name: string;
     nickname?: string | null;
     profile_image?: string | null;
@@ -301,8 +302,8 @@ export default function FactionView({
                     key={member.id}
                     type="button"
                     onClick={() => {
-                      if (member.characters && onCharacterClick) {
-                        onCharacterClick(member.characters.id);
+                      if (member.characters?.slug && onCharacterClick) {
+                        onCharacterClick(member.characters.slug);
                       }
                     }}
                     className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"

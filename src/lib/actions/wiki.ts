@@ -1561,6 +1561,9 @@ export async function addCharacterToFaction(data: {
   faction_id: string;
   role?: string;
   rank?: string;
+  join_date?: string;
+  leave_date?: string;
+  notes?: string;
   is_current?: boolean;
 }) {
   // Verify authentication and get supabase client

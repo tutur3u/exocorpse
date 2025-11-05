@@ -28,17 +28,25 @@ interface FactionFormData {
   notes: string;
 }
 
-type FactionManagerProps = {
+export interface MembershipUpdate {
+  role?: string;
+  rank?: string;
+  join_date?: string;
+  leave_date?: string;
+  notes?: string;
+}
+
+export interface FactionManagerProps {
   type: "character" | "faction";
   entityId: string;
   entityName: string;
   availableEntities: (Character | Faction)[];
   memberships: FactionMembership[];
-  onAdd: (targetId: string, role?: string) => Promise<void>;
-  onEdit: (membershipId: string, role?: string) => Promise<void>;
+  onAdd: (targetId: string, updates: MembershipUpdate) => Promise<void>;
+  onEdit: (membershipId: string, updates: MembershipUpdate) => Promise<void>;
   onRemove: (membershipId: string) => Promise<void>;
   onClose: () => void;
-};
+}
 
 export default function FactionManager({
   type,
@@ -81,16 +89,30 @@ export default function FactionManager({
   const availableToAdd = availableEntities.filter((e) => !memberIds.has(e.id));
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
-    if (!data.selectedId) return;
+    // Only require selectedId when adding a new membership (not when editing)
+    if (!editingId && !data.selectedId) return;
 
     setLoading(true);
     try {
       if (editingId) {
-        // Update existing membership
-        await onEdit(editingId, data.role || undefined);
+        // Update existing membership with all fields
+        // Always send fields as-is to preserve empty string updates (which become null)
+        await onEdit(editingId, {
+          role: data.role,
+          rank: data.rank,
+          join_date: data.joinDate,
+          leave_date: data.leaveDate,
+          notes: data.notes,
+        });
       } else {
         // Add new membership
-        await onAdd(data.selectedId, data.role || undefined);
+        await onAdd(data.selectedId, {
+          role: data.role,
+          rank: data.rank,
+          join_date: data.joinDate,
+          leave_date: data.leaveDate,
+          notes: data.notes,
+        });
       }
       setShowForm(false);
       setEditingId(null);
@@ -329,7 +351,7 @@ export default function FactionManager({
                       <button
                         type="submit"
                         disabled={loading || (!editingId && !selectedId)}
-                        className="flex-1 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex-1 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
                       >
                         {loading
                           ? editingId

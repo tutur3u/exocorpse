@@ -1,7 +1,9 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
-import FactionManager from "@/components/admin/FactionManager";
+import FactionManager, {
+  type MembershipUpdate,
+} from "@/components/admin/FactionManager";
 import RelationshipManager from "@/components/admin/RelationshipManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
 import RelationshipTypeForm from "@/components/admin/forms/RelationshipTypeForm";
@@ -13,6 +15,7 @@ import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   addCharacterToFaction,
   type Character,
+  type CharacterFaction,
   createCharacter,
   createCharacterRelationship,
   createRelationshipType,
@@ -460,15 +463,17 @@ export default function CharactersClient({
   const updateFactionMutation = useMutation({
     mutationFn: ({
       membershipId,
-      role,
+      updates,
     }: {
       membershipId: string;
-      role?: string;
-    }) =>
-      updateCharacterFaction(membershipId, {
-        role: role || null,
-      }),
-    onSuccess: () => {
+      updates: Partial<
+        Omit<
+          CharacterFaction,
+          "id" | "created_at" | "character_id" | "faction_id"
+        >
+      >;
+    }) => updateCharacterFaction(membershipId, updates),
+    onSuccess: async () => {
       if (!managingCharacter) return;
       queryClient.invalidateQueries({
         queryKey: ["characterFactions", managingCharacter.id],
@@ -642,23 +647,32 @@ export default function CharactersClient({
     // React Query will automatically fetch when enabled becomes true
   };
 
-  const handleAddToFaction = async (factionId: string, role?: string) => {
+  const handleAddToFaction = async (
+    factionId: string,
+    updates: MembershipUpdate,
+  ) => {
     if (!managingCharacter) return;
     await addToFactionMutation.mutateAsync({
       character_id: managingCharacter.id,
       faction_id: factionId,
-      role,
+      role: updates.role || undefined,
+      rank: updates.rank || undefined,
+      join_date: updates.join_date || undefined,
+      leave_date: updates.leave_date || undefined,
+      notes: updates.notes || undefined,
       is_current: true,
     });
   };
 
   const handleEditFactionMembership = async (
     membershipId: string,
-    role?: string,
+    updates: MembershipUpdate,
   ) => {
+    if (!managingCharacter) return;
+
     await updateFactionMutation.mutateAsync({
       membershipId,
-      role,
+      updates,
     });
   };
 
