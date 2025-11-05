@@ -1,10 +1,19 @@
 "use client";
 
+import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import type { Character, RelationshipType } from "@/lib/actions/wiki";
-import { useEffect, useState } from "react";
-import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import StorageImage from "../shared/StorageImage";
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
+
+interface RelationshipFormData {
+  selectedCharacterId: string;
+  selectedTypeId: string;
+  description: string;
+}
 
 export interface CharacterRelationshipWithDetails {
   id: string;
@@ -191,43 +200,36 @@ export default function RelationshipManager({
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  // Form state
-  const [selectedCharacterId, setSelectedCharacterId] = useState("");
-  const [selectedTypeId, setSelectedTypeId] = useState("");
-  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Reset form when showing/hiding or when editing
-  useEffect(() => {
-    if (showForm) {
-      if (editingId) {
-        // Load editing relationship data
-        const rel = relationships.find((r) => r.id === editingId);
-        if (rel) {
-          const isCharacterA = rel.character_a_id === characterId;
-          setSelectedCharacterId(
-            isCharacterA ? rel.character_b_id : rel.character_a_id,
-          );
-          setSelectedTypeId(rel.relationship_type_id);
-          setDescription(rel.description || "");
-        }
-      } else {
-        // Adding mode
-        setSelectedCharacterId("");
-        setSelectedTypeId("");
-        setDescription("");
-      }
-    }
-  }, [showForm, editingId, relationships, characterId]);
+  const form = useForm<RelationshipFormData>({
+    defaultValues: {
+      selectedCharacterId: "",
+      selectedTypeId: "",
+      description: "",
+    },
+  });
+
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
+  const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
+    useFormDirtyState(form);
+
+  const selectedCharacterId = watch("selectedCharacterId");
+  const selectedTypeId = watch("selectedTypeId");
 
   // Check if a relationship already exists with the selected character and type
-  // This enforces the database constraint: UNIQUE(character_a_id, character_b_id, relationship_type_id)
-  const isDuplicateRelationship = () => {
+  const isDuplicateRelationship = (excludeId?: string | null) => {
     if (!selectedCharacterId || !selectedTypeId) return false;
 
     return relationships.some((rel) => {
-      // Check if this exact combination already exists
+      if (excludeId && rel.id === excludeId) return false;
+
       const matchesAsCharacterA =
         rel.character_a_id === characterId &&
         rel.character_b_id === selectedCharacterId &&
@@ -242,38 +244,32 @@ export default function RelationshipManager({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedCharacterId || !selectedTypeId) return;
-
-    // Double-check for duplicates in add mode (button should already be disabled, but this is a safety check)
-    if (!editingId && isDuplicateRelationship()) {
+  const handleFormSubmit = formHandleSubmit(async (data) => {
+    if (isDuplicateRelationship(editingId)) {
       return;
     }
 
     setLoading(true);
     try {
       if (editingId) {
-        // Update existing relationship
         await onEdit(editingId, {
-          relationshipTypeId: selectedTypeId,
-          description: description || undefined,
+          relationshipTypeId: data.selectedTypeId,
+          description: data.description || undefined,
         });
       } else {
-        // Add new relationship
         await onAdd({
-          relatedCharacterId: selectedCharacterId,
-          relationshipTypeId: selectedTypeId,
-          description: description || undefined,
+          relatedCharacterId: data.selectedCharacterId,
+          relationshipTypeId: data.selectedTypeId,
+          description: data.description || undefined,
         });
       }
       setShowForm(false);
       setEditingId(null);
+      reset();
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   const handleDelete = async (relationshipId: string) => {
     setLoading(true);
@@ -285,274 +281,307 @@ export default function RelationshipManager({
     }
   };
 
+  const handleAddRelationship = () => {
+    setEditingId(null);
+    reset({
+      selectedCharacterId: "",
+      selectedTypeId: "",
+      description: "",
+    });
+    setShowForm(true);
+  };
+
+  const handleEditRelationship = (
+    relationship: CharacterRelationshipWithDetails,
+  ) => {
+    const isCharacterA = relationship.character_a_id === characterId;
+    setEditingId(relationship.id);
+    reset({
+      selectedCharacterId: isCharacterA
+        ? relationship.character_b_id
+        : relationship.character_a_id,
+      selectedTypeId: relationship.relationship_type_id,
+      description: relationship.description || "",
+    });
+    setShowForm(true);
+  };
+
+  const handleFormCancel = () => {
+    handleExit(() => {
+      setShowForm(false);
+      setEditingId(null);
+      reset();
+    });
+  };
+
   const handleBackdropClick = () => {
-    onClose();
+    handleExit(onClose);
   };
 
   const handleBackdropKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      onClose();
+      handleExit(onClose);
     }
   };
 
   return (
-    <div
-      className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      role="button"
-      tabIndex={0}
-      aria-label="Close relationship manager"
-      onClick={handleBackdropClick}
-      onKeyDown={handleBackdropKeyDown}
-    >
+    <>
       <div
-        className="animate-slideUp flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="relationship-manager-title"
-        onClick={(e) => e.stopPropagation()}
+        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black p-4"
+        role="button"
+        tabIndex={0}
+        aria-label="Close relationship manager"
+        onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
       >
-        {/* Header */}
-        <div className="shrink-0 border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <h2
-            id="relationship-manager-title"
-            className="text-2xl font-bold text-gray-900 dark:text-gray-100"
-          >
-            Manage Relationships - {characterName}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Add and manage character relationships
-          </p>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {/* Add Button */}
-          {!showForm && (
-            <button
-              type="button"
-              onClick={() => {
-                setShowForm(true);
-              }}
-              className="mb-4 w-full rounded-lg border-2 border-dashed border-gray-300 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-purple-400 hover:text-purple-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-purple-500 dark:hover:text-purple-400"
+        <div
+          className="animate-slideUp flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="relationship-manager-title"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="shrink-0 px-6 pt-6 pb-4">
+            <h2
+              id="relationship-manager-title"
+              className="text-2xl font-bold text-gray-900 dark:text-gray-100"
             >
-              + Add Relationship
-            </button>
-          )}
+              Manage Relationships - {characterName}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Add and manage character relationships
+            </p>
+          </div>
 
-          {/* Add Form */}
-          {showForm && (
-            <form
-              onSubmit={handleSubmit}
-              className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/30 dark:bg-purple-900/10"
-            >
-              <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
-                {editingId ? "Edit Relationship" : "Add New Relationship"}
-              </h3>
+          {/* Content Area */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {/* Add Button */}
+              {!showForm && (
+                <button
+                  type="button"
+                  onClick={handleAddRelationship}
+                  className="mb-4 w-full rounded-lg border-2 border-dashed border-gray-300 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-purple-400 hover:text-purple-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-purple-500 dark:hover:text-purple-400"
+                >
+                  + Add Relationship
+                </button>
+              )}
 
-              <div className="space-y-3">
-                {/* Character Selection */}
-                <div>
-                  <label
-                    htmlFor="character-select"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Character *
-                  </label>
-                  <select
-                    id="character-select"
-                    value={selectedCharacterId}
-                    onChange={(e) => setSelectedCharacterId(e.target.value)}
-                    disabled={!!editingId}
-                    required
-                    className="w-full rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700"
-                  >
-                    <option value="">Select a character...</option>
-                    {availableCharacters.map((char) => (
-                      <option key={char.id} value={char.id}>
-                        {char.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Add/Edit Form */}
+              {showForm && (
+                <form
+                  onSubmit={handleFormSubmit}
+                  className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/30 dark:bg-purple-900/10"
+                >
+                  <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
+                    {editingId ? "Edit Relationship" : "Add New Relationship"}
+                  </h3>
 
-                {/* Relationship Type */}
-                <div>
-                  <label
-                    htmlFor="type-select"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Relationship Type *
-                  </label>
-                  <select
-                    id="type-select"
-                    value={selectedTypeId}
-                    onChange={(e) => setSelectedTypeId(e.target.value)}
-                    required
-                    className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                  >
-                    <option value="">Select a type...</option>
-                    {relationshipTypes.map((type) => {
-                      // When editing and current character is character_b, show the reverse name
-                      const isCharacterB =
-                        editingId &&
-                        relationships.find((r) => r.id === editingId)
-                          ?.character_b_id === characterId;
-                      const displayName =
-                        isCharacterB && type.reverse_name
-                          ? type.reverse_name
-                          : type.name;
-
-                      return (
-                        <option key={type.id} value={type.id}>
-                          {displayName} {type.is_mutual ? "(mutual)" : ""}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label
-                    htmlFor="description-input"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    id="description-input"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={2}
-                    placeholder="Optional notes about this relationship..."
-                    className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                </div>
-
-                {/* Duplicate Relationship Warning */}
-                {!editingId && isDuplicateRelationship() && (
-                  <div className="rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-                    <div className="flex items-start gap-2">
-                      <svg
-                        className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                  <div className="space-y-3">
+                    {/* Character Selection */}
+                    <div>
+                      <label
+                        htmlFor="character-select"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                      <div>
-                        <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
-                          Duplicate Relationship
-                        </h4>
-                        <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                          This relationship already exists between these
-                          characters with this type.
-                        </p>
+                        Character *
+                      </label>
+                      <select
+                        id="character-select"
+                        {...register("selectedCharacterId", {
+                          required: "Please select a character",
+                        })}
+                        disabled={!!editingId}
+                        className="w-full rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700"
+                      >
+                        <option value="">Select a character...</option>
+                        {availableCharacters.map((char) => (
+                          <option key={char.id} value={char.id}>
+                            {char.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Relationship Type */}
+                    <div>
+                      <label
+                        htmlFor="type-select"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Relationship Type *
+                      </label>
+                      <select
+                        id="type-select"
+                        {...register("selectedTypeId", {
+                          required: "Please select a type",
+                        })}
+                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                      >
+                        <option value="">Select a type...</option>
+                        {relationshipTypes.map((type) => {
+                          const isCharacterB =
+                            editingId &&
+                            relationships.find((r) => r.id === editingId)
+                              ?.character_b_id === characterId;
+                          const displayName =
+                            isCharacterB && type.reverse_name
+                              ? type.reverse_name
+                              : type.name;
+
+                          return (
+                            <option key={type.id} value={type.id}>
+                              {displayName} {type.is_mutual ? "(mutual)" : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label
+                        htmlFor="description-input"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Description
+                      </label>
+                      <textarea
+                        id="description-input"
+                        {...register("description")}
+                        rows={2}
+                        placeholder="Optional notes about this relationship..."
+                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                      />
+                    </div>
+
+                    {/* Duplicate Relationship Warning */}
+                    {isDuplicateRelationship(editingId) && (
+                      <div className="rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                        <div className="flex items-start gap-2">
+                          <svg
+                            className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <div>
+                            <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+                              Duplicate Relationship
+                            </h4>
+                            <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                              This relationship already exists between these
+                              characters with this type.
+                            </p>
+                          </div>
+                        </div>
                       </div>
+                    )}
+
+                    {/* Form Actions */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="submit"
+                        disabled={
+                          loading ||
+                          !selectedCharacterId ||
+                          !selectedTypeId ||
+                          isDuplicateRelationship(editingId)
+                        }
+                        className="flex-1 rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {loading
+                          ? editingId
+                            ? "Saving..."
+                            : "Saving..."
+                          : editingId
+                            ? "Update"
+                            : "Add"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleFormCancel}
+                        disabled={loading}
+                        className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
+                </form>
+              )}
+
+              {/* Relationships List */}
+              <div className="space-y-3">
+                {relationships.length === 0 ? (
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      No relationships yet
+                    </p>
+                  </div>
+                ) : (
+                  relationships.map((relationship) => (
+                    <RelationshipCard
+                      key={relationship.id}
+                      relationship={relationship}
+                      currentCharacterId={characterId}
+                      onEdit={() => handleEditRelationship(relationship)}
+                      onDelete={() => setDeleteConfirmId(relationship.id)}
+                    />
+                  ))
                 )}
-
-                {/* Form Actions */}
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="submit"
-                    disabled={
-                      loading ||
-                      !selectedCharacterId ||
-                      !selectedTypeId ||
-                      (!editingId && isDuplicateRelationship())
-                    }
-                    className="flex-1 rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {loading
-                      ? editingId
-                        ? "Saving..."
-                        : "Saving..."
-                      : editingId
-                        ? "Update"
-                        : "Add"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setEditingId(null);
-                    }}
-                    disabled={loading}
-                    className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                  >
-                    Cancel
-                  </button>
-                </div>
               </div>
-            </form>
-          )}
+            </div>
 
-          {/* Relationships List */}
-          <div className="space-y-3">
-            {relationships.length === 0 ? (
-              <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  No relationships yet
-                </p>
-              </div>
-            ) : (
-              relationships.map((relationship) => (
-                <RelationshipCard
-                  key={relationship.id}
-                  relationship={relationship}
-                  currentCharacterId={characterId}
-                  onEdit={() => {
-                    setEditingId(relationship.id);
-                    setShowForm(true);
-                  }}
-                  onDelete={() => setDeleteConfirmId(relationship.id)}
-                />
-              ))
-            )}
+            {/* Footer - Close Button */}
+            <div className="flex shrink-0 justify-end gap-2 border-t border-gray-300 px-6 py-4 dark:border-gray-600">
+              <button
+                type="button"
+                onClick={() => handleExit(onClose)}
+                className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="shrink-0 border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-          >
-            Close
-          </button>
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Confirmation Dialogs */}
+      <ConfirmExitDialog
+        isOpen={showConfirmDialog}
+        onConfirm={confirmExit}
+        onCancel={cancelExit}
+      />
+
       <ConfirmDeleteDialog
         isOpen={!!deleteConfirmId}
         onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
         onCancel={() => setDeleteConfirmId(null)}
         loading={loading}
       />
-    </div>
+    </>
   );
 }

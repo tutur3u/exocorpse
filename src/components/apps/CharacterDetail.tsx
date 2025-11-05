@@ -407,10 +407,44 @@ export default function CharacterDetail({
                               />
                             </svg>
                           </div>
-                          {membership.role && (
-                            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                              {membership.role}
-                              {membership.rank && ` • ${membership.rank}`}
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {membership.role && (
+                              <span className="inline-block rounded-full bg-purple-200 px-2 py-0.5 text-xs font-medium text-purple-900 dark:bg-purple-800/40 dark:text-purple-200">
+                                {membership.role}
+                              </span>
+                            )}
+                            {membership.rank && (
+                              <span className="inline-block rounded-full bg-indigo-200 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-800/40 dark:text-indigo-200">
+                                {membership.rank}
+                              </span>
+                            )}
+                            {membership.is_current !== null && (
+                              <span
+                                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  membership.is_current
+                                    ? "bg-green-200 text-green-900 dark:bg-green-800/40 dark:text-green-200"
+                                    : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300"
+                                }`}
+                              >
+                                {membership.is_current ? "Current" : "Former"}
+                              </span>
+                            )}
+                          </div>
+                          {(membership.join_date || membership.leave_date) && (
+                            <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-500">
+                              {membership.join_date && (
+                                <span>Joined {membership.join_date}</span>
+                              )}
+                              {membership.join_date &&
+                                membership.leave_date && <span> • </span>}
+                              {membership.leave_date && (
+                                <span>Left {membership.leave_date}</span>
+                              )}
+                            </div>
+                          )}
+                          {membership.notes && (
+                            <div className="mt-1 text-xs text-gray-600 italic dark:text-gray-500">
+                              {membership.notes}
                             </div>
                           )}
                         </button>
