@@ -210,13 +210,7 @@ export default function RelationshipManager({
     },
   });
 
-  const {
-    register,
-    handleSubmit: formHandleSubmit,
-    setValue,
-    watch,
-    reset,
-  } = form;
+  const { register, handleSubmit: formHandleSubmit, watch, reset } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 

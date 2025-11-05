@@ -1684,6 +1684,9 @@ export async function addCharacterToFaction(data: {
   faction_id: string;
   role?: string;
   rank?: string;
+  join_date?: string;
+  leave_date?: string;
+  notes?: string;
   is_current?: boolean;
 }) {
   // Verify authentication and get supabase client
@@ -1859,25 +1862,6 @@ export type CharacterRelationshipEnhanced = {
     reverse_name: string | null;
   };
 };
-
-/**
- * Get all relationship types (global and story-specific)
- */
-export async function getRelationshipTypes(_storyId?: string) {
-  const supabase = await getSupabaseServer();
-
-  const { data, error } = await supabase
-    .from("relationship_types")
-    .select("*")
-    .order("name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching relationship types:", error);
-    return [];
-  }
-
-  return data || [];
-}
 
 /**
  * Get all relationships for a character using the enhanced database function
