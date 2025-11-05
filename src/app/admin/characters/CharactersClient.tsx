@@ -36,6 +36,7 @@ import {
   removeCharacterFromFaction,
   type Story,
   updateCharacter,
+  updateCharacterFaction,
   updateCharacterRelationship,
   updateRelationshipType,
 } from "@/lib/actions/wiki";
@@ -456,6 +457,31 @@ export default function CharactersClient({
     },
   });
 
+  const updateFactionMutation = useMutation({
+    mutationFn: ({
+      membershipId,
+      role,
+    }: {
+      membershipId: string;
+      role?: string;
+    }) =>
+      updateCharacterFaction(membershipId, {
+        role: role || null,
+      }),
+    onSuccess: () => {
+      if (!managingCharacter) return;
+      queryClient.invalidateQueries({
+        queryKey: ["characterFactions", managingCharacter.id],
+      });
+      toastWithSound.success("Faction membership updated!");
+    },
+    onError: (error) => {
+      toastWithSound.error(
+        `Failed to update faction membership: ${error.message}`,
+      );
+    },
+  });
+
   const addRelationshipMutation = useMutation({
     mutationFn: createCharacterRelationship,
     onSuccess: () => {
@@ -626,6 +652,16 @@ export default function CharactersClient({
     });
   };
 
+  const handleEditFactionMembership = async (
+    membershipId: string,
+    role?: string,
+  ) => {
+    await updateFactionMutation.mutateAsync({
+      membershipId,
+      role,
+    });
+  };
+
   const handleRemoveFromFaction = async (membershipId: string) => {
     await removeFromFactionMutation.mutateAsync(membershipId);
   };
@@ -727,6 +763,7 @@ export default function CharactersClient({
       <div className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-8">
           <button
+            type="button"
             onClick={() => setActiveTab("characters")}
             className={`border-b-2 px-1 py-3 font-medium transition-colors ${
               activeTab === "characters"
@@ -737,6 +774,7 @@ export default function CharactersClient({
             Characters
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("relationship-types")}
             className={`border-b-2 px-1 py-3 font-medium transition-colors ${
               activeTab === "relationship-types"
@@ -754,10 +792,14 @@ export default function CharactersClient({
         <>
           {/* Story & World Filters */}
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="story-filter"
+              className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Filter by Story (optional)
             </label>
             <select
+              id="story-filter"
               value={selectedStoryId}
               onChange={(e) => {
                 setSelectedStoryId(e.target.value);
@@ -777,16 +819,19 @@ export default function CharactersClient({
           {/* World Filter */}
           {selectedStoryId && worlds.length > 0 && (
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
-              <label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Filter by Worlds (
-                {selectedWorldFilters.size > 0
-                  ? `${selectedWorldFilters.size} selected`
-                  : "All worlds"}
-                )
-              </label>
+              <fieldset className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <legend className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Filter by Worlds (
+                  {selectedWorldFilters.size > 0
+                    ? `${selectedWorldFilters.size} selected`
+                    : "All worlds"}
+                  )
+                </legend>
+              </fieldset>
               <div className="flex flex-wrap gap-2">
                 {worlds.map((world) => (
                   <button
+                    type="button"
                     key={world.id}
                     onClick={() => {
                       const newFilters = new Set(selectedWorldFilters);
@@ -808,6 +853,7 @@ export default function CharactersClient({
                 ))}
                 {selectedWorldFilters.size > 0 && (
                   <button
+                    type="button"
                     onClick={() => setSelectedWorldFilters(new Set())}
                     className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all duration-200 hover:bg-red-100 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
                   >
@@ -853,6 +899,7 @@ export default function CharactersClient({
                 Create your first character for this story
               </p>
               <button
+                type="button"
                 onClick={() => {
                   setEditingCharacter(null);
                   setShowForm(true);
@@ -886,6 +933,7 @@ export default function CharactersClient({
                 Try clearing the world filters to see all characters
               </p>
               <button
+                type="button"
                 onClick={() => setSelectedWorldFilters(new Set())}
                 className="rounded-lg bg-linear-to-r from-yellow-600 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
@@ -945,6 +993,7 @@ export default function CharactersClient({
               availableEntities={factions}
               memberships={entityMemberships}
               onAdd={handleAddToFaction}
+              onEdit={handleEditFactionMembership}
               onRemove={handleRemoveFromFaction}
               onClose={() => {
                 setShowFactionManager(false);
@@ -1031,6 +1080,7 @@ export default function CharactersClient({
               </p>
             </div>
             <button
+              type="button"
               onClick={() => {
                 setManagingRelationshipType(null);
                 setShowRelationshipTypeManager(true);
@@ -1155,6 +1205,7 @@ export default function CharactersClient({
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
+                              type="button"
                               onClick={() => {
                                 setManagingRelationshipType({
                                   id: type.id,
@@ -1180,6 +1231,7 @@ export default function CharactersClient({
                               Edit
                             </button>
                             <button
+                              type="button"
                               onClick={() => {
                                 setDeleteRelationshipTypeConfirmId(type.id);
                               }}

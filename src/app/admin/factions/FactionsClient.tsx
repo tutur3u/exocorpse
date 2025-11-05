@@ -19,6 +19,7 @@ import {
   getWorldsByStoryId,
   removeCharacterFromFaction,
   type Story,
+  updateCharacterFaction,
   updateFaction,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
@@ -162,6 +163,25 @@ export default function FactionsClient({
     },
   });
 
+  const updateMemberMutation = useMutation({
+    mutationFn: ({
+      membershipId,
+      role,
+    }: {
+      membershipId: string;
+      role?: string;
+    }) => updateCharacterFaction(membershipId, { role }),
+    onSuccess: async () => {
+      if (!managingFaction) return;
+      const memberships = await getFactionMembers(managingFaction.id);
+      setEntityMemberships(memberships);
+      toastWithSound.success("Member updated successfully!");
+    },
+    onError: (error) => {
+      toastWithSound.error(`Failed to update member: ${error.message}`);
+    },
+  });
+
   const handleCreate = async (data: Parameters<typeof createFaction>[0]) => {
     const newFaction = await createMutation.mutateAsync(data);
     return newFaction;
@@ -214,6 +234,10 @@ export default function FactionsClient({
 
   const handleRemoveMember = async (membershipId: string) => {
     await removeMemberMutation.mutateAsync(membershipId);
+  };
+
+  const handleEditMember = async (membershipId: string, role?: string) => {
+    await updateMemberMutation.mutateAsync({ membershipId, role });
   };
 
   const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
@@ -444,6 +468,7 @@ export default function FactionsClient({
           availableEntities={characters}
           memberships={entityMemberships}
           onAdd={handleAddMember}
+          onEdit={handleEditMember}
           onRemove={handleRemoveMember}
           onClose={() => {
             setShowMemberManager(false);

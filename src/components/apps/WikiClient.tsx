@@ -289,6 +289,20 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     });
   };
 
+  const handleCharacterClickFromFaction = (characterId: string) => {
+    // Find the character by ID to get its slug
+    const character = worldCharacters.find((c) => c.id === characterId);
+    if (character) {
+      setParams({
+        story: storySlug,
+        world: worldSlug,
+        character: character.slug,
+        faction: null,
+        "character-tab": null,
+      });
+    }
+  };
+
   const handleNavigate = (mode: ViewMode) => {
     if (mode === "stories") {
       setParams({
@@ -422,7 +436,10 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
               onNavigate={handleNavigate}
             />
           </div>
-          <FactionView faction={viewingFaction} />
+          <FactionView
+            faction={viewingFaction}
+            onCharacterClick={handleCharacterClickFromFaction}
+          />
         </div>
       );
     }
