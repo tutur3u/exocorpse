@@ -33,7 +33,6 @@ import {
   getCharacterWorlds,
   getFactionsByCharacterWorldIds,
   getPublishedStories,
-  getRelationshipTypes,
   getWorldsByStoryId,
   type RelationshipType,
   removeCharacterFromFaction,
@@ -283,8 +282,8 @@ export default function CharactersClient({
 
   // Fetch relationship types (global and story-specific)
   const { data: relationshipTypes = [] } = useQuery({
-    queryKey: ["relationshipTypes", selectedStoryId],
-    queryFn: () => getRelationshipTypes(selectedStoryId || undefined),
+    queryKey: ["relationshipTypes"],
+    queryFn: () => getAllRelationshipTypes(),
     enabled: showRelationshipManager,
   });
 

@@ -1741,25 +1741,6 @@ export type CharacterRelationshipEnhanced = {
 };
 
 /**
- * Get all relationship types (global and story-specific)
- */
-export async function getRelationshipTypes(_storyId?: string) {
-  const supabase = await getSupabaseServer();
-
-  const { data, error } = await supabase
-    .from("relationship_types")
-    .select("*")
-    .order("name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching relationship types:", error);
-    return [];
-  }
-
-  return data || [];
-}
-
-/**
  * Get all relationships for a character using the enhanced database function
  * Returns comprehensive character and relationship type details
  */
