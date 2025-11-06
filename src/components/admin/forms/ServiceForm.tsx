@@ -457,7 +457,11 @@ export default function ServiceForm({
                               oldValue !== newValue &&
                               !oldValue.startsWith("http") &&
                               !oldValue.startsWith("data:") &&
-                              !oldValue.startsWith("pending:")
+                              !oldValue.startsWith("pending:") &&
+                              service &&
+                              oldValue.includes(
+                                `services/${service.service_id}/cover`,
+                              )
                             ) {
                               try {
                                 await deleteFile(oldValue);

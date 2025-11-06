@@ -69,6 +69,9 @@ type CharacterFormData = {
   profile_image?: string;
   banner_image?: string;
   color_scheme?: string;
+  featured_image?: string;
+  quote?: string;
+  description?: string;
 };
 
 type CharacterFormProps = {
@@ -157,6 +160,8 @@ export default function CharacterForm({
     profile_image: character?.profile_image ?? "",
     banner_image: character?.banner_image ?? "",
     color_scheme: character?.color_scheme ?? "#3b82f6",
+    featured_image: character?.featured_image ?? "",
+    quote: character?.quote ?? "",
   });
 
   const form = useForm<CharacterFormData>({
@@ -196,12 +201,14 @@ export default function CharacterForm({
   const [outfitItemToDelete, setOutfitItemToDelete] =
     useState<CharacterOutfitItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showFeaturedImagePicker, setShowFeaturedImagePicker] = useState(false);
 
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
   const colorScheme = watch("color_scheme");
   const selectedWorldIds = watch("world_ids");
+  const featuredImage = watch("featured_image");
 
   // Fetch gallery items using react-query
   const { data: galleryItems = [], isLoading: loadingGallery } = useQuery({
@@ -252,6 +259,46 @@ export default function CharacterForm({
 
   const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
 
+  // Collect all candidate images for featured image selection
+  const featuredImageCandidates: {
+    id: string;
+    url: string;
+    caption?: string;
+  }[] = useMemo(() => {
+    if (!character) return [];
+    const items: { id: string; url: string; caption?: string }[] = [];
+
+    // Gallery items
+    galleryItems.forEach((item) => {
+      if (item.image_url) {
+        items.push({
+          id: item.id,
+          url: item.image_url,
+          caption: item.title,
+        });
+      }
+    });
+
+    // Outfit items
+    outfitItems.forEach((item) => {
+      if (item.image_url) {
+        items.push({
+          id: item.id,
+          url: item.image_url,
+          caption: item.name,
+        });
+      }
+    });
+
+    // Deduplicate by URL just in case
+    const seen = new Set<string>();
+    return items.filter((it) => {
+      if (seen.has(it.url)) return false;
+      seen.add(it.url);
+      return true;
+    });
+  }, [character, galleryItems, outfitItems]);
+
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
@@ -297,6 +344,9 @@ export default function CharacterForm({
           "profile_image",
           "banner_image",
           "color_scheme",
+          "featured_image",
+          "quote",
+          "description",
         ],
         ["age"],
       );
@@ -361,13 +411,16 @@ export default function CharacterForm({
     // Only delete if:
     // 1. The old value exists and is a storage path (not a URL or data URL)
     // 2. The new value is different from the old value
-    // 3. The old value is not a full URL (starts with http/https) or data URL
+    // 3. The old value is specifically in the featured image path
+    //    (don't delete shared images from gallery/outfits/etc)
     if (
       oldValue &&
       oldValue !== newValue &&
       !oldValue.startsWith("http://") &&
       !oldValue.startsWith("https://") &&
-      !oldValue.startsWith("data:")
+      !oldValue.startsWith("data:") &&
+      character &&
+      oldValue.includes(`characters/${character.id}/featured`)
     ) {
       try {
         await deleteFile(oldValue);
@@ -527,11 +580,6 @@ export default function CharacterForm({
   const handleOutfitComplete = () => {
     setShowOutfitForm(false);
     setEditingOutfitItem(null);
-  };
-
-  const handleDeleteOutfitItem = async (item: CharacterOutfitItem) => {
-    setOutfitItemToDelete(item);
-    setDeleteOutfitConfirm(true);
   };
 
   const handleConfirmDeleteOutfitItem = async () => {
@@ -809,6 +857,21 @@ export default function CharacterForm({
                         placeholder="Johnny"
                       />
                     </div>
+                    <div className="col-span-2">
+                      <label
+                        htmlFor="character-quote"
+                        className="mb-1 block text-sm font-medium"
+                      >
+                        Quote
+                      </label>
+                      <input
+                        type="text"
+                        id="character-quote"
+                        {...register("quote")}
+                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                        placeholder="The only limit is your mind."
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -844,6 +907,24 @@ export default function CharacterForm({
                     </div>
                   </div>
 
+                  <div>
+                    <MarkdownEditor
+                      label="Description"
+                      value={watch("description") || ""}
+                      onChange={(value) =>
+                        setValue("description", value, { shouldDirty: true })
+                      }
+                      placeholder="# Description\n\nA brief overview of the character's background, personality, and role in the story..."
+                      helpText="Brief description of a character. Supports markdown."
+                      rows={5}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Physical Tab */}
+              {activeTab === "physical" && (
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
@@ -962,12 +1043,6 @@ export default function CharacterForm({
                       />
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Physical Tab */}
-              {activeTab === "physical" && (
-                <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label
@@ -1323,6 +1398,43 @@ export default function CharacterForm({
                     helpText="Theme color for this character"
                   />
 
+                  {/* Featured Image Section */}
+                  {character && (
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Featured Image
+                      </label>
+                      <div className="space-y-2 rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                        <ImageUploader
+                          label="Featured Image"
+                          value={featuredImage || ""}
+                          onChange={(value) =>
+                            setValue("featured_image", value, {
+                              shouldDirty: true,
+                            })
+                          }
+                          uploadPath={
+                            character
+                              ? `characters/${character.id}/featured`
+                              : undefined
+                          }
+                          enableUpload={!!character}
+                          onBeforeChange={handleDeleteOldImage}
+                          helpText="Upload a new image or choose from existing gallery/outfit images."
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowFeaturedImagePicker(true)}
+                            className="rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                          >
+                            Choose from existing
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Gallery Section */}
                   <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
                     <div className="mb-4 flex items-center justify-between">
@@ -1623,6 +1735,74 @@ export default function CharacterForm({
         confirmText="Delete"
         loading={isDeleting}
       />
+
+      {/* Featured Image Picker Modal */}
+      {showFeaturedImagePicker && character && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowFeaturedImagePicker(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+              <h3 className="text-lg font-semibold">Choose existing image</h3>
+              <button
+                type="button"
+                className="rounded px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setShowFeaturedImagePicker(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto p-4">
+              {featuredImageCandidates.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No images available yet. Upload gallery or outfit images
+                  first.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {featuredImageCandidates.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 text-left hover:ring-2 hover:ring-blue-500 dark:border-gray-700"
+                      onClick={() => {
+                        setValue("featured_image", item.url, {
+                          shouldDirty: true,
+                        });
+                        setShowFeaturedImagePicker(false);
+                      }}
+                    >
+                      <StorageImage
+                        src={item.url}
+                        signedUrl={imageUrls.get(item.url) ?? null}
+                        alt={item.caption || "Example"}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center bg-black/40 text-white group-hover:flex">
+                        <span className="rounded bg-white/80 px-2 py-1 text-xs font-medium text-gray-900">
+                          Select
+                        </span>
+                      </div>
+                      {item.caption && (
+                        <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/80 to-transparent p-2">
+                          <p className="truncate text-xs font-medium text-white">
+                            {item.caption}
+                          </p>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
