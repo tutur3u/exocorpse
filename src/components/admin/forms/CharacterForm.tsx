@@ -1,6 +1,7 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import ColorPalettePicker from "@/components/shared/ColorPalettePicker";
 import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
@@ -40,7 +41,6 @@ type CharacterFormData = {
   name: string;
   slug: string;
   nickname?: string;
-  title?: string;
   age?: number;
   age_description?: string;
   species?: string;
@@ -56,22 +56,17 @@ type CharacterFormData = {
   status?: "alive" | "deceased" | "unknown" | "missing" | "imprisoned";
   occupation?: string;
   personality_summary?: string;
-  likes?: string;
-  dislikes?: string;
-  fears?: string;
-  goals?: string;
   backstory?: string;
   lore?: string;
-  skills?: string;
   abilities?: string;
-  strengths?: string;
-  weaknesses?: string;
   profile_image?: string;
   banner_image?: string;
   color_scheme?: string;
+  color_palette?: string[];
   featured_image?: string;
   quote?: string;
   description?: string;
+  fanwork_policy?: string;
 };
 
 type CharacterFormProps = {
@@ -104,7 +99,13 @@ export default function CharacterForm({
   } = usePendingUploads();
 
   const [activeTab, setActiveTab] = useState<
-    "basic" | "physical" | "personality" | "history" | "abilities" | "visuals"
+    | "basic"
+    | "physical"
+    | "personality"
+    | "history"
+    | "abilities"
+    | "visuals"
+    | "outfits"
   >("basic");
 
   // Extract world_ids from character if editing
@@ -125,9 +126,7 @@ export default function CharacterForm({
     name: character?.name ?? "",
     slug: character?.slug ?? "",
     nickname: character?.nickname ?? "",
-    title: character?.title ?? "",
     age: character?.age ?? undefined,
-    age_description: character?.age_description ?? "",
     species: character?.species ?? "",
     gender: character?.gender ?? "",
     pronouns: character?.pronouns ?? "",
@@ -147,22 +146,17 @@ export default function CharacterForm({
         | "imprisoned") ?? "alive",
     occupation: character?.occupation ?? "",
     personality_summary: character?.personality_summary ?? "",
-    likes: character?.likes ?? "",
-    dislikes: character?.dislikes ?? "",
-    fears: character?.fears ?? "",
-    goals: character?.goals ?? "",
     backstory: character?.backstory ?? "",
     lore: character?.lore ?? "",
-    skills: character?.skills ?? "",
     abilities: character?.abilities ?? "",
-    strengths: character?.strengths ?? "",
-    weaknesses: character?.weaknesses ?? "",
     profile_image: character?.profile_image ?? "",
     banner_image: character?.banner_image ?? "",
     color_scheme: character?.color_scheme ?? "#3b82f6",
+    color_palette: character?.color_palette ?? [],
     featured_image: character?.featured_image ?? "",
     quote: character?.quote ?? "",
     description: character?.description ?? "",
+    fanwork_policy: character?.fanwork_policy ?? "",
   });
 
   const form = useForm<CharacterFormData>({
@@ -208,6 +202,7 @@ export default function CharacterForm({
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
   const colorScheme = watch("color_scheme");
+  const colorPalette = watch("color_palette");
   const selectedWorldIds = watch("world_ids");
   const featuredImage = watch("featured_image");
 
@@ -317,8 +312,6 @@ export default function CharacterForm({
         data,
         [
           "nickname",
-          "title",
-          "age_description",
           "species",
           "gender",
           "pronouns",
@@ -332,22 +325,17 @@ export default function CharacterForm({
           "status",
           "occupation",
           "personality_summary",
-          "likes",
-          "dislikes",
-          "fears",
-          "goals",
           "backstory",
           "lore",
-          "skills",
           "abilities",
-          "strengths",
-          "weaknesses",
           "profile_image",
           "banner_image",
           "color_scheme",
           "featured_image",
           "quote",
           "description",
+          "fanwork_policy",
+          "color_palette",
         ],
         ["age"],
       );
@@ -745,6 +733,17 @@ export default function CharacterForm({
             >
               Visuals
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("outfits")}
+              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === "outfits"
+                  ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              Outfits
+            </button>
           </div>
 
           <form
@@ -858,7 +857,10 @@ export default function CharacterForm({
                         placeholder="Johnny"
                       />
                     </div>
-                    <div className="col-span-2">
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <label
                         htmlFor="character-quote"
                         className="mb-1 block text-sm font-medium"
@@ -873,9 +875,6 @@ export default function CharacterForm({
                         placeholder="The only limit is your mind."
                       />
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
                         htmlFor="character-slug"
@@ -889,21 +888,6 @@ export default function CharacterForm({
                         {...register("slug", { required: true })}
                         className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
                         placeholder="john-doe"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="character-title"
-                        className="mb-1 block text-sm font-medium"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        id="character-title"
-                        {...register("title")}
-                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                        placeholder="Dr., Agent, Commander, etc."
                       />
                     </div>
                   </div>
@@ -945,24 +929,6 @@ export default function CharacterForm({
                     </div>
                     <div>
                       <label
-                        htmlFor="character-age-description"
-                        className="mb-1 block text-sm font-medium"
-                      >
-                        Age Description
-                      </label>
-                      <input
-                        type="text"
-                        id="character-age-description"
-                        {...register("age_description")}
-                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                        placeholder="early 20s, ancient, etc."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label
                         htmlFor="character-species"
                         className="mb-1 block text-sm font-medium"
                       >
@@ -976,6 +942,9 @@ export default function CharacterForm({
                         placeholder="Human, Elf, etc."
                       />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
                         htmlFor="character-gender"
@@ -1162,82 +1131,17 @@ export default function CharacterForm({
               {activeTab === "personality" && (
                 <div className="space-y-4">
                   <div>
-                    <label
-                      htmlFor="character-personality-summary"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Personality Summary
-                    </label>
-                    <textarea
-                      id="character-personality-summary"
-                      {...register("personality_summary")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="A brief description of their personality..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-likes"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Likes
-                    </label>
-                    <textarea
-                      id="character-likes"
-                      {...register("likes")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they enjoy or appreciate..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-dislikes"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Dislikes
-                    </label>
-                    <textarea
-                      id="character-dislikes"
-                      {...register("dislikes")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they dislike or avoid..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-fears"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Fears
-                    </label>
-                    <textarea
-                      id="character-fears"
-                      {...register("fears")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Their deepest fears..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-goals"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Goals
-                    </label>
-                    <textarea
-                      id="character-goals"
-                      {...register("goals")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they're trying to achieve..."
+                    <MarkdownEditor
+                      label="Personality Summary"
+                      value={watch("personality_summary") || ""}
+                      onChange={(value) =>
+                        setValue("personality_summary", value, {
+                          shouldDirty: true,
+                        })
+                      }
+                      placeholder="# Personality Summary\n\nDescribe their personality traits, quirks, and motivations..."
+                      helpText="Character's personality summary. Supports markdown."
+                      rows={12}
                     />
                   </div>
                 </div>
@@ -1274,66 +1178,15 @@ export default function CharacterForm({
               {activeTab === "abilities" && (
                 <div className="space-y-4">
                   <div>
-                    <label
-                      htmlFor="character-skills"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Skills
-                    </label>
-                    <textarea
-                      id="character-skills"
-                      {...register("skills")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Combat, hacking, piloting, etc..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-abilities"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Abilities
-                    </label>
-                    <textarea
-                      id="character-abilities"
-                      {...register("abilities")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Special powers, magic, superhuman traits..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-strengths"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Strengths
-                    </label>
-                    <textarea
-                      id="character-strengths"
-                      {...register("strengths")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they excel at..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-weaknesses"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Weaknesses
-                    </label>
-                    <textarea
-                      id="character-weaknesses"
-                      {...register("weaknesses")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Their vulnerabilities and limitations..."
+                    <MarkdownEditor
+                      label="Abilities & Skills"
+                      value={watch("abilities") || ""}
+                      onChange={(value) =>
+                        setValue("abilities", value, { shouldDirty: true })
+                      }
+                      placeholder="# Abilities & Skills\n\nDescribe their special powers, skills, and talents..."
+                      helpText="Character's abilities and skills. Supports markdown."
+                      rows={12}
                     />
                   </div>
                 </div>
@@ -1532,7 +1385,34 @@ export default function CharacterForm({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
 
+              {activeTab === "outfits" && (
+                <div className="space-y-6">
+                  {/* Color Palette Picker */}
+                  <ColorPalettePicker
+                    label="Color Palette"
+                    value={colorPalette || []}
+                    onChange={(value) =>
+                      setValue("color_palette", value, { shouldDirty: true })
+                    }
+                    maxColors={6}
+                    helpText="Define up to 6 colors that represent this character's visual theme"
+                  />
+
+                  <div>
+                    <MarkdownEditor
+                      label="Fanwork Policy"
+                      value={watch("fanwork_policy") || ""}
+                      onChange={(value) =>
+                        setValue("fanwork_policy", value, { shouldDirty: true })
+                      }
+                      placeholder="# Fanwork Policy\n\nDescribe the character's fanwork policy..."
+                      helpText="Character's fanwork policy. Supports markdown."
+                      rows={12}
+                    />
+                  </div>
                   {/* Outfits Section */}
                   <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
                     <div className="mb-4 flex items-center justify-between">

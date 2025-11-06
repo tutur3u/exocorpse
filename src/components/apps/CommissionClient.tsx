@@ -1,7 +1,6 @@
 "use client";
 
 import BlacklistTab from "@/components/apps/commission/BlacklistTab";
-import InfoTab from "@/components/apps/commission/InfoTab";
 import ServiceDetail from "@/components/apps/commission/ServiceDetail";
 import ServicesTab from "@/components/apps/commission/ServicesTab";
 import TermsOfServiceTab from "@/components/apps/commission/TermsOfServiceTab";
@@ -24,7 +23,6 @@ export default function CommissionClient({
   const [params, setParams] = useQueryStates(
     {
       "commission-tab": parseAsStringLiteral([
-        "info",
         "services",
         "tos",
         "blacklist",
@@ -43,7 +41,7 @@ export default function CommissionClient({
   const styleSlug = params.style;
 
   // If a service is selected, show that instead of the tab content
-  const activeTab = serviceSlug ? "services" : (activeTabParam ?? "info");
+  const activeTab = serviceSlug ? "services" : (activeTabParam ?? "services");
 
   // Query all services for the services tab (if not already loaded)
   const shouldFetchAllServices = activeTab === "services" && !serviceSlug;
@@ -69,7 +67,7 @@ export default function CommissionClient({
     enabled: !!serviceSlug,
   });
 
-  const handleTabChange = (tab: "info" | "services" | "tos" | "blacklist") => {
+  const handleTabChange = (tab: "services" | "tos" | "blacklist") => {
     setParams({
       "commission-tab": tab,
       service: null,
@@ -80,16 +78,6 @@ export default function CommissionClient({
   return (
     <div className="flex h-full flex-col">
       <div className="flex border-b border-gray-300 dark:border-gray-700">
-        <button
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === "info"
-              ? "border-b-2 border-blue-500 bg-gray-100 dark:bg-gray-800"
-              : "hover:bg-gray-50 dark:hover:bg-gray-900"
-          }`}
-          onClick={() => handleTabChange("info")}
-        >
-          Info
-        </button>
         <button
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === "services"
@@ -122,7 +110,6 @@ export default function CommissionClient({
         </button>
       </div>
       <div className="flex-1 overflow-auto p-6">
-        {activeTab === "info" && <InfoTab />}
         {activeTab === "services" && (
           <>
             {serviceSlug && selectedService ? (

@@ -626,14 +626,14 @@ export default function PortfolioClient({
                 <div className="overflow-hidden rounded-lg border border-gray-700">
                   {/* Hero Banner */}
                   {selectedGame.cover_image_url && (
-                    <div className="relative aspect-video w-full overflow-hidden bg-gray-900">
+                    <div className="relative aspect-video max-h-[450px] w-full overflow-hidden bg-gray-900">
                       <StorageImage
                         src={selectedGame.cover_image_url}
                         signedUrl={gameImageUrls.get(
                           selectedGame.cover_image_url,
                         )}
-                        alt={selectedGame.title}
                         fill
+                        alt={selectedGame.title}
                         className="object-cover"
                         unoptimized
                       />

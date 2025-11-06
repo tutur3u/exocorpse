@@ -178,7 +178,7 @@ export default function BootScreen({
               key={msg.id}
               className={`h-7 ${msg.displayedText ? "opacity-100" : "opacity-0"}`}
             >
-              <span className="text-green-400">{msg.displayedText}</span>
+              <span className="text-white">{msg.displayedText}</span>
               {msg.isTyping && <span className="animate-pulse">▋</span>}
             </div>
           ))}

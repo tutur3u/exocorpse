@@ -110,9 +110,8 @@ export default function CharacterDetail({
 
   const tabs = [
     { id: "overview", label: "Overview" },
-    { id: "relationships", label: `Relationships (${relationships.length})` },
     { id: "outfits", label: `Outfits (${outfits.length})` },
-    { id: "lore", label: "Lore & Backstory" },
+    { id: "lore", label: "Story & Relationships" },
     { id: "gallery", label: `Gallery (${gallery.length})` },
   ];
 
@@ -143,7 +142,7 @@ export default function CharacterDetail({
 
       {/* Compact Header */}
       <div className="border-b bg-linear-to-r from-gray-50 to-gray-100 px-6 py-4 dark:border-gray-800 dark:from-gray-900 dark:to-gray-950">
-        <div className="flex items-start gap-4 @md:gap-6">
+        <div className="flex items-center gap-4 @md:gap-6">
           {/* Profile Image */}
           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
             {character.profile_image ? (
@@ -167,20 +166,17 @@ export default function CharacterDetail({
           </div>
 
           {/* Character Info */}
-          <div className="min-w-0 flex-1">
-            <h1 className="mb-1 bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
-              {character.name}
-            </h1>
-            {character.nickname && (
-              <p className="mb-1 text-sm text-gray-600 italic dark:text-gray-400">
-                &quot;{character.nickname}&quot;
-              </p>
-            )}
-            {character.title && (
-              <p className="mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
-                {character.title}
-              </p>
-            )}
+          <div className="flex flex-col gap-2">
+            <div>
+              <h1 className="bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
+                {character.name}
+              </h1>
+            </div>
+            <div className="flex flex-wrap gap-1.5 text-sm text-gray-300 italic">
+              {character.nickname && (
+                <span className="">"{character.nickname}"</span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-1.5 text-xs">
               {character.age && (
                 <span className="rounded-full bg-linear-to-r from-blue-500 to-blue-600 px-2.5 py-1 font-medium text-white shadow-sm">
@@ -255,28 +251,67 @@ export default function CharacterDetail({
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="animate-fadeIn space-y-4">
-                <div className="just grid grid-cols-3 items-center justify-center gap-2">
+                <div className="grid grid-cols-1 items-center justify-center gap-4 md:grid-cols-3">
+                  {character.featured_image && (
+                    <div className="relative col-span-1 flex aspect-square w-full md:col-start-3 md:row-start-1">
+                      <StorageImage
+                        src={character.featured_image}
+                        alt={`${character.name} featured`}
+                        fill
+                      />
+                    </div>
+                  )}
                   {character.description && (
-                    <div className="col-span-2 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="col-span-1 grid grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1 dark:border-gray-800 dark:bg-gray-800/50">
+                      {character.quote && (
+                        <blockquote className="ml-4 text-xl italic">
+                          "{character.quote}"
+                        </blockquote>
+                      )}
                       <MarkdownRenderer content={character.description} />
                       {/* Physical Traits */}
                       {(character.height ||
                         character.build ||
                         character.hair_color ||
-                        character.eye_color) && (
-                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                            <span className="h-5 w-1 rounded-full bg-linear-to-b from-green-600 to-emerald-600"></span>
-                            Physical Traits
-                          </h3>
+                        character.eye_color ||
+                        character.weight ||
+                        character.pronouns ||
+                        character.gender ||
+                        character.skin_tone ||
+                        character.distinguishing_features) && (
+                        <div className="">
                           <div className="grid grid-cols-2 gap-3">
-                            {character.height && (
+                            {(character.height || character.weight) && (
                               <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
                                 <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                                  Height
+                                  {[
+                                    character.height && "Height",
+                                    character.weight && "Weight",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" & ")}
                                 </span>
                                 <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                  {character.height}
+                                  {[character.height, character.weight]
+                                    .filter(Boolean)
+                                    .join(" / ")}
+                                </p>
+                              </div>
+                            )}
+                            {(character.gender || character.pronouns) && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  {[
+                                    character.gender && "Gender",
+                                    character.pronouns && "Pronouns",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" & ")}
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {[character.gender, character.pronouns]
+                                    .filter(Boolean)
+                                    .join(" - ")}
                                 </p>
                               </div>
                             )}
@@ -287,6 +322,16 @@ export default function CharacterDetail({
                                 </span>
                                 <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {character.build}
+                                </p>
+                              </div>
+                            )}
+                            {character.skin_tone && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Skin Tone
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.skin_tone}
                                 </p>
                               </div>
                             )}
@@ -310,51 +355,116 @@ export default function CharacterDetail({
                                 </p>
                               </div>
                             )}
+                            {character.distinguishing_features && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Distinguishing Features
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.distinguishing_features}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
                   )}
-                  {character.featured_image && (
-                    <div className="relative flex aspect-square w-full">
-                      <StorageImage
-                        src={character.featured_image}
-                        alt={`${character.name} featured`}
-                        fill
-                      />
-                    </div>
-                  )}
                 </div>
 
-                {/* Worlds */}
-                {characterWorlds.length > 0 && (
+                {character.personality_summary && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-cyan-600"></span>
-                      Worlds
+                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-pink-600 to-red-600"></span>
+                      Personality
                     </h3>
-                    <div className="space-y-2">
-                      {characterWorlds.map((cw) => {
-                        const world = cw.worlds;
-                        if (!world) return null;
-                        return (
+                    <MarkdownRenderer content={character.personality_summary} />
+                  </div>
+                )}
+
+                {/* Worlds and Factions Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Worlds */}
+                  {characterWorlds.length > 0 && (
+                    <div
+                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 ${factions.length > 0 ? "col-span-1" : "col-span-2"}`}
+                    >
+                      <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-cyan-600"></span>
+                        Worlds
+                      </h3>
+                      <div className="space-y-2">
+                        {characterWorlds.map((cw) => {
+                          const world = cw.worlds;
+                          if (!world) return null;
+                          return (
+                            <button
+                              key={cw.id}
+                              type="button"
+                              onClick={() => onWorldClick?.(world.slug)}
+                              className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {world.name}
+                                </div>
+                                <svg
+                                  className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <title>Go to world</title>
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                                  />
+                                </svg>
+                              </div>
+                              {world.summary && (
+                                <div className="mt-1 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+                                  {world.summary}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Factions */}
+                  {factions.length > 0 && (
+                    <div
+                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 ${characterWorlds.length > 0 ? "col-span-1" : "col-span-2"}`}
+                    >
+                      <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
+                        Affiliations
+                      </h3>
+                      <div className="space-y-2">
+                        {factions.map((membership) => (
                           <button
-                            key={cw.id}
+                            key={membership.id}
                             type="button"
-                            onClick={() => onWorldClick?.(world.slug)}
-                            className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
+                            onClick={() =>
+                              onFactionClick?.(membership.factions?.slug || "")
+                            }
+                            className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
                           >
                             <div className="flex items-center justify-between">
                               <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                {world.name}
+                                {membership.factions?.name}
                               </div>
                               <svg
-                                className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                                className="h-4 w-4 text-purple-600 dark:text-purple-400"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                               >
-                                <title>Go to world</title>
+                                <title>Go to faction</title>
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -363,262 +473,62 @@ export default function CharacterDetail({
                                 />
                               </svg>
                             </div>
-                            {world.summary && (
-                              <div className="mt-1 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
-                                {world.summary}
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {membership.role && (
+                                <span className="inline-block rounded-full bg-purple-200 px-2 py-0.5 text-xs font-medium text-purple-900 dark:bg-purple-800/40 dark:text-purple-200">
+                                  {membership.role}
+                                </span>
+                              )}
+                              {membership.rank && (
+                                <span className="inline-block rounded-full bg-indigo-200 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-800/40 dark:text-indigo-200">
+                                  {membership.rank}
+                                </span>
+                              )}
+                              {membership.is_current !== null && (
+                                <span
+                                  className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                                    membership.is_current
+                                      ? "bg-green-200 text-green-900 dark:bg-green-800/40 dark:text-green-200"
+                                      : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300"
+                                  }`}
+                                >
+                                  {membership.is_current ? "Current" : "Former"}
+                                </span>
+                              )}
+                            </div>
+                            {(membership.join_date ||
+                              membership.leave_date) && (
+                              <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-500">
+                                {membership.join_date && (
+                                  <span>Joined {membership.join_date}</span>
+                                )}
+                                {membership.join_date &&
+                                  membership.leave_date && <span> • </span>}
+                                {membership.leave_date && (
+                                  <span>Left {membership.leave_date}</span>
+                                )}
+                              </div>
+                            )}
+                            {membership.notes && (
+                              <div className="mt-1 text-xs text-gray-600 italic dark:text-gray-500">
+                                {membership.notes}
                               </div>
                             )}
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Factions */}
-                {factions.length > 0 && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
-                      Affiliations
-                    </h3>
-                    <div className="space-y-2">
-                      {factions.map((membership) => (
-                        <button
-                          key={membership.id}
-                          type="button"
-                          onClick={() =>
-                            onFactionClick?.(membership.factions?.slug || "")
-                          }
-                          className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              {membership.factions?.name}
-                            </div>
-                            <svg
-                              className="h-4 w-4 text-purple-600 dark:text-purple-400"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <title>Go to faction</title>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                              />
-                            </svg>
-                          </div>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {membership.role && (
-                              <span className="inline-block rounded-full bg-purple-200 px-2 py-0.5 text-xs font-medium text-purple-900 dark:bg-purple-800/40 dark:text-purple-200">
-                                {membership.role}
-                              </span>
-                            )}
-                            {membership.rank && (
-                              <span className="inline-block rounded-full bg-indigo-200 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-800/40 dark:text-indigo-200">
-                                {membership.rank}
-                              </span>
-                            )}
-                            {membership.is_current !== null && (
-                              <span
-                                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                                  membership.is_current
-                                    ? "bg-green-200 text-green-900 dark:bg-green-800/40 dark:text-green-200"
-                                    : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                {membership.is_current ? "Current" : "Former"}
-                              </span>
-                            )}
-                          </div>
-                          {(membership.join_date || membership.leave_date) && (
-                            <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-500">
-                              {membership.join_date && (
-                                <span>Joined {membership.join_date}</span>
-                              )}
-                              {membership.join_date &&
-                                membership.leave_date && <span> • </span>}
-                              {membership.leave_date && (
-                                <span>Left {membership.leave_date}</span>
-                              )}
-                            </div>
-                          )}
-                          {membership.notes && (
-                            <div className="mt-1 text-xs text-gray-600 italic dark:text-gray-500">
-                              {membership.notes}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Skills & Abilities */}
-                {(character.skills || character.abilities) && (
+                {character.abilities && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
                       <span className="h-5 w-1 rounded-full bg-linear-to-b from-yellow-600 to-orange-600"></span>
                       Skills & Abilities
                     </h3>
-                    {character.skills && (
-                      <div className="mb-3 rounded-lg border border-yellow-100 bg-yellow-50 p-3 dark:border-yellow-800/30 dark:bg-yellow-900/10">
-                        <h4 className="mb-1.5 text-xs font-semibold tracking-wide text-yellow-900 uppercase dark:text-yellow-200">
-                          Skills
-                        </h4>
-                        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                          {character.skills}
-                        </p>
-                      </div>
-                    )}
-                    {character.abilities && (
-                      <div className="rounded-lg border border-orange-100 bg-orange-50 p-3 dark:border-orange-800/30 dark:bg-orange-900/10">
-                        <h4 className="mb-1.5 text-xs font-semibold tracking-wide text-orange-900 uppercase dark:text-orange-200">
-                          Abilities
-                        </h4>
-                        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                          {character.abilities}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Relationships Tab */}
-            {activeTab === "relationships" && (
-              <div className="animate-fadeIn">
-                {relationships.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                      <svg
-                        className="h-8 w-8 text-gray-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <title>No relationships icon</title>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                    </div>
-                    <p className="font-medium text-gray-500 dark:text-gray-400">
-                      No relationships documented yet.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {relationships.map((relationship) => {
-                      const relatedCharacter = relationship.related_character;
-                      const relType = relationship.relationship_type;
-
-                      return (
-                        <button
-                          key={relationship.id}
-                          onClick={() =>
-                            onCharacterClick?.(relatedCharacter?.slug || "")
-                          }
-                          className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700"
-                        >
-                          <div className="flex items-start gap-4 p-4">
-                            {/* Character Profile Image */}
-                            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                              {relatedCharacter?.profile_image ? (
-                                <StorageImage
-                                  src={relatedCharacter.profile_image}
-                                  alt={relatedCharacter.name}
-                                  fill
-                                  sizes="64px"
-                                  className="object-cover"
-                                  fallback={
-                                    <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">
-                                      {relatedCharacter.name.charAt(0)}
-                                    </div>
-                                  }
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                  <svg
-                                    className="h-8 w-8 text-gray-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <title>Character icon</title>
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                    />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Relationship Info */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                                    {relatedCharacter.name}
-                                  </h4>
-                                  {relatedCharacter.title && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      {relatedCharacter.title}
-                                    </p>
-                                  )}
-                                </div>
-                                {/* Character metadata badges */}
-                                <div className="flex shrink-0 gap-1.5 text-xs">
-                                  {relatedCharacter.age && (
-                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                      {relatedCharacter.age}
-                                    </span>
-                                  )}
-                                  {relatedCharacter.species && (
-                                    <span className="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                                      {relatedCharacter.species}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="mt-1.5 flex items-center gap-2">
-                                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
-                                  {relType.name}
-                                </span>
-                                {relType.is_mutual && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    (mutual)
-                                  </span>
-                                )}
-                              </div>
-
-                              {relationship.description && (
-                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                  {relationship.description}
-                                </p>
-                              )}
-
-                              {relatedCharacter.personality_summary && (
-                                <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic dark:text-gray-500">
-                                  {relatedCharacter.personality_summary}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                    <MarkdownRenderer content={character.abilities} />
                   </div>
                 )}
               </div>
@@ -627,6 +537,37 @@ export default function CharacterDetail({
             {/* Outfits Tab */}
             {activeTab === "outfits" && (
               <div className="animate-fadeIn">
+                {/* Color Palette Display */}
+                {character.color_palette &&
+                  character.color_palette.length > 0 && (
+                    <div className="mb-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-2 sm:p-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/50">
+                      <h3 className="mb-3 text-xs font-semibold text-gray-700 sm:text-sm dark:text-gray-300">
+                        Color Palette
+                      </h3>
+                      <div className="flex flex-wrap justify-between gap-1.5 sm:gap-2">
+                        {character.color_palette.map((color, index) => (
+                          <div
+                            key={index}
+                            className="group relative flex min-w-0 flex-1 items-center sm:flex-auto"
+                          >
+                            <div
+                              className="h-8 w-full cursor-pointer rounded-lg border border-black shadow-sm transition-all sm:w-50"
+                              style={{ backgroundColor: color }}
+                              onClick={() => {
+                                navigator.clipboard.writeText(color);
+                              }}
+                            />
+                            {/* Tooltip */}
+                            <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                              {color}
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 {outfits.length === 0 ? (
                   <div className="py-16 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
@@ -716,6 +657,15 @@ export default function CharacterDetail({
                     ))}
                   </div>
                 )}
+
+                {character.fanwork_policy && (
+                  <div className="mt-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/50">
+                    <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Fanwork Policy
+                    </h3>
+                    <MarkdownRenderer content={character.fanwork_policy} />
+                  </div>
+                )}
               </div>
             )}
 
@@ -761,6 +711,143 @@ export default function CharacterDetail({
                     <p className="font-medium text-gray-500 dark:text-gray-400">
                       No lore or backstory added yet.
                     </p>
+                  </div>
+                )}
+                {relationships.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                      <svg
+                        className="h-8 w-8 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <title>No relationships icon</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                      No relationships documented yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                      <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-purple-600"></span>
+                        Relationships{" "}
+                        {relationships.length > 0 &&
+                          `(${relationships.length})`}
+                      </h3>
+                      {relationships.map((relationship) => {
+                        const relatedCharacter = relationship.related_character;
+                        const relType = relationship.relationship_type;
+
+                        return (
+                          <button
+                            key={relationship.id}
+                            onClick={() =>
+                              onCharacterClick?.(relatedCharacter?.slug || "")
+                            }
+                            className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700"
+                          >
+                            <div className="flex items-start gap-4 p-4">
+                              {/* Character Profile Image */}
+                              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                {relatedCharacter?.profile_image ? (
+                                  <StorageImage
+                                    src={relatedCharacter.profile_image}
+                                    alt={relatedCharacter.name}
+                                    fill
+                                    sizes="64px"
+                                    className="object-cover"
+                                    fallback={
+                                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">
+                                        {relatedCharacter.name.charAt(0)}
+                                      </div>
+                                    }
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center">
+                                    <svg
+                                      className="h-8 w-8 text-gray-400"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <title>Character icon</title>
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                      />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Relationship Info */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                      {relatedCharacter.name}
+                                    </h4>
+                                    {relatedCharacter.title && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {relatedCharacter.title}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {/* Character metadata badges */}
+                                  <div className="flex shrink-0 gap-1.5 text-xs">
+                                    {relatedCharacter.age && (
+                                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                        {relatedCharacter.age}
+                                      </span>
+                                    )}
+                                    {relatedCharacter.species && (
+                                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                        {relatedCharacter.species}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="mt-1.5 flex items-center gap-2">
+                                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
+                                    {relType.name}
+                                  </span>
+                                  {relType.is_mutual && (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      (mutual)
+                                    </span>
+                                  )}
+                                </div>
+
+                                {relationship.description && (
+                                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {relationship.description}
+                                  </p>
+                                )}
+
+                                {relatedCharacter.personality_summary && (
+                                  <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic dark:text-gray-500">
+                                    {relatedCharacter.personality_summary}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
