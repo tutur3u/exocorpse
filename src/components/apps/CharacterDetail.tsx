@@ -255,72 +255,76 @@ export default function CharacterDetail({
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="animate-fadeIn space-y-4">
-                {character.personality_summary && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                    <h3 className="mb-2 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-blue-600 to-purple-600"></span>
-                      Personality
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                      {character.personality_summary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Physical Traits */}
-                {(character.height ||
-                  character.build ||
-                  character.hair_color ||
-                  character.eye_color) && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-green-600 to-emerald-600"></span>
-                      Physical Traits
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {character.height && (
-                        <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                          <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                            Height
-                          </span>
-                          <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {character.height}
-                          </p>
-                        </div>
-                      )}
-                      {character.build && (
-                        <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                          <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                            Build
-                          </span>
-                          <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {character.build}
-                          </p>
-                        </div>
-                      )}
-                      {character.hair_color && (
-                        <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                          <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                            Hair
-                          </span>
-                          <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {character.hair_color}
-                          </p>
-                        </div>
-                      )}
-                      {character.eye_color && (
-                        <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                          <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                            Eyes
-                          </span>
-                          <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {character.eye_color}
-                          </p>
+                <div className="just grid grid-cols-3 items-center justify-center gap-2">
+                  {character.description && (
+                    <div className="col-span-2 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                      <MarkdownRenderer content={character.description} />
+                      {/* Physical Traits */}
+                      {(character.height ||
+                        character.build ||
+                        character.hair_color ||
+                        character.eye_color) && (
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                            <span className="h-5 w-1 rounded-full bg-linear-to-b from-green-600 to-emerald-600"></span>
+                            Physical Traits
+                          </h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            {character.height && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Height
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.height}
+                                </p>
+                              </div>
+                            )}
+                            {character.build && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Build
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.build}
+                                </p>
+                              </div>
+                            )}
+                            {character.hair_color && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Hair
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.hair_color}
+                                </p>
+                              </div>
+                            )}
+                            {character.eye_color && (
+                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                                  Eyes
+                                </span>
+                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {character.eye_color}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
+                  {character.featured_image && (
+                    <div className="relative flex aspect-square w-full">
+                      <StorageImage
+                        src={character.featured_image}
+                        alt={`${character.name} featured`}
+                        fill
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* Worlds */}
                 {characterWorlds.length > 0 && (

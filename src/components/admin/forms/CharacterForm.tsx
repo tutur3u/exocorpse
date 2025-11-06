@@ -162,6 +162,7 @@ export default function CharacterForm({
     color_scheme: character?.color_scheme ?? "#3b82f6",
     featured_image: character?.featured_image ?? "",
     quote: character?.quote ?? "",
+    description: character?.description ?? "",
   });
 
   const form = useForm<CharacterFormData>({
