@@ -13,7 +13,7 @@ import type {
   WritingPiece,
 } from "@/lib/actions/portfolio";
 import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MasonryGallery } from "./Gallery";
 
 type PortfolioClientProps = {
@@ -228,6 +228,17 @@ export default function PortfolioClient({
     },
   }));
 
+  // Effect to lock body scroll when detail view is open
+  useEffect(() => {
+    if (selectedArt) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    // Cleanup on unmount
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [selectedArt]);
+
   return (
     <div className="flex h-full flex-col">
       {/* Tabs */}
@@ -349,91 +360,9 @@ export default function PortfolioClient({
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
         {activeTab === "art" && (
-          <div className="space-y-4">
-            {selectedArt ? (
-              /* Artwork Detail View */
-              <div className="space-y-4">
-                <button
-                  onClick={() => {
-                    onNavigateToGallery?.();
-                    setParams({
-                      "portfolio-piece": null,
-                    });
-                  }}
-                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back to Gallery
-                </button>
-                <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-                  <div className="flex items-center justify-center rounded-t-lg bg-gray-100 p-8 dark:bg-gray-900">
-                    <div className="relative max-h-[70vh] w-full">
-                      <StorageImage
-                        src={selectedArt.image_url}
-                        signedUrl={artImageUrls.get(selectedArt.image_url)}
-                        alt={selectedArt.title}
-                        className="max-h-[70vh] w-auto rounded-lg"
-                        style={{ objectFit: "contain" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-700">
-                      <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                        {selectedArt.title}
-                      </h2>
-                      {selectedArt.description && (
-                        <p className="mb-3 text-gray-600 dark:text-gray-400">
-                          {selectedArt.description}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        {selectedArt.artist_name && (
-                          <span>
-                            Artist:{" "}
-                            {selectedArt.artist_url ? (
-                              <a
-                                href={selectedArt.artist_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline dark:text-blue-400"
-                              >
-                                {selectedArt.artist_name}
-                              </a>
-                            ) : (
-                              selectedArt.artist_name
-                            )}
-                          </span>
-                        )}
-                        {selectedArt.year && <span>{selectedArt.year}</span>}
-                        {selectedArt.tags &&
-                          selectedArt.tags.map((tag: string) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : filteredArtPieces.length === 0 ? (
-              /* Empty State */
+          <div className="relative">
+            {/* Gallery Grid */}
+            {filteredArtPieces.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   {artPieces.length === 0
@@ -442,17 +371,100 @@ export default function PortfolioClient({
                 </p>
               </div>
             ) : (
-              /* Gallery Grid */
               <MasonryGallery
                 images={galleryImages}
                 onImageClick={(image) => {
                   const art = filteredArtPieces.find((a) => a.id === image.id);
-                  if (art)
-                    setParams({
-                      "portfolio-piece": art.slug,
-                    });
+                  if (art) setParams({ "portfolio-piece": art.slug });
                 }}
               />
+            )}
+
+            {/* Artwork Detail View - Modal Overlay */}
+            {selectedArt && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                onClick={() => setParams({ "portfolio-piece": null })}
+              >
+                <div
+                  className="relative max-h-full w-full max-w-6xl overflow-y-auto rounded-lg bg-white dark:bg-gray-800"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setParams({ "portfolio-piece": null })}
+                    className="absolute top-4 right-4 z-10 rounded-full bg-white/50 p-2 text-gray-800 hover:bg-white dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Image Container */}
+                  <div className="flex items-center justify-center rounded-t-lg bg-gray-100 p-8 dark:bg-gray-900">
+                    <StorageImage
+                      src={selectedArt.image_url}
+                      signedUrl={artImageUrls.get(selectedArt.image_url)}
+                      alt={selectedArt.title}
+                      className="max-h-[80vh] w-auto rounded-lg object-contain"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                      {selectedArt.title}
+                    </h2>
+                    {selectedArt.description && (
+                      <p className="mb-4 text-gray-600 dark:text-gray-400">
+                        {selectedArt.description}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                      {selectedArt.artist_name && (
+                        <span className="flex items-center gap-1">
+                          Artist:
+                          {selectedArt.artist_url ? (
+                            <a
+                              href={selectedArt.artist_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline dark:text-blue-400"
+                            >
+                              {selectedArt.artist_name}
+                            </a>
+                          ) : (
+                            selectedArt.artist_name
+                          )}
+                        </span>
+                      )}
+                      {selectedArt.year && <span>{selectedArt.year}</span>}
+                      {selectedArt.tags && selectedArt.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedArt.tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-gray-100 px-3 py-1 text-xs dark:bg-gray-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}

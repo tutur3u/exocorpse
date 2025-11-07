@@ -85,7 +85,6 @@ export default function ServiceDetail({
             <MasonryGallery
               images={galleryImages}
               isLoading={loading}
-              columnsBreakpoints={{ 350: 1, 750: 2, 1024: 2, 1280: 2 }}
               maxWidth="max-w-3xl"
             />
           </div>

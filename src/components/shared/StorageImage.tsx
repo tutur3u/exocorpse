@@ -71,5 +71,33 @@ export default function StorageImage({
     );
   }
 
-  return <Image {...imageProps} src={imageUrl} alt={alt} unoptimized={true} />;
+  // next/image requires either width/height or the `fill` prop.
+  // Provide sensible defaults when width/height are missing to avoid runtime errors.
+  const {
+    width: providedWidth,
+    height: providedHeight,
+    fill,
+  } = imageProps as { width?: number; height?: number; fill?: boolean };
+
+  const finalProps: typeof imageProps = { ...imageProps };
+
+  // If consumer didn't opt into fill layout, ensure width/height exist.
+  if (!fill) {
+    if (providedWidth == null) {
+      // default width
+      finalProps.width = 500;
+    }
+
+    if (providedHeight == null) {
+      // default height
+      finalProps.height = 500;
+    }
+  }
+
+  return (
+    // spread the final props and pass the resolved imageUrl
+    // keep unoptimized for externally signed URLs
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <Image {...finalProps} src={imageUrl} alt={alt} unoptimized={true} />
+  );
 }
