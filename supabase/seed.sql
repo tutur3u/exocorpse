@@ -576,7 +576,7 @@ Aisha believes that by understanding and manipulating the minds of those in powe
   RETURNING id INTO v_char2_id;
 
   -- Character 3: Dual-Type (rare)
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, likes, dislikes, fears, goals, backstory, skills, abilities, strengths, weaknesses, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, strengths, weaknesses, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
       'Viktor Sokolov',
@@ -593,10 +593,6 @@ Aisha believes that by understanding and manipulating the minds of those in powe
       'alive',
       'Exocorpse Commander (Dual-Type)',
       'Charismatic and strategic, Viktor is one of the few operatives who excels in both Pulse and Neuro disciplines. His leadership is respected but also feared.',
-      'Classical music, chess, fine dining, solving complex problems',
-      'Incompetence, weakness, emotional outbursts, failure',
-      'Losing control, being outsmarted, the organization''s mission failing',
-      'Perfect the dual-type program, create more operatives like himself, achieve Exocorpse''s ultimate vision',
       '# Backstory
 
 Viktor Sokolov is a rarity in Exocorpse—a dual-type operative who excels in both physical and psychological operations. Born in Moscow to a family of academics and military officers, he was groomed from childhood to be exceptional.

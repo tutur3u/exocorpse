@@ -1,6 +1,7 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import ColorPalettePicker from "@/components/shared/ColorPalettePicker";
 import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
@@ -40,7 +41,6 @@ type CharacterFormData = {
   name: string;
   slug: string;
   nickname?: string;
-  title?: string;
   age?: number;
   age_description?: string;
   species?: string;
@@ -56,19 +56,17 @@ type CharacterFormData = {
   status?: "alive" | "deceased" | "unknown" | "missing" | "imprisoned";
   occupation?: string;
   personality_summary?: string;
-  likes?: string;
-  dislikes?: string;
-  fears?: string;
-  goals?: string;
   backstory?: string;
   lore?: string;
-  skills?: string;
   abilities?: string;
-  strengths?: string;
-  weaknesses?: string;
   profile_image?: string;
   banner_image?: string;
   color_scheme?: string;
+  color_palette?: string[];
+  featured_image?: string;
+  quote?: string;
+  description?: string;
+  fanwork_policy?: string;
 };
 
 type CharacterFormProps = {
@@ -101,7 +99,13 @@ export default function CharacterForm({
   } = usePendingUploads();
 
   const [activeTab, setActiveTab] = useState<
-    "basic" | "physical" | "personality" | "history" | "abilities" | "visuals"
+    | "basic"
+    | "physical"
+    | "personality"
+    | "history"
+    | "abilities"
+    | "visuals"
+    | "outfits"
   >("basic");
 
   // Extract world_ids from character if editing
@@ -122,9 +126,7 @@ export default function CharacterForm({
     name: character?.name ?? "",
     slug: character?.slug ?? "",
     nickname: character?.nickname ?? "",
-    title: character?.title ?? "",
     age: character?.age ?? undefined,
-    age_description: character?.age_description ?? "",
     species: character?.species ?? "",
     gender: character?.gender ?? "",
     pronouns: character?.pronouns ?? "",
@@ -144,19 +146,17 @@ export default function CharacterForm({
         | "imprisoned") ?? "alive",
     occupation: character?.occupation ?? "",
     personality_summary: character?.personality_summary ?? "",
-    likes: character?.likes ?? "",
-    dislikes: character?.dislikes ?? "",
-    fears: character?.fears ?? "",
-    goals: character?.goals ?? "",
     backstory: character?.backstory ?? "",
     lore: character?.lore ?? "",
-    skills: character?.skills ?? "",
     abilities: character?.abilities ?? "",
-    strengths: character?.strengths ?? "",
-    weaknesses: character?.weaknesses ?? "",
     profile_image: character?.profile_image ?? "",
     banner_image: character?.banner_image ?? "",
     color_scheme: character?.color_scheme ?? "#3b82f6",
+    color_palette: character?.color_palette ?? [],
+    featured_image: character?.featured_image ?? "",
+    quote: character?.quote ?? "",
+    description: character?.description ?? "",
+    fanwork_policy: character?.fanwork_policy ?? "",
   });
 
   const form = useForm<CharacterFormData>({
@@ -196,12 +196,15 @@ export default function CharacterForm({
   const [outfitItemToDelete, setOutfitItemToDelete] =
     useState<CharacterOutfitItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showFeaturedImagePicker, setShowFeaturedImagePicker] = useState(false);
 
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
   const colorScheme = watch("color_scheme");
+  const colorPalette = watch("color_palette");
   const selectedWorldIds = watch("world_ids");
+  const featuredImage = watch("featured_image");
 
   // Fetch gallery items using react-query
   const { data: galleryItems = [], isLoading: loadingGallery } = useQuery({
@@ -252,6 +255,46 @@ export default function CharacterForm({
 
   const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
 
+  // Collect all candidate images for featured image selection
+  const featuredImageCandidates: {
+    id: string;
+    url: string;
+    caption?: string;
+  }[] = useMemo(() => {
+    if (!character) return [];
+    const items: { id: string; url: string; caption?: string }[] = [];
+
+    // Gallery items
+    galleryItems.forEach((item) => {
+      if (item.image_url) {
+        items.push({
+          id: item.id,
+          url: item.image_url,
+          caption: item.title,
+        });
+      }
+    });
+
+    // Outfit items
+    outfitItems.forEach((item) => {
+      if (item.image_url) {
+        items.push({
+          id: item.id,
+          url: item.image_url,
+          caption: item.name,
+        });
+      }
+    });
+
+    // Deduplicate by URL just in case
+    const seen = new Set<string>();
+    return items.filter((it) => {
+      if (seen.has(it.url)) return false;
+      seen.add(it.url);
+      return true;
+    });
+  }, [character, galleryItems, outfitItems]);
+
   const handleFormSubmit = formHandleSubmit(async (data) => {
     setLoading(true);
     setError(null);
@@ -269,8 +312,6 @@ export default function CharacterForm({
         data,
         [
           "nickname",
-          "title",
-          "age_description",
           "species",
           "gender",
           "pronouns",
@@ -284,19 +325,17 @@ export default function CharacterForm({
           "status",
           "occupation",
           "personality_summary",
-          "likes",
-          "dislikes",
-          "fears",
-          "goals",
           "backstory",
           "lore",
-          "skills",
           "abilities",
-          "strengths",
-          "weaknesses",
           "profile_image",
           "banner_image",
           "color_scheme",
+          "featured_image",
+          "quote",
+          "description",
+          "fanwork_policy",
+          "color_palette",
         ],
         ["age"],
       );
@@ -361,13 +400,16 @@ export default function CharacterForm({
     // Only delete if:
     // 1. The old value exists and is a storage path (not a URL or data URL)
     // 2. The new value is different from the old value
-    // 3. The old value is not a full URL (starts with http/https) or data URL
+    // 3. The old value is specifically in the featured image path
+    //    (don't delete shared images from gallery/outfits/etc)
     if (
       oldValue &&
       oldValue !== newValue &&
       !oldValue.startsWith("http://") &&
       !oldValue.startsWith("https://") &&
-      !oldValue.startsWith("data:")
+      !oldValue.startsWith("data:") &&
+      character &&
+      oldValue.includes(`characters/${character.id}/featured`)
     ) {
       try {
         await deleteFile(oldValue);
@@ -527,11 +569,6 @@ export default function CharacterForm({
   const handleOutfitComplete = () => {
     setShowOutfitForm(false);
     setEditingOutfitItem(null);
-  };
-
-  const handleDeleteOutfitItem = async (item: CharacterOutfitItem) => {
-    setOutfitItemToDelete(item);
-    setDeleteOutfitConfirm(true);
   };
 
   const handleConfirmDeleteOutfitItem = async () => {
@@ -696,6 +733,17 @@ export default function CharacterForm({
             >
               Visuals
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("outfits")}
+              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === "outfits"
+                  ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              Outfits
+            </button>
           </div>
 
           <form
@@ -814,6 +862,21 @@ export default function CharacterForm({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
+                        htmlFor="character-quote"
+                        className="mb-1 block text-sm font-medium"
+                      >
+                        Quote
+                      </label>
+                      <input
+                        type="text"
+                        id="character-quote"
+                        {...register("quote")}
+                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                        placeholder="The only limit is your mind."
+                      />
+                    </div>
+                    <div>
+                      <label
                         htmlFor="character-slug"
                         className="mb-1 block text-sm font-medium"
                       >
@@ -827,23 +890,26 @@ export default function CharacterForm({
                         placeholder="john-doe"
                       />
                     </div>
-                    <div>
-                      <label
-                        htmlFor="character-title"
-                        className="mb-1 block text-sm font-medium"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        id="character-title"
-                        {...register("title")}
-                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                        placeholder="Dr., Agent, Commander, etc."
-                      />
-                    </div>
                   </div>
 
+                  <div>
+                    <MarkdownEditor
+                      label="Description"
+                      value={watch("description") || ""}
+                      onChange={(value) =>
+                        setValue("description", value, { shouldDirty: true })
+                      }
+                      placeholder="# Description\n\nA brief overview of the character's background, personality, and role in the story..."
+                      helpText="Brief description of a character. Supports markdown."
+                      rows={5}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Physical Tab */}
+              {activeTab === "physical" && (
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
@@ -863,24 +929,6 @@ export default function CharacterForm({
                     </div>
                     <div>
                       <label
-                        htmlFor="character-age-description"
-                        className="mb-1 block text-sm font-medium"
-                      >
-                        Age Description
-                      </label>
-                      <input
-                        type="text"
-                        id="character-age-description"
-                        {...register("age_description")}
-                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                        placeholder="early 20s, ancient, etc."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label
                         htmlFor="character-species"
                         className="mb-1 block text-sm font-medium"
                       >
@@ -894,6 +942,9 @@ export default function CharacterForm({
                         placeholder="Human, Elf, etc."
                       />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
                         htmlFor="character-gender"
@@ -962,12 +1013,6 @@ export default function CharacterForm({
                       />
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Physical Tab */}
-              {activeTab === "physical" && (
-                <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label
@@ -1086,82 +1131,17 @@ export default function CharacterForm({
               {activeTab === "personality" && (
                 <div className="space-y-4">
                   <div>
-                    <label
-                      htmlFor="character-personality-summary"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Personality Summary
-                    </label>
-                    <textarea
-                      id="character-personality-summary"
-                      {...register("personality_summary")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="A brief description of their personality..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-likes"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Likes
-                    </label>
-                    <textarea
-                      id="character-likes"
-                      {...register("likes")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they enjoy or appreciate..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-dislikes"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Dislikes
-                    </label>
-                    <textarea
-                      id="character-dislikes"
-                      {...register("dislikes")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they dislike or avoid..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-fears"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Fears
-                    </label>
-                    <textarea
-                      id="character-fears"
-                      {...register("fears")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Their deepest fears..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-goals"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Goals
-                    </label>
-                    <textarea
-                      id="character-goals"
-                      {...register("goals")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they're trying to achieve..."
+                    <MarkdownEditor
+                      label="Personality Summary"
+                      value={watch("personality_summary") || ""}
+                      onChange={(value) =>
+                        setValue("personality_summary", value, {
+                          shouldDirty: true,
+                        })
+                      }
+                      placeholder="# Personality Summary\n\nDescribe their personality traits, quirks, and motivations..."
+                      helpText="Character's personality summary. Supports markdown."
+                      rows={12}
                     />
                   </div>
                 </div>
@@ -1198,66 +1178,15 @@ export default function CharacterForm({
               {activeTab === "abilities" && (
                 <div className="space-y-4">
                   <div>
-                    <label
-                      htmlFor="character-skills"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Skills
-                    </label>
-                    <textarea
-                      id="character-skills"
-                      {...register("skills")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Combat, hacking, piloting, etc..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-abilities"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Abilities
-                    </label>
-                    <textarea
-                      id="character-abilities"
-                      {...register("abilities")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Special powers, magic, superhuman traits..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-strengths"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Strengths
-                    </label>
-                    <textarea
-                      id="character-strengths"
-                      {...register("strengths")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="What they excel at..."
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="character-weaknesses"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Weaknesses
-                    </label>
-                    <textarea
-                      id="character-weaknesses"
-                      {...register("weaknesses")}
-                      rows={3}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="Their vulnerabilities and limitations..."
+                    <MarkdownEditor
+                      label="Abilities & Skills"
+                      value={watch("abilities") || ""}
+                      onChange={(value) =>
+                        setValue("abilities", value, { shouldDirty: true })
+                      }
+                      placeholder="# Abilities & Skills\n\nDescribe their special powers, skills, and talents..."
+                      helpText="Character's abilities and skills. Supports markdown."
+                      rows={12}
                     />
                   </div>
                 </div>
@@ -1322,6 +1251,43 @@ export default function CharacterForm({
                     }
                     helpText="Theme color for this character"
                   />
+
+                  {/* Featured Image Section */}
+                  {character && (
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Featured Image
+                      </label>
+                      <div className="space-y-2 rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                        <ImageUploader
+                          label="Featured Image"
+                          value={featuredImage || ""}
+                          onChange={(value) =>
+                            setValue("featured_image", value, {
+                              shouldDirty: true,
+                            })
+                          }
+                          uploadPath={
+                            character
+                              ? `characters/${character.id}/featured`
+                              : undefined
+                          }
+                          enableUpload={!!character}
+                          onBeforeChange={handleDeleteOldImage}
+                          helpText="Upload a new image or choose from existing gallery/outfit images."
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowFeaturedImagePicker(true)}
+                            className="rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                          >
+                            Choose from existing
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Gallery Section */}
                   <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
@@ -1419,7 +1385,34 @@ export default function CharacterForm({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
 
+              {activeTab === "outfits" && (
+                <div className="space-y-6">
+                  {/* Color Palette Picker */}
+                  <ColorPalettePicker
+                    label="Color Palette"
+                    value={colorPalette || []}
+                    onChange={(value) =>
+                      setValue("color_palette", value, { shouldDirty: true })
+                    }
+                    maxColors={6}
+                    helpText="Define up to 6 colors that represent this character's visual theme"
+                  />
+
+                  <div>
+                    <MarkdownEditor
+                      label="Fanwork Policy"
+                      value={watch("fanwork_policy") || ""}
+                      onChange={(value) =>
+                        setValue("fanwork_policy", value, { shouldDirty: true })
+                      }
+                      placeholder="# Fanwork Policy\n\nDescribe the character's fanwork policy..."
+                      helpText="Character's fanwork policy. Supports markdown."
+                      rows={12}
+                    />
+                  </div>
                   {/* Outfits Section */}
                   <div className="border-t border-gray-300 pt-6 dark:border-gray-600">
                     <div className="mb-4 flex items-center justify-between">
@@ -1623,6 +1616,74 @@ export default function CharacterForm({
         confirmText="Delete"
         loading={isDeleting}
       />
+
+      {/* Featured Image Picker Modal */}
+      {showFeaturedImagePicker && character && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowFeaturedImagePicker(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+              <h3 className="text-lg font-semibold">Choose existing image</h3>
+              <button
+                type="button"
+                className="rounded px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setShowFeaturedImagePicker(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto p-4">
+              {featuredImageCandidates.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No images available yet. Upload gallery or outfit images
+                  first.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {featuredImageCandidates.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 text-left hover:ring-2 hover:ring-blue-500 dark:border-gray-700"
+                      onClick={() => {
+                        setValue("featured_image", item.url, {
+                          shouldDirty: true,
+                        });
+                        setShowFeaturedImagePicker(false);
+                      }}
+                    >
+                      <StorageImage
+                        src={item.url}
+                        signedUrl={imageUrls.get(item.url) ?? null}
+                        alt={item.caption || "Example"}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center bg-black/40 text-white group-hover:flex">
+                        <span className="rounded bg-white/80 px-2 py-1 text-xs font-medium text-gray-900">
+                          Select
+                        </span>
+                      </div>
+                      {item.caption && (
+                        <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/80 to-transparent p-2">
+                          <p className="truncate text-xs font-medium text-white">
+                            {item.caption}
+                          </p>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

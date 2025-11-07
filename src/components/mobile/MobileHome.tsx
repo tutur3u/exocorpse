@@ -37,7 +37,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
       </p>
 
       {/* Navigation Buttons in Olympic Layout */}
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex w-full max-w-xs flex-col items-center gap-4">
         {/* Row 1 — 3 icons */}
         <div className="flex justify-center gap-4">
           {apps.slice(0, 3).map((app) => (
@@ -64,7 +64,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
         </div>
 
         {/* Row 2 — 2 icons offset between top ones */}
-        <div className="flex translate-x-[calc(5rem+0.5rem)] justify-center gap-4">
+        <div className="flex justify-center gap-4 pl-5">
           {apps.slice(3).map((app) => (
             <button
               key={app.id}

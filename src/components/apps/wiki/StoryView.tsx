@@ -352,9 +352,9 @@ export default function StoryView({
                       <h3 className="mb-1 truncate font-semibold text-gray-900 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
                         {character.name}
                       </h3>
-                      {character.title && (
+                      {character.nickname && (
                         <p className="truncate text-xs text-gray-600 dark:text-gray-400">
-                          {character.title}
+                          {character.nickname}
                         </p>
                       )}
                       {character.species && (

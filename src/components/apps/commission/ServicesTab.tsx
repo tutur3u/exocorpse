@@ -1,6 +1,7 @@
 "use client";
 
 import StorageImage from "@/components/shared/StorageImage";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ServiceWithDetails } from "@/lib/actions/commissions";
 import { parseAsString, useQueryStates } from "nuqs";
@@ -20,6 +21,8 @@ export default function ServicesTab({ services }: ServicesTabProps) {
       history: "push",
     },
   );
+
+  const isUsingMobile = useMobileDetection();
 
   // Prefetch only one image per service: cover if present, otherwise first picture
   const imagePaths = services
@@ -81,7 +84,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
       </div>
 
       {/* Services Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6">
         {services.map((service) => {
           // Prefer cover image; fallback to first picture
           const coverPath = service.cover_image_url || null;
@@ -102,17 +105,17 @@ export default function ServicesTab({ services }: ServicesTabProps) {
               type="button"
               key={service.service_id}
               onClick={() => handleServiceClick(service.slug)}
-              className="group relative overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl dark:bg-gray-800"
+              className="group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl md:flex-row dark:bg-gray-800"
             >
               {/* Service Image */}
-              <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+              <div className="relative aspect-4/3 h-[225px] w-[400px] overflow-hidden bg-gray-200 dark:bg-gray-700">
                 {coverPath || primaryPicture ? (
                   <StorageImage
                     src={coverPath || primaryPicture!.image_url}
                     signedUrl={preSignedUrl}
                     alt={service.name}
                     fill
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -122,16 +125,17 @@ export default function ServicesTab({ services }: ServicesTabProps) {
               </div>
 
               {/* Service Info */}
-              <div className="p-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              <div className="px-8 py-6 text-left">
+                <h3 className="text-md font-bold text-gray-900 md:text-4xl dark:text-white">
                   {service.name.toUpperCase()}
                 </h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-600 md:text-2xl dark:text-gray-400">
                   starting from: {service.base_price}€
                 </p>
 
                 {/* Add-ons preview */}
-                {service.service_addons &&
+                {!isUsingMobile &&
+                  service.service_addons &&
                   service.service_addons.length > 0 && (
                     <div className="mt-3 text-left">
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
