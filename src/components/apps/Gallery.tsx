@@ -2,8 +2,8 @@
 
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import StorageImage from "@/components/shared/StorageImage";
+import { Masonry } from "@tuturuuu/masonry";
 import { useState } from "react";
-import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -25,8 +25,12 @@ export interface GalleryImage {
 interface MasonryGalleryProps {
   images: GalleryImage[];
   isLoading?: boolean;
-  columnsBreakpoints?: Record<number, number>;
-  gutter?: number;
+  columns?: number;
+  breakpoints?: Record<number, number>;
+  gap?: number;
+  strategy?: "count" | "balanced";
+  smoothTransitions?: boolean;
+  balanceThreshold?: number;
   maxWidth?: string;
   emptyState?: React.ReactNode;
   loadingState?: React.ReactNode;
@@ -37,9 +41,12 @@ interface MasonryGalleryProps {
 export function MasonryGallery({
   images,
   isLoading = false,
-  columnsBreakpoints = { 350: 1, 750: 2, 1024: 3, 1280: 4 },
-  gutter = 5,
-  maxWidth = "max-w-6xl",
+  columns = 5,
+  breakpoints = { 350: 1, 750: 2, 1024: 3, 1280: 4, 1536: 5 },
+  gap = 16,
+  strategy = "balanced",
+  smoothTransitions = true,
+  balanceThreshold = 0.05,
   emptyState,
   loadingState,
   showOverlay = true,
@@ -119,48 +126,50 @@ export function MasonryGallery({
   }
 
   return (
-    <div className="h-full overflow-auto p-4">
-      <div className={`mx-auto ${maxWidth}`}>
-        <ResponsiveMasonry columnsCountBreakPoints={columnsBreakpoints}>
-          <Masonry
-            style={{ gap: `${gutter}px` }}
-            itemStyle={{ gap: `${gutter}px` }}
-          >
-            {images.map((image, index) => (
-              <div
-                key={image.id}
-                className="group relative cursor-pointer overflow-hidden transition-transform hover:scale-[1.02]"
-                onClick={() => handleImageClick(image, index)}
-              >
-                <StorageImage
-                  src={image.url}
-                  signedUrl={image.url}
-                  alt={image.alt || image.title || `Gallery image ${index + 1}`}
-                  width={image.width || 500}
-                  height={image.height || 500}
-                  className="block max-h-96 w-full object-cover"
-                  fallback={
-                    <div className="max-h-96 w-full bg-gray-200 dark:bg-gray-700" />
-                  }
-                />
-                {showOverlay && (image.metadata?.author || image.title) && (
-                  <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-                    <div className="p-3 text-white">
-                      {image.title && (
-                        <p className="text-sm font-medium">{image.title}</p>
-                      )}
-                      {image.metadata?.author && (
-                        <p className="text-xs opacity-80">
-                          {image.metadata.author}
-                        </p>
-                      )}
-                    </div>
+    <div className="h-full w-full overflow-auto p-4">
+      <div className="w-full">
+        <Masonry
+          columns={columns}
+          gap={gap}
+          breakpoints={breakpoints}
+          strategy={strategy}
+          smoothTransitions={smoothTransitions}
+          balanceThreshold={balanceThreshold}
+        >
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              className="group relative cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-[1.02]"
+              onClick={() => handleImageClick(image, index)}
+            >
+              <StorageImage
+                src={image.url}
+                signedUrl={image.url}
+                alt={image.alt || image.title || `Gallery image ${index + 1}`}
+                width={image.width || 500}
+                height={image.height || 500}
+                className="block max-h-96 w-full object-cover"
+                fallback={
+                  <div className="max-h-96 w-full bg-gray-200 dark:bg-gray-700" />
+                }
+              />
+              {showOverlay && (image.metadata?.author || image.title) && (
+                <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="p-3 text-white">
+                    {image.title && (
+                      <p className="text-sm font-medium">{image.title}</p>
+                    )}
+                    {image.metadata?.author && (
+                      <p className="text-xs opacity-80">
+                        {image.metadata.author}
+                      </p>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-          </Masonry>
-        </ResponsiveMasonry>
+                </div>
+              )}
+            </div>
+          ))}
+        </Masonry>
 
         <Lightbox
           content={selectedContent}
