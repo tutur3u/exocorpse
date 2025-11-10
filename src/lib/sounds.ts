@@ -1,4 +1,5 @@
 import { Howl } from "howler";
+import { getCachedSignedUrl } from "./actions/storage";
 
 export type SoundType =
   | "boot"
@@ -8,65 +9,68 @@ export type SoundType =
   | "error"
   | "bgm";
 
+interface SoundConfig {
+  path: string;
+  volume: number;
+  loop?: boolean;
+}
+
+const SOUND_CONFIGS: Record<SoundType, SoundConfig> = {
+  boot: { path: "public/audio/boot.mp3", volume: 0.5 },
+  click: { path: "public/audio/click.mp3", volume: 0.3 },
+  hover: { path: "public/audio/hover.mp3", volume: 0.2 },
+  "window-off": { path: "public/audio/window-off.mp3", volume: 0.4 },
+  error: { path: "public/audio/error.mp3", volume: 0.5 },
+  bgm: { path: "public/audio/bgm.mp3", volume: 0.3, loop: true },
+};
+
 class SoundManager {
   private sounds: Map<SoundType, Howl> = new Map();
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
-  constructor() {
-    this.sounds.set(
-      "boot",
-      new Howl({
-        src: ["/audio/boot.mp3"],
-        volume: 0.5,
-        preload: true,
-      }),
-    );
+  /**
+   * Initialize the sound manager with storage URLs
+   * This should be called once when the app starts
+   */
+  async initialize() {
+    if (this.initialized || this.initPromise) {
+      return this.initPromise || Promise.resolve();
+    }
 
-    this.sounds.set(
-      "click",
-      new Howl({
-        src: ["/audio/click.mp3"],
-        volume: 0.3,
-        preload: true,
-      }),
-    );
+    this.initPromise = (async () => {
+      try {
+        // Fetch audio URLs from storage one by one (getCachedSignedUrl is a server action)
+        for (const [type, config] of Object.entries(SOUND_CONFIGS)) {
+          try {
+            const url = await getCachedSignedUrl(config.path);
+            if (url) {
+              this.sounds.set(
+                type as SoundType,
+                new Howl({
+                  src: [url],
+                  volume: config.volume,
+                  loop: config.loop || false,
+                  preload: true,
+                }),
+              );
+            } else {
+              console.warn(`Failed to get URL for sound: ${type}`);
+            }
+          } catch (error) {
+            console.warn(`Error loading sound ${type}:`, error);
+          }
+        }
 
-    this.sounds.set(
-      "hover",
-      new Howl({
-        src: ["/audio/hover.mp3"],
-        volume: 0.2,
-        preload: true,
-      }),
-    );
+        this.initialized = true;
+      } catch (error) {
+        console.error("Error initializing sound manager:", error);
+        this.initPromise = null;
+        throw error;
+      }
+    })();
 
-    this.sounds.set(
-      "window-off",
-      new Howl({
-        src: ["/audio/window-off.mp3"],
-        volume: 0.4,
-        preload: true,
-      }),
-    );
-
-    this.sounds.set(
-      "error",
-      new Howl({
-        src: ["/audio/error.mp3"],
-        volume: 0.5,
-        preload: true,
-      }),
-    );
-
-    this.sounds.set(
-      "bgm",
-      new Howl({
-        src: ["/audio/bgm.mp3"],
-        volume: 0.3,
-        loop: true,
-        preload: true,
-      }),
-    );
+    return this.initPromise;
   }
 
   play(

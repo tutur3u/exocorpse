@@ -1,5 +1,6 @@
 "use client";
 
+import { useStorageUrl } from "@/hooks/useStorageUrl";
 import { Howl } from "howler"; // Make sure you have 'howler' installed
 import { useEffect, useRef, useState } from "react";
 import Icon from "./shared/Icon";
@@ -23,10 +24,17 @@ export default function MusicPlayer({
   const [isVolumeMuteButtonHovered, setIsVolumeMuteButtonHovered] =
     useState(false);
 
-  // Initialize Howler on component mount
+  // Fetch BGM URL from storage
+  const { signedUrl: bgmUrl } = useStorageUrl("public/audio/bgm.mp3");
+
+  // Initialize Howler on component mount with storage URL
   useEffect(() => {
-    const sound = new Howl({
-      src: ["/audio/bgm.mp3"], // Howler accepts an array of sources
+    if (!bgmUrl) return;
+
+    let sound: Howl | null = null;
+
+    sound = new Howl({
+      src: [bgmUrl],
       loop: true,
       volume: volume,
       html5: true, // Use HTML5 Audio for streaming BGM
@@ -54,10 +62,12 @@ export default function MusicPlayer({
 
     // Cleanup on unmount
     return () => {
-      sound.unload();
+      if (sound) {
+        sound.unload();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty array ensures this runs only once
+  }, [bgmUrl]); // Re-run when bgmUrl changes
 
   // Update Howler's volume when the state changes
   useEffect(() => {

@@ -24,21 +24,43 @@ const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
 export function SoundProvider({ children }: { children: React.ReactNode }) {
   const [isBootComplete, setBootComplete] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize sound manager with storage URLs
+  useEffect(() => {
+    soundManager
+      .initialize()
+      .then(() => {
+        setIsInitialized(true);
+      })
+      .catch((error) => {
+        console.error("Failed to initialize sound manager:", error);
+      });
+  }, []);
 
   const playSound = useCallback(
     (type: SoundType, options?: { volume?: number; onend?: () => void }) => {
+      if (!isInitialized) return;
       soundManager.play(type, options);
     },
-    [],
+    [isInitialized],
   );
 
-  const stopSound = useCallback((type: SoundType) => {
-    soundManager.stop(type);
-  }, []);
+  const stopSound = useCallback(
+    (type: SoundType) => {
+      if (!isInitialized) return;
+      soundManager.stop(type);
+    },
+    [isInitialized],
+  );
 
-  const setVolumeCallback = useCallback((type: SoundType, volume: number) => {
-    soundManager.setVolume(type, volume);
-  }, []);
+  const setVolumeCallback = useCallback(
+    (type: SoundType, volume: number) => {
+      if (!isInitialized) return;
+      soundManager.setVolume(type, volume);
+    },
+    [isInitialized],
+  );
 
   // Add global click listener
   useEffect(() => {

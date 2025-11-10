@@ -1,5 +1,6 @@
 "use client";
 
+import { useStorageUrl } from "@/hooks/useStorageUrl";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -45,7 +46,16 @@ export default function Icon({
 
   // Determine which image to show
   const imageType = isHovered && hasGifVersion ? "GIFs" : "PNGs";
-  const imagePath = `/icons/${imageType}/${size}/${name}.${isHovered && hasGifVersion ? "gif" : "png"}`;
+  const extension = isHovered && hasGifVersion ? "gif" : "png";
+  const imagePath = `public/icons/${imageType}/${size}/${name}.${extension}`;
+
+  // Fetch the icon URL from storage using the hook
+  const { signedUrl: iconUrl, loading } = useStorageUrl(imagePath);
+
+  if (loading || !iconUrl) {
+    // Show a placeholder while loading
+    return <div className={className} style={{ width: size, height: size }} />;
+  }
 
   return (
     <div
@@ -54,7 +64,7 @@ export default function Icon({
       className={className}
     >
       <Image
-        src={imagePath}
+        src={iconUrl}
         alt={alt || name}
         width={size}
         height={size}

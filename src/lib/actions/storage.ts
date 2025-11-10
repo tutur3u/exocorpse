@@ -183,6 +183,8 @@ export async function deleteGameImage(path: string) {
 export async function getCachedSignedUrl(path: string): Promise<string | null> {
   if (!path) return null;
 
+  console.log("Getting cached signed URL for path:", path);
+
   try {
     const supabase = await getSupabaseServer();
 
@@ -389,5 +391,57 @@ export async function getStorageAnalytics() {
         ? error.message
         : "Failed to fetch storage analytics",
     );
+  }
+}
+
+/**
+ * Get a signed URL for a public asset (no auth required)
+ * Public assets include: audio, boot images, cursors, icons, workers
+ * @param path - Path relative to public directory (e.g., "audio/boot.mp3", "icons/PNGs/32/Blog.png")
+ * @returns Signed URL or null
+ */
+export async function getPublicAssetUrl(path: string): Promise<string | null> {
+  if (!path) return null;
+
+  try {
+    // Public assets are stored with "public/" prefix in storage
+    const storagePath = `public/${path}`;
+    return await getCachedSignedUrl(storagePath);
+  } catch (error) {
+    console.error(`Error getting public asset URL for ${path}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Batch get signed URLs for public assets (no auth required)
+ * More efficient than individual calls
+ * @param paths - Array of paths relative to public directory
+ * @returns Map of original path to signed URL
+ */
+export async function batchGetPublicAssetUrls(
+  paths: string[],
+): Promise<Map<string, string>> {
+  const urlMap = new Map<string, string>();
+
+  if (!paths.length) return urlMap;
+
+  try {
+    // Convert to storage paths with "public/" prefix
+    const storagePaths = paths.map((p) => `public/${p}`);
+
+    // Use the batch cached function
+    const storageUrlMap = await batchGetCachedSignedUrls(storagePaths);
+
+    // Convert back to original paths
+    for (const [storagePath, url] of storageUrlMap.entries()) {
+      const originalPath = storagePath.replace(/^public\//, "");
+      urlMap.set(originalPath, url);
+    }
+
+    return urlMap;
+  } catch (error) {
+    console.error("Error in batch get public asset URLs:", error);
+    return urlMap;
   }
 }

@@ -7,6 +7,7 @@ import { useState } from "react";
 import DesktopIcon from "./DesktopIcon";
 import Taskbar from "./Taskbar";
 import Window from "./Window";
+import StorageImage from "./shared/StorageImage";
 
 export default function Desktop() {
   const { windows, appConfigs } = useWindows();
@@ -17,8 +18,8 @@ export default function Desktop() {
       className="relative h-screen w-screen overflow-hidden bg-cover bg-center bg-no-repeat"
       onClick={() => setSelectedIconId(null)}
     >
-      <Image
-        src="/background-image.webp"
+      <StorageImage
+        src="public/background-image.webp"
         alt="Background Image"
         fill
         className="object-cover"

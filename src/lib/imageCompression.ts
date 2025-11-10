@@ -126,11 +126,22 @@ async function compressImageWithWorker(
   return new Promise((resolve, reject) => {
     // Read file first
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const dataUrl = reader.result as string;
 
+      // Get worker URL from storage
+      const { getCachedSignedUrl } = await import("./actions/storage");
+      const workerUrl = await getCachedSignedUrl(
+        "public/workers/imageCompressor.worker.js",
+      );
+
+      if (!workerUrl) {
+        reject(new Error("Failed to get worker URL from storage"));
+        return;
+      }
+
       // Create worker
-      const worker = new Worker("/workers/imageCompressor.worker.js");
+      const worker = new Worker(workerUrl);
 
       worker.onmessage = (e) => {
         worker.terminate();

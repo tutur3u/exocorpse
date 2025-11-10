@@ -41,6 +41,7 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
         // Extract relative path in case full path is provided
         const relativePath = extractRelativePath(path);
         // Use cached function which checks DB first, then fetches from SDK if needed
+        console.log(relativePath);
         return await getCachedSignedUrl(relativePath);
       } catch (error) {
         // Handle file not found and other errors gracefully

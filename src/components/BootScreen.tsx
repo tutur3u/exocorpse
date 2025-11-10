@@ -1,4 +1,5 @@
 import { useSound } from "@/contexts/SoundContext";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -11,7 +12,7 @@ interface TerminalMessage {
 }
 
 const BOOT_IMAGES = ["Fenrys.webp", "Morris.webp"];
-const BACKGROUND_IMAGE = "/background-image.webp";
+const BACKGROUND_IMAGE = "background-image.webp";
 
 const getRandomBootImage = () => {
   return BOOT_IMAGES[Math.floor(Math.random() * BOOT_IMAGES.length)];
@@ -44,6 +45,15 @@ export default function BootScreen({
       isTyping: false,
     })),
   );
+
+  // Fetch boot and background images from storage
+  const { signedUrls } = useBatchStorageUrls([
+    `public/boot/${randomBootImage}`,
+    `public/${BACKGROUND_IMAGE}`,
+  ]);
+
+  const bootImageUrl = signedUrls.get(`public/boot/${randomBootImage}`) || null;
+  const backgroundUrl = signedUrls.get(`public/${BACKGROUND_IMAGE}`) || null;
 
   // Update local time
   useEffect(() => {
@@ -143,13 +153,15 @@ export default function BootScreen({
 
   return (
     <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-cover bg-center">
-      <Image
-        src={BACKGROUND_IMAGE}
-        alt="Background Image"
-        fill
-        preload={true}
-        className="object-cover"
-      />
+      {backgroundUrl && (
+        <Image
+          src={backgroundUrl}
+          alt="Background Image"
+          fill
+          preload={true}
+          className="object-cover"
+        />
+      )}
       {/* Animated background pattern (optional subtle effect) */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-linear-to-br from-red-900/20 via-transparent to-blue-900/20" />
@@ -160,14 +172,16 @@ export default function BootScreen({
         {/* User Avatar */}
         <div className="animate-fadeIn">
           <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full">
-            <Image
-              src={`/boot/${randomBootImage}`}
-              alt="Boot Avatar"
-              width={192}
-              height={192}
-              preload={true}
-              className="h-full w-full object-cover"
-            />
+            {bootImageUrl && (
+              <Image
+                src={bootImageUrl}
+                alt="Boot Avatar"
+                width={192}
+                height={192}
+                preload={true}
+                className="h-full w-full object-cover"
+              />
+            )}
           </div>
         </div>
 
