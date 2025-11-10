@@ -508,7 +508,7 @@ Disguised as a tech startup office, this facility houses some of Exocorpse''s mo
   -- ============================================================================
 
   -- Character 1: Pulse Operative
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
       'Kazuki Yamamoto',
@@ -535,14 +535,13 @@ Born in Osaka, he lost his family in a gang-related incident when he was 16. He 
 
 Kazuki believes that by eliminating threats before they can harm innocents, he''s preventing others from experiencing the loss he endured.',
       'Expert in CQC, firearms, tactical planning, parkour, infiltration',
-      'Enhanced reflexes through training, exceptional pain tolerance, tactical analysis',
       '/assets/characters/kazuki.png',
       '#dc2626'
     )
   RETURNING id INTO v_char1_id;
 
   -- Character 2: Neuro Operative
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory,  abilities, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
       'Dr. Aisha Rahman',
@@ -569,14 +568,13 @@ Born in London to Pakistani immigrants, she grew up watching her parents struggl
 
 Aisha believes that by understanding and manipulating the minds of those in power, she can steer humanity toward a better future.',
       'Expert in psychology, interrogation, social engineering, cryptography, data analysis',
-      'Eidetic memory, rapid pattern recognition, psychological profiling',
       '/assets/characters/aisha.png',
       '#3b82f6'
     )
   RETURNING id INTO v_char2_id;
 
   -- Character 3: Dual-Type (rare)
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, skills, abilities, strengths, weaknesses, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, color_scheme) VALUES
     (
       extensions.uuid_generate_v4(),
       'Viktor Sokolov',
@@ -611,9 +609,6 @@ Viktor now oversees joint operations between Pulse and Neuro divisions. He''s al
 
 Among Pulse operatives, he''s respected for his combat prowess. Among Neuros, he''s admired for his strategic mind. Among both, he''s feared for his ruthlessness.',
       'Expert combatant, master strategist, psychological warfare, leadership, multilingual (Russian, English, Japanese, Mandarin, Arabic)',
-      'Enhanced tactical analysis, exceptional physical conditioning, advanced psychological manipulation',
-      'Versatility, strategic thinking, leadership, adaptability',
-      'Perfectionism (can be a liability), trust issues, occasionally reckless when trying to prove a point',
       '/assets/characters/viktor.png',
       '#8b5cf6'
     )

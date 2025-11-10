@@ -555,6 +555,7 @@ export type Database = {
           skin_tone: string | null;
           slug: string;
           species: string | null;
+          spotify_link: string | null;
           status: Database["public"]["Enums"]["character_status"] | null;
           updated_at: string | null;
           weight: string | null;
@@ -590,6 +591,7 @@ export type Database = {
           skin_tone?: string | null;
           slug: string;
           species?: string | null;
+          spotify_link?: string | null;
           status?: Database["public"]["Enums"]["character_status"] | null;
           updated_at?: string | null;
           weight?: string | null;
@@ -625,6 +627,7 @@ export type Database = {
           skin_tone?: string | null;
           slug?: string;
           species?: string | null;
+          spotify_link?: string | null;
           status?: Database["public"]["Enums"]["character_status"] | null;
           updated_at?: string | null;
           weight?: string | null;
@@ -1882,6 +1885,7 @@ export type Database = {
           skin_tone: string | null;
           slug: string | null;
           species: string | null;
+          spotify_link: string | null;
           status: Database["public"]["Enums"]["character_status"] | null;
           updated_at: string | null;
           weight: string | null;

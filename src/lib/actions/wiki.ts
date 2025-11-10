@@ -1309,6 +1309,12 @@ export async function createCharacter(character: {
   profile_image?: string;
   banner_image?: string;
   color_scheme?: string;
+  featured_image?: string;
+  quote?: string;
+  description?: string;
+  fanwork_policy?: string;
+  color_palette?: string[];
+  spotify_link?: string;
 }) {
   // Verify authentication and get supabase client
   const { supabase } = await verifyAuth();

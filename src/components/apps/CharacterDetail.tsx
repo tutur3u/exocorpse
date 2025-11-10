@@ -2,8 +2,11 @@
 
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import SpotifyEmbed from "@/components/shared/SpotifyEmbed";
 import StorageImage from "@/components/shared/StorageImage";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
+import { useWindows } from "@/contexts/WindowContext";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { Character } from "@/lib/actions/wiki";
 import {
@@ -44,6 +47,21 @@ export default function CharacterDetail({
   );
   const [lightboxContent, setLightboxContent] =
     useState<LightboxContent | null>(null);
+
+  const { windows } = useWindows();
+  const currentWindow = windows.find((w) => w.id === "wiki");
+
+  // Determine markdown max-height class based on window size
+  const getMarkdownHeightClass = () => {
+    if (!currentWindow) return "max-h-[200px]";
+    const windowWidth = currentWindow.size.width;
+    if (windowWidth > 1200) return "max-h-[600px]";
+    if (windowWidth > 1000) return "max-h-[400px]";
+    if (windowWidth > 800) return "max-h-[300px]";
+    return "max-h-[150px]";
+  };
+
+  const markdownHeightClass = getMarkdownHeightClass();
 
   const initialData = useInitialWikiData();
   const hasInitialDetailData =
@@ -114,6 +132,8 @@ export default function CharacterDetail({
     { id: "lore", label: "Story & Relationships" },
     { id: "gallery", label: `Gallery (${gallery.length})` },
   ];
+
+  const isMobile = useMobileDetection();
 
   return (
     <div className="flex min-h-full flex-col bg-white dark:bg-gray-900">
@@ -251,24 +271,37 @@ export default function CharacterDetail({
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="animate-fadeIn space-y-4">
-                <div className="grid grid-cols-1 items-center justify-center gap-4 md:grid-cols-3">
-                  {character.featured_image && (
-                    <div className="relative col-span-1 flex aspect-square w-full md:col-start-3 md:row-start-1">
-                      <StorageImage
-                        src={character.featured_image}
-                        alt={`${character.name} featured`}
-                        fill
+                <div className="grid grid-cols-1 items-start justify-center gap-4 md:grid-cols-3">
+                  <div className="col-span-1 flex h-full flex-col gap-4 md:col-start-3 md:row-start-1">
+                    {character.featured_image && (
+                      <div className="relative flex aspect-square w-full overflow-hidden">
+                        <StorageImage
+                          src={character.featured_image}
+                          alt={`${character.name} featured`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    {/* Spotify Embed */}
+                    {character.spotify_link && (
+                      <SpotifyEmbed
+                        url={character.spotify_link}
+                        size={isMobile ? "compact" : "normal"}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                   {character.description && (
-                    <div className="col-span-1 grid grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1 dark:border-gray-800 dark:bg-gray-800/50">
                       {character.quote && (
-                        <blockquote className="ml-4 text-xl italic">
+                        <blockquote className="ml-4 flex items-center text-xl italic">
                           "{character.quote}"
                         </blockquote>
                       )}
-                      <MarkdownRenderer content={character.description} />
+                      <MarkdownRenderer
+                        content={character.description}
+                        className={`h-full ${markdownHeightClass} overflow-y-auto`}
+                      />
                       {/* Physical Traits */}
                       {(character.height ||
                         character.build ||
@@ -279,7 +312,7 @@ export default function CharacterDetail({
                         character.gender ||
                         character.skin_tone ||
                         character.distinguishing_features) && (
-                        <div className="">
+                        <div className="flex flex-col justify-center">
                           <div className="grid grid-cols-2 gap-3">
                             {(character.height || character.weight) && (
                               <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">

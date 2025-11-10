@@ -7,6 +7,7 @@ import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
+import SpotifyEmbed from "@/components/shared/SpotifyEmbed";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
@@ -67,6 +68,7 @@ type CharacterFormData = {
   quote?: string;
   description?: string;
   fanwork_policy?: string;
+  spotify_link?: string;
 };
 
 type CharacterFormProps = {
@@ -157,6 +159,7 @@ export default function CharacterForm({
     quote: character?.quote ?? "",
     description: character?.description ?? "",
     fanwork_policy: character?.fanwork_policy ?? "",
+    spotify_link: character?.spotify_link ?? "",
   });
 
   const form = useForm<CharacterFormData>({
@@ -205,6 +208,7 @@ export default function CharacterForm({
   const colorPalette = watch("color_palette");
   const selectedWorldIds = watch("world_ids");
   const featuredImage = watch("featured_image");
+  const spotifyLink = watch("spotify_link");
 
   // Fetch gallery items using react-query
   const { data: galleryItems = [], isLoading: loadingGallery } = useQuery({
@@ -336,6 +340,7 @@ export default function CharacterForm({
           "description",
           "fanwork_policy",
           "color_palette",
+          "spotify_link",
         ],
         ["age"],
       );
@@ -1251,6 +1256,55 @@ export default function CharacterForm({
                     }
                     helpText="Theme color for this character"
                   />
+
+                  <div>
+                    <label
+                      htmlFor="spotify_link"
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Spotify Link
+                    </label>
+                    <input
+                      type="url"
+                      id="spotify_link"
+                      {...register("spotify_link", {
+                        validate: (value) => {
+                          if (!value || value.trim() === "") return true; // Optional field
+                          // Validate Spotify URL pattern
+                          // Supports: open.spotify.com, play.spotify.com, or just spotify.com
+                          // Supports: track, album, playlist, artist, episode, show
+                          // Spotify IDs are base62 encoded (alphanumeric)
+                          const spotifyPattern =
+                            /^https?:\/\/(open\.|play\.)?spotify\.com\/(track|album|playlist|artist|episode|show)\/[a-zA-Z0-9]+(\?.*)?$/;
+                          if (!spotifyPattern.test(value.trim())) {
+                            return "Please enter a valid Spotify link (track, album, playlist, artist, episode, or show)";
+                          }
+                          return true;
+                        },
+                      })}
+                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="https://open.spotify.com/track/..."
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Paste a Spotify link (track, album, playlist, artist,
+                      episode, or show)
+                    </p>
+                    {form.formState.errors.spotify_link && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                        {form.formState.errors.spotify_link.message}
+                      </p>
+                    )}
+
+                    {/* Spotify Preview */}
+                    {spotifyLink && spotifyLink.trim() && (
+                      <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                        <p className="mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                          Preview:
+                        </p>
+                        <SpotifyEmbed url={spotifyLink} size="compact" />
+                      </div>
+                    )}
+                  </div>
 
                   {/* Featured Image Section */}
                   {character && (
