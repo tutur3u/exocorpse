@@ -126,7 +126,9 @@ async function uploadFileWithRetry(
         relativePath.lastIndexOf("/"),
       );
       const destinationPath =
-        folderPath.length > 0 ? `${STORAGE_PREFIX}/${folderPath}` : STORAGE_PREFIX;
+        folderPath.length > 0
+          ? `${STORAGE_PREFIX}/${folderPath}`
+          : STORAGE_PREFIX;
 
       // Upload directly using the SDK
       const result = await client.storage.upload(fileObject, {
