@@ -56,8 +56,10 @@ export default function AboutMe() {
         </div>
         <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Fenrys & Morris</h1>
-            <p className="ml-4 text-gray-600 dark:text-gray-400">
+            <h1 className="text-center text-2xl font-bold md:text-left">
+              Fenrys & Morris
+            </h1>
+            <p className="text-center text-gray-600 md:ml-4 md:text-left dark:text-gray-400">
               Freelance Illustrator, Writer & Game Developer
             </p>
           </div>
