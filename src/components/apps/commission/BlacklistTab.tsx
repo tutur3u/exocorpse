@@ -8,7 +8,7 @@ import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
-import BlacklistReasonCard from "./BlacklistReasonCard";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -124,33 +124,62 @@ export default function BlacklistTab({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {blacklistedUsers.map((user) => (
-              <div key={user.id} className="space-y-2">
-                {/* Static User Card */}
-                <div className="rounded-4xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                      {user.username}
-                    </h3>
-                    {user.timestamp && (
-                      <span className="text-sm">
-                        {new Date(user.timestamp).toLocaleDateString("en-GB")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Expandable Reasoning Card */}
-                <BlacklistReasonCard
-                  user={user}
-                  isExpanded={expandedUserId === user.id}
-                  onToggle={() =>
+              <div
+                key={user.id}
+                className="overflow-hidden rounded-xl border-2 border-gray-200 bg-white shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
                     setExpandedUserId(
                       expandedUserId === user.id ? null : user.id,
                     )
                   }
-                />
+                  className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900"
+                  aria-expanded={expandedUserId === user.id}
+                  aria-controls={`blacklist-panel-${user.id}`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {user.username}
+                    </h3>
+                    {user.timestamp && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(user.timestamp).toLocaleDateString("en-GB")}
+                      </span>
+                    )}
+                  </div>
+                  {expandedUserId === user.id ? (
+                    <FaChevronUp
+                      className="h-4 w-4 shrink-0 text-blue-500 transition-transform"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <FaChevronDown
+                      className="h-4 w-4 shrink-0 text-gray-400 transition-transform"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+                <section
+                  id={`blacklist-panel-${user.id}`}
+                  aria-hidden={expandedUserId !== user.id}
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    expandedUserId === user.id
+                      ? "max-h-[1000px] opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="border-t border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                    {user.reasoning || (
+                      <p className="text-gray-500 italic dark:text-gray-400">
+                        No reasoning provided.
+                      </p>
+                    )}
+                  </div>
+                </section>
               </div>
             ))}
           </div>

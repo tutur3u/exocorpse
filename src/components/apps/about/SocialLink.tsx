@@ -1,9 +1,11 @@
+import Image from "next/image";
 import type { ComponentType } from "react";
 import {
   FaDiscord,
   FaExternalLinkAlt,
   FaTumblr,
   FaTwitch,
+  FaTwitter,
 } from "react-icons/fa";
 import { SiBluesky } from "react-icons/si";
 import type { SocialMediaLink } from "./data";
@@ -14,6 +16,7 @@ const iconMap = {
   vgen: null, // Custom "V" letter
   bluesky: SiBluesky,
   discord: FaDiscord,
+  twitter: FaTwitter,
 };
 
 const colorMap = {
@@ -59,6 +62,14 @@ const colorMap = {
     externalLink:
       "group-hover:text-indigo-600 dark:group-hover:text-indigo-400",
   },
+  vgen: {
+    border: "hover:border-lime-400 dark:hover:border-lime-500",
+    bg: "from-lime-50 dark:from-lime-950",
+    iconBg:
+      "bg-lime-100 group-hover:bg-lime-200 dark:bg-lime-900 dark:group-hover:bg-lime-800",
+    iconColor: "text-lime-600 dark:text-lime-400",
+    externalLink: "group-hover:text-lime-600 dark:group-hover:text-lime-400",
+  },
 };
 
 interface Props {
@@ -91,12 +102,12 @@ export default function SocialLink({ link }: Props) {
               aria-hidden="true"
             />
           ) : (
-            <span
-              className={`font-bold ${colors.iconColor}`}
-              aria-hidden="true"
-            >
-              V
-            </span>
+            <Image
+              src="https://help.vgen.co/hc/article_attachments/13004232167575"
+              alt="V"
+              width={24}
+              height={24}
+            />
           )}
         </div>
         <div className="flex-1">

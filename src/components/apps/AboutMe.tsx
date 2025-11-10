@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, HelpCircle, Sparkles, User } from "lucide-react";
+import Image from "next/image";
 import { type ComponentType, useState } from "react";
 import AboutTab from "./about/AboutTab";
 import DniTab from "./about/DniTab";
@@ -41,9 +42,42 @@ export default function AboutMe() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Tab Navigation */}
-      <div className="grid grid-cols-4 gap-2" role="tablist">
+    <div className="flex h-full flex-col overflow-auto">
+      {/* Header Section - scrolls off first */}
+      <div className="mx-auto flex flex-col gap-6 p-6 md:flex-row md:gap-10">
+        <div className="flex items-center justify-center">
+          <Image
+            src="/LykoTwins.webp"
+            alt="About Me"
+            width={256}
+            height={256}
+            className="rounded-xl object-cover"
+          />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Fenrys & Morris</h1>
+            <p className="ml-4 text-gray-600 dark:text-gray-400">
+              Freelance Illustrator, Writer & Game Developer
+            </p>
+          </div>
+          <div className="max-w-2xl">
+            I'm Fenrys & Morris, an illustrator and writer duo in one. I
+            specialize in illustrative works, story & dialogue writing, and
+            sprite work for game development. I try to be a jack of all trades
+            while trying to keep my limits behind creative work as much as
+            possible. Fenrys serves as the artist representative, while Morris
+            as the writer representative. They represent me as a branding and as
+            who I am.
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Navigation - sticky */}
+      <div
+        className="sticky top-0 z-10 grid grid-cols-4 gap-2 bg-gray-900"
+        role="tablist"
+      >
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             type="button"
@@ -66,9 +100,9 @@ export default function AboutMe() {
         ))}
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content - scrolls normally */}
       <div
-        className="flex-1 overflow-auto p-6"
+        className="p-6"
         role="tabpanel"
         id={`${activeTab}-panel`}
         aria-labelledby={`${activeTab}-tab`}

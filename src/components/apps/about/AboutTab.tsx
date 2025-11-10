@@ -12,17 +12,6 @@ import { experiences, favorites, moreInfo } from "./data";
 export default function AboutTab() {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-linear-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-        <h2 className="mb-3 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
-          About Me
-        </h2>
-        <p className="text-lg text-gray-700 dark:text-gray-300">
-          Hi! I&apos;m <strong>Fenrys</strong> (also known as{" "}
-          <strong>Morris</strong>), a self-taught artist and writer passionate
-          about storytelling and visual art.
-        </p>
-      </div>
-
       {/* What I Use */}
       <section className="group rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600">
         <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">

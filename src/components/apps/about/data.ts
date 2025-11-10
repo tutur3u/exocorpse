@@ -16,8 +16,14 @@ export interface SocialMediaLink {
   readonly name: string;
   readonly username: string;
   readonly url: string;
-  readonly icon: "tumblr" | "twitch" | "vgen" | "bluesky" | "discord";
-  readonly color: "blue" | "purple" | "pink" | "sky" | "indigo";
+  readonly icon:
+    | "tumblr"
+    | "twitch"
+    | "vgen"
+    | "bluesky"
+    | "discord"
+    | "twitter";
+  readonly color: "blue" | "purple" | "pink" | "sky" | "indigo" | "vgen";
   readonly fullWidth?: boolean;
 }
 
@@ -121,7 +127,7 @@ export const socialMediaLinks: ReadonlyArray<SocialMediaLink> = [
     username: "exocorpse",
     url: "https://vgen.co/exocorpse",
     icon: "vgen",
-    color: "pink",
+    color: "vgen",
   },
   {
     id: "bluesky",
@@ -138,7 +144,14 @@ export const socialMediaLinks: ReadonlyArray<SocialMediaLink> = [
     url: "https://discord.gg/exocorpse",
     icon: "discord",
     color: "indigo",
-    fullWidth: true,
+  },
+  {
+    id: "twitter",
+    name: "Twitter",
+    username: "exocorpsehq",
+    url: "https://x.com/exocorpsehq",
+    icon: "twitter",
+    color: "blue",
   },
 ] as const;
 
