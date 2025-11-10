@@ -110,20 +110,27 @@ async function uploadFileWithRetry(
       const fileContent = await readFile(file.fullPath);
       const fileSize = formatBytes(file.size);
 
-      // Create a Blob from the file content
-      const blob = new Blob([fileContent], {
+      // Read file content and create a File object with the correct name
+      const fileName = file.fullPath.split(/[\\\/]/).pop()!;
+      const fileObject = new File([fileContent], fileName, {
         type: getMimeType(file.fullPath),
       });
 
-      // Get the relative path from public directory
+      // Get the destination folder path (without filename)
       const relativePath = relative(PUBLIC_DIR, file.fullPath).replace(
         /\\/g,
         "/",
       );
+      const folderPath = relativePath.substring(
+        0,
+        relativePath.lastIndexOf("/"),
+      );
+      const destinationPath =
+        folderPath.length > 0 ? `${STORAGE_PREFIX}/${folderPath}` : STORAGE_PREFIX;
 
       // Upload directly using the SDK
-      const result = await client.storage.upload(blob, {
-        path: `${STORAGE_PREFIX}/${relativePath}`,
+      const result = await client.storage.upload(fileObject, {
+        path: destinationPath,
         upsert: true,
       });
 
