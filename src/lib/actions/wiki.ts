@@ -1850,7 +1850,6 @@ export type CharacterRelationshipEnhanced = {
     name: string;
     slug: string;
     nickname: string | null;
-    title: string | null;
     age: number | null;
     species: string | null;
     gender: string | null;

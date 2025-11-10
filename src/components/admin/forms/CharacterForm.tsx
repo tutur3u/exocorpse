@@ -1,13 +1,17 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import GalleryItemForm from "@/components/admin/forms/GalleryItemForm";
+import OutfitItemForm from "@/components/admin/forms/OutfitItemForm";
 import ColorPalettePicker from "@/components/shared/ColorPalettePicker";
 import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { MultiSelect } from "@/components/shared/MultiSelect";
-import SpotifyEmbed from "@/components/shared/SpotifyEmbed";
+import SpotifyEmbed, {
+  isValidSpotifyUrl,
+} from "@/components/shared/SpotifyEmbed";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
@@ -31,8 +35,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { Tables } from "../../../../supabase/types";
-import GalleryItemForm from "./GalleryItemForm";
-import OutfitItemForm from "./OutfitItemForm";
 
 type CharacterGalleryItem = Tables<"character_gallery">;
 type CharacterOutfitItem = Tables<"character_outfits">;
@@ -200,6 +202,8 @@ export default function CharacterForm({
     useState<CharacterOutfitItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showFeaturedImagePicker, setShowFeaturedImagePicker] = useState(false);
+  const [spotifyPreviewError, setSpotifyPreviewError] = useState(false);
+  const [debouncedSpotifyLink, setDebouncedSpotifyLink] = useState("");
 
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
@@ -209,6 +213,17 @@ export default function CharacterForm({
   const selectedWorldIds = watch("world_ids");
   const featuredImage = watch("featured_image");
   const spotifyLink = watch("spotify_link");
+
+  // Debounce spotify link to avoid showing preview for invalid URLs while typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSpotifyLink(spotifyLink || "");
+      // Reset error state when URL changes
+      setSpotifyPreviewError(false);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [spotifyLink]);
 
   // Fetch gallery items using react-query
   const { data: galleryItems = [], isLoading: loadingGallery } = useQuery({
@@ -1274,9 +1289,7 @@ export default function CharacterForm({
                           // Supports: open.spotify.com, play.spotify.com, or just spotify.com
                           // Supports: track, album, playlist, artist, episode, show
                           // Spotify IDs are base62 encoded (alphanumeric)
-                          const spotifyPattern =
-                            /^https?:\/\/(open\.|play\.)?spotify\.com\/(track|album|playlist|artist|episode|show)\/[a-zA-Z0-9]+(\?.*)?$/;
-                          if (!spotifyPattern.test(value.trim())) {
+                          if (!isValidSpotifyUrl(value)) {
                             return "Please enter a valid Spotify link (track, album, playlist, artist, episode, or show)";
                           }
                           return true;
@@ -1295,13 +1308,52 @@ export default function CharacterForm({
                       </p>
                     )}
 
-                    {/* Spotify Preview */}
-                    {spotifyLink && spotifyLink.trim() && (
+                    {/* Spotify Preview with Error Handling */}
+                    {debouncedSpotifyLink && debouncedSpotifyLink.trim() && (
                       <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
                         <p className="mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
                           Preview:
                         </p>
-                        <SpotifyEmbed url={spotifyLink} size="compact" />
+                        {spotifyPreviewError ? (
+                          <div className="flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
+                            <div className="flex items-start gap-2">
+                              <svg
+                                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                              </svg>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                  Preview unavailable
+                                </p>
+                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                  The Spotify preview couldn't be loaded, but
+                                  the link will still be saved. This may be due
+                                  to API rate limits or network issues.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <SpotifyEmbed
+                            url={debouncedSpotifyLink}
+                            size="compact"
+                            onError={() => {
+                              setSpotifyPreviewError(true);
+                            }}
+                            onLoad={() => {
+                              setSpotifyPreviewError(false);
+                            }}
+                          />
+                        )}
                       </div>
                     )}
                   </div>

@@ -832,9 +832,9 @@ export default function CharacterDetail({
                                     <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                                       {relatedCharacter.name}
                                     </h4>
-                                    {relatedCharacter.title && (
+                                    {relatedCharacter.nickname && (
                                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        {relatedCharacter.title}
+                                        {relatedCharacter.nickname}
                                       </p>
                                     )}
                                   </div>

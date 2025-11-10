@@ -22,31 +22,41 @@ type SpotifyOEmbedResponse = {
  * Fetch Spotify oEmbed data
  * This uses Spotify's oEmbed API to get embed information
  */
-async function fetchSpotifyOEmbed(
-  url: string,
-): Promise<SpotifyOEmbedResponse | null> {
+async function fetchSpotifyOEmbed(url: string): Promise<SpotifyOEmbedResponse> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
     const response = await fetch(
       `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`,
+      { signal: controller.signal },
     );
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      return null;
+      throw new Error(
+        `Spotify oEmbed API returned ${response.status}: ${response.statusText}`,
+      );
     }
 
     const data = await response.json();
+    if (!data) {
+      throw new Error("Spotify oEmbed API returned empty response");
+    }
     return data as SpotifyOEmbedResponse;
-  } catch {
-    return null;
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error("Failed to fetch Spotify oEmbed data");
   }
 }
 
 /**
  * Validates a Spotify URL
  */
-function isValidSpotifyUrl(url: string): boolean {
+export function isValidSpotifyUrl(url: string): boolean {
   const spotifyPattern =
-    /^https?:\/\/(open\.|play\.)?spotify\.com\/(track|album|playlist|artist|episode|show)\/[a-zA-Z0-9]+(\?.*)?$/;
+    /^https?:\/\/(open|play)\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist|episode|show)\/[A-Za-z0-9]{22}(?:\?.*)?$/;
   return spotifyPattern.test(url.split("?")[0].split("#")[0].trim());
 }
 
@@ -56,6 +66,8 @@ type SpotifyEmbedProps = {
   url: string;
   size?: SpotifySize;
   className?: string;
+  onError?: (error: Error) => void;
+  onLoad?: () => void;
 };
 
 const SIZES: Record<SpotifySize, number> = {
@@ -67,6 +79,8 @@ function SpotifyEmbed({
   url,
   size = "normal",
   className = "",
+  onError,
+  onLoad,
 }: SpotifyEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const height = SIZES[size];
@@ -79,7 +93,8 @@ function SpotifyEmbed({
     data: oembedData,
     isLoading,
     isError,
-  } = useQuery<SpotifyOEmbedResponse | null>({
+    error,
+  } = useQuery<SpotifyOEmbedResponse>({
     queryKey: ["spotify-oembed", url],
     queryFn: () => fetchSpotifyOEmbed(url),
     enabled: isValid,
@@ -87,6 +102,20 @@ function SpotifyEmbed({
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
     retry: 1,
   });
+
+  // Call onError callback when error occurs
+  useEffect(() => {
+    if (isError && onError) {
+      onError(new Error("Failed to load Spotify embed"));
+    }
+  }, [isError, onError]);
+
+  // Call onLoad callback when data is successfully loaded
+  useEffect(() => {
+    if (oembedData && onLoad) {
+      onLoad();
+    }
+  }, [oembedData, onLoad]);
 
   // Inject oEmbed HTML if available
   useEffect(() => {
@@ -168,6 +197,8 @@ export default memo(SpotifyEmbed, (prevProps, nextProps) => {
   return (
     prevProps.url === nextProps.url &&
     prevProps.size === nextProps.size &&
-    prevProps.className === nextProps.className
+    prevProps.className === nextProps.className &&
+    prevProps.onError === nextProps.onError &&
+    prevProps.onLoad === nextProps.onLoad
   );
 });

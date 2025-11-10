@@ -1,7 +1,7 @@
 drop view if exists "public"."character_details";
 
 
-alter table "public"."characters" add column "spotify_link" text;
+alter table "public"."characters" add column "spotify_link" text check (spotify_link is null or spotify_link ~* '^https?:\/\/(open|play)\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist|episode|show)\/[A-Za-z0-9]{22}(?:\?.*)?$');
 
 
 -- Recreate character_details view with updated logic
