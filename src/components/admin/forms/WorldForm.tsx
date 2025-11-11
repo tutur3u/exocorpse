@@ -24,6 +24,7 @@ type WorldFormData = {
   population?: number;
   theme_primary_color?: string;
   theme_secondary_color?: string;
+  theme_text_color?: string;
   theme_background_image?: string;
   theme_map_image?: string;
   content?: string;
@@ -67,6 +68,7 @@ export default function WorldForm({
       population: world?.population ?? undefined,
       theme_primary_color: world?.theme_primary_color || "#3b82f6",
       theme_secondary_color: world?.theme_secondary_color || "#1e40af",
+      theme_text_color: world?.theme_text_color || "#000000",
       theme_background_image: world?.theme_background_image || "",
       theme_map_image: world?.theme_map_image || "",
       content: world?.content || "",
@@ -83,6 +85,7 @@ export default function WorldForm({
   // Watch form values for components that need them
   const themePrimaryColor = watch("theme_primary_color");
   const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const themeBackgroundImage = watch("theme_background_image");
   const themeMapImage = watch("theme_map_image");
   const content = watch("content");
@@ -102,6 +105,7 @@ export default function WorldForm({
           "size",
           "theme_primary_color",
           "theme_secondary_color",
+          "theme_text_color",
           "theme_background_image",
           "theme_map_image",
           "content",
@@ -452,6 +456,17 @@ export default function WorldForm({
                       })
                     }
                     helpText="Accent color for this world"
+                  />
+
+                  <ColorPicker
+                    label="Text Color"
+                    value={themeTextColor || "#000000"}
+                    onChange={(value) =>
+                      setValue("theme_text_color", value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    helpText="Text color for this world"
                   />
 
                   <ImageUploader

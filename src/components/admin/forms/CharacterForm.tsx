@@ -64,7 +64,9 @@ type CharacterFormData = {
   abilities?: string;
   profile_image?: string;
   banner_image?: string;
-  color_scheme?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_text_color?: string;
   color_palette?: string[];
   featured_image?: string;
   quote?: string;
@@ -155,7 +157,9 @@ export default function CharacterForm({
     abilities: character?.abilities ?? "",
     profile_image: character?.profile_image ?? "",
     banner_image: character?.banner_image ?? "",
-    color_scheme: character?.color_scheme ?? "#3b82f6",
+    theme_primary_color: character?.theme_primary_color ?? "#3b82f6",
+    theme_secondary_color: character?.theme_secondary_color ?? "#1e40af",
+    theme_text_color: character?.theme_text_color ?? "#000000",
     color_palette: character?.color_palette ?? [],
     featured_image: character?.featured_image ?? "",
     quote: character?.quote ?? "",
@@ -208,7 +212,9 @@ export default function CharacterForm({
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
-  const colorScheme = watch("color_scheme");
+  const themePrimaryColor = watch("theme_primary_color");
+  const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const colorPalette = watch("color_palette");
   const selectedWorldIds = watch("world_ids");
   const featuredImage = watch("featured_image");
@@ -1264,12 +1270,36 @@ export default function CharacterForm({
                   />
 
                   <ColorPicker
-                    label="Color Scheme"
-                    value={colorScheme || "#3b82f6"}
+                    label="Primary Color"
+                    value={themePrimaryColor || "#3b82f6"}
                     onChange={(value) =>
-                      setValue("color_scheme", value, { shouldDirty: true })
+                      setValue("theme_primary_color", value, {
+                        shouldDirty: true,
+                      })
                     }
-                    helpText="Theme color for this character"
+                    helpText="Main theme color for this character (overrides story theme)"
+                  />
+
+                  <ColorPicker
+                    label="Secondary Color"
+                    value={themeSecondaryColor || "#1e40af"}
+                    onChange={(value) =>
+                      setValue("theme_secondary_color", value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    helpText="Accent color for this character"
+                  />
+
+                  <ColorPicker
+                    label="Text Color"
+                    value={themeTextColor || "#000000"}
+                    onChange={(value) =>
+                      setValue("theme_text_color", value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    helpText="Text color for this character"
                   />
 
                   <div>

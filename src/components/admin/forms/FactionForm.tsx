@@ -28,7 +28,9 @@ type FactionFormData = {
   power_level?: string;
   member_count?: number;
   logo_url?: string;
-  color_scheme?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_text_color?: string;
   banner_image?: string;
   content?: string;
 };
@@ -75,7 +77,9 @@ export default function FactionForm({
       power_level: faction?.power_level || "",
       member_count: faction?.member_count ?? undefined,
       logo_url: faction?.logo_url || "",
-      color_scheme: faction?.color_scheme || "#3b82f6",
+      theme_primary_color: faction?.theme_primary_color || "#3b82f6",
+      theme_secondary_color: faction?.theme_secondary_color || "#1e40af",
+      theme_text_color: faction?.theme_text_color || "#000000",
       banner_image: faction?.banner_image || "",
       content: faction?.content || "",
     },
@@ -89,7 +93,9 @@ export default function FactionForm({
   const [error, setError] = useState<string | null>(null);
 
   // Watch form values for components that need them
-  const colorScheme = watch("color_scheme");
+  const themePrimaryColor = watch("theme_primary_color");
+  const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const logoUrl = watch("logo_url");
   const bannerImage = watch("banner_image");
   const content = watch("content");
@@ -564,12 +570,36 @@ export default function FactionForm({
                   />
 
                   <ColorPicker
-                    label="Color Scheme"
-                    value={colorScheme || "#3b82f6"}
+                    label="Primary Color"
+                    value={themePrimaryColor || "#3b82f6"}
                     onChange={(value) =>
-                      setValue("color_scheme", value, { shouldDirty: true })
+                      setValue("theme_primary_color", value, {
+                        shouldDirty: true,
+                      })
                     }
-                    helpText="Primary color representing this faction"
+                    helpText="Main theme color for this faction"
+                  />
+
+                  <ColorPicker
+                    label="Secondary Color"
+                    value={themeSecondaryColor || "#1e40af"}
+                    onChange={(value) =>
+                      setValue("theme_secondary_color", value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    helpText="Accent color for this faction"
+                  />
+
+                  <ColorPicker
+                    label="Text Color"
+                    value={themeTextColor || "#000000"}
+                    onChange={(value) =>
+                      setValue("theme_text_color", value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    helpText="Text color for this faction"
                   />
 
                   <ImageUploader

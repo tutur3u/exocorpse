@@ -20,9 +20,7 @@ type StoryFormData = {
   summary?: string;
   theme_primary_color?: string;
   theme_secondary_color?: string;
-  theme_background_color?: string;
   theme_text_color?: string;
-  theme_custom_css?: string;
   theme_background_image?: string;
   content?: string;
   is_published?: boolean;
@@ -61,9 +59,7 @@ export default function StoryForm({
       summary: story?.summary || "",
       theme_primary_color: story?.theme_primary_color || "#3b82f6",
       theme_secondary_color: story?.theme_secondary_color || "#1e40af",
-      theme_background_color: story?.theme_background_color || "#ffffff",
       theme_text_color: story?.theme_text_color || "#000000",
-      theme_custom_css: story?.theme_custom_css || "",
       theme_background_image: story?.theme_background_image || "",
       content: story?.content || "",
       is_published: story?.is_published || false,
@@ -82,7 +78,6 @@ export default function StoryForm({
   // Watch form values for components that need them
   const themePrimaryColor = watch("theme_primary_color");
   const themeSecondaryColor = watch("theme_secondary_color");
-  const themeBackgroundColor = watch("theme_background_color");
   const themeTextColor = watch("theme_text_color");
   const themeBackgroundImage = watch("theme_background_image");
   const content = watch("content");
@@ -406,17 +401,6 @@ export default function StoryForm({
                   />
 
                   <ColorPicker
-                    label="Background Color"
-                    value={themeBackgroundColor || "#ffffff"}
-                    onChange={(value) =>
-                      setValue("theme_background_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Background color for story pages"
-                  />
-
-                  <ColorPicker
                     label="Text Color"
                     value={themeTextColor || "#000000"}
                     onChange={(value) =>
@@ -447,25 +431,6 @@ export default function StoryForm({
                         : "Save story first to enable image uploads"
                     }
                   />
-
-                  <div>
-                    <label
-                      htmlFor="story-custom-css"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Custom CSS
-                    </label>
-                    <textarea
-                      id="story-custom-css"
-                      {...register("theme_custom_css")}
-                      rows={6}
-                      className="w-full rounded border border-gray-300 px-3 py-2 font-mono text-sm dark:border-gray-600 dark:bg-gray-700"
-                      placeholder=".story-page { /* Your custom CSS */ }"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Advanced: Add custom CSS for your story pages
-                    </p>
-                  </div>
                 </div>
               )}
 
