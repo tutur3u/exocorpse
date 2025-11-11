@@ -675,7 +675,7 @@ export default function CharacterDetail({
                           </button>
                         )}
                         <div className="p-4">
-                          <h4 className="mb-1 text-lg font-semibold text-theme">
+                          <h4 className="text-theme mb-1 text-lg font-semibold">
                             {outfit.name}
                           </h4>
                           {outfit.description && (
@@ -706,7 +706,7 @@ export default function CharacterDetail({
                 {character.backstory && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
+                      <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Backstory
                     </h3>
                     <MarkdownRenderer content={character.backstory} />
@@ -715,7 +715,7 @@ export default function CharacterDetail({
                 {character.lore && (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-theme-secondary"></span>
+                      <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
                       Additional Lore
                     </h3>
                     <MarkdownRenderer content={character.lore} />
@@ -770,7 +770,7 @@ export default function CharacterDetail({
                   <div className="space-y-3">
                     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
+                        <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                         Relationships{" "}
                         {relationships.length > 0 &&
                           `(${relationships.length})`}
@@ -825,9 +825,9 @@ export default function CharacterDetail({
 
                               {/* Relationship Info */}
                               <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <h4 className="font-semibold text-theme">
+                                    <h4 className="text-theme font-semibold">
                                       {relatedCharacter.name}
                                     </h4>
                                     {relatedCharacter.nickname && (
@@ -839,18 +839,19 @@ export default function CharacterDetail({
                                   {/* Character metadata badges */}
                                   <div className="flex shrink-0 gap-1.5 text-xs">
                                     {relatedCharacter.age && (
-                                      <span className="rounded-full bg-theme-primary px-2 py-0.5 text-white">
+                                      <span className="bg-theme-primary rounded-full px-2 py-0.5 text-white">
                                         {relatedCharacter.age}
                                       </span>
                                     )}
                                     {relatedCharacter.species && (
-                                      <span className="rounded-full bg-theme-secondary px-2 py-0.5 text-white">
+                                      <span className="bg-theme-secondary rounded-full px-2 py-0.5 text-white">
                                         {relatedCharacter.species}
                                       </span>
                                     )}
                                   </div>
-                                </div>                                <div className="mt-1.5 flex items-center gap-2">
-                                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-theme">
+                                </div>{" "}
+                                <div className="mt-1.5 flex items-center gap-2">
+                                  <span className="text-theme inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
                                     {relType.name}
                                   </span>
                                   {relType.is_mutual && (
@@ -859,13 +860,11 @@ export default function CharacterDetail({
                                     </span>
                                   )}
                                 </div>
-
                                 {relationship.description && (
                                   <p className="mt-2 text-sm text-gray-600">
                                     {relationship.description}
                                   </p>
                                 )}
-
                                 {relatedCharacter.personality_summary && (
                                   <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic">
                                     {relatedCharacter.personality_summary}
@@ -921,14 +920,14 @@ export default function CharacterDetail({
                             signedUrl: imageUrls.get(image.image_url),
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="rounded-full bg-theme-primary px-3 py-1 font-medium text-white">
+                                <span className="bg-theme-primary rounded-full px-3 py-1 font-medium text-white">
                                   Artist: {image.artist_name}
                                 </span>
                               </div>
                             ),
                           })
                         }
-                        className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-theme-primary"
+                        className="group hover:ring-theme-primary aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                       >
                         <StorageImage
                           src={image.thumbnail_url || image.image_url}
