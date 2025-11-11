@@ -97,9 +97,7 @@ export default function StoryView({
       {/* Header for stories without banner */}
       {!story.theme_background_image && (
         <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent">
-            {story.title}
-          </h1>
+          <h1 className="text-theme mb-2 text-4xl font-bold">{story.title}</h1>
           {story.summary && (
             <p className="text-lg text-gray-600 dark:text-gray-400">
               {story.summary}
@@ -116,13 +114,13 @@ export default function StoryView({
             onClick={() => setActiveTab("synopsis")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "synopsis"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Synopsis
             {activeTab === "synopsis" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
@@ -130,13 +128,13 @@ export default function StoryView({
             onClick={() => setActiveTab("worlds")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "worlds"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Worlds ({worlds.length})
             {activeTab === "worlds" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
@@ -144,13 +142,13 @@ export default function StoryView({
             onClick={() => setActiveTab("characters")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "characters"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Characters ({charactersLoading ? "..." : characters.length})
             {activeTab === "characters" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
@@ -158,13 +156,13 @@ export default function StoryView({
             onClick={() => setActiveTab("factions")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "factions"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Factions ({factionsLoading ? "..." : factions.length})
             {activeTab === "factions" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
         </div>
@@ -435,8 +433,8 @@ export default function StoryView({
                       <div
                         className="relative h-40 bg-linear-to-br from-purple-500 via-pink-500 to-red-500"
                         style={
-                          faction.color_scheme
-                            ? { background: faction.color_scheme }
+                          faction.theme_primary_color
+                            ? { background: faction.theme_primary_color }
                             : {}
                         }
                       >

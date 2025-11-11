@@ -160,7 +160,7 @@ export default function Breadcrumbs({
       <div className="flex items-center gap-1">
         <button
           onClick={handleBack}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          className="bg-theme-secondary hover:bg-theme-primary flex h-7 w-7 items-center justify-center rounded-lg"
           title="Go back"
           type="button"
         >
@@ -180,7 +180,7 @@ export default function Breadcrumbs({
         </button>
         <button
           onClick={handleForward}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          className="bg-theme-secondary hover:bg-theme-primary flex h-7 w-7 items-center justify-center rounded-lg"
           title="Go forward"
           type="button"
         >

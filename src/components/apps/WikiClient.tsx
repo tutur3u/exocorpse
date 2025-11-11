@@ -1,7 +1,6 @@
 "use client";
 
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
-import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
   type Character,
   type Faction,
@@ -31,8 +30,6 @@ type WikiClientProps = {
 };
 
 export default function WikiClient({ stories, initialData }: WikiClientProps) {
-  const { setCurrentStory } = useStoryTheme();
-
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
     {
@@ -72,13 +69,6 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   const selectedStory = storySlug
     ? stories.find((s) => s.slug === storySlug) || null
     : null;
-
-  // Apply theme when story is selected
-  useEffect(() => {
-    if (selectedStory) {
-      setCurrentStory(selectedStory);
-    }
-  }, [selectedStory, setCurrentStory]);
 
   // Worlds query - load when we have a story slug
   const shouldUseInitialWorlds =
@@ -330,6 +320,42 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     }
   };
 
+  // Helper to get theme colors based on current entity
+  const getCurrentTheme = () => {
+    // Priority: Character > Faction > World > Story
+    if (viewingCharacter && viewingCharacter.theme_primary_color) {
+      return {
+        primary: viewingCharacter.theme_primary_color,
+        secondary: viewingCharacter.theme_secondary_color,
+        text: viewingCharacter.theme_text_color,
+      };
+    }
+    if (viewingFaction && viewingFaction.theme_primary_color) {
+      return {
+        primary: viewingFaction.theme_primary_color,
+        secondary: viewingFaction.theme_secondary_color,
+        text: viewingFaction.theme_text_color,
+      };
+    }
+    if (selectedWorld && selectedWorld.theme_primary_color) {
+      return {
+        primary: selectedWorld.theme_primary_color,
+        secondary: selectedWorld.theme_secondary_color,
+        text: selectedWorld.theme_text_color,
+      };
+    }
+    if (selectedStory && selectedStory.theme_primary_color) {
+      return {
+        primary: selectedStory.theme_primary_color,
+        secondary: selectedStory.theme_secondary_color,
+        text: selectedStory.theme_text_color,
+      };
+    }
+    return null;
+  };
+
+  const currentTheme = getCurrentTheme();
+
   // Render main content based on view mode
   const renderContent = () => {
     if (loading) {
@@ -398,8 +424,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Character view
     if (viewMode === "character" && viewingCharacter) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -444,6 +470,19 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   };
 
   return (
-    <div className="@container h-full overflow-auto">{renderContent()}</div>
+    <div
+      className="@container h-full overflow-auto"
+      style={
+        currentTheme
+          ? ({
+              "--theme_primary_color": currentTheme.primary || undefined,
+              "--theme_secondary_color": currentTheme.secondary || undefined,
+              "--theme_text_color": currentTheme.text || undefined,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
+      {renderContent()}
+    </div>
   );
 }

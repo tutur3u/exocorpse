@@ -136,7 +136,7 @@ export default function CharacterDetail({
   const isMobile = useMobileDetection();
 
   return (
-    <div className="flex min-h-full flex-col bg-white dark:bg-gray-900">
+    <div className="bg-theme-primary flex min-h-full flex-col">
       {/* Banner Image - Only visible on larger screens */}
       <div className="relative hidden h-64 overflow-hidden @lg:block">
         {character.banner_image ? (
@@ -161,10 +161,10 @@ export default function CharacterDetail({
       </div>
 
       {/* Compact Header */}
-      <div className="border-b bg-linear-to-r from-gray-50 to-gray-100 px-6 py-4 dark:border-gray-800 dark:from-gray-900 dark:to-gray-950">
+      <div className="bg-theme-secondary border-b px-6 py-4">
         <div className="flex items-center gap-4 @md:gap-6">
           {/* Profile Image */}
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40 dark:border-gray-800 dark:from-gray-800 dark:to-gray-700 dark:ring-gray-700">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40">
             {character.profile_image ? (
               <StorageImage
                 src={character.profile_image}
@@ -173,13 +173,13 @@ export default function CharacterDetail({
                 width={160}
                 height={160}
                 fallback={
-                  <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-blue-500 to-purple-600 text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
+                  <div className="bg-theme-primary flex h-full w-full items-center justify-center text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
                     {character.name.charAt(0)}
                   </div>
                 }
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-blue-500 to-purple-600 text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
+              <div className="bg-theme-primary flex h-full w-full items-center justify-center text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
                 {character.name.charAt(0)}
               </div>
             )}
@@ -188,7 +188,7 @@ export default function CharacterDetail({
           {/* Character Info */}
           <div className="flex flex-col gap-2">
             <div>
-              <h1 className="bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent dark:from-white dark:to-gray-300">
+              <h1 className="text-theme text-2xl font-bold">
                 {character.name}
               </h1>
             </div>
@@ -199,22 +199,22 @@ export default function CharacterDetail({
             </div>
             <div className="flex flex-wrap gap-1.5 text-xs">
               {character.age && (
-                <span className="rounded-full bg-linear-to-r from-blue-500 to-blue-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="bg-theme-primary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.age} years old
                 </span>
               )}
               {character.status && (
-                <span className="rounded-full bg-linear-to-r from-green-500 to-emerald-600 px-2.5 py-1 font-medium text-white capitalize shadow-sm">
+                <span className="bg-theme-secondary rounded-full px-2.5 py-1 font-medium text-white capitalize shadow-sm">
                   {character.status}
                 </span>
               )}
               {character.species && (
-                <span className="rounded-full bg-linear-to-r from-purple-500 to-purple-600 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="bg-theme-primary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.species}
                 </span>
               )}
               {character.occupation && (
-                <span className="rounded-full bg-linear-to-r from-yellow-500 to-orange-500 px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="bg-theme-secondary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
                   {character.occupation}
                 </span>
               )}
@@ -224,7 +224,7 @@ export default function CharacterDetail({
       </div>
 
       {/* Tabs */}
-      <div className="border-b bg-gray-50/50 px-6 dark:border-gray-800 dark:bg-gray-900/30">
+      <div className="border-b bg-gray-50/50 px-6">
         <div className="flex gap-1 overflow-x-auto">
           {tabs.map((tab) => (
             <button
@@ -242,13 +242,13 @@ export default function CharacterDetail({
               }
               className={`relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                  : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                  ? "text-theme bg-white shadow-sm"
+                  : "text-gray-600 hover:bg-white/50 hover:text-gray-900"
               }`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+                <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
               )}
             </button>
           ))}
@@ -256,14 +256,12 @@ export default function CharacterDetail({
       </div>
 
       {/* Tab Content */}
-      <div className="bg-linear-to-b from-transparent to-gray-50/30 p-6 dark:to-gray-900/30">
+      <div className="bg-linear-to-b from-transparent to-gray-50/30 p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-              <div className="font-medium text-gray-500 dark:text-gray-400">
-                Loading...
-              </div>
+              <div className="border-theme-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
+              <div className="font-medium text-gray-500">Loading...</div>
             </div>
           </div>
         ) : (
@@ -292,7 +290,7 @@ export default function CharacterDetail({
                     )}
                   </div>
                   {character.description && (
-                    <div className="col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1 dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1">
                       {character.quote && (
                         <blockquote className="ml-4 flex items-center text-xl italic">
                           "{character.quote}"
@@ -315,8 +313,8 @@ export default function CharacterDetail({
                         <div className="flex flex-col justify-center">
                           <div className="grid grid-cols-2 gap-3">
                             {(character.height || character.weight) && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   {[
                                     character.height && "Height",
                                     character.weight && "Weight",
@@ -324,7 +322,7 @@ export default function CharacterDetail({
                                     .filter(Boolean)
                                     .join(" & ")}
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {[character.height, character.weight]
                                     .filter(Boolean)
                                     .join(" / ")}
@@ -332,8 +330,8 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {(character.gender || character.pronouns) && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   {[
                                     character.gender && "Gender",
                                     character.pronouns && "Pronouns",
@@ -341,7 +339,7 @@ export default function CharacterDetail({
                                     .filter(Boolean)
                                     .join(" & ")}
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {[character.gender, character.pronouns]
                                     .filter(Boolean)
                                     .join(" - ")}
@@ -349,51 +347,51 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {character.build && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Build
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {character.build}
                                 </p>
                               </div>
                             )}
                             {character.skin_tone && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Skin Tone
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {character.skin_tone}
                                 </p>
                               </div>
                             )}
                             {character.hair_color && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Hair
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {character.hair_color}
                                 </p>
                               </div>
                             )}
                             {character.eye_color && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Eyes
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {character.eye_color}
                                 </p>
                               </div>
                             )}
                             {character.distinguishing_features && (
-                              <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-900/50">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                              <div className="rounded-lg bg-gray-50 p-2.5">
+                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Distinguishing Features
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
                                   {character.distinguishing_features}
                                 </p>
                               </div>
@@ -406,9 +404,9 @@ export default function CharacterDetail({
                 </div>
 
                 {character.personality_summary && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-pink-600 to-red-600"></span>
+                      <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Personality
                     </h3>
                     <MarkdownRenderer content={character.personality_summary} />
@@ -420,10 +418,10 @@ export default function CharacterDetail({
                   {/* Worlds */}
                   {characterWorlds.length > 0 && (
                     <div
-                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 ${factions.length > 0 ? "col-span-1" : "col-span-2"}`}
+                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${factions.length > 0 ? "col-span-1" : "col-span-2"}`}
                     >
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-cyan-600"></span>
+                        <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                         Worlds
                       </h3>
                       <div className="space-y-2">
@@ -435,14 +433,14 @@ export default function CharacterDetail({
                               key={cw.id}
                               type="button"
                               onClick={() => onWorldClick?.(world.slug)}
-                              className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-800/30 dark:from-indigo-900/20 dark:to-cyan-900/20 dark:hover:border-indigo-700/50"
+                              className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                             >
                               <div className="flex items-center justify-between">
-                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <div className="text-theme text-sm font-semibold">
                                   {world.name}
                                 </div>
                                 <svg
-                                  className="h-4 w-4 text-indigo-600 dark:text-indigo-400"
+                                  className="text-theme h-4 w-4"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -457,7 +455,7 @@ export default function CharacterDetail({
                                 </svg>
                               </div>
                               {world.summary && (
-                                <div className="mt-1 line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+                                <div className="mt-1 line-clamp-2 text-xs text-gray-600">
                                   {world.summary}
                                 </div>
                               )}
@@ -471,10 +469,10 @@ export default function CharacterDetail({
                   {/* Factions */}
                   {factions.length > 0 && (
                     <div
-                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 ${characterWorlds.length > 0 ? "col-span-1" : "col-span-2"}`}
+                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${characterWorlds.length > 0 ? "col-span-1" : "col-span-2"}`}
                     >
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
+                        <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
                         Affiliations
                       </h3>
                       <div className="space-y-2">
@@ -485,14 +483,14 @@ export default function CharacterDetail({
                             onClick={() =>
                               onFactionClick?.(membership.factions?.slug || "")
                             }
-                            className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-purple-800/30 dark:from-purple-900/20 dark:to-pink-900/20 dark:hover:border-purple-700/50"
+                            className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                           >
                             <div className="flex items-center justify-between">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              <div className="text-theme text-sm font-semibold">
                                 {membership.factions?.name}
                               </div>
                               <svg
-                                className="h-4 w-4 text-purple-600 dark:text-purple-400"
+                                className="text-theme-secondary h-4 w-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -508,12 +506,12 @@ export default function CharacterDetail({
                             </div>
                             <div className="mt-2 flex flex-wrap gap-1">
                               {membership.role && (
-                                <span className="inline-block rounded-full bg-purple-200 px-2 py-0.5 text-xs font-medium text-purple-900 dark:bg-purple-800/40 dark:text-purple-200">
+                                <span className="bg-theme-secondary inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white">
                                   {membership.role}
                                 </span>
                               )}
                               {membership.rank && (
-                                <span className="inline-block rounded-full bg-indigo-200 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-800/40 dark:text-indigo-200">
+                                <span className="bg-theme-primary inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white">
                                   {membership.rank}
                                 </span>
                               )}
@@ -521,8 +519,8 @@ export default function CharacterDetail({
                                 <span
                                   className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                                     membership.is_current
-                                      ? "bg-green-200 text-green-900 dark:bg-green-800/40 dark:text-green-200"
-                                      : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300"
+                                      ? "bg-green-200 text-green-900"
+                                      : "bg-gray-200 text-gray-900"
                                   }`}
                                 >
                                   {membership.is_current ? "Current" : "Former"}
@@ -531,7 +529,7 @@ export default function CharacterDetail({
                             </div>
                             {(membership.join_date ||
                               membership.leave_date) && (
-                              <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-500">
+                              <div className="mt-1.5 text-xs text-gray-600">
                                 {membership.join_date && (
                                   <span>Joined {membership.join_date}</span>
                                 )}
@@ -543,7 +541,7 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {membership.notes && (
-                              <div className="mt-1 text-xs text-gray-600 italic dark:text-gray-500">
+                              <div className="mt-1 text-xs text-gray-600 italic">
                                 {membership.notes}
                               </div>
                             )}
@@ -556,9 +554,9 @@ export default function CharacterDetail({
 
                 {/* Skills & Abilities */}
                 {character.abilities && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-yellow-600 to-orange-600"></span>
+                      <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Skills & Abilities
                     </h3>
                     <MarkdownRenderer content={character.abilities} />
@@ -573,8 +571,8 @@ export default function CharacterDetail({
                 {/* Color Palette Display */}
                 {character.color_palette &&
                   character.color_palette.length > 0 && (
-                    <div className="mb-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-2 sm:p-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/50">
-                      <h3 className="mb-3 text-xs font-semibold text-gray-700 sm:text-sm dark:text-gray-300">
+                    <div className="mb-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-2 sm:p-4">
+                      <h3 className="mb-3 text-xs font-semibold text-gray-700 sm:text-sm">
                         Color Palette
                       </h3>
                       <div className="flex flex-wrap justify-between gap-1.5 sm:gap-2">
@@ -591,9 +589,9 @@ export default function CharacterDetail({
                               }}
                             />
                             {/* Tooltip */}
-                            <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                            <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
                               {color}
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                             </div>
                           </div>
                         ))}
@@ -603,7 +601,7 @@ export default function CharacterDetail({
 
                 {outfits.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                       <svg
                         className="h-8 w-8 text-gray-400"
                         fill="none"
@@ -619,7 +617,7 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-500">
                       No outfits added yet.
                     </p>
                   </div>
@@ -628,7 +626,7 @@ export default function CharacterDetail({
                     {outfits.map((outfit) => (
                       <div
                         key={outfit.id}
-                        className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-800/50"
+                        className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                       >
                         {outfit.image_url && (
                           <button
@@ -643,7 +641,7 @@ export default function CharacterDetail({
                                 ),
                               })
                             }
-                            className="group relative h-56 w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
+                            className="group relative h-56 w-full overflow-hidden bg-gray-100"
                           >
                             <StorageImage
                               src={outfit.image_url}
@@ -677,11 +675,11 @@ export default function CharacterDetail({
                           </button>
                         )}
                         <div className="p-4">
-                          <h4 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          <h4 className="mb-1 text-lg font-semibold text-theme">
                             {outfit.name}
                           </h4>
                           {outfit.description && (
-                            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                            <p className="text-sm leading-relaxed text-gray-600">
                               {outfit.description}
                             </p>
                           )}
@@ -692,8 +690,8 @@ export default function CharacterDetail({
                 )}
 
                 {character.fanwork_policy && (
-                  <div className="mt-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/50">
-                    <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="mt-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-4">
+                    <h3 className="mb-2 text-sm font-semibold text-gray-700">
                       Fanwork Policy
                     </h3>
                     <MarkdownRenderer content={character.fanwork_policy} />
@@ -706,18 +704,18 @@ export default function CharacterDetail({
             {activeTab === "lore" && (
               <div className="animate-fadeIn space-y-4">
                 {character.backstory && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-purple-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
                       Backstory
                     </h3>
                     <MarkdownRenderer content={character.backstory} />
                   </div>
                 )}
                 {character.lore && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-linear-to-b from-purple-600 to-pink-600"></span>
+                      <span className="h-5 w-1 rounded-full bg-theme-secondary"></span>
                       Additional Lore
                     </h3>
                     <MarkdownRenderer content={character.lore} />
@@ -725,7 +723,7 @@ export default function CharacterDetail({
                 )}
                 {!character.backstory && !character.lore && (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                       <svg
                         className="h-8 w-8 text-gray-400"
                         fill="none"
@@ -741,14 +739,14 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-500">
                       No lore or backstory added yet.
                     </p>
                   </div>
                 )}
                 {relationships.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                       <svg
                         className="h-8 w-8 text-gray-400"
                         fill="none"
@@ -764,15 +762,15 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-500">
                       No relationships documented yet.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="h-5 w-1 rounded-full bg-linear-to-b from-indigo-600 to-purple-600"></span>
+                        <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
                         Relationships{" "}
                         {relationships.length > 0 &&
                           `(${relationships.length})`}
@@ -787,11 +785,11 @@ export default function CharacterDetail({
                             onClick={() =>
                               onCharacterClick?.(relatedCharacter?.slug || "")
                             }
-                            className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-gray-700"
+                            className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
                           >
                             <div className="flex items-start gap-4 p-4">
                               {/* Character Profile Image */}
-                              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200">
                                 {relatedCharacter?.profile_image ? (
                                   <StorageImage
                                     src={relatedCharacter.profile_image}
@@ -827,13 +825,13 @@ export default function CharacterDetail({
 
                               {/* Relationship Info */}
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                    <h4 className="font-semibold text-theme">
                                       {relatedCharacter.name}
                                     </h4>
                                     {relatedCharacter.nickname && (
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      <p className="text-xs text-gray-500">
                                         {relatedCharacter.nickname}
                                       </p>
                                     )}
@@ -841,37 +839,35 @@ export default function CharacterDetail({
                                   {/* Character metadata badges */}
                                   <div className="flex shrink-0 gap-1.5 text-xs">
                                     {relatedCharacter.age && (
-                                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                      <span className="rounded-full bg-theme-primary px-2 py-0.5 text-white">
                                         {relatedCharacter.age}
                                       </span>
                                     )}
                                     {relatedCharacter.species && (
-                                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                      <span className="rounded-full bg-theme-secondary px-2 py-0.5 text-white">
                                         {relatedCharacter.species}
                                       </span>
                                     )}
                                   </div>
-                                </div>
-
-                                <div className="mt-1.5 flex items-center gap-2">
-                                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
+                                </div>                                <div className="mt-1.5 flex items-center gap-2">
+                                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-theme">
                                     {relType.name}
                                   </span>
                                   {relType.is_mutual && (
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    <span className="text-xs text-gray-500">
                                       (mutual)
                                     </span>
                                   )}
                                 </div>
 
                                 {relationship.description && (
-                                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                  <p className="mt-2 text-sm text-gray-600">
                                     {relationship.description}
                                   </p>
                                 )}
 
                                 {relatedCharacter.personality_summary && (
-                                  <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic dark:text-gray-500">
+                                  <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic">
                                     {relatedCharacter.personality_summary}
                                   </p>
                                 )}
@@ -891,7 +887,7 @@ export default function CharacterDetail({
               <div className="animate-fadeIn">
                 {gallery.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                       <svg
                         className="h-8 w-8 text-gray-400"
                         fill="none"
@@ -907,7 +903,7 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-500">
                       No artwork added yet.
                     </p>
                   </div>
@@ -925,14 +921,14 @@ export default function CharacterDetail({
                             signedUrl: imageUrls.get(image.image_url),
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="rounded-full bg-linear-to-r from-blue-500 to-purple-600 px-3 py-1 font-medium text-white">
+                                <span className="rounded-full bg-theme-primary px-3 py-1 font-medium text-white">
                                   Artist: {image.artist_name}
                                 </span>
                               </div>
                             ),
                           })
                         }
-                        className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-500 dark:ring-gray-700"
+                        className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-theme-primary"
                       >
                         <StorageImage
                           src={image.thumbnail_url || image.image_url}

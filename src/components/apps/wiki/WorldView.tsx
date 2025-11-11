@@ -72,9 +72,7 @@ export default function WorldView({
       {/* Header for worlds without banner */}
       {!world.theme_background_image && (
         <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-linear-to-r from-indigo-600 to-cyan-600 bg-clip-text text-4xl font-bold text-transparent">
-            {world.name}
-          </h1>
+          <h1 className="text-theme mb-2 text-4xl font-bold">{world.name}</h1>
           {world.summary && (
             <p className="text-lg text-gray-600 dark:text-gray-400">
               {world.summary}
@@ -83,17 +81,17 @@ export default function WorldView({
           {/* World Info Pills */}
           <div className="mt-3 flex flex-wrap gap-2">
             {world.world_type && (
-              <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              <span className="bg-theme-primary text-theme rounded-full px-3 py-1 text-sm font-medium">
                 {world.world_type}
               </span>
             )}
             {world.population && (
-              <span className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">
+              <span className="bg-theme-secondary text-theme rounded-full px-3 py-1 text-sm font-medium">
                 Population: {world.population.toLocaleString()}
               </span>
             )}
             {world.size && (
-              <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+              <span className="bg-theme-primary text-theme rounded-full px-3 py-1 text-sm font-medium">
                 Size: {world.size}
               </span>
             )}
@@ -109,13 +107,13 @@ export default function WorldView({
             onClick={() => setActiveTab("overview")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "overview"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Overview
             {activeTab === "overview" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
@@ -123,13 +121,13 @@ export default function WorldView({
             onClick={() => setActiveTab("characters")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "characters"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Characters ({characters.length})
             {activeTab === "characters" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
           <button
@@ -137,13 +135,13 @@ export default function WorldView({
             onClick={() => setActiveTab("factions")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "factions"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
                 : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
             }`}
           >
             Factions ({factions.length})
             {activeTab === "factions" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
+              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
             )}
           </button>
         </div>
@@ -331,8 +329,8 @@ export default function WorldView({
                       <div
                         className="relative h-40 bg-linear-to-br from-purple-500 via-pink-500 to-red-500"
                         style={
-                          faction.color_scheme
-                            ? { background: faction.color_scheme }
+                          faction.theme_primary_color
+                            ? { background: faction.theme_primary_color }
                             : {}
                         }
                       >
