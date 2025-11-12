@@ -199,6 +199,14 @@ body {
   }
 }
 
+.border-theme-primary {
+  border-color: var(--theme_primary_color) !important;
+}
+
+.border-theme-secondary {
+  border-color: var(--theme_secondary_color) !important;
+}
+
 /* Window styles */
 .window-container {
   transition: opacity 0.2s ease-in-out;

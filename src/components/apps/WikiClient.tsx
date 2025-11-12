@@ -1,6 +1,7 @@
 "use client";
 
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
+import { useWindowTheme } from "@/contexts/WindowThemeContext";
 import {
   getCharacterBySlugInStory,
   getCharactersByWorldSlug,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryStates } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Breadcrumbs from "./wiki/Breadcrumbs";
 import CharacterView from "./wiki/CharacterView";
 import FactionView from "./wiki/FactionView";
@@ -40,6 +41,8 @@ type WikiClientProps = {
 };
 
 export default function WikiClient({ stories, initialData }: WikiClientProps) {
+  const { setTheme } = useWindowTheme();
+
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
     {
@@ -380,7 +383,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   };
 
   // Helper to get theme colors based on current entity
-  const getCurrentTheme = () => {
+  // Memoized to prevent infinite re-renders
+  const currentTheme = useMemo(() => {
     // Priority: Character > Faction > World > Story
     if (viewingCharacter && viewingCharacter.theme_primary_color) {
       return {
@@ -411,9 +415,33 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       };
     }
     return null;
-  };
+  }, [
+    viewingCharacter?.theme_primary_color,
+    viewingCharacter?.theme_secondary_color,
+    viewingCharacter?.theme_text_color,
+    viewingFaction?.theme_primary_color,
+    viewingFaction?.theme_secondary_color,
+    viewingFaction?.theme_text_color,
+    selectedWorld?.theme_primary_color,
+    selectedWorld?.theme_secondary_color,
+    selectedWorld?.theme_text_color,
+    selectedStory?.theme_primary_color,
+    selectedStory?.theme_secondary_color,
+    selectedStory?.theme_text_color,
+  ]);
 
-  const currentTheme = getCurrentTheme();
+  // Update window theme whenever it changes
+  useEffect(() => {
+    if (currentTheme) {
+      setTheme("wiki", {
+        primary: currentTheme.primary,
+        secondary: currentTheme.secondary ?? undefined,
+        text: currentTheme.text ?? undefined,
+      });
+    } else {
+      setTheme("wiki", null);
+    }
+  }, [currentTheme, setTheme]);
 
   // Render main content based on view mode
   const renderContent = () => {

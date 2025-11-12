@@ -1,5 +1,6 @@
 import { CursorProvider } from "@/contexts/CursorContext";
 import { SoundProvider } from "@/contexts/SoundContext";
+import { WindowThemeProvider } from "@/contexts/WindowThemeContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
@@ -34,8 +35,10 @@ export default function RootLayout({
         <NuqsAdapter>
           <CursorProvider>
             <SoundProvider>
-              <QueryProvider>{children}</QueryProvider>
-              <Toaster position="top-center" />
+              <WindowThemeProvider>
+                <QueryProvider>{children}</QueryProvider>
+                <Toaster position="top-center" />
+              </WindowThemeProvider>
             </SoundProvider>
           </CursorProvider>
         </NuqsAdapter>
