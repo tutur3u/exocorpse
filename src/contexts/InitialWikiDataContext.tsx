@@ -1,6 +1,12 @@
 "use client";
 
-import type { Character, Faction, Story, World } from "@/lib/actions/wiki";
+import type {
+  Character,
+  Faction,
+  Location,
+  Story,
+  World,
+} from "@/lib/actions/wiki";
 import { createContext, useContext, type ReactNode } from "react";
 
 export type CharacterDetailData = {
@@ -31,6 +37,7 @@ export type InitialWikiData = {
   worlds: World[];
   characters: Character[];
   factions: Faction[];
+  locations: Location[];
   characterDetail: CharacterDetailData | null;
 };
 

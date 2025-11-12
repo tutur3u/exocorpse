@@ -7,7 +7,7 @@ import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { deleteFile } from "@/lib/actions/storage";
-import type { World } from "@/lib/actions/wiki";
+import type { Story, World } from "@/lib/actions/wiki";
 import { updateWorld } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
 import { useState } from "react";
@@ -32,6 +32,7 @@ type WorldFormData = {
 type WorldFormProps = {
   world?: World;
   storyId: string;
+  availableStories: Story[];
   onSubmit: (data: WorldFormData) => Promise<World | void>;
   onComplete: () => void;
   onCancel: () => void;
@@ -40,6 +41,7 @@ type WorldFormProps = {
 export default function WorldForm({
   world,
   storyId,
+  availableStories,
   onSubmit,
   onComplete,
   onCancel,
@@ -298,6 +300,23 @@ export default function WorldForm({
               {/* Basic Info Tab */}
               {activeTab === "basic" && (
                 <div className="space-y-4">
+                  {/* Story Selection */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Story *
+                    </label>
+                    <select
+                      {...register("story_id", { required: true })}
+                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select a story</option>
+                      {availableStories.map((story) => (
+                        <option key={story.id} value={story.id}>
+                          {story.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label
                       htmlFor="world-name"
