@@ -1102,18 +1102,14 @@ export type Database = {
       locations: {
         Row: {
           banner_image: string | null;
-          climate: string | null;
-          content: string | null;
-          coordinate_x: number | null;
-          coordinate_y: number | null;
-          coordinate_z: number | null;
           created_at: string | null;
           created_by: string | null;
           deleted_at: string | null;
           description: string | null;
+          geography: string | null;
+          history: string | null;
           id: string;
           image_url: string | null;
-          location_type: string | null;
           map_image: string | null;
           name: string;
           parent_location_id: string | null;
@@ -1125,18 +1121,14 @@ export type Database = {
         };
         Insert: {
           banner_image?: string | null;
-          climate?: string | null;
-          content?: string | null;
-          coordinate_x?: number | null;
-          coordinate_y?: number | null;
-          coordinate_z?: number | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          geography?: string | null;
+          history?: string | null;
           id?: string;
           image_url?: string | null;
-          location_type?: string | null;
           map_image?: string | null;
           name: string;
           parent_location_id?: string | null;
@@ -1148,18 +1140,14 @@ export type Database = {
         };
         Update: {
           banner_image?: string | null;
-          climate?: string | null;
-          content?: string | null;
-          coordinate_x?: number | null;
-          coordinate_y?: number | null;
-          coordinate_z?: number | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          geography?: string | null;
+          history?: string | null;
           id?: string;
           image_url?: string | null;
-          location_type?: string | null;
           map_image?: string | null;
           name?: string;
           parent_location_id?: string | null;
@@ -1182,6 +1170,68 @@ export type Database = {
             columns: ["world_id"];
             isOneToOne: false;
             referencedRelation: "worlds";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      locations_gallery_images: {
+        Row: {
+          artist_name: string | null;
+          artist_url: string | null;
+          commission_date: string | null;
+          created_at: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          display_order: number | null;
+          id: string;
+          image_url: string;
+          is_featured: boolean | null;
+          location: string;
+          tags: string[] | null;
+          thumbnail_url: string | null;
+          title: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          artist_name?: string | null;
+          artist_url?: string | null;
+          commission_date?: string | null;
+          created_at?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          id?: string;
+          image_url: string;
+          is_featured?: boolean | null;
+          location: string;
+          tags?: string[] | null;
+          thumbnail_url?: string | null;
+          title: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          artist_name?: string | null;
+          artist_url?: string | null;
+          commission_date?: string | null;
+          created_at?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_order?: number | null;
+          id?: string;
+          image_url?: string;
+          is_featured?: boolean | null;
+          location?: string;
+          tags?: string[] | null;
+          thumbnail_url?: string | null;
+          title?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "locations_gallery_images_location_fkey";
+            columns: ["location"];
+            isOneToOne: false;
+            referencedRelation: "locations";
             referencedColumns: ["id"];
           },
         ];
