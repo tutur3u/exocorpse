@@ -1070,6 +1070,7 @@ export default function CharactersClient({
                   worlds: [],
                   characters: [],
                   factions: [],
+                  locations: [],
                   characterDetail: null,
                 }}
               >
