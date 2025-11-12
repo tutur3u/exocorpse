@@ -95,7 +95,7 @@ export async function generateMetadata({
 
   // Check for wiki params
   const params = await loadWikiSearchParams(searchParams);
-  const { story, world, character, faction } = params;
+  const { story, world, character, faction, location } = params;
 
   // No wiki params, return default metadata
   if (!story) {
@@ -167,6 +167,27 @@ export async function generateMetadata({
         description:
           factionData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           `Faction information for ${factionData.name}`,
+        alternates: {
+          canonical: serializeWikiSearchParams("/", {
+            story,
+            world,
+            character: null,
+            faction,
+          }),
+        },
+      };
+    }
+  }
+
+  // Location view
+  if (world && location) {
+    const locationData = await getLocationBySlug(story, world, location);
+    if (locationData) {
+      return {
+        title: `${locationData.name} - ${storyData.title} - EXOCORPSE`,
+        description:
+          locationData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+          `Location information for ${locationData.name}`,
         alternates: {
           canonical: serializeWikiSearchParams("/", {
             story,
