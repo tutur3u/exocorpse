@@ -17,40 +17,24 @@ type MarkdownEditorProps = {
 // Reusable markdown components with consistent styling
 export const markdownComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="mt-6 mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h1>
+    <h1 className="mt-6 mb-4 text-3xl font-bold">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mt-5 mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h2>
+    <h2 className="mt-5 mb-3 text-2xl font-bold">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-4 mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h3>
+    <h3 className="mt-4 mb-2 text-xl font-bold">{children}</h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mt-3 mb-2 text-lg font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h4>
+    <h4 className="mt-3 mb-2 text-lg font-bold">{children}</h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mt-3 mb-2 text-base font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h5>
+    <h5 className="mt-3 mb-2 text-base font-bold">{children}</h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mt-2 mb-2 text-sm font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </h6>
+    <h6 className="mt-2 mb-2 text-sm font-bold">{children}</h6>
   ),
-  p: ({ children }) => (
-    <p className="mb-3 leading-7 text-gray-700 dark:text-gray-300">
-      {children}
-    </p>
-  ),
+  p: ({ children }) => <p className="mb-3 leading-7">{children}</p>,
   a: ({ href, children }) => (
     <a
       href={href}
@@ -61,17 +45,9 @@ export const markdownComponents: Components = {
       {children}
     </a>
   ),
-  strong: ({ children }) => (
-    <strong className="font-bold text-gray-900 dark:text-gray-100">
-      {children}
-    </strong>
-  ),
-  em: ({ children }) => (
-    <em className="text-gray-800 italic dark:text-gray-200">{children}</em>
-  ),
-  ins: ({ children }) => (
-    <ins className="text-gray-900 underline dark:text-gray-100">{children}</ins>
-  ),
+  strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  ins: ({ children }) => <ins className="underline">{children}</ins>,
   code: ({ children, className: codeClassName }) => {
     const isBlock = codeClassName?.startsWith("language-");
     return isBlock ? (
@@ -95,43 +71,31 @@ export const markdownComponents: Components = {
     </blockquote>
   ),
   ul: ({ children }) => (
-    <ul className="mb-4 ml-6 list-disc space-y-2 text-gray-700 dark:text-gray-300">
-      {children}
-    </ul>
+    <ul className="mb-4 ml-6 list-disc space-y-2">{children}</ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-4 ml-6 list-decimal space-y-2 text-gray-700 dark:text-gray-300">
-      {children}
-    </ol>
+    <ol className="mb-4 ml-6 list-decimal space-y-2">{children}</ol>
   ),
   li: ({ children }) => <li>{children}</li>,
   table: ({ children }) => (
     <table className="mb-4 w-full border-collapse">{children}</table>
   ),
   thead: ({ children }) => (
-    <thead className="border-b-2 border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
-      {children}
-    </thead>
+    <thead className="border-b-2 border-gray-300 bg-gray-100">{children}</thead>
   ),
   tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: ({ children }) => (
-    <tr className="border-b border-gray-200 dark:border-gray-700">
-      {children}
-    </tr>
+    <tr className="border-b border-gray-200">{children}</tr>
   ),
   th: ({ children }) => (
-    <th className="border border-gray-300 px-4 py-2 text-left font-bold text-gray-900 dark:border-gray-600 dark:text-gray-100">
+    <th className="border border-gray-300 px-4 py-2 text-left font-bold">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:border-gray-600 dark:text-gray-300">
-      {children}
-    </td>
+    <td className="border border-gray-300 px-4 py-2">{children}</td>
   ),
-  hr: () => (
-    <hr className="my-6 border-t-2 border-gray-300 dark:border-gray-600" />
-  ),
+  hr: () => <hr className="my-6 border-t-2 border-gray-300" />,
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={alt} className="mb-4 max-w-full rounded-lg shadow-md" />

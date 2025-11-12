@@ -70,7 +70,7 @@ export default function StoryView({
     useBatchStorageUrls(factionLogoPaths);
 
   return (
-    <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="bg-theme-primary flex min-h-full flex-col">
       {/* Story Header with Banner */}
       {story.theme_background_image && (
         <div className="relative h-48 overflow-hidden">
@@ -82,11 +82,11 @@ export default function StoryView({
           />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
-            <h1 className="mb-2 text-4xl font-bold text-white drop-shadow-lg">
+            <h1 className="text-theme-primary mb-2 text-4xl font-bold drop-shadow-lg">
               {story.title}
             </h1>
             {story.summary && (
-              <p className="text-lg text-gray-200 drop-shadow-md">
+              <p className="text-theme-text text-lg drop-shadow-md">
                 {story.summary}
               </p>
             )}
@@ -96,74 +96,62 @@ export default function StoryView({
 
       {/* Header for stories without banner */}
       {!story.theme_background_image && (
-        <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="text-theme mb-2 text-4xl font-bold">{story.title}</h1>
+        <div className="bg-theme-secondary p-6 backdrop-blur-sm">
+          <h1 className="text-theme-text mb-2 text-4xl font-bold">
+            {story.title}
+          </h1>
           {story.summary && (
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              {story.summary}
-            </p>
+            <p className="text-theme-text text-lg">{story.summary}</p>
           )}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="border-b bg-gray-50/50 px-6 dark:border-gray-800 dark:bg-gray-900/30">
+      <div className="bg-theme-secondary px-6">
         <div className="flex gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("synopsis")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "synopsis"
-                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Synopsis
-            {activeTab === "synopsis" && (
-              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("worlds")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "worlds"
-                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Worlds ({worlds.length})
-            {activeTab === "worlds" && (
-              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("characters")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "characters"
-                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Characters ({charactersLoading ? "..." : characters.length})
-            {activeTab === "characters" && (
-              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("factions")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "factions"
-                ? "text-theme bg-white shadow-sm dark:bg-gray-900"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Factions ({factionsLoading ? "..." : factions.length})
-            {activeTab === "factions" && (
-              <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
-            )}
           </button>
         </div>
       </div>
@@ -174,12 +162,12 @@ export default function StoryView({
         {activeTab === "synopsis" && (
           <div className="animate-fadeIn mx-auto max-w-4xl">
             {story.content ? (
-              <div className="prose prose-lg dark:prose-invert max-w-none">
+              <div className="prose prose-lg text-theme-text max-w-none">
                 <MarkdownRenderer content={story.content} />
               </div>
             ) : (
-              <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="text-gray-500 dark:text-gray-400">
+              <div className="border-theme-text bg-theme-secondary rounded-xl border p-8 text-center shadow-sm">
+                <p className="text-theme-text">
                   No synopsis available for this story yet.
                 </p>
               </div>
@@ -193,9 +181,9 @@ export default function StoryView({
             {worlds.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-indigo-600 dark:text-indigo-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -209,25 +197,25 @@ export default function StoryView({
                       />
                     </svg>
                   </div>
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="text-theme-text mb-2 text-lg font-semibold">
                     No worlds yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-theme-text">
                     This story doesn&apos;t have any worlds yet
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 @lg:grid-cols-2">
+              <div className="text-theme-text grid grid-cols-1 gap-6 @lg:grid-cols-2">
                 {worlds.map((world) => (
                   <button
                     key={world.id}
                     type="button"
                     onClick={() => onWorldSelect(world)}
-                    className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* World Image/Gradient */}
-                    <div className="relative h-40 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
+                    <div className="text-theme-text bg-theme-secondary relative h-40 overflow-hidden">
                       {world.theme_background_image ? (
                         <StorageImage
                           src={world.theme_background_image}
@@ -238,7 +226,7 @@ export default function StoryView({
                       ) : null}
                       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
-                        <h3 className="text-xl font-bold text-white drop-shadow-lg">
+                        <h3 className="text-theme-text text-xl font-bold drop-shadow-lg">
                           {world.name}
                         </h3>
                       </div>
@@ -247,18 +235,18 @@ export default function StoryView({
                     {/* World Info */}
                     <div className="p-4">
                       {world.summary && (
-                        <p className="mb-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text mb-3 line-clamp-3 text-sm">
                           {world.summary}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                      <div className="text-theme-text flex items-center gap-2 text-xs">
                         {world.world_type && (
-                          <span className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1">
                             {world.world_type}
                           </span>
                         )}
                         {world.population && (
-                          <span className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1">
                             Pop: {world.population.toLocaleString()}
                           </span>
                         )}
@@ -277,8 +265,7 @@ export default function StoryView({
             {charactersLoading || imageUrlsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-theme-text font-medium">
                     {charactersLoading
                       ? "Loading characters..."
                       : "Loading images..."}
@@ -288,9 +275,9 @@ export default function StoryView({
             ) : characters.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-purple-100 dark:from-green-900/30 dark:to-purple-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-green-600 dark:text-green-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -304,25 +291,25 @@ export default function StoryView({
                       />
                     </svg>
                   </div>
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="text-theme-text mb-2 text-lg font-semibold">
                     No characters yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-theme-text">
                     This story doesn&apos;t have any characters yet
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5 @2xl:grid-cols-6">
+              <div className="text-theme-text grid grid-cols-1 gap-4 @sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5 @2xl:grid-cols-6">
                 {characters.map((character) => (
                   <button
                     key={character.id}
                     type="button"
                     onClick={() => onCharacterSelect(character)}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* Character Image */}
-                    <div className="relative aspect-square overflow-hidden bg-linear-to-br from-blue-500 to-purple-600">
+                    <div className="text-theme-text relative aspect-square overflow-hidden from-black/70 via-black/30 to-transparent">
                       {character.profile_image ? (
                         <StorageImage
                           src={character.profile_image}
@@ -333,13 +320,13 @@ export default function StoryView({
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                           fallback={
-                            <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
+                            <div className="text-theme-text flex h-full w-full items-center justify-center text-6xl font-bold">
                               {character.name.charAt(0)}
                             </div>
                           }
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
+                        <div className="text-theme-text flex h-full w-full items-center justify-center text-6xl font-bold">
                           {character.name.charAt(0)}
                         </div>
                       )}
@@ -347,16 +334,16 @@ export default function StoryView({
 
                     {/* Character Info */}
                     <div className="p-3">
-                      <h3 className="mb-1 truncate font-semibold text-gray-900 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+                      <h3 className="text-theme-text group-hover:text-theme-secondary mb-1 truncate font-semibold">
                         {character.name}
                       </h3>
                       {character.nickname && (
-                        <p className="truncate text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text group-hover:text-theme-secondary truncate text-xs">
                           {character.nickname}
                         </p>
                       )}
                       {character.species && (
-                        <span className="mt-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                        <span className="text-theme-text bg-theme-primary group-hover:text-theme-secondary mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                           {character.species}
                         </span>
                       )}
@@ -374,8 +361,8 @@ export default function StoryView({
             {factionsLoading || logoUrlsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
-                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-theme-text h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+                  <div className="text-theme-text font-medium">
                     {factionsLoading
                       ? "Loading factions..."
                       : "Loading logos..."}
@@ -385,9 +372,9 @@ export default function StoryView({
             ) : factions.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-purple-600 dark:text-purple-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -401,10 +388,10 @@ export default function StoryView({
                       />
                     </svg>
                   </div>
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="text-theme-text mb-2 text-lg font-semibold">
                     No factions yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-theme-text">
                     This story doesn&apos;t have any factions yet
                   </p>
                 </div>
@@ -416,11 +403,11 @@ export default function StoryView({
                     key={faction.id}
                     type="button"
                     onClick={() => onFactionSelect(faction)}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* Faction Logo/Image */}
                     {faction.logo_url ? (
-                      <div className="relative h-40 overflow-hidden bg-linear-to-br from-purple-500 via-pink-500 to-red-500">
+                      <div className="text-theme-text bg-theme-secondary relative h-40 overflow-hidden">
                         <StorageImage
                           src={faction.logo_url}
                           signedUrl={factionLogoUrls.get(faction.logo_url)}
@@ -430,14 +417,7 @@ export default function StoryView({
                         />
                       </div>
                     ) : (
-                      <div
-                        className="relative h-40 bg-linear-to-br from-purple-500 via-pink-500 to-red-500"
-                        style={
-                          faction.theme_primary_color
-                            ? { background: faction.theme_primary_color }
-                            : {}
-                        }
-                      >
+                      <div className="text-theme-text bg-theme-secondary relative h-40">
                         <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
                           {faction.name.charAt(0)}
                         </div>
@@ -446,22 +426,22 @@ export default function StoryView({
 
                     {/* Faction Info */}
                     <div className="p-4">
-                      <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-purple-600 dark:text-gray-100 dark:group-hover:text-purple-400">
+                      <h3 className="text-theme-text group-hover:text-theme-secondary mb-2 text-xl font-bold">
                         {faction.name}
                       </h3>
                       {faction.summary && (
-                        <p className="mb-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text mb-3 line-clamp-3 text-sm">
                           {faction.summary}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2 text-xs">
                         {faction.faction_type && (
-                          <span className="rounded-full bg-purple-100 px-2 py-1 font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1 font-medium">
                             {faction.faction_type}
                           </span>
                         )}
                         {faction.status && (
-                          <span className="rounded-full bg-pink-100 px-2 py-1 font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-300">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1 font-medium">
                             {faction.status}
                           </span>
                         )}

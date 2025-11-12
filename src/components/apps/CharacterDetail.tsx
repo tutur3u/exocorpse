@@ -149,11 +149,11 @@ export default function CharacterDetail({
               height={128}
             />
             {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
+            <div className="text-theme-text absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
           </>
         ) : (
           <>
-            <div className="h-full w-full bg-linear-to-r from-indigo-400 via-purple-500 to-pink-500" />
+            <div className="text-theme-text bg-theme-secondary h-full w-full" />
             {/* Overlay for better text readability */}
             <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
           </>
@@ -161,11 +161,11 @@ export default function CharacterDetail({
       </div>
 
       {/* Compact Header */}
-      <div className="bg-theme-secondary border-b px-6 py-4">
+      <div className="bg-theme-secondary px-6 py-4">
         <div className="flex items-center gap-4 @md:gap-6">
           {/* Profile Image */}
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-linear-to-br from-gray-200 to-gray-300 shadow-lg ring-2 ring-gray-200 @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40">
-            {character.profile_image ? (
+          <div className="text-theme-text bg-theme-secondary h-20 w-20 shrink-0 overflow-hidden rounded-full shadow-lg @md:h-24 @md:w-24 @lg:h-32 @lg:w-32 @xl:h-40 @xl:w-40">
+            {character.profile_image && (
               <StorageImage
                 src={character.profile_image}
                 alt={character.name}
@@ -178,43 +178,39 @@ export default function CharacterDetail({
                   </div>
                 }
               />
-            ) : (
-              <div className="bg-theme-primary flex h-full w-full items-center justify-center text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
-                {character.name.charAt(0)}
-              </div>
             )}
           </div>
 
           {/* Character Info */}
-          <div className="flex flex-col gap-2">
+          <div className="text-theme-text flex flex-col gap-2">
             <div>
-              <h1 className="text-theme text-2xl font-bold">
+              <h1 className="text-theme-text text-2xl font-bold">
                 {character.name}
               </h1>
             </div>
-            <div className="flex flex-wrap gap-1.5 text-sm text-gray-300 italic">
+            <div className="text-theme-text flex flex-wrap gap-1.5 text-sm italic">
               {character.nickname && (
                 <span className="">"{character.nickname}"</span>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5 text-xs">
               {character.age && (
-                <span className="bg-theme-primary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="text-theme-text bg-theme-primary rounded-full px-2.5 py-1 font-medium shadow-sm">
                   {character.age} years old
                 </span>
               )}
               {character.status && (
-                <span className="bg-theme-secondary rounded-full px-2.5 py-1 font-medium text-white capitalize shadow-sm">
+                <span className="text-theme-text bg-theme-primary rounded-full px-2.5 py-1 font-medium capitalize shadow-sm">
                   {character.status}
                 </span>
               )}
               {character.species && (
-                <span className="bg-theme-primary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="text-theme-text bg-theme-primary rounded-full px-2.5 py-1 font-medium shadow-sm">
                   {character.species}
                 </span>
               )}
               {character.occupation && (
-                <span className="bg-theme-secondary rounded-full px-2.5 py-1 font-medium text-white shadow-sm">
+                <span className="text-theme-text bg-theme-primary rounded-full px-2.5 py-1 font-medium shadow-sm">
                   {character.occupation}
                 </span>
               )}
@@ -224,7 +220,7 @@ export default function CharacterDetail({
       </div>
 
       {/* Tabs */}
-      <div className="border-b bg-gray-50/50 px-6">
+      <div className="text-theme-text bg-theme-secondary px-6">
         <div className="flex gap-1 overflow-x-auto">
           {tabs.map((tab) => (
             <button
@@ -242,26 +238,23 @@ export default function CharacterDetail({
               }
               className={`relative shrink-0 px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? "text-theme bg-white shadow-sm"
-                  : "text-gray-600 hover:bg-white/50 hover:text-gray-900"
+                  ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                  : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
               }`}
             >
               {tab.label}
-              {activeTab === tab.id && (
-                <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
-              )}
             </button>
           ))}
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="bg-linear-to-b from-transparent to-gray-50/30 p-6">
+      <div className="text-theme-text bg-theme-primary p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-3">
-              <div className="border-theme-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
-              <div className="font-medium text-gray-500">Loading...</div>
+              <div className="text-theme-text border-theme-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
+              <div className="text-theme-text font-medium">Loading...</div>
             </div>
           </div>
         ) : (
@@ -269,10 +262,10 @@ export default function CharacterDetail({
             {/* Overview Tab */}
             {activeTab === "overview" && (
               <div className="animate-fadeIn space-y-4">
-                <div className="grid grid-cols-1 items-start justify-center gap-4 md:grid-cols-3">
+                <div className="text-theme-text grid grid-cols-1 items-start justify-center gap-4 md:grid-cols-3">
                   <div className="col-span-1 flex h-full flex-col gap-4 md:col-start-3 md:row-start-1">
                     {character.featured_image && (
-                      <div className="relative flex aspect-square w-full overflow-hidden">
+                      <div className="text-theme-text relative flex aspect-square w-full overflow-hidden">
                         <StorageImage
                           src={character.featured_image}
                           alt={`${character.name} featured`}
@@ -290,9 +283,9 @@ export default function CharacterDetail({
                     )}
                   </div>
                   {character.description && (
-                    <div className="col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1">
+                    <div className="text-theme-text bg-theme-secondary col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1">
                       {character.quote && (
-                        <blockquote className="ml-4 flex items-center text-xl italic">
+                        <blockquote className="text-theme-text ml-4 flex items-center text-xl italic">
                           "{character.quote}"
                         </blockquote>
                       )}
@@ -313,8 +306,8 @@ export default function CharacterDetail({
                         <div className="flex flex-col justify-center">
                           <div className="grid grid-cols-2 gap-3">
                             {(character.height || character.weight) && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
                                   {[
                                     character.height && "Height",
                                     character.weight && "Weight",
@@ -322,7 +315,7 @@ export default function CharacterDetail({
                                     .filter(Boolean)
                                     .join(" & ")}
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                <p className="text-theme-text mt-1 text-sm font-semibold">
                                   {[character.height, character.weight]
                                     .filter(Boolean)
                                     .join(" / ")}
@@ -330,8 +323,8 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {(character.gender || character.pronouns) && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
                                   {[
                                     character.gender && "Gender",
                                     character.pronouns && "Pronouns",
@@ -339,7 +332,7 @@ export default function CharacterDetail({
                                     .filter(Boolean)
                                     .join(" & ")}
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                <p className="text-theme-text mt-1 text-sm font-semibold">
                                   {[character.gender, character.pronouns]
                                     .filter(Boolean)
                                     .join(" - ")}
@@ -347,17 +340,17 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {character.build && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
                                   Build
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                <p className="text-theme-text mt-1 text-sm font-semibold">
                                   {character.build}
                                 </p>
                               </div>
                             )}
                             {character.skin_tone && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
                                 <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Skin Tone
                                 </span>
@@ -367,27 +360,27 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {character.hair_color && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
                                   Hair
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                <p className="text-theme-text mt-1 text-sm font-semibold">
                                   {character.hair_color}
                                 </p>
                               </div>
                             )}
                             {character.eye_color && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
                                   Eyes
                                 </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                <p className="text-theme-text mt-1 text-sm font-semibold">
                                   {character.eye_color}
                                 </p>
                               </div>
                             )}
                             {character.distinguishing_features && (
-                              <div className="rounded-lg bg-gray-50 p-2.5">
+                              <div className="text-theme-text bg-theme-secondary rounded-lg p-2.5">
                                 <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
                                   Distinguishing Features
                                 </span>
@@ -404,7 +397,7 @@ export default function CharacterDetail({
                 </div>
 
                 {character.personality_summary && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
                       <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Personality
@@ -418,7 +411,7 @@ export default function CharacterDetail({
                   {/* Worlds */}
                   {characterWorlds.length > 0 && (
                     <div
-                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${factions.length > 0 ? "col-span-1" : "col-span-2"}`}
+                      className={`text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm ${factions.length > 0 ? "col-span-1" : "col-span-2"}`}
                     >
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
                         <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
@@ -433,14 +426,14 @@ export default function CharacterDetail({
                               key={cw.id}
                               type="button"
                               onClick={() => onWorldClick?.(world.slug)}
-                              className="w-full rounded-lg border border-indigo-100 bg-linear-to-r from-indigo-50 to-cyan-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                              className="text-theme-text bg-theme-primary w-full rounded-lg p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                             >
                               <div className="flex items-center justify-between">
-                                <div className="text-theme text-sm font-semibold">
+                                <div className="text-theme-text text-sm font-semibold">
                                   {world.name}
                                 </div>
                                 <svg
-                                  className="text-theme h-4 w-4"
+                                  className="text-theme-text h-4 w-4"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -455,7 +448,7 @@ export default function CharacterDetail({
                                 </svg>
                               </div>
                               {world.summary && (
-                                <div className="mt-1 line-clamp-2 text-xs text-gray-600">
+                                <div className="text-theme-text mt-1 line-clamp-2 text-xs">
                                   {world.summary}
                                 </div>
                               )}
@@ -469,10 +462,10 @@ export default function CharacterDetail({
                   {/* Factions */}
                   {factions.length > 0 && (
                     <div
-                      className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${characterWorlds.length > 0 ? "col-span-1" : "col-span-2"}`}
+                      className={`text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm ${characterWorlds.length > 0 ? "col-span-1" : "col-span-2"}`}
                     >
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
+                        <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                         Affiliations
                       </h3>
                       <div className="space-y-2">
@@ -483,14 +476,14 @@ export default function CharacterDetail({
                             onClick={() =>
                               onFactionClick?.(membership.factions?.slug || "")
                             }
-                            className="w-full rounded-lg border border-purple-100 bg-linear-to-r from-purple-50 to-pink-50 p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                            className="text-theme-text bg-theme-primary w-full rounded-lg p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                           >
                             <div className="flex items-center justify-between">
-                              <div className="text-theme text-sm font-semibold">
+                              <div className="text-theme-text text-sm font-semibold">
                                 {membership.factions?.name}
                               </div>
                               <svg
-                                className="text-theme-secondary h-4 w-4"
+                                className="text-theme-text h-4 w-4"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -506,30 +499,24 @@ export default function CharacterDetail({
                             </div>
                             <div className="mt-2 flex flex-wrap gap-1">
                               {membership.role && (
-                                <span className="bg-theme-secondary inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white">
+                                <span className="text-theme-text bg-theme-secondary inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                                   {membership.role}
                                 </span>
                               )}
                               {membership.rank && (
-                                <span className="bg-theme-primary inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white">
+                                <span className="text-theme-text bg-theme-secondary inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                                   {membership.rank}
                                 </span>
                               )}
                               {membership.is_current !== null && (
-                                <span
-                                  className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                                    membership.is_current
-                                      ? "bg-green-200 text-green-900"
-                                      : "bg-gray-200 text-gray-900"
-                                  }`}
-                                >
+                                <span className="text-theme-text bg-theme-secondary inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                                   {membership.is_current ? "Current" : "Former"}
                                 </span>
                               )}
                             </div>
                             {(membership.join_date ||
                               membership.leave_date) && (
-                              <div className="mt-1.5 text-xs text-gray-600">
+                              <div className="text-theme-text mt-1.5 text-xs">
                                 {membership.join_date && (
                                   <span>Joined {membership.join_date}</span>
                                 )}
@@ -541,7 +528,7 @@ export default function CharacterDetail({
                               </div>
                             )}
                             {membership.notes && (
-                              <div className="mt-1 text-xs text-gray-600 italic">
+                              <div className="text-theme-text mt-1 text-xs italic">
                                 {membership.notes}
                               </div>
                             )}
@@ -554,7 +541,7 @@ export default function CharacterDetail({
 
                 {/* Skills & Abilities */}
                 {character.abilities && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
                       <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Skills & Abilities
@@ -571,8 +558,8 @@ export default function CharacterDetail({
                 {/* Color Palette Display */}
                 {character.color_palette &&
                   character.color_palette.length > 0 && (
-                    <div className="mb-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-2 sm:p-4">
-                      <h3 className="mb-3 text-xs font-semibold text-gray-700 sm:text-sm">
+                    <div className="text-theme-text bg-theme-secondary mb-6 rounded-lg p-2 sm:p-4">
+                      <h3 className="text-theme-text mb-3 text-xs font-semibold sm:text-sm">
                         Color Palette
                       </h3>
                       <div className="flex flex-wrap justify-between gap-1.5 sm:gap-2">
@@ -582,16 +569,16 @@ export default function CharacterDetail({
                             className="group relative flex min-w-0 flex-1 items-center sm:flex-auto"
                           >
                             <div
-                              className="h-8 w-full cursor-pointer rounded-lg border border-black shadow-sm transition-all sm:w-50"
+                              className="h-8 w-full cursor-pointer rounded-lg shadow-sm transition-all sm:w-50"
                               style={{ backgroundColor: color }}
                               onClick={() => {
                                 navigator.clipboard.writeText(color);
                               }}
                             />
                             {/* Tooltip */}
-                            <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="text-theme-text bg-theme-primary pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-md px-2 py-1 text-xs whitespace-nowrap opacity-0 transition-opacity group-hover:opacity-100">
                               {color}
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                              <div className="text-theme-text bg-theme-secondary absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" />
                             </div>
                           </div>
                         ))}
@@ -601,9 +588,9 @@ export default function CharacterDetail({
 
                 {outfits.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                       <svg
-                        className="h-8 w-8 text-gray-400"
+                        className="text-theme-text h-8 w-8"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -617,7 +604,7 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500">
+                    <p className="text-theme-text font-medium">
                       No outfits added yet.
                     </p>
                   </div>
@@ -626,7 +613,7 @@ export default function CharacterDetail({
                     {outfits.map((outfit) => (
                       <div
                         key={outfit.id}
-                        className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                        className="bg-theme-secondary overflow-hidden rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                       >
                         {outfit.image_url && (
                           <button
@@ -641,7 +628,7 @@ export default function CharacterDetail({
                                 ),
                               })
                             }
-                            className="group relative h-56 w-full overflow-hidden bg-gray-100"
+                            className="group bg-theme-secondary relative h-56 w-full overflow-hidden"
                           >
                             <StorageImage
                               src={outfit.image_url}
@@ -650,9 +637,9 @@ export default function CharacterDetail({
                               width={128}
                               height={128}
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30">
+                            <div className="text-theme-text bg-theme-secondary absolute inset-0 flex items-center justify-center transition-all duration-300">
                               <svg
-                                className="h-8 w-8 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                className="text-theme-text h-8 w-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -675,11 +662,11 @@ export default function CharacterDetail({
                           </button>
                         )}
                         <div className="p-4">
-                          <h4 className="mb-1 text-lg font-semibold text-theme">
+                          <h4 className="text-theme-text mb-1 text-lg font-bold">
                             {outfit.name}
                           </h4>
                           {outfit.description && (
-                            <p className="text-sm leading-relaxed text-gray-600">
+                            <p className="text-theme-text text-sm leading-relaxed">
                               {outfit.description}
                             </p>
                           )}
@@ -690,8 +677,8 @@ export default function CharacterDetail({
                 )}
 
                 {character.fanwork_policy && (
-                  <div className="mt-6 rounded-lg border border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 p-4">
-                    <h3 className="mb-2 text-sm font-semibold text-gray-700">
+                  <div className="text-theme-text bg-theme-secondary mt-6 rounded-lg p-4">
+                    <h3 className="text-theme-text mb-2 text-sm font-semibold">
                       Fanwork Policy
                     </h3>
                     <MarkdownRenderer content={character.fanwork_policy} />
@@ -704,18 +691,18 @@ export default function CharacterDetail({
             {activeTab === "lore" && (
               <div className="animate-fadeIn space-y-4">
                 {character.backstory && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
+                      <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                       Backstory
                     </h3>
                     <MarkdownRenderer content={character.backstory} />
                   </div>
                 )}
                 {character.lore && (
-                  <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
                     <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="h-5 w-1 rounded-full bg-theme-secondary"></span>
+                      <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
                       Additional Lore
                     </h3>
                     <MarkdownRenderer content={character.lore} />
@@ -723,9 +710,9 @@ export default function CharacterDetail({
                 )}
                 {!character.backstory && !character.lore && (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                       <svg
-                        className="h-8 w-8 text-gray-400"
+                        className="text-theme-text h-8 w-8"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -739,16 +726,16 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500">
+                    <p className="text-theme-text font-medium">
                       No lore or backstory added yet.
                     </p>
                   </div>
                 )}
                 {relationships.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                       <svg
-                        className="h-8 w-8 text-gray-400"
+                        className="text-theme-text h-8 w-8"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -762,15 +749,15 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500">
+                    <p className="text-theme-text font-medium">
                       No relationships documented yet.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
                       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="h-5 w-1 rounded-full bg-theme-primary"></span>
+                        <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
                         Relationships{" "}
                         {relationships.length > 0 &&
                           `(${relationships.length})`}
@@ -785,11 +772,11 @@ export default function CharacterDetail({
                             onClick={() =>
                               onCharacterClick?.(relatedCharacter?.slug || "")
                             }
-                            className="w-full cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
+                            className="text-theme-text bg-theme-primary w-full cursor-pointer overflow-hidden rounded-xl text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                           >
                             <div className="flex items-start gap-4 p-4">
                               {/* Character Profile Image */}
-                              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200">
+                              <div className="text-theme-text bg-theme-secondary relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
                                 {relatedCharacter?.profile_image ? (
                                   <StorageImage
                                     src={relatedCharacter.profile_image}
@@ -798,7 +785,7 @@ export default function CharacterDetail({
                                     sizes="64px"
                                     className="object-cover"
                                     fallback={
-                                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">
+                                      <div className="text-theme-text flex h-full w-full items-center justify-center text-2xl font-bold">
                                         {relatedCharacter.name.charAt(0)}
                                       </div>
                                     }
@@ -806,7 +793,7 @@ export default function CharacterDetail({
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center">
                                     <svg
-                                      className="h-8 w-8 text-gray-400"
+                                      className="text-theme-text h-8 w-8"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -825,13 +812,13 @@ export default function CharacterDetail({
 
                               {/* Relationship Info */}
                               <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <h4 className="font-semibold text-theme">
+                                    <h4 className="text-theme-text font-bold">
                                       {relatedCharacter.name}
                                     </h4>
                                     {relatedCharacter.nickname && (
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-theme-text text-xs">
                                         {relatedCharacter.nickname}
                                       </p>
                                     )}
@@ -839,35 +826,34 @@ export default function CharacterDetail({
                                   {/* Character metadata badges */}
                                   <div className="flex shrink-0 gap-1.5 text-xs">
                                     {relatedCharacter.age && (
-                                      <span className="rounded-full bg-theme-primary px-2 py-0.5 text-white">
+                                      <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
                                         {relatedCharacter.age}
                                       </span>
                                     )}
                                     {relatedCharacter.species && (
-                                      <span className="rounded-full bg-theme-secondary px-2 py-0.5 text-white">
+                                      <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
                                         {relatedCharacter.species}
                                       </span>
                                     )}
                                   </div>
-                                </div>                                <div className="mt-1.5 flex items-center gap-2">
-                                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-theme">
+                                </div>{" "}
+                                <div className="mt-1.5 flex items-center gap-2">
+                                  <span className="text-theme-text inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
                                     {relType.name}
                                   </span>
                                   {relType.is_mutual && (
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-theme-text text-xs">
                                       (mutual)
                                     </span>
                                   )}
                                 </div>
-
                                 {relationship.description && (
-                                  <p className="mt-2 text-sm text-gray-600">
+                                  <p className="text-theme-text mt-2 text-sm">
                                     {relationship.description}
                                   </p>
                                 )}
-
                                 {relatedCharacter.personality_summary && (
-                                  <p className="mt-2 line-clamp-2 text-xs text-gray-500 italic">
+                                  <p className="text-theme-text mt-2 line-clamp-2 text-xs italic">
                                     {relatedCharacter.personality_summary}
                                   </p>
                                 )}
@@ -887,9 +873,9 @@ export default function CharacterDetail({
               <div className="animate-fadeIn">
                 {gallery.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                       <svg
-                        className="h-8 w-8 text-gray-400"
+                        className="text-theme-text h-8 w-8"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -903,7 +889,7 @@ export default function CharacterDetail({
                         />
                       </svg>
                     </div>
-                    <p className="font-medium text-gray-500">
+                    <p className="text-theme-text font-medium">
                       No artwork added yet.
                     </p>
                   </div>
@@ -921,14 +907,14 @@ export default function CharacterDetail({
                             signedUrl: imageUrls.get(image.image_url),
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="rounded-full bg-theme-primary px-3 py-1 font-medium text-white">
+                                <span className="text-theme-text bg-theme-primary rounded-full px-3 py-1 font-medium">
                                   Artist: {image.artist_name}
                                 </span>
                               </div>
                             ),
                           })
                         }
-                        className="group aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-theme-primary"
+                        className="text-theme-text group hover:ring-theme-primary aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                       >
                         <StorageImage
                           src={image.thumbnail_url || image.image_url}

@@ -90,29 +90,32 @@ export function WindowProvider({
   portfolioParams,
 }: {
   children: React.ReactNode;
-  wikiParams: WikiSearchParams;
-  blogParams: BlogSearchParams;
-  commissionParams: CommissionSearchParams;
-  portfolioParams: PortfolioSearchParams;
+  wikiParams?: WikiSearchParams;
+  blogParams?: BlogSearchParams;
+  commissionParams?: CommissionSearchParams;
+  portfolioParams?: PortfolioSearchParams;
 }) {
   const hasWikiParams =
-    wikiParams.story ||
-    wikiParams.world ||
-    wikiParams.character ||
-    wikiParams.faction;
-
+    wikiParams &&
+    (wikiParams.story ||
+      wikiParams.world ||
+      wikiParams.character ||
+      wikiParams.faction);
   const hasBlogParams =
-    blogParams["blog-post"] ||
-    blogParams["blog-page"] ||
-    blogParams["blog-page-size"];
+    blogParams &&
+    (blogParams["blog-post"] ||
+      blogParams["blog-page"] ||
+      blogParams["blog-page-size"]);
 
   const hasCommissionParams =
-    commissionParams["commission-tab"] ||
-    commissionParams["blacklist-page"] ||
-    commissionParams["blacklist-page-size"];
+    commissionParams &&
+    (commissionParams["commission-tab"] ||
+      commissionParams["blacklist-page"] ||
+      commissionParams["blacklist-page-size"]);
 
   const hasPortfolioParams =
-    portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"];
+    portfolioParams &&
+    (portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"]);
 
   // Initialize windows with appropriate window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
