@@ -2123,3 +2123,436 @@ export async function getAllRelationshipTypes(_storyId?: string) {
 
   return data || [];
 }
+
+// ============================================================================
+// LOCATION CRUD OPERATIONS
+// ============================================================================
+
+export type Location = Tables<"locations">;
+
+/**
+ * Get all locations
+ */
+export async function getAllLocations() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*")
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all locations:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get locations by world ID
+ */
+export async function getLocationsByWorldId(worldId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*")
+    .eq("world_id", worldId)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching locations by world:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get location by ID
+ */
+export async function getLocationById(locationId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*")
+    .eq("id", locationId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching location:", error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Create a new location
+ */
+export async function createLocation(location: {
+  world_id: string;
+  name: string;
+  slug: string;
+  summary?: string;
+  description?: string;
+  geography?: string;
+  history?: string;
+  image_url?: string;
+  banner_image?: string;
+  map_image?: string;
+  parent_location_id?: string;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("locations")
+    .insert(location)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating location:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Update an existing location
+ */
+export async function updateLocation(
+  id: string,
+  updates: Partial<Omit<Location, "id" | "created_at">>,
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("locations")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error updating location:", error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Location not found");
+  }
+
+  return data;
+}
+
+/**
+ * Delete a location (soft delete)
+ */
+export async function deleteLocation(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // First, get the location and gallery items to find images
+  const { data: location } = await supabase
+    .from("locations")
+    .select("image_url, banner_image, map_image")
+    .eq("id", id)
+    .single();
+
+  const { data: galleryItems } = await supabase
+    .from("locations_gallery_images")
+    .select("image_url, thumbnail_url")
+    .eq("location", id);
+
+  // Soft delete the location
+  const { error } = await supabase
+    .from("locations")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting location:", error);
+    throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  (async () => {
+    try {
+      const { deleteFile } = await import("./storage");
+
+      // Delete location images
+      if (location) {
+        const imageUrl = location.image_url;
+        if (imageUrl && !imageUrl.startsWith("http")) {
+          await deleteFile(imageUrl);
+        }
+        const bannerImage = location.banner_image;
+        if (bannerImage && !bannerImage.startsWith("http")) {
+          await deleteFile(bannerImage);
+        }
+        const mapImage = location.map_image;
+        if (mapImage && !mapImage.startsWith("http")) {
+          await deleteFile(mapImage);
+        }
+      }
+
+      // Delete all gallery item images
+      if (galleryItems && galleryItems.length > 0) {
+        for (const item of galleryItems) {
+          const imageUrl = item.image_url;
+          if (imageUrl && !imageUrl.startsWith("http")) {
+            await deleteFile(imageUrl);
+          }
+          const thumbnailUrl = item.thumbnail_url;
+          if (thumbnailUrl && !thumbnailUrl.startsWith("http")) {
+            await deleteFile(thumbnailUrl);
+          }
+        }
+      }
+    } catch (imgError) {
+      console.error("Error deleting location images:", imgError);
+      // Fire and forget - errors are logged but don't affect the response
+    }
+  })();
+}
+
+// ============================================================================
+// LOCATION GALLERY OPERATIONS
+// ============================================================================
+
+export type LocationGalleryImage = Tables<"locations_gallery_images">;
+
+/**
+ * Get location gallery images
+ */
+export async function getLocationGallery(locationId: string) {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("locations_gallery_images")
+    .select("*")
+    .eq("location", locationId)
+    .is("deleted_at", null)
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching location gallery:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Create a new location gallery item
+ */
+export async function createLocationGalleryItem(data: {
+  location: string;
+  title: string;
+  description?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  artist_name?: string;
+  artist_url?: string;
+  commission_date?: string;
+  tags?: string[];
+  is_featured?: boolean;
+  display_order?: number;
+}) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data: result, error } = await supabase
+    .from("locations_gallery_images")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating location gallery item:", error);
+    throw error;
+  }
+
+  return result;
+}
+
+/**
+ * Update a location gallery item
+ */
+export async function updateLocationGalleryItem(
+  id: string,
+  updates: {
+    title?: string;
+    description?: string;
+    image_url?: string;
+    thumbnail_url?: string;
+    artist_name?: string;
+    artist_url?: string;
+    commission_date?: string;
+    tags?: string[];
+    is_featured?: boolean;
+    display_order?: number;
+  },
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  const { data, error } = await supabase
+    .from("locations_gallery_images")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error updating location gallery item:", error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Gallery item not found");
+  }
+
+  return data;
+}
+
+/**
+ * Delete a location gallery item (soft delete)
+ */
+export async function deleteLocationGalleryItem(id: string) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // First, get the gallery item to find its images
+  const { data: galleryItem } = await supabase
+    .from("locations_gallery_images")
+    .select("image_url, thumbnail_url")
+    .eq("id", id)
+    .single();
+
+  // Soft delete the gallery item
+  const { error } = await supabase
+    .from("locations_gallery_images")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting location gallery item:", error);
+    throw error;
+  }
+
+  // Clean up storage images asynchronously (fire and forget)
+  if (galleryItem) {
+    (async () => {
+      try {
+        const { deleteFile } = await import("./storage");
+
+        const imageUrl = galleryItem.image_url;
+        if (imageUrl && !imageUrl.startsWith("http")) {
+          await deleteFile(imageUrl);
+        }
+        const thumbnailUrl = galleryItem.thumbnail_url;
+        if (thumbnailUrl && !thumbnailUrl.startsWith("http")) {
+          await deleteFile(thumbnailUrl);
+        }
+      } catch (imgError) {
+        console.error("Error deleting gallery item images:", imgError);
+        // Fire and forget - errors are logged but don't affect the response
+      }
+    })();
+  }
+}
+
+/**
+ * Reorder location gallery items
+ */
+export async function reorderLocationGallery(
+  items: { id: string; display_order: number }[],
+) {
+  // Verify authentication and get supabase client
+  const { supabase } = await verifyAuth();
+
+  // Update each item's display_order
+  const updates = items.map((item) =>
+    supabase
+      .from("locations_gallery_images")
+      .update({ display_order: item.display_order })
+      .eq("id", item.id),
+  );
+
+  const results = await Promise.all(updates);
+
+  // Check for errors
+  const errors = results.filter((r) => r.error);
+  if (errors.length > 0) {
+    console.error("Error reordering location gallery:", errors);
+    throw new Error("Failed to reorder gallery items");
+  }
+}
+
+/**
+ * Get locations by world slug
+ */
+export async function getLocationsByWorldSlug(
+  storySlug: string,
+  worldSlug: string,
+) {
+  const supabase = await getSupabaseServer();
+
+  // First get the world
+  const world = await getWorldBySlug(storySlug, worldSlug);
+  if (!world) return [];
+
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*")
+    .eq("world_id", world.id)
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching locations:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get location by slug
+ */
+export async function getLocationBySlug(
+  storySlug: string,
+  worldSlug: string,
+  locationSlug: string,
+) {
+  const supabase = await getSupabaseServer();
+
+  // First get the world
+  const world = await getWorldBySlug(storySlug, worldSlug);
+  if (!world) return null;
+
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*")
+    .eq("world_id", world.id)
+    .eq("slug", locationSlug)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching location:", error);
+    return null;
+  }
+
+  return data;
+}

@@ -26,6 +26,8 @@ import {
   getCharactersByWorldSlug,
   getFactionBySlug,
   getFactionsByWorldSlug,
+  getLocationBySlug,
+  getLocationsByWorldSlug,
   getPublishedStories,
   getStoryBySlug,
   getWorldBySlug,
@@ -93,7 +95,7 @@ export async function generateMetadata({
 
   // Check for wiki params
   const params = await loadWikiSearchParams(searchParams);
-  const { story, world, character, faction } = params;
+  const { story, world, character, faction, location } = params;
 
   // No wiki params, return default metadata
   if (!story) {
@@ -177,6 +179,27 @@ export async function generateMetadata({
     }
   }
 
+  // Location view
+  if (world && location) {
+    const locationData = await getLocationBySlug(story, world, location);
+    if (locationData) {
+      return {
+        title: `${locationData.name} - ${storyData.title} - EXOCORPSE`,
+        description:
+          locationData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+          `Location information for ${locationData.name}`,
+        alternates: {
+          canonical: serializeWikiSearchParams("/", {
+            story,
+            world,
+            character: null,
+            location,
+          }),
+        },
+      };
+    }
+  }
+
   // World view
   if (world) {
     const worldData = await getWorldBySlug(story, world);
@@ -244,6 +267,7 @@ async function HomeContent({
     worlds: [],
     characters: [],
     factions: [],
+    locations: [],
     characterDetail: null,
   };
 
@@ -456,14 +480,16 @@ async function HomeContent({
   if (wikiParams.story) {
     initialWikiData.worlds = await getWorldsByStorySlug(wikiParams.story);
 
-    // Fetch characters and factions if world is selected
+    // Fetch characters, factions, and locations if world is selected
     if (wikiParams.world) {
-      const [characters, factions] = await Promise.all([
+      const [characters, factions, locations] = await Promise.all([
         getCharactersByWorldSlug(wikiParams.story, wikiParams.world),
         getFactionsByWorldSlug(wikiParams.story, wikiParams.world),
+        getLocationsByWorldSlug(wikiParams.story, wikiParams.world),
       ]);
       initialWikiData.characters = characters;
       initialWikiData.factions = factions;
+      initialWikiData.locations = locations;
 
       // If a specific character is selected, fetch only that character
       if (wikiParams.character) {
@@ -478,6 +504,18 @@ async function HomeContent({
             characterId: selectedCharacter.id,
             ...detailData,
           };
+        }
+      }
+
+      // If a specific location is selected, fetch only that location
+      if (wikiParams.location) {
+        const selectedLocation = await getLocationBySlug(
+          wikiParams.story,
+          wikiParams.world,
+          wikiParams.location,
+        );
+        if (selectedLocation) {
+          initialWikiData.locations = [selectedLocation];
         }
       }
     } else if (wikiParams.character) {

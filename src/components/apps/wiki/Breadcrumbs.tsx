@@ -3,12 +3,19 @@
 import {
   type Character,
   type Faction,
+  type Location,
   type Story,
   type World,
 } from "@/lib/actions/wiki";
 import { useRouter } from "next/navigation";
 
-type ViewMode = "stories" | "story" | "world" | "character" | "faction";
+type ViewMode =
+  | "stories"
+  | "story"
+  | "world"
+  | "character"
+  | "faction"
+  | "location";
 
 type BreadcrumbsProps = {
   viewMode: ViewMode;
@@ -16,6 +23,7 @@ type BreadcrumbsProps = {
   selectedWorld: World | null;
   viewingCharacter: Character | null;
   viewingFaction?: Faction | null;
+  viewingLocation?: Location | null;
   onNavigate: (mode: ViewMode) => void;
 };
 
@@ -25,6 +33,7 @@ export default function Breadcrumbs({
   selectedWorld,
   viewingCharacter,
   viewingFaction,
+  viewingLocation,
   onNavigate,
 }: BreadcrumbsProps) {
   const router = useRouter();
@@ -44,7 +53,8 @@ export default function Breadcrumbs({
     viewMode === "story" ||
     viewMode === "world" ||
     viewMode === "character" ||
-    viewMode === "faction"
+    viewMode === "faction" ||
+    viewMode === "location"
   ) {
     crumbs.push(
       <button
@@ -61,7 +71,8 @@ export default function Breadcrumbs({
   if (
     (viewMode === "world" ||
       viewMode === "character" ||
-      viewMode === "faction") &&
+      viewMode === "faction" ||
+      viewMode === "location") &&
     selectedStory
   ) {
     crumbs.push(
@@ -95,7 +106,12 @@ export default function Breadcrumbs({
   }
 
   // Add World link
-  if ((viewMode === "character" || viewMode === "faction") && selectedWorld) {
+  if (
+    (viewMode === "character" ||
+      viewMode === "faction" ||
+      viewMode === "location") &&
+    selectedWorld
+  ) {
     crumbs.push(
       <span key="sep3" className="mx-2 text-gray-400">
         /
@@ -150,6 +166,20 @@ export default function Breadcrumbs({
     crumbs.push(
       <span key="current" className="text-gray-600 dark:text-gray-400">
         {viewingFaction.name}
+      </span>,
+    );
+  }
+
+  // Show current location name
+  if (viewMode === "location" && viewingLocation) {
+    crumbs.push(
+      <span key="sep6" className="mx-2 text-gray-400">
+        /
+      </span>,
+    );
+    crumbs.push(
+      <span key="current" className="text-gray-600 dark:text-gray-400">
+        {viewingLocation.name}
       </span>,
     );
   }

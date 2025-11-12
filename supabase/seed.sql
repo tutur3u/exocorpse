@@ -443,7 +443,7 @@ Neuro recruits undergo a 3-year program focused on psychology, cryptography, soc
   -- ============================================================================
 
   -- Headquarters
-  INSERT INTO locations (id, world_id, name, slug, description, summary, location_type, climate, population, coordinate_x, coordinate_y, content) VALUES
+  INSERT INTO locations (id, world_id, name, slug, description, summary, history, geography) VALUES
     (
       extensions.uuid_generate_v4(),
       v_world_id,
@@ -451,11 +451,7 @@ Neuro recruits undergo a 3-year program focused on psychology, cryptography, soc
       'the-marrow',
       'The central headquarters of Exocorpse, hidden beneath Tokyo.',
       'Exocorpse''s secret underground headquarters.',
-      'building',
       'Controlled climate',
-      1500,
-      139.6917,
-      35.6895,
       '# The Marrow
 
 Named after bone marrow—the source of blood cells—The Marrow is the heart of Exocorpse operations. Located 200 meters beneath Tokyo, it''s a state-of-the-art facility that houses training grounds, medical facilities, armories, and command centers.
@@ -477,7 +473,7 @@ Entry to The Marrow requires biometric identification and neural pattern recogni
   RETURNING id INTO v_hq_location_id;
 
   -- Other locations
-  INSERT INTO locations (id, world_id, name, slug, description, summary, location_type, climate, population, content) VALUES
+  INSERT INTO locations (id, world_id, name, slug, description, summary, history, geography) VALUES
     (
       extensions.uuid_generate_v4(),
       v_world_id,
@@ -485,9 +481,7 @@ Entry to The Marrow requires biometric identification and neural pattern recogni
       'singapore-safe-house-alpha',
       'A covert safe house used for operations in Southeast Asia.',
       'Safe house for Southeast Asian operations.',
-      'building',
       'Tropical',
-      NULL,
       '# Singapore Safe House Alpha
 
 A luxury penthouse that serves as a cover for Exocorpse operations in Singapore. To outsiders, it appears to be owned by a wealthy investor who travels frequently.'
@@ -499,9 +493,7 @@ A luxury penthouse that serves as a cover for Exocorpse operations in Singapore.
       'berlin-intelligence-hub',
       'A Neuro-operated intelligence gathering station in Berlin.',
       'Intelligence gathering station in Europe.',
-      'building',
       'Temperate',
-      25,
       '# Berlin Intelligence Hub
 
 Disguised as a tech startup office, this facility houses some of Exocorpse''s most advanced surveillance and data analysis equipment. It''s primarily staffed by Neuro operatives.'

@@ -3,27 +3,36 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
-import type { Character, Faction, World } from "@/lib/actions/wiki";
+import type { Character, Faction, Location, World } from "@/lib/actions/wiki";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 type WorldViewProps = {
   world: World;
   characters: Character[];
   factions: Faction[];
+  locations: Location[];
   onCharacterSelect: (character: Character) => void;
   onFactionSelect: (faction: Faction) => void;
+  onLocationSelect: (location: Location) => void;
 };
 
 export default function WorldView({
   world,
   characters,
   factions,
+  locations,
   onCharacterSelect,
   onFactionSelect,
+  onLocationSelect,
 }: WorldViewProps) {
   const [activeTab, setActiveTab] = useQueryState(
     "world-tab",
-    parseAsStringLiteral(["overview", "characters", "factions"] as const)
+    parseAsStringLiteral([
+      "overview",
+      "characters",
+      "factions",
+      "locations",
+    ] as const)
       .withDefault("overview")
       .withOptions({ history: "push", shallow: true }),
   );
@@ -43,6 +52,14 @@ export default function WorldView({
     .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: factionLogoUrls, loading: factionLogosLoading } =
     useBatchStorageUrls(factionLogoPaths);
+
+  // Batch fetch all location images
+  // Only fetch signed URLs for storage paths (non-HTTP URLs)
+  const locationImagePaths = locations
+    .map((l) => l.image_url)
+    .filter((p): p is string => !!p && !p.startsWith("http"));
+  const { signedUrls: locationImageUrls, loading: locationImagesLoading } =
+    useBatchStorageUrls(locationImagePaths);
 
   return (
     <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
@@ -142,6 +159,20 @@ export default function WorldView({
             Factions ({factions.length})
             {activeTab === "factions" && (
               <div className="bg-theme-primary absolute right-0 bottom-0 left-0 h-0.5" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("locations")}
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+              activeTab === "locations"
+                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
+                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+            }`}
+          >
+            Locations ({locations.length})
+            {activeTab === "locations" && (
+              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
             )}
           </button>
         </div>
@@ -362,6 +393,102 @@ export default function WorldView({
                           </span>
                         )}
                       </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Locations Tab */}
+        {activeTab === "locations" && (
+          <div className="animate-fadeIn">
+            {locationImagesLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                    Loading location images...
+                  </div>
+                </div>
+              </div>
+            ) : locations.length === 0 ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="max-w-md text-center">
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30">
+                    <svg
+                      className="h-10 w-10 text-emerald-600 dark:text-emerald-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <title>No locations icon</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    No locations yet
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    This world doesn&apos;t have any locations yet
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 @lg:grid-cols-4">
+                {locations.map((location) => (
+                  <button
+                    key={location.id}
+                    type="button"
+                    onClick={() => onLocationSelect(location)}
+                    className="group flex flex-col justify-between overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    {/* Location Image */}
+                    {location.image_url ? (
+                      <div className="relative h-48 overflow-hidden bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500">
+                        <StorageImage
+                          src={location.image_url}
+                          signedUrl={locationImageUrls.get(location.image_url)}
+                          alt={location.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                          fallback={
+                            <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                              {location.name.charAt(0)}
+                            </div>
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative h-48 bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500">
+                        <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                          {location.name.charAt(0)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location Info */}
+                    <div className="p-4">
+                      <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-emerald-600 dark:text-gray-100 dark:group-hover:text-emerald-400">
+                        {location.name}
+                      </h3>
+                      {location.summary && (
+                        <p className="mb-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
+                          {location.summary}
+                        </p>
+                      )}
                     </div>
                   </button>
                 ))}

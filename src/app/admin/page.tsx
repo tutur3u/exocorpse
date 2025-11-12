@@ -28,7 +28,7 @@ export default function AdminDashboard() {
             Wiki Management
           </h3>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
           {/* Stories Card */}
           <Link
             href="/admin/stories"
@@ -161,6 +161,46 @@ export default function AdminDashboard() {
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                 Manage groups and organizations
+              </p>
+            </div>
+          </Link>
+
+          {/* Locations Card */}
+          <Link
+            href="/admin/locations"
+            className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-amber-300 hover:shadow-xl dark:border-gray-800 dark:bg-gray-950 dark:hover:border-amber-700"
+          >
+            <div className="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-linear-to-br from-amber-500/10 to-orange-500/10"></div>
+            <div className="relative">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-500 shadow-lg transition-transform group-hover:scale-110">
+                <svg
+                  className="h-7 w-7 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  role="img"
+                  aria-labelledby="locations-icon-title"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <title id="locations-icon-title">Locations Icon</title>
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                Locations
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                Define places and environments
               </p>
             </div>
           </Link>
