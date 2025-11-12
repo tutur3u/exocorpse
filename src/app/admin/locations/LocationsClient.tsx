@@ -1,73 +1,74 @@
 "use client";
 
-import WorldForm from "@/components/admin/forms/WorldForm";
+import LocationForm from "@/components/admin/forms/LocationForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StorageImage from "@/components/shared/StorageImage";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
-  createWorld,
-  deleteWorld,
+  createLocation,
+  deleteLocation,
+  getAllLocations,
   getAllWorlds,
-  getPublishedStories,
-  type Story,
-  updateWorld,
+  type Location,
+  updateLocation,
   type World,
 } from "@/lib/actions/wiki";
 import toastWithSound from "@/lib/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-interface WorldsClientProps {
-  initialStories: Story[];
+interface LocationsClientProps {
   initialWorlds: World[];
+  initialLocations: Location[];
 }
 
-export default function WorldsClient({
-  initialStories,
+export default function LocationsClient({
   initialWorlds,
-}: WorldsClientProps) {
+  initialLocations,
+}: LocationsClientProps) {
   const queryClient = useQueryClient();
-  const [selectedStoryId, setSelectedStoryId] = useState<string>("");
+  const [selectedWorldId, setSelectedWorldId] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
-  const [editingWorld, setEditingWorld] = useState<World | null>(null);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
 
   // Confirm dialog states
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const { data: stories = [] } = useQuery({
-    queryKey: ["stories"],
-    queryFn: getPublishedStories,
-    initialData: initialStories,
-  });
-
-  const { data: allWorlds = [] } = useQuery({
+  const { data: worlds = [] } = useQuery({
     queryKey: ["worlds"],
     queryFn: getAllWorlds,
     initialData: initialWorlds,
   });
 
-  // Filter worlds by selected story (client-side)
-  const worlds = useMemo(() => {
-    if (!selectedStoryId) return allWorlds;
-    return allWorlds.filter((world) => world.story_id === selectedStoryId);
-  }, [allWorlds, selectedStoryId]);
+  const { data: allLocations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: getAllLocations,
+    initialData: initialLocations,
+  });
 
-  // Batch fetch all world background images for optimal performance
+  // Filter locations by selected world (client-side)
+  const locations = useMemo(() => {
+    if (!selectedWorldId) return allLocations;
+    return allLocations.filter((loc) => loc.world_id === selectedWorldId);
+  }, [allLocations, selectedWorldId]);
+
+  // Batch fetch all location images for optimal performance
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
-  const worldImagePaths = worlds
-    .map((w) => w.theme_background_image)
+  const locationImagePaths = locations
+    .map((l) => l.image_url)
     .filter((p): p is string => !!p && !p.startsWith("http"));
-  const { signedUrls: worldImageUrls } = useBatchStorageUrls(worldImagePaths);
+  const { signedUrls: locationImageUrls } =
+    useBatchStorageUrls(locationImagePaths);
 
   const createMutation = useMutation({
-    mutationFn: createWorld,
+    mutationFn: createLocation,
     onSuccess: () => {
       // Don't close form here - onComplete will handle it after uploads finish
-      queryClient.invalidateQueries({ queryKey: ["worlds"] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
     onError: (error) => {
-      toastWithSound.error(`Failed to create world: ${error.message}`);
+      toastWithSound.error(`Failed to create location: ${error.message}`);
     },
   });
 
@@ -77,37 +78,37 @@ export default function WorldsClient({
       data,
     }: {
       id: string;
-      data: Parameters<typeof updateWorld>[1];
-    }) => updateWorld(id, data),
+      data: Parameters<typeof updateLocation>[1];
+    }) => updateLocation(id, data),
     onSuccess: () => {
       // Don't close form here - onComplete will handle it after uploads finish
-      queryClient.invalidateQueries({ queryKey: ["worlds"] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
     onError: (error) => {
-      toastWithSound.error(`Failed to update world: ${error.message}`);
+      toastWithSound.error(`Failed to update location: ${error.message}`);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteWorld,
+    mutationFn: deleteLocation,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["worlds"] });
-      toastWithSound.success("World deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      toastWithSound.success("Location deleted successfully!");
     },
     onError: (error) => {
-      toastWithSound.error(`Failed to delete world: ${error.message}`);
+      toastWithSound.error(`Failed to delete location: ${error.message}`);
     },
   });
 
-  const handleCreate = async (data: Parameters<typeof createWorld>[0]) => {
-    const newWorld = await createMutation.mutateAsync(data);
-    return newWorld;
+  const handleCreate = async (data: Parameters<typeof createLocation>[0]) => {
+    const newLocation = await createMutation.mutateAsync(data);
+    return newLocation;
   };
 
-  const handleUpdate = async (data: Parameters<typeof updateWorld>[1]) => {
-    if (!editingWorld) return undefined;
+  const handleUpdate = async (data: Parameters<typeof updateLocation>[1]) => {
+    if (!editingLocation) return undefined;
     const updated = await updateMutation.mutateAsync({
-      id: editingWorld.id,
+      id: editingLocation.id,
       data,
     });
     return updated || undefined;
@@ -115,13 +116,13 @@ export default function WorldsClient({
 
   const handleComplete = () => {
     // Refresh to show uploaded images
-    queryClient.invalidateQueries({ queryKey: ["worlds"] });
+    queryClient.invalidateQueries({ queryKey: ["locations"] });
     setShowForm(false);
-    setEditingWorld(null);
+    setEditingLocation(null);
     toastWithSound.success(
-      editingWorld
-        ? "World updated successfully!"
-        : "World created successfully!",
+      editingLocation
+        ? "Location updated successfully!"
+        : "Location created successfully!",
     );
   };
 
@@ -130,54 +131,54 @@ export default function WorldsClient({
     setShowDeleteConfirm(true);
   };
 
-  const selectedStory = stories.find((s) => s.id === selectedStoryId);
+  const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Worlds
+            Locations
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Manage worlds within your stories
+            Manage locations within your worlds
           </p>
         </div>
         <button
           onClick={() => {
-            setEditingWorld(null);
+            setEditingLocation(null);
             setShowForm(true);
           }}
-          className="rounded-lg bg-linear-to-r from-indigo-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
         >
-          + New World
+          + New Location
         </button>
       </div>
 
-      {/* Story Filter (Optional) */}
+      {/* World Filter */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Filter by Story (Optional)
+          Filter by World
         </label>
         <select
-          value={selectedStoryId}
-          onChange={(e) => setSelectedStoryId(e.target.value)}
+          value={selectedWorldId}
+          onChange={(e) => setSelectedWorldId(e.target.value)}
           className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
         >
-          <option value="">All Worlds</option>
-          {stories.map((story) => (
-            <option key={story.id} value={story.id}>
-              {story.title}
+          <option value="">All Locations</option>
+          {worlds.map((world) => (
+            <option key={world.id} value={world.id}>
+              {world.name}
             </option>
           ))}
         </select>
       </div>
 
-      {worlds.length === 0 ? (
+      {locations.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-indigo-100 to-cyan-100 dark:from-indigo-900/30 dark:to-cyan-900/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
             <svg
-              className="h-8 w-8 text-indigo-600 dark:text-indigo-400"
+              className="h-8 w-8 text-amber-600 dark:text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -186,53 +187,53 @@ export default function WorldsClient({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {selectedStoryId
-              ? `No worlds in ${selectedStory?.title}`
-              : "No worlds yet"}
+            {selectedWorldId
+              ? `No locations in ${selectedWorld?.name}`
+              : "No locations yet"}
           </h3>
           <p className="mb-6 text-gray-600 dark:text-gray-400">
-            {selectedStoryId
-              ? "Create your first world for this story"
-              : "Create your first world to get started"}
+            {selectedWorldId
+              ? "Create your first location for this world"
+              : "Select a world and create your first location"}
           </p>
-          <button
-            onClick={() => {
-              if (!selectedStoryId) {
-                toastWithSound.error(
-                  "Please select a story first to create a world",
-                );
-                return;
-              }
-              setEditingWorld(null);
-              setShowForm(true);
-            }}
-            className="rounded-lg bg-linear-to-r from-indigo-600 to-cyan-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            Create Your First World
-          </button>
+          {selectedWorldId && (
+            <button
+              onClick={() => {
+                setEditingLocation(null);
+                setShowForm(true);
+              }}
+              className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              Create Your First Location
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {worlds.map((world) => (
+          {locations.map((location) => (
             <div
-              key={world.id}
+              key={location.id}
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             >
               {/* Cover Image / Gradient */}
-              <div className="relative h-48 overflow-hidden bg-linear-to-br from-indigo-400 via-cyan-400 to-teal-400">
-                {world.theme_background_image ? (
+              <div className="relative h-48 overflow-hidden bg-linear-to-br from-amber-400 via-orange-400 to-red-400">
+                {location.image_url ? (
                   <>
                     <StorageImage
-                      src={world.theme_background_image}
-                      signedUrl={worldImageUrls.get(
-                        world.theme_background_image,
-                      )}
-                      alt={world.name}
+                      src={location.image_url}
+                      signedUrl={locationImageUrls.get(location.image_url)}
+                      alt={location.name}
                       width={400}
                       height={192}
                       className="h-full w-full object-cover"
@@ -247,11 +248,11 @@ export default function WorldsClient({
               {/* Content */}
               <div className="p-4">
                 <h4 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {world.name}
+                  {location.name}
                 </h4>
-                {world.summary && (
+                {location.summary && (
                   <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                    {world.summary}
+                    {location.summary}
                   </p>
                 )}
               </div>
@@ -261,7 +262,7 @@ export default function WorldsClient({
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      setEditingWorld(world);
+                      setEditingLocation(location);
                       setShowForm(true);
                     }}
                     className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
@@ -269,7 +270,7 @@ export default function WorldsClient({
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(world.id)}
+                    onClick={() => handleDelete(location.id)}
                     className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                   >
                     Delete
@@ -282,41 +283,38 @@ export default function WorldsClient({
       )}
 
       {showForm && (
-        <WorldForm
-          world={editingWorld || undefined}
-          storyId={editingWorld?.story_id || selectedStoryId}
-          onSubmit={editingWorld ? handleUpdate : handleCreate}
-          availableStories={stories}
+        <LocationForm
+          location={editingLocation || undefined}
+          worldId={editingLocation?.world_id || selectedWorldId}
+          availableWorlds={worlds}
+          availableLocations={allLocations}
+          onSubmit={editingLocation ? handleUpdate : handleCreate}
           onComplete={handleComplete}
           onCancel={() => {
             setShowForm(false);
-            setEditingWorld(null);
+            setEditingLocation(null);
           }}
         />
       )}
 
-      {deleteConfirmId && (
-        <ConfirmDialog
-          isOpen={showDeleteConfirm}
-          title="Delete World"
-          message="Are you sure you want to delete this world? This action cannot be undone."
-          confirmText="Delete"
-          cancelText="Cancel"
-          isDangerous={true}
-          onConfirm={async () => {
-            try {
-              await deleteMutation.mutateAsync(deleteConfirmId!);
-            } finally {
-              setShowDeleteConfirm(false);
-              setDeleteConfirmId(null);
-            }
-          }}
-          onCancel={() => {
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Location"
+        message="Are you sure you want to delete this location? This action cannot be undone."
+        onConfirm={async () => {
+          if (deleteConfirmId) {
+            await deleteMutation.mutateAsync(deleteConfirmId);
             setShowDeleteConfirm(false);
             setDeleteConfirmId(null);
-          }}
-        />
-      )}
+          }
+        }}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setDeleteConfirmId(null);
+        }}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

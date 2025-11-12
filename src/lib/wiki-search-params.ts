@@ -16,6 +16,7 @@ export const wikiSearchParams = {
   world: parseAsString,
   character: parseAsString,
   faction: parseAsString,
+  location: parseAsString,
 };
 
 // Define URL keys mapping (query param names)
@@ -24,6 +25,7 @@ export const wikiUrlKeys: UrlKeys<typeof wikiSearchParams> = {
   world: "world",
   character: "character",
   faction: "faction",
+  location: "location",
 };
 
 // Server-side loader for loading search params
@@ -42,4 +44,5 @@ export type WikiSearchParams = {
   world: string | null;
   character: string | null;
   faction: string | null;
+  location: string | null;
 };

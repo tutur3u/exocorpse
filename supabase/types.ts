@@ -1113,7 +1113,6 @@ export type Database = {
           map_image: string | null;
           name: string;
           parent_location_id: string | null;
-          population: number | null;
           slug: string;
           summary: string | null;
           updated_at: string | null;
@@ -1132,7 +1131,6 @@ export type Database = {
           map_image?: string | null;
           name: string;
           parent_location_id?: string | null;
-          population?: number | null;
           slug: string;
           summary?: string | null;
           updated_at?: string | null;
@@ -1151,7 +1149,6 @@ export type Database = {
           map_image?: string | null;
           name?: string;
           parent_location_id?: string | null;
-          population?: number | null;
           slug?: string;
           summary?: string | null;
           updated_at?: string | null;

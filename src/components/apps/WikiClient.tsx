@@ -3,13 +3,16 @@
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useStoryTheme } from "@/contexts/StoryThemeContext";
 import {
-  type Character,
-  type Faction,
   getCharacterBySlugInStory,
   getCharactersByWorldSlug,
   getFactionBySlugInStory,
   getFactionsByWorldSlug,
+  getLocationBySlug,
+  getLocationsByWorldSlug,
   getWorldsByStorySlug,
+  type Character,
+  type Faction,
+  type Location,
   type Story,
   type World,
 } from "@/lib/actions/wiki";
@@ -19,11 +22,18 @@ import { useEffect } from "react";
 import Breadcrumbs from "./wiki/Breadcrumbs";
 import CharacterView from "./wiki/CharacterView";
 import FactionView from "./wiki/FactionView";
+import LocationView from "./wiki/LocationView";
 import StoriesView from "./wiki/StoriesView";
 import StoryView from "./wiki/StoryView";
 import WorldView from "./wiki/WorldView";
 
-type ViewMode = "stories" | "story" | "world" | "character" | "faction";
+type ViewMode =
+  | "stories"
+  | "story"
+  | "world"
+  | "character"
+  | "faction"
+  | "location";
 
 type WikiClientProps = {
   stories: Story[];
@@ -40,9 +50,11 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: parseAsString,
       character: parseAsString,
       faction: parseAsString,
+      location: parseAsString,
       "story-tab": parseAsString,
       "world-tab": parseAsString,
       "character-tab": parseAsString,
+      "location-tab": parseAsString,
     },
     {
       shallow: true,
@@ -55,6 +67,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     world: worldSlug,
     character: characterSlug,
     faction: factionSlug,
+    location: locationSlug,
   } = params;
 
   // Determine view mode based on URL params
@@ -62,11 +75,13 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     ? "character"
     : factionSlug
       ? "faction"
-      : worldSlug
-        ? "world"
-        : storySlug
-          ? "story"
-          : "stories";
+      : locationSlug
+        ? "location"
+        : worldSlug
+          ? "world"
+          : storySlug
+            ? "story"
+            : "stories";
 
   // Find selected story from slug
   const selectedStory = storySlug
@@ -136,6 +151,32 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     enabled: !!storySlug && !!worldSlug,
     initialData: shouldUseInitialFactions ? initialData.factions : undefined,
   });
+
+  // Locations query for world view - load when we have world slug
+  const { data: worldLocations = [], isLoading: locationsLoading } = useQuery({
+    queryKey: ["world-locations", storySlug, worldSlug],
+    queryFn: async () => {
+      if (storySlug && worldSlug) {
+        return getLocationsByWorldSlug(storySlug, worldSlug);
+      }
+      return [];
+    },
+    enabled: !!storySlug && !!worldSlug,
+  });
+
+  // Location query for location view
+  const { data: viewingLocationData, isLoading: locationLoading } = useQuery({
+    queryKey: ["location", storySlug, worldSlug, locationSlug],
+    queryFn: async () => {
+      if (storySlug && worldSlug && locationSlug) {
+        return getLocationBySlug(storySlug, worldSlug, locationSlug);
+      }
+      return null;
+    },
+    enabled: !!storySlug && !!worldSlug && !!locationSlug,
+  });
+
+  const viewingLocation = viewingLocationData || null;
 
   // Find viewing faction from slug
   // If faction is specified without world, fetch it to get the world info
@@ -207,13 +248,15 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     (viewMode === "story" && worldsLoading && worlds.length === 0) ||
     (viewMode === "world" &&
       ((charactersLoading && worldCharacters.length === 0) ||
-        (factionsLoading && worldFactions.length === 0))) ||
+        (factionsLoading && worldFactions.length === 0) ||
+        (locationsLoading && worldLocations.length === 0))) ||
     (viewMode === "character" &&
       !viewingCharacter &&
       (characterWithWorldsLoading || (charactersLoading && worldSlug))) ||
     (viewMode === "faction" &&
       !viewingFaction &&
-      (factionWithWorldLoading || (factionsLoading && worldSlug)));
+      (factionWithWorldLoading || (factionsLoading && worldSlug))) ||
+    (viewMode === "location" && !viewingLocation && locationLoading);
 
   const handleStorySelect = (story: Story) => {
     setParams({
@@ -254,7 +297,21 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
       world: worldSlug,
       character: null,
       faction: faction.slug,
+      location: null,
       "character-tab": null,
+      "location-tab": null,
+    });
+  };
+
+  const handleLocationSelect = (location: Location) => {
+    setParams({
+      story: storySlug,
+      world: worldSlug,
+      character: null,
+      faction: null,
+      location: location.slug,
+      "character-tab": null,
+      "location-tab": null,
     });
   };
 
@@ -316,6 +373,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
         world: null,
         character: null,
         faction: null,
+        location: null,
         "world-tab": null,
         "character-tab": null,
       });
@@ -325,6 +383,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
         world: worldSlug,
         character: null,
         faction: null,
+        location: null,
         "character-tab": null,
       });
     }
@@ -388,8 +447,10 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
             world={selectedWorld}
             characters={worldCharacters}
             factions={worldFactions}
+            locations={worldLocations}
             onCharacterSelect={handleCharacterSelect}
             onFactionSelect={handleFactionSelect}
+            onLocationSelect={handleLocationSelect}
           />
         </div>
       );
@@ -435,6 +496,29 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
           <FactionView
             faction={viewingFaction}
             onCharacterClick={handleCharacterClickFromFaction}
+          />
+        </div>
+      );
+    }
+
+    // Location view
+    if (viewMode === "location" && viewingLocation) {
+      return (
+        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+            <Breadcrumbs
+              viewMode={viewMode}
+              selectedStory={selectedStory}
+              selectedWorld={selectedWorld}
+              viewingCharacter={viewingCharacter}
+              viewingFaction={viewingFaction}
+              viewingLocation={viewingLocation}
+              onNavigate={handleNavigate}
+            />
+          </div>
+          <LocationView
+            location={viewingLocation}
+            onNavigateToLocation={(slug) => setParams({ location: slug })}
           />
         </div>
       );
