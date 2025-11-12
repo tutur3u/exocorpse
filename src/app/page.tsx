@@ -193,7 +193,7 @@ export async function generateMetadata({
             story,
             world,
             character: null,
-            location
+            location,
           }),
         },
       };
