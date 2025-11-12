@@ -13,10 +13,10 @@ export default function Wiki() {
   const { data: stories = [] } = useStories(preset);
 
   return (
-      <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-hidden">
-          <WikiClient stories={stories} initialData={initialData} />
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-hidden">
+        <WikiClient stories={stories} initialData={initialData} />
       </div>
+    </div>
   );
 }
