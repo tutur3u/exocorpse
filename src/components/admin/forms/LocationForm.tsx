@@ -158,20 +158,16 @@ export default function LocationForm({
 
     try {
       // Clean up empty strings to undefined and handle number fields
-      const cleanData: LocationFormData = cleanFormData(
-        data,
-        [
-          "summary",
-          "description",
-          "geography",
-          "history",
-          "image_url",
-          "banner_image",
-          "map_image",
-          "parent_location_id",
-        ],
-        ["population"],
-      );
+      const cleanData: LocationFormData = cleanFormData(data, [
+        "summary",
+        "description",
+        "geography",
+        "history",
+        "image_url",
+        "banner_image",
+        "map_image",
+        "parent_location_id",
+      ]);
 
       // Submit the location data
       const result = await onSubmit(cleanData);

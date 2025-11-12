@@ -2203,7 +2203,6 @@ export async function createLocation(location: {
   description?: string;
   geography?: string;
   history?: string;
-  population?: number;
   image_url?: string;
   banner_image?: string;
   map_image?: string;
