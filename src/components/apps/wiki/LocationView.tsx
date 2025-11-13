@@ -121,7 +121,7 @@ export default function LocationView({
               </button>
             )}
             <div>
-              <h1 className="text-theme-text bg-theme-primary bg-clip-text text-2xl font-bold">
+              <h1 className="text-theme-text bg-theme-primary text-2xl font-bold">
                 {location.name}
               </h1>
             </div>

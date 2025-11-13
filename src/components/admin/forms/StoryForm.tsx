@@ -95,9 +95,7 @@ export default function StoryForm({
         "summary",
         "theme_primary_color",
         "theme_secondary_color",
-        "theme_background_color",
         "theme_text_color",
-        "theme_custom_css",
         "theme_background_image",
         "content",
       ]);

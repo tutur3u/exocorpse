@@ -1,6 +1,6 @@
 "use client";
 
-import ColorPicker from "@/components/shared/ColorPicker";
+import ColorPickerGroup from "@/components/admin/forms/ColorPickerGroup";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
@@ -455,37 +455,43 @@ export default function WorldForm({
                     settings can override the story theme.
                   </p>
 
-                  <ColorPicker
-                    label="Primary Color"
-                    value={themePrimaryColor || "#3b82f6"}
-                    onChange={(value) =>
-                      setValue("theme_primary_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Main theme color for this world (overrides story theme)"
-                  />
-
-                  <ColorPicker
-                    label="Secondary Color"
-                    value={themeSecondaryColor || "#1e40af"}
-                    onChange={(value) =>
-                      setValue("theme_secondary_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Accent color for this world"
-                  />
-
-                  <ColorPicker
-                    label="Text Color"
-                    value={themeTextColor || "#000000"}
-                    onChange={(value) =>
-                      setValue("theme_text_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Text color for this world"
+                  <ColorPickerGroup
+                    configs={[
+                      {
+                        fieldName: "theme_primary_color",
+                        label: "Primary Color",
+                        valueProp: themePrimaryColor,
+                        defaultValue: "#3b82f6",
+                        helpText:
+                          "Main theme color for this world (overrides story theme)",
+                        onChange: (value) =>
+                          setValue("theme_primary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_secondary_color",
+                        label: "Secondary Color",
+                        valueProp: themeSecondaryColor,
+                        defaultValue: "#1e40af",
+                        helpText: "Accent color for this world",
+                        onChange: (value) =>
+                          setValue("theme_secondary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_text_color",
+                        label: "Text Color",
+                        valueProp: themeTextColor,
+                        defaultValue: "#000000",
+                        helpText: "Text color for this world",
+                        onChange: (value) =>
+                          setValue("theme_text_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                    ]}
                   />
 
                   <ImageUploader

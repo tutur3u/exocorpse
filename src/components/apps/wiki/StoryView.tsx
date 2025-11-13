@@ -334,16 +334,16 @@ export default function StoryView({
 
                     {/* Character Info */}
                     <div className="p-3">
-                      <h3 className="text-theme-text group-hover:text-theme-secondary mb-1 truncate font-semibold">
+                      <h3 className="text-theme-text group-hover:text-theme-text mb-1 truncate font-semibold">
                         {character.name}
                       </h3>
                       {character.nickname && (
-                        <p className="text-theme-text group-hover:text-theme-secondary truncate text-xs">
+                        <p className="text-theme-text group-hover:text-theme-text truncate text-xs">
                           {character.nickname}
                         </p>
                       )}
                       {character.species && (
-                        <span className="text-theme-text bg-theme-primary group-hover:text-theme-secondary mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium">
+                        <span className="text-theme-text bg-theme-primary group-hover:text-theme-text mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                           {character.species}
                         </span>
                       )}
@@ -426,7 +426,7 @@ export default function StoryView({
 
                     {/* Faction Info */}
                     <div className="p-4">
-                      <h3 className="text-theme-text group-hover:text-theme-secondary mb-2 text-xl font-bold">
+                      <h3 className="text-theme-text group-hover:text-theme-text mb-2 text-xl font-bold">
                         {faction.name}
                       </h3>
                       {faction.summary && (

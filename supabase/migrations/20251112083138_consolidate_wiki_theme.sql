@@ -4,13 +4,22 @@ drop view if exists "public"."event_details";
 
 drop view if exists "public"."story_hierarchy";
 
-alter table "public"."characters" drop column "color_scheme";
-
 alter table "public"."characters" add column "theme_primary_color" text;
 
 alter table "public"."characters" add column "theme_secondary_color" text;
 
 alter table "public"."characters" add column "theme_text_color" text;
+
+-- Migrate existing color_scheme data to new theme columns
+UPDATE public.characters 
+SET theme_primary_color = color_scheme 
+WHERE color_scheme IS NOT NULL;
+
+UPDATE public.factions 
+SET theme_primary_color = color_scheme 
+WHERE color_scheme IS NOT NULL;
+
+alter table "public"."characters" drop column "color_scheme";
 
 alter table "public"."factions" drop column "color_scheme";
 

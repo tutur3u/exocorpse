@@ -30,8 +30,8 @@ export default function StoriesView({
   );
 
   return (
-    <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+    <div className="flex min-h-full flex-col bg-linear-to-br from-gray-900 to-gray-950">
+      <div className="sticky top-0 z-10 border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-6 py-4">
         <div>
           <h3 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
             Stories

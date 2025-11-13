@@ -40,9 +40,7 @@ export async function createStory(story: {
   summary?: string;
   theme_primary_color?: string;
   theme_secondary_color?: string;
-  theme_background_color?: string;
   theme_text_color?: string;
-  theme_custom_css?: string;
   theme_background_image?: string;
   content?: string;
   is_published?: boolean;

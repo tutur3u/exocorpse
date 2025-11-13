@@ -25,9 +25,9 @@ export default function MobileWindow({
       style={
         theme
           ? ({
-              "--theme_primary_color": theme.primary || undefined,
-              "--theme_secondary_color": theme.secondary || undefined,
-              "--theme_text_color": theme.text || undefined,
+              "--theme_primary_color": theme.primary,
+              "--theme_secondary_color": theme.secondary,
+              "--theme_text_color": theme.text,
             } as React.CSSProperties)
           : undefined
       }
@@ -35,7 +35,7 @@ export default function MobileWindow({
       {/* Window Header */}
       <div
         className={`flex items-center justify-between px-4 py-2 ${
-          theme ? "bg-theme-secondary" : null
+          theme ? "bg-theme-secondary" : ""
         }`}
       >
         <h1

@@ -5,7 +5,7 @@ import { useSound } from "@/contexts/SoundContext";
 import { useWindows } from "@/contexts/WindowContext";
 import { useWindowTheme } from "@/contexts/WindowThemeContext";
 import type { AppId } from "@/types/window";
-import { parseAsString, useQueryStates } from "nuqs";
+import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
@@ -51,6 +51,9 @@ export default function Window({ id, title, children }: WindowProps) {
       "faction-tab": parseAsString,
       "character-tab": parseAsString,
       "world-tab": parseAsString,
+      "blog-page": parseAsInteger,
+      "blog-page-size": parseAsInteger,
+      "blog-post": parseAsString,
     },
     {
       shallow: true,
@@ -224,6 +227,14 @@ export default function Window({ id, title, children }: WindowProps) {
       });
     }
 
+    if (id === "blog") {
+      setParams({
+        "blog-page": null,
+        "blog-page-size": null,
+        "blog-post": null,
+      });
+    }
+
     setIsClosing(true);
     setTimeout(() => {
       closeWindow(id);
@@ -286,9 +297,13 @@ export default function Window({ id, title, children }: WindowProps) {
       className="window-container pointer-events-auto"
     >
       <div
-        className={`border-theme-primary flex h-full flex-col overflow-hidden border ${
-          !isMaximized ? "rounded-lg" : ""
-        } ${isAnimating ? "animate-scaleIn" : ""} ${isClosing ? "animate-fadeOut" : ""}`}
+        className={`flex h-full flex-col overflow-hidden border ${
+          theme
+            ? "border-theme-primary"
+            : "border-gray-300 dark:border-gray-700"
+        } ${!isMaximized ? "rounded-lg" : ""} ${
+          isAnimating ? "animate-scaleIn" : ""
+        } ${isClosing ? "animate-fadeOut" : ""}`}
         onMouseDown={() => focusWindow(id)}
         style={
           theme

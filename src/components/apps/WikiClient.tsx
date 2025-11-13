@@ -583,13 +583,13 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
 
   return (
     <div
-      className="@container h-full overflow-auto"
+      className={`@container h-full overflow-auto ${currentTheme ? "bg-theme-primary" : "bg-linear-to-br from-gray-900 to-gray-950"}`}
       style={
         currentTheme
           ? ({
-              "--theme_primary_color": currentTheme.primary || undefined,
-              "--theme_secondary_color": currentTheme.secondary || undefined,
-              "--theme_text_color": currentTheme.text || undefined,
+              "--theme_primary_color": currentTheme.primary,
+              "--theme_secondary_color": currentTheme.secondary,
+              "--theme_text_color": currentTheme.text,
             } as React.CSSProperties)
           : undefined
       }

@@ -3,12 +3,12 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
+import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   type BlogPost,
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
@@ -153,7 +153,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
     return (
       <div className="flex h-full flex-col">
         {/* Post Header */}
-        <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-6 py-4">
           <button
             type="button"
             onClick={handleBackToList}
@@ -200,7 +200,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
         </div>
 
         {/* Post Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-900 to-gray-950 px-6 py-6">
           {selectedPost.cover_url && (
             <div className="relative mb-6 h-64 w-full overflow-hidden md:h-96">
               <StorageImage
@@ -224,7 +224,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+      <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -259,7 +259,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
       </div>
 
       {/* Posts List */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-900 to-gray-950 p-6">
         {posts.length === 0 && total === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center dark:border-gray-700 dark:bg-gray-900">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">

@@ -111,11 +111,9 @@ body {
   background-color: var(--theme_primary_color) !important;
 }
 
-.group\:hover\:bg-theme-primary:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      background-color: var(--theme_primary_color) !important;
-    }
+.group:hover .group-hover\:bg-theme-primary {
+  @media (hover: hover) {
+    background-color: var(--theme_primary_color) !important;
   }
 }
 
@@ -127,11 +125,9 @@ body {
   background-color: var(--theme_secondary_color) !important;
 }
 
-.group\:hover\:bg-theme-secondary:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      background-color: var(--theme_secondary_color) !important;
-    }
+.group:hover .group-hover\:bg-theme-secondary {
+  @media (hover: hover) {
+    background-color: var(--theme_secondary_color) !important;
   }
 }
 
@@ -143,11 +139,9 @@ body {
   color: var(--theme_text_color) !important;
 }
 
-.group\:hover\:text-theme-text:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      color: var(--theme_text_color) !important;
-    }
+.group:hover .group-hover\:text-theme-text {
+  @media (hover: hover) {
+    color: var(--theme_text_color) !important;
   }
 }
 
@@ -159,11 +153,9 @@ body {
   color: var(--theme_primary_color) !important;
 }
 
-.group\:hover\:text-theme-primary:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      color: var(--theme_primary_color) !important;
-    }
+.group:hover .group-hover\:text-theme-primary {
+  @media (hover: hover) {
+    color: var(--theme_primary_color) !important;
   }
 }
 
@@ -175,11 +167,9 @@ body {
   color: var(--theme_secondary_color) !important;
 }
 
-.group\:hover\:text-theme-secondary:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      color: var(--theme_secondary_color) !important;
-    }
+.group:hover .group-hover\:text-theme-secondary {
+  @media (hover: hover) {
+    color: var(--theme_secondary_color) !important;
   }
 }
 
@@ -191,11 +181,9 @@ body {
   color: var(--theme_primary_color) !important;
 }
 
-.group\:hover\:text-theme:hover {
-  &:is(:where(.group):hover *) {
-    @media (hover: hover) {
-      color: var(--theme_primary_color) !important;
-    }
+.group:hover .group-hover\:text-theme {
+  @media (hover: hover) {
+    color: var(--theme_primary_color) !important;
   }
 }
 
@@ -207,6 +195,16 @@ body {
   border-color: var(--theme_secondary_color) !important;
 }
 
+.border-theme-primary {
+  border-color: var(--theme_primary_color) !important;
+}
+.ring-theme-primary {
+  --tw-ring-color: var(--theme_primary_color) !important;
+}
+.hover\:ring-theme-primary:hover {
+  --tw-ring-color: var(--theme_primary_color) !important;
+}
+
 /* Window styles */
 .window-container {
   transition: opacity 0.2s ease-in-out;
@@ -216,6 +214,34 @@ body {
   cursor: move;
   user-select: none;
 }
+
+/*
+Source - https://stackoverflow.com/a
+Posted by juliomalves, modified by community. See post 'Timeline' for change history
+Retrieved 2025-11-13, License - CC BY-SA 4.0
+*/
+
+/* @layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: #f7f4ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: #e0cbcb;
+    border-radius: 100vh;
+    border: 3px solid #f6f7ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #c0a0b9;
+  }
+} */
 
 /* Smooth transitions for window state changes */
 .window-container .flex {

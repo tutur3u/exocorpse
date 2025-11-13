@@ -77,7 +77,7 @@ export default function CommissionClient({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex border-b border-gray-300 dark:border-gray-700">
+      <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950">
         <button
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === "services"
@@ -109,7 +109,7 @@ export default function CommissionClient({
           Blacklist
         </button>
       </div>
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto bg-linear-to-br from-gray-900 to-gray-950 p-6">
         {activeTab === "services" && (
           <>
             {serviceSlug && selectedService ? (

@@ -25,7 +25,7 @@ export function WindowThemeProvider({
 }) {
   const [themes, setThemes] = useState<Record<string, Theme>>({});
 
-  const getTheme = useCallback((windowId: AppId) => themes[windowId], [themes]);
+  const getTheme = (windowId: AppId) => themes[windowId];
 
   const setTheme = useCallback((windowId: AppId, theme: Theme | null) => {
     setThemes((prev) => {

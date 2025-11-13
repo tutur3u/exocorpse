@@ -60,7 +60,7 @@ export default function FactionView({
             fill
             className="object-cover"
           />
-          <div className="text-theme-text bg-theme-secondary absolute inset-0" />
+          <div className="bg-theme-secondary pointer-events-none absolute inset-0 opacity-70" />
           <div className="absolute inset-x-0 bottom-0 p-6">
             <h1 className="text-theme-text mb-2 text-4xl font-bold drop-shadow-lg">
               {faction.name}

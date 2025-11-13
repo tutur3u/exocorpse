@@ -42,7 +42,7 @@ export default function AboutMe() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-auto">
+    <div className="flex h-full flex-col overflow-auto bg-linear-to-br from-gray-900 to-gray-950">
       {/* Header Section - scrolls off first */}
       <div className="mx-auto flex flex-col gap-6 p-6 md:flex-row md:gap-10">
         <div className="flex items-center justify-center">
@@ -77,7 +77,7 @@ export default function AboutMe() {
 
       {/* Tab Navigation - sticky */}
       <div
-        className="sticky top-0 z-10 grid grid-cols-4 gap-2 bg-gray-900"
+        className="sticky top-0 z-10 grid grid-cols-4 gap-2 border-t border-gray-700 bg-gray-900"
         role="tablist"
       >
         {tabs.map(({ id, label, icon: Icon }) => (
@@ -91,7 +91,7 @@ export default function AboutMe() {
             tabIndex={activeTab === id ? 0 : -1}
             className={`flex items-center justify-center gap-2 font-medium transition-all md:px-4 md:py-3 ${
               activeTab === id
-                ? "border-b-2 border-blue-500 bg-gray-100 text-blue-600 dark:bg-gray-800 dark:text-blue-400"
+                ? "border-b-2 border-blue-500 dark:bg-gray-800 text-blue-400"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
             }`}
             onClick={() => setActiveTab(id)}
