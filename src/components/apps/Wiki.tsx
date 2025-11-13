@@ -1,7 +1,6 @@
 "use client";
 
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
-import { StoryThemeProvider } from "@/contexts/StoryThemeContext";
 import { useStories } from "@/hooks/useStories";
 import WikiClient from "./WikiClient";
 
@@ -11,15 +10,17 @@ export default function Wiki() {
     initialData?.stories && initialData.stories.length > 0
       ? initialData.stories
       : undefined;
-  const { data: stories = [] } = useStories(preset);
+  const { data: stories = [], isLoading } = useStories(preset);
 
   return (
-    <StoryThemeProvider>
-      <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-hidden">
-          <WikiClient stories={stories} initialData={initialData} />
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-hidden">
+        <WikiClient
+          stories={stories}
+          initialData={initialData}
+          isLoadingStories={isLoading}
+        />
       </div>
-    </StoryThemeProvider>
+    </div>
   );
 }

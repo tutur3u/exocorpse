@@ -1,7 +1,7 @@
 "use client";
 
 import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
-import { useStoryTheme } from "@/contexts/StoryThemeContext";
+import { useWindowTheme } from "@/contexts/WindowThemeContext";
 import {
   getCharacterBySlugInStory,
   getCharactersByWorldSlug,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryStates } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Breadcrumbs from "./wiki/Breadcrumbs";
 import CharacterView from "./wiki/CharacterView";
 import FactionView from "./wiki/FactionView";
@@ -38,10 +38,15 @@ type ViewMode =
 type WikiClientProps = {
   stories: Story[];
   initialData: InitialWikiData;
+  isLoadingStories: boolean;
 };
 
-export default function WikiClient({ stories, initialData }: WikiClientProps) {
-  const { setCurrentStory } = useStoryTheme();
+export default function WikiClient({
+  stories,
+  initialData,
+  isLoadingStories,
+}: WikiClientProps) {
+  const { setTheme } = useWindowTheme();
 
   // Use nuqs for URL state management
   const [params, setParams] = useQueryStates(
@@ -87,13 +92,6 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   const selectedStory = storySlug
     ? stories.find((s) => s.slug === storySlug) || null
     : null;
-
-  // Apply theme when story is selected
-  useEffect(() => {
-    if (selectedStory) {
-      setCurrentStory(selectedStory);
-    }
-  }, [selectedStory, setCurrentStory]);
 
   // Worlds query - load when we have a story slug
   const shouldUseInitialWorlds =
@@ -389,6 +387,42 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     }
   };
 
+  // Helper to get theme colors based on current entity
+  // Memoized to prevent infinite re-renders
+  const currentTheme = useMemo(() => {
+    // Priority: Character > Faction > World > Story
+    const entities = [
+      viewingCharacter,
+      viewingFaction,
+      selectedWorld,
+      selectedStory,
+    ];
+
+    for (const entity of entities) {
+      if (entity?.theme_primary_color) {
+        return {
+          primary: entity.theme_primary_color,
+          secondary: entity.theme_secondary_color,
+          text: entity.theme_text_color,
+        };
+      }
+    }
+    return null;
+  }, [viewingCharacter, viewingFaction, selectedWorld, selectedStory]);
+
+  // Update window theme whenever it changes
+  useEffect(() => {
+    if (currentTheme) {
+      setTheme("wiki", {
+        primary: currentTheme.primary,
+        secondary: currentTheme.secondary ?? undefined,
+        text: currentTheme.text ?? undefined,
+      });
+    } else {
+      setTheme("wiki", null);
+    }
+  }, [currentTheme, setTheme]);
+
   // Render main content based on view mode
   const renderContent = () => {
     if (loading) {
@@ -402,15 +436,19 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Stories view
     if (viewMode === "stories") {
       return (
-        <StoriesView stories={stories} onStorySelect={handleStorySelect} />
+        <StoriesView
+          stories={stories}
+          onStorySelect={handleStorySelect}
+          isLoading={isLoadingStories}
+        />
       );
     }
 
     // Story view with tabs
     if (viewMode === "story" && selectedStory) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -433,8 +471,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // World view with tabs
     if (viewMode === "world" && selectedWorld) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -459,8 +497,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Character view
     if (viewMode === "character" && viewingCharacter) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -482,8 +520,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Faction view
     if (viewMode === "faction" && viewingFaction) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -504,8 +542,8 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Location view
     if (viewMode === "location" && viewingLocation) {
       return (
-        <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/50 p-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -528,6 +566,19 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   };
 
   return (
-    <div className="@container h-full overflow-auto">{renderContent()}</div>
+    <div
+      className={`@container h-full overflow-auto ${currentTheme ? "bg-theme-primary" : "bg-linear-to-br from-gray-900 to-gray-950"}`}
+      style={
+        currentTheme
+          ? ({
+              "--theme_primary_color": currentTheme.primary,
+              "--theme_secondary_color": currentTheme.secondary,
+              "--theme_text_color": currentTheme.text,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
+      {renderContent()}
+    </div>
   );
 }

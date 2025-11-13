@@ -1,6 +1,6 @@
 "use client";
 
-import ColorPicker from "@/components/shared/ColorPicker";
+import ColorPickerGroup from "@/components/admin/forms/ColorPickerGroup";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
@@ -28,7 +28,9 @@ type FactionFormData = {
   power_level?: string;
   member_count?: number;
   logo_url?: string;
-  color_scheme?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_text_color?: string;
   banner_image?: string;
   content?: string;
 };
@@ -75,7 +77,9 @@ export default function FactionForm({
       power_level: faction?.power_level || "",
       member_count: faction?.member_count ?? undefined,
       logo_url: faction?.logo_url || "",
-      color_scheme: faction?.color_scheme || "#3b82f6",
+      theme_primary_color: faction?.theme_primary_color || "#3b82f6",
+      theme_secondary_color: faction?.theme_secondary_color || "#1e40af",
+      theme_text_color: faction?.theme_text_color || "#000000",
       banner_image: faction?.banner_image || "",
       content: faction?.content || "",
     },
@@ -89,7 +93,9 @@ export default function FactionForm({
   const [error, setError] = useState<string | null>(null);
 
   // Watch form values for components that need them
-  const colorScheme = watch("color_scheme");
+  const themePrimaryColor = watch("theme_primary_color");
+  const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const logoUrl = watch("logo_url");
   const bannerImage = watch("banner_image");
   const content = watch("content");
@@ -563,13 +569,42 @@ export default function FactionForm({
                     }
                   />
 
-                  <ColorPicker
-                    label="Color Scheme"
-                    value={colorScheme || "#3b82f6"}
-                    onChange={(value) =>
-                      setValue("color_scheme", value, { shouldDirty: true })
-                    }
-                    helpText="Primary color representing this faction"
+                  <ColorPickerGroup
+                    configs={[
+                      {
+                        fieldName: "theme_primary_color",
+                        label: "Primary Color",
+                        valueProp: themePrimaryColor,
+                        defaultValue: "#3b82f6",
+                        helpText: "Main theme color for this faction",
+                        onChange: (value) =>
+                          setValue("theme_primary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_secondary_color",
+                        label: "Secondary Color",
+                        valueProp: themeSecondaryColor,
+                        defaultValue: "#1e40af",
+                        helpText: "Accent color for this faction",
+                        onChange: (value) =>
+                          setValue("theme_secondary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_text_color",
+                        label: "Text Color",
+                        valueProp: themeTextColor,
+                        defaultValue: "#000000",
+                        helpText: "Text color for this faction",
+                        onChange: (value) =>
+                          setValue("theme_text_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                    ]}
                   />
 
                   <ImageUploader

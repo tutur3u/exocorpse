@@ -1,10 +1,10 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import ColorPickerGroup from "@/components/admin/forms/ColorPickerGroup";
 import GalleryItemForm from "@/components/admin/forms/GalleryItemForm";
 import OutfitItemForm from "@/components/admin/forms/OutfitItemForm";
 import ColorPalettePicker from "@/components/shared/ColorPalettePicker";
-import ColorPicker from "@/components/shared/ColorPicker";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
@@ -64,7 +64,9 @@ type CharacterFormData = {
   abilities?: string;
   profile_image?: string;
   banner_image?: string;
-  color_scheme?: string;
+  theme_primary_color?: string;
+  theme_secondary_color?: string;
+  theme_text_color?: string;
   color_palette?: string[];
   featured_image?: string;
   quote?: string;
@@ -155,7 +157,9 @@ export default function CharacterForm({
     abilities: character?.abilities ?? "",
     profile_image: character?.profile_image ?? "",
     banner_image: character?.banner_image ?? "",
-    color_scheme: character?.color_scheme ?? "#3b82f6",
+    theme_primary_color: character?.theme_primary_color ?? "#3b82f6",
+    theme_secondary_color: character?.theme_secondary_color ?? "#1e40af",
+    theme_text_color: character?.theme_text_color ?? "#000000",
     color_palette: character?.color_palette ?? [],
     featured_image: character?.featured_image ?? "",
     quote: character?.quote ?? "",
@@ -208,7 +212,9 @@ export default function CharacterForm({
   // Watch form values for components that need them
   const profileImage = watch("profile_image");
   const bannerImage = watch("banner_image");
-  const colorScheme = watch("color_scheme");
+  const themePrimaryColor = watch("theme_primary_color");
+  const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const colorPalette = watch("color_palette");
   const selectedWorldIds = watch("world_ids");
   const featuredImage = watch("featured_image");
@@ -1263,13 +1269,43 @@ export default function CharacterForm({
                     }
                   />
 
-                  <ColorPicker
-                    label="Color Scheme"
-                    value={colorScheme || "#3b82f6"}
-                    onChange={(value) =>
-                      setValue("color_scheme", value, { shouldDirty: true })
-                    }
-                    helpText="Theme color for this character"
+                  <ColorPickerGroup
+                    configs={[
+                      {
+                        fieldName: "theme_primary_color",
+                        label: "Primary Color",
+                        valueProp: themePrimaryColor,
+                        defaultValue: "#3b82f6",
+                        helpText:
+                          "Main theme color for this character (overrides story theme)",
+                        onChange: (value) =>
+                          setValue("theme_primary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_secondary_color",
+                        label: "Secondary Color",
+                        valueProp: themeSecondaryColor,
+                        defaultValue: "#1e40af",
+                        helpText: "Accent color for this character",
+                        onChange: (value) =>
+                          setValue("theme_secondary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_text_color",
+                        label: "Text Color",
+                        valueProp: themeTextColor,
+                        defaultValue: "#000000",
+                        helpText: "Text color for this character",
+                        onChange: (value) =>
+                          setValue("theme_text_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                    ]}
                   />
 
                   <div>

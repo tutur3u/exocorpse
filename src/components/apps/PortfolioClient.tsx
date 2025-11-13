@@ -242,7 +242,7 @@ export default function PortfolioClient({
   return (
     <div className="flex h-full flex-col">
       {/* Tabs */}
-      <div className="flex border-b border-gray-300 dark:border-gray-700">
+      <div className="flex border-b border-gray-300 bg-linear-to-br from-gray-900 to-gray-950 dark:border-gray-700">
         <button
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === "art"
@@ -292,7 +292,7 @@ export default function PortfolioClient({
 
       {/* Filters - Hide when viewing detail */}
       {!selectedArt && !selectedWriting && !selectedGame && (
-        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-6 py-4">
           <div className="flex flex-wrap gap-4">
             {/* Year Filter */}
             <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function PortfolioClient({
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto bg-linear-to-br from-gray-900 to-gray-950 p-6">
         {activeTab === "art" && (
           <div className="relative">
             {/* Gallery Grid */}

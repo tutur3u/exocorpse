@@ -1,5 +1,6 @@
 "use client";
 
+import { useWindowTheme } from "@/contexts/WindowThemeContext";
 import type { AppId } from "@/types/window";
 
 interface MobileWindowProps {
@@ -15,21 +16,45 @@ export default function MobileWindow({
   children,
   onClose,
 }: MobileWindowProps) {
+  const { getTheme } = useWindowTheme();
+  const theme = getTheme(appId);
+
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-900">
+    <div
+      className="flex h-full flex-col bg-white dark:bg-gray-900"
+      style={
+        theme
+          ? ({
+              "--theme_primary_color": theme.primary,
+              "--theme_secondary_color": theme.secondary,
+              "--theme_text_color": theme.text,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       {/* Window Header */}
-      <div className="flex items-center justify-between px-4 py-2">
-        <h1 className="text-xl font-bold tracking-wide text-white uppercase">
+      <div
+        className={`flex items-center justify-between px-4 py-2 ${
+          theme ? "bg-theme-secondary" : ""
+        }`}
+      >
+        <h1
+          className={`text-xl font-bold tracking-wide uppercase ${
+            theme ? "text-theme-text" : "text-white"
+          }`}
+        >
           {title}
         </h1>
         <button
           type="button"
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-sm transition-colors hover:bg-red-600"
+          className={`flex h-8 w-8 items-center justify-center rounded-sm transition-colors hover:bg-red-600 ${
+            theme ? "text-theme-text" : "text-white"
+          }`}
           aria-label="Close"
         >
           <svg
-            className="h-5 w-5 text-white"
+            className="h-5 w-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

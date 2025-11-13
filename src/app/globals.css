@@ -77,6 +77,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --theme_primary_color: #3b82f6;
+  --theme_secondary_color: #1e40af;
+  --theme_text_color: #000000;
 }
 
 @theme inline {
@@ -98,6 +101,105 @@ body {
   color: var(--foreground);
   font-family: var(--font-baskervville), Arial, Helvetica, sans-serif;
   overflow: hidden;
+}
+
+.bg-theme-primary {
+  background-color: var(--theme_primary_color) !important;
+}
+
+.hover\:bg-theme-primary:hover {
+  background-color: var(--theme_primary_color) !important;
+}
+
+.group:hover .group-hover\:bg-theme-primary {
+  @media (hover: hover) {
+    background-color: var(--theme_primary_color) !important;
+  }
+}
+
+.bg-theme-secondary {
+  background-color: var(--theme_secondary_color) !important;
+}
+
+.hover\:bg-theme-secondary:hover {
+  background-color: var(--theme_secondary_color) !important;
+}
+
+.group:hover .group-hover\:bg-theme-secondary {
+  @media (hover: hover) {
+    background-color: var(--theme_secondary_color) !important;
+  }
+}
+
+.text-theme-text {
+  color: var(--theme_text_color) !important;
+}
+
+.hover\:text-theme-text:hover {
+  color: var(--theme_text_color) !important;
+}
+
+.group:hover .group-hover\:text-theme-text {
+  @media (hover: hover) {
+    color: var(--theme_text_color) !important;
+  }
+}
+
+.text-theme-primary {
+  color: var(--theme_primary_color) !important;
+}
+
+.hover\:text-theme-primary:hover {
+  color: var(--theme_primary_color) !important;
+}
+
+.group:hover .group-hover\:text-theme-primary {
+  @media (hover: hover) {
+    color: var(--theme_primary_color) !important;
+  }
+}
+
+.text-theme-secondary {
+  color: var(--theme_secondary_color) !important;
+}
+
+.hover\:text-theme-secondary:hover {
+  color: var(--theme_secondary_color) !important;
+}
+
+.group:hover .group-hover\:text-theme-secondary {
+  @media (hover: hover) {
+    color: var(--theme_secondary_color) !important;
+  }
+}
+
+.text-theme {
+  color: var(--theme_primary_color) !important;
+}
+
+.hover\:text-theme:hover {
+  color: var(--theme_primary_color) !important;
+}
+
+.group:hover .group-hover\:text-theme {
+  @media (hover: hover) {
+    color: var(--theme_primary_color) !important;
+  }
+}
+
+.border-theme-primary {
+  border-color: var(--theme_primary_color) !important;
+}
+
+.border-theme-secondary {
+  border-color: var(--theme_secondary_color) !important;
+}
+
+.ring-theme-primary {
+  --tw-ring-color: var(--theme_primary_color) !important;
+}
+.hover\:ring-theme-primary:hover {
+  --tw-ring-color: var(--theme_primary_color) !important;
 }
 
 /* Window styles */

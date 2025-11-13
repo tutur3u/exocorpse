@@ -258,7 +258,7 @@ INSERT INTO outfit_types (id, story_id, name, slug, description, color, icon, is
 -- EXOCORPSE STORY
 -- ============================================================================
 
-INSERT INTO stories (id, title, slug, description, summary, theme_primary_color, theme_secondary_color, theme_background_color, theme_text_color, content, is_published, visibility) VALUES
+INSERT INTO stories (id, title, slug, description, summary, theme_primary_color, theme_secondary_color, theme_text_color, content, is_published, visibility) VALUES
   (
     extensions.uuid_generate_v4(),
     'Exocorpse',
@@ -267,7 +267,6 @@ INSERT INTO stories (id, title, slug, description, summary, theme_primary_color,
     'A dark tale of an underground organization performing morally gray missions in pursuit of a better world.',
     '#dc2626', -- Red primary
     '#991b1b', -- Darker red secondary
-    '#0f0f0f', -- Dark background
     '#f5f5f5', -- Light text
     '# Exocorpse
 
@@ -317,7 +316,7 @@ BEGIN
   -- WORLD
   -- ============================================================================
 
-  INSERT INTO worlds (id, story_id, name, slug, description, summary, world_type, size, population, theme_primary_color, theme_secondary_color, content) VALUES
+  INSERT INTO worlds (id, story_id, name, slug, description, summary, world_type, size, population, theme_primary_color, theme_secondary_color, theme_text_color, content) VALUES
     (
       extensions.uuid_generate_v4(),
       v_story_id,
@@ -330,6 +329,7 @@ BEGIN
       7800000000,
       '#1e293b',
       '#475569',
+      '#f8fafc',
       '# Earth - Present Day
 
 This is our world, but beneath the surface of everyday life, shadow organizations like Exocorpse operate with impunity. Governments are aware of their existence but choose to turn a blind eye, recognizing that some jobs are too dirty for official channels.
@@ -349,7 +349,7 @@ Most citizens are unaware of Exocorpse''s existence. Those who know of it speak 
   -- ============================================================================
 
   -- Prototype: Pulse
-  INSERT INTO factions (id, world_id, name, slug, description, summary, faction_type, founding_date, status, primary_goal, ideology, reputation, power_level, member_count, logo_url, color_scheme, content) VALUES
+  INSERT INTO factions (id, world_id, name, slug, description, summary, faction_type, founding_date, status, primary_goal, ideology, reputation, power_level, member_count, logo_url, theme_primary_color, theme_secondary_color, theme_text_color, content) VALUES
     (
       extensions.uuid_generate_v4(),
       v_world_id,
@@ -367,6 +367,8 @@ Most citizens are unaware of Exocorpse''s existence. Those who know of it speak 
       847,
       '/assets/pulse-logo.png',
       '#dc2626',
+      '#991b1b',
+      '#f8fafc',
       '# Prototype: Pulse
 
 Pulse operatives are the beating heart of Exocorpse''s direct action capabilities. They are warriors, athletes, and tacticians rolled into one.
@@ -392,7 +394,7 @@ Pulse recruits undergo a 2-year training program that tests them to their absolu
   RETURNING id INTO v_pulse_faction_id;
 
   -- Prototype: Neuro
-  INSERT INTO factions (id, world_id, name, slug, description, summary, faction_type, founding_date, status, primary_goal, ideology, reputation, power_level, member_count, logo_url, color_scheme, content) VALUES
+  INSERT INTO factions (id, world_id, name, slug, description, summary, faction_type, founding_date, status, primary_goal, ideology, reputation, power_level, member_count, logo_url, theme_primary_color, theme_secondary_color, theme_text_color, content) VALUES
     (
       extensions.uuid_generate_v4(),
       v_world_id,
@@ -410,6 +412,8 @@ Pulse recruits undergo a 2-year training program that tests them to their absolu
       523,
       '/assets/neuro-logo.png',
       '#3b82f6',
+      '#1e40af',
+      '#f8fafc',
       '# Prototype: Neuro
 
 Neuro operatives are the hidden architects of Exocorpse''s most complex operations. They work in shadows, pulling strings and manipulating events from behind the scenes.
@@ -500,7 +504,7 @@ Disguised as a tech startup office, this facility houses some of Exocorpse''s mo
   -- ============================================================================
 
   -- Character 1: Pulse Operative
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, theme_primary_color, theme_secondary_color, theme_text_color, color_palette) VALUES
     (
       extensions.uuid_generate_v4(),
       'Kazuki Yamamoto',
@@ -528,12 +532,15 @@ Born in Osaka, he lost his family in a gang-related incident when he was 16. He 
 Kazuki believes that by eliminating threats before they can harm innocents, he''s preventing others from experiencing the loss he endured.',
       'Expert in CQC, firearms, tactical planning, parkour, infiltration',
       '/assets/characters/kazuki.png',
-      '#dc2626'
+      '#dc2626', 
+      '#991b1b',
+      '#f8fafc',
+'{"#dc2626", "#f87171", "#fbbf24", "#34d399", "#3b82f6"}'
     )
   RETURNING id INTO v_char1_id;
 
   -- Character 2: Neuro Operative
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory,  abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory,  abilities, profile_image, theme_primary_color, theme_secondary_color, theme_text_color, color_palette) VALUES
     (
       extensions.uuid_generate_v4(),
       'Dr. Aisha Rahman',
@@ -561,12 +568,15 @@ Born in London to Pakistani immigrants, she grew up watching her parents struggl
 Aisha believes that by understanding and manipulating the minds of those in power, she can steer humanity toward a better future.',
       'Expert in psychology, interrogation, social engineering, cryptography, data analysis',
       '/assets/characters/aisha.png',
-      '#3b82f6'
+      '#3b82f6',
+      '#1e40af',
+      '#f8fafc',
+      '{"#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe"}'
     )
   RETURNING id INTO v_char2_id;
 
   -- Character 3: Dual-Type (rare)
-  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, color_scheme) VALUES
+  INSERT INTO characters (id, name, slug, nickname, age, species, gender, pronouns, height, build, hair_color, eye_color, status, occupation, personality_summary, backstory, abilities, profile_image, theme_primary_color, theme_secondary_color, theme_text_color, color_palette) VALUES
     (
       extensions.uuid_generate_v4(),
       'Viktor Sokolov',
@@ -602,7 +612,10 @@ Viktor now oversees joint operations between Pulse and Neuro divisions. He''s al
 Among Pulse operatives, he''s respected for his combat prowess. Among Neuros, he''s admired for his strategic mind. Among both, he''s feared for his ruthlessness.',
       'Expert combatant, master strategist, psychological warfare, leadership, multilingual (Russian, English, Japanese, Mandarin, Arabic)',
       '/assets/characters/viktor.png',
-      '#8b5cf6'
+      '#8b5cf6',
+      '#6d28d9',
+      '#f8fafc',
+      '{"#8b5cf6", "#a78bfa", "#c4b5fd", "#e0e7ff", "#f3f4f6"}'
     )
   RETURNING id INTO v_char3_id;
 

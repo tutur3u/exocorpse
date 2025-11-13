@@ -62,7 +62,7 @@ export default function WorldView({
     useBatchStorageUrls(locationImagePaths);
 
   return (
-    <div className="flex min-h-full flex-col bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="bg-theme-primary flex min-h-full flex-col">
       {/* World Header with Banner */}
       {world.theme_background_image && (
         <div className="relative h-48 overflow-hidden">
@@ -74,11 +74,11 @@ export default function WorldView({
           />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
-            <h1 className="mb-2 text-4xl font-bold text-white drop-shadow-lg">
+            <h1 className="text-theme-primary mb-2 text-4xl font-bold drop-shadow-lg">
               {world.name}
             </h1>
             {world.summary && (
-              <p className="text-lg text-gray-200 drop-shadow-md">
+              <p className="text-theme-text text-lg drop-shadow-md">
                 {world.summary}
               </p>
             )}
@@ -88,29 +88,27 @@ export default function WorldView({
 
       {/* Header for worlds without banner */}
       {!world.theme_background_image && (
-        <div className="border-b bg-white/50 p-6 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-          <h1 className="mb-2 bg-linear-to-r from-indigo-600 to-cyan-600 bg-clip-text text-4xl font-bold text-transparent">
+        <div className="bg-theme-secondary p-6 backdrop-blur-sm">
+          <h1 className="text-theme-text mb-2 text-4xl font-bold">
             {world.name}
           </h1>
           {world.summary && (
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              {world.summary}
-            </p>
+            <p className="text-theme-text text-lg">{world.summary}</p>
           )}
           {/* World Info Pills */}
           <div className="mt-3 flex flex-wrap gap-2">
             {world.world_type && (
-              <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              <span className="bg-theme-primary text-theme-text rounded-full px-3 py-1 text-sm font-medium">
                 {world.world_type}
               </span>
             )}
             {world.population && (
-              <span className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">
+              <span className="bg-theme-primary text-theme-text rounded-full px-3 py-1 text-sm font-medium">
                 Population: {world.population.toLocaleString()}
               </span>
             )}
             {world.size && (
-              <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+              <span className="bg-theme-primary text-theme-text rounded-full px-3 py-1 text-sm font-medium">
                 Size: {world.size}
               </span>
             )}
@@ -119,63 +117,51 @@ export default function WorldView({
       )}
 
       {/* Tabs */}
-      <div className="border-b bg-gray-50/50 px-6 dark:border-gray-800 dark:bg-gray-900/30">
+      <div className="bg-theme-secondary px-6">
         <div className="flex gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("overview")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "overview"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Overview
-            {activeTab === "overview" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("characters")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "characters"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Characters ({characters.length})
-            {activeTab === "characters" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("factions")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "factions"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Factions ({factions.length})
-            {activeTab === "factions" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
-            )}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("locations")}
             className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
               activeTab === "locations"
-                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-400"
-                : "text-gray-600 hover:bg-white/50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
             }`}
           >
             Locations ({locations.length})
-            {activeTab === "locations" && (
-              <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-linear-to-r from-blue-600 to-purple-600" />
-            )}
           </button>
         </div>
       </div>
@@ -186,12 +172,12 @@ export default function WorldView({
         {activeTab === "overview" && (
           <div className="animate-fadeIn mx-auto max-w-4xl">
             {world.content ? (
-              <div className="prose prose-lg dark:prose-invert max-w-none">
+              <div className="text-theme-text prose prose-lg max-w-none">
                 <MarkdownRenderer content={world.content} />
               </div>
             ) : (
-              <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="text-gray-500 dark:text-gray-400">
+              <div className="text-theme-text bg-theme-secondary rounded-xl p-8 text-center shadow-sm">
+                <p className="text-theme-text">
                   No overview available for this world yet.
                 </p>
               </div>
@@ -205,8 +191,8 @@ export default function WorldView({
             {characterImagesLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-theme-text h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                  <div className="text-theme-text font-medium">
                     Loading character images...
                   </div>
                 </div>
@@ -214,9 +200,9 @@ export default function WorldView({
             ) : characters.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-purple-100 dark:from-green-900/30 dark:to-purple-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-green-600 dark:text-green-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -239,16 +225,16 @@ export default function WorldView({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5 @2xl:grid-cols-6">
+              <div className="text-theme-text grid grid-cols-1 gap-4 @sm:grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5 @2xl:grid-cols-6">
                 {characters.map((character) => (
                   <button
                     key={character.id}
                     type="button"
                     onClick={() => onCharacterSelect(character)}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* Character Image */}
-                    <div className="relative aspect-square overflow-hidden bg-linear-to-br from-blue-500 to-purple-600">
+                    <div className="text-theme-text bg-theme-secondary relative aspect-square overflow-hidden">
                       {character.profile_image ? (
                         <StorageImage
                           src={character.profile_image}
@@ -259,13 +245,13 @@ export default function WorldView({
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                           fallback={
-                            <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
+                            <div className="text-theme-text flex h-full w-full items-center justify-center text-6xl font-bold">
                               {character.name.charAt(0)}
                             </div>
                           }
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-white">
+                        <div className="text-theme-text flex h-full w-full items-center justify-center text-6xl font-bold">
                           {character.name.charAt(0)}
                         </div>
                       )}
@@ -273,16 +259,16 @@ export default function WorldView({
 
                     {/* Character Info */}
                     <div className="p-3">
-                      <h3 className="mb-1 truncate font-semibold text-gray-900 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+                      <h3 className="text-theme-text group-hover:text-theme-text mb-1 truncate font-semibold">
                         {character.name}
                       </h3>
                       {character.nickname && (
-                        <p className="truncate text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text group-hover:text-theme-text truncate text-xs">
                           {character.nickname}
                         </p>
                       )}
                       {character.species && (
-                        <span className="mt-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                        <span className="text-theme-text bg-theme-primary group-hover:text-theme-text mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium">
                           {character.species}
                         </span>
                       )}
@@ -300,8 +286,8 @@ export default function WorldView({
             {factionLogosLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
-                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-theme-text h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+                  <div className="text-theme-text font-medium">
                     Loading faction logos...
                   </div>
                 </div>
@@ -309,9 +295,9 @@ export default function WorldView({
             ) : factions.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-purple-600 dark:text-purple-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -325,10 +311,10 @@ export default function WorldView({
                       />
                     </svg>
                   </div>
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="text-theme-text mb-2 text-lg font-semibold">
                     No factions yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-theme-text">
                     This world doesn&apos;t have any factions yet
                   </p>
                 </div>
@@ -340,11 +326,11 @@ export default function WorldView({
                     key={faction.id}
                     type="button"
                     onClick={() => onFactionSelect(faction)}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* Faction Logo/Image */}
                     {faction.logo_url ? (
-                      <div className="relative h-40 overflow-hidden bg-linear-to-br from-purple-500 via-pink-500 to-red-500">
+                      <div className="text-theme-text bg-theme-secondary relative h-40 overflow-hidden">
                         <StorageImage
                           src={faction.logo_url}
                           signedUrl={factionLogoUrls.get(faction.logo_url)}
@@ -352,22 +338,15 @@ export default function WorldView({
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                           fallback={
-                            <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                            <div className="text-theme-text flex h-full w-full items-center justify-center text-4xl font-bold">
                               {faction.name.charAt(0)}
                             </div>
                           }
                         />
                       </div>
                     ) : (
-                      <div
-                        className="relative h-40 bg-linear-to-br from-purple-500 via-pink-500 to-red-500"
-                        style={
-                          faction.color_scheme
-                            ? { background: faction.color_scheme }
-                            : {}
-                        }
-                      >
-                        <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                      <div className="text-theme-text bg-theme-secondary relative h-40">
+                        <div className="text-theme-text flex h-full w-full items-center justify-center text-4xl font-bold">
                           {faction.name.charAt(0)}
                         </div>
                       </div>
@@ -375,22 +354,22 @@ export default function WorldView({
 
                     {/* Faction Info */}
                     <div className="p-4">
-                      <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-purple-600 dark:text-gray-100 dark:group-hover:text-purple-400">
+                      <h3 className="text-theme-text group-hover:text-theme-text mb-2 text-xl font-bold">
                         {faction.name}
                       </h3>
                       {faction.summary && (
-                        <p className="mb-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text mb-3 line-clamp-3 text-sm">
                           {faction.summary}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2 text-xs">
                         {faction.faction_type && (
-                          <span className="rounded-full bg-purple-100 px-2 py-1 font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1 font-medium">
                             {faction.faction_type}
                           </span>
                         )}
                         {faction.status && (
-                          <span className="rounded-full bg-pink-100 px-2 py-1 font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-300">
+                          <span className="text-theme-text bg-theme-primary rounded-full px-2 py-1 font-medium">
                             {faction.status}
                           </span>
                         )}
@@ -409,8 +388,8 @@ export default function WorldView({
             {locationImagesLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-                  <div className="font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-theme-text h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+                  <div className="text-theme-text font-medium">
                     Loading location images...
                   </div>
                 </div>
@@ -418,9 +397,9 @@ export default function WorldView({
             ) : locations.length === 0 ? (
               <div className="flex items-center justify-center py-16">
                 <div className="max-w-md text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30">
+                  <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
                     <svg
-                      className="h-10 w-10 text-emerald-600 dark:text-emerald-400"
+                      className="text-theme-text h-10 w-10"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -440,10 +419,10 @@ export default function WorldView({
                       />
                     </svg>
                   </div>
-                  <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h4 className="text-theme-text mb-2 text-lg font-semibold">
                     No locations yet
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-theme-text">
                     This world doesn&apos;t have any locations yet
                   </p>
                 </div>
@@ -455,11 +434,11 @@ export default function WorldView({
                     key={location.id}
                     type="button"
                     onClick={() => onLocationSelect(location)}
-                    className="group flex flex-col justify-between overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                    className="group bg-theme-secondary relative flex flex-col justify-between overflow-hidden rounded-xl shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     {/* Location Image */}
                     {location.image_url ? (
-                      <div className="relative h-48 overflow-hidden bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500">
+                      <div className="text-theme-text bg-theme-secondary relative h-48 overflow-hidden">
                         <StorageImage
                           src={location.image_url}
                           signedUrl={locationImageUrls.get(location.image_url)}
@@ -467,15 +446,15 @@ export default function WorldView({
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                           fallback={
-                            <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                            <div className="text-theme-text flex h-full w-full items-center justify-center text-4xl font-bold">
                               {location.name.charAt(0)}
                             </div>
                           }
                         />
                       </div>
                     ) : (
-                      <div className="relative h-48 bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500">
-                        <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                      <div className="text-theme-text bg-theme-secondary relative h-48">
+                        <div className="text-theme-text flex h-full w-full items-center justify-center text-4xl font-bold">
                           {location.name.charAt(0)}
                         </div>
                       </div>
@@ -483,11 +462,11 @@ export default function WorldView({
 
                     {/* Location Info */}
                     <div className="p-4">
-                      <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-emerald-600 dark:text-gray-100 dark:group-hover:text-emerald-400">
+                      <h3 className="text-theme-text group-hover:text-theme-text mb-2 text-xl font-bold">
                         {location.name}
                       </h3>
                       {location.summary && (
-                        <p className="mb-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-theme-text mb-3 line-clamp-3 text-sm">
                           {location.summary}
                         </p>
                       )}

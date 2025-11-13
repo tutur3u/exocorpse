@@ -11,6 +11,7 @@ import CharacterDetail from "@/components/apps/CharacterDetail";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import PreviewModal from "@/components/shared/PreviewModal";
 import { InitialWikiDataProvider } from "@/contexts/InitialWikiDataContext";
+import { WindowProvider } from "@/contexts/WindowContext";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   addCharacterToFaction,
@@ -1074,7 +1075,9 @@ export default function CharactersClient({
                   characterDetail: null,
                 }}
               >
-                <CharacterDetail character={previewCharacter} />
+                <WindowProvider>
+                  <CharacterDetail character={previewCharacter} />
+                </WindowProvider>
               </InitialWikiDataProvider>
             </PreviewModal>
           )}

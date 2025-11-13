@@ -60,7 +60,7 @@ export default function Breadcrumbs({
       <button
         key="stories"
         onClick={() => onNavigate("stories")}
-        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        className="text-theme-primary hover:text-theme-text"
       >
         Stories
       </button>,
@@ -76,7 +76,7 @@ export default function Breadcrumbs({
     selectedStory
   ) {
     crumbs.push(
-      <span key="sep1" className="mx-2 text-gray-400">
+      <span key="sep1" className="text-theme-text mx-2">
         /
       </span>,
     );
@@ -84,7 +84,7 @@ export default function Breadcrumbs({
       <button
         key="story"
         onClick={() => onNavigate("story")}
-        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        className="text-theme-primary hover:text-theme-text"
       >
         {selectedStory.title}
       </button>,
@@ -94,12 +94,12 @@ export default function Breadcrumbs({
   // Show current story name (when on story page)
   if (viewMode === "story" && selectedStory) {
     crumbs.push(
-      <span key="sep2" className="mx-2 text-gray-400">
+      <span key="sep2" className="text-theme-text mx-2">
         /
       </span>,
     );
     crumbs.push(
-      <span key="current" className="text-gray-600 dark:text-gray-400">
+      <span key="current" className="text-theme-text">
         {selectedStory.title}
       </span>,
     );
@@ -113,7 +113,7 @@ export default function Breadcrumbs({
     selectedWorld
   ) {
     crumbs.push(
-      <span key="sep3" className="mx-2 text-gray-400">
+      <span key="sep3" className="text-theme-text mx-2">
         /
       </span>,
     );
@@ -121,7 +121,7 @@ export default function Breadcrumbs({
       <button
         key="world"
         onClick={() => onNavigate("world")}
-        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        className="text-theme-primary hover:text-theme-text"
       >
         {selectedWorld.name}
       </button>,
@@ -131,12 +131,12 @@ export default function Breadcrumbs({
   // Show current world name (when on world page)
   if (viewMode === "world" && selectedWorld) {
     crumbs.push(
-      <span key="sep3b" className="mx-2 text-gray-400">
+      <span key="sep3b" className="text-theme-text mx-2">
         /
       </span>,
     );
     crumbs.push(
-      <span key="current-world" className="text-gray-600 dark:text-gray-400">
+      <span key="current-world" className="text-theme-text mx-2">
         {selectedWorld.name}
       </span>,
     );
@@ -145,12 +145,12 @@ export default function Breadcrumbs({
   // Show current character name
   if (viewMode === "character" && viewingCharacter) {
     crumbs.push(
-      <span key="sep4" className="mx-2 text-gray-400">
+      <span key="sep4" className="text-theme-text mx-2">
         /
       </span>,
     );
     crumbs.push(
-      <span key="current" className="text-gray-600 dark:text-gray-400">
+      <span key="current" className="text-theme-text">
         {viewingCharacter.name}
       </span>,
     );
@@ -159,12 +159,12 @@ export default function Breadcrumbs({
   // Show current faction name
   if (viewMode === "faction" && viewingFaction) {
     crumbs.push(
-      <span key="sep5" className="mx-2 text-gray-400">
+      <span key="sep5" className="text-theme-text mx-2">
         /
       </span>,
     );
     crumbs.push(
-      <span key="current" className="text-gray-600 dark:text-gray-400">
+      <span key="current" className="text-theme-text">
         {viewingFaction.name}
       </span>,
     );
@@ -173,12 +173,12 @@ export default function Breadcrumbs({
   // Show current location name
   if (viewMode === "location" && viewingLocation) {
     crumbs.push(
-      <span key="sep6" className="mx-2 text-gray-400">
+      <span key="sep6" className="text-theme-text mx-2">
         /
       </span>,
     );
     crumbs.push(
-      <span key="current" className="text-gray-600 dark:text-gray-400">
+      <span key="current" className="text-theme-text">
         {viewingLocation.name}
       </span>,
     );
@@ -190,7 +190,7 @@ export default function Breadcrumbs({
       <div className="flex items-center gap-1">
         <button
           onClick={handleBack}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          className="bg-theme-secondary hover:bg-theme-primary flex h-7 w-7 items-center justify-center rounded-lg"
           title="Go back"
           type="button"
         >
@@ -210,7 +210,7 @@ export default function Breadcrumbs({
         </button>
         <button
           onClick={handleForward}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-300 bg-white transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+          className="bg-theme-secondary hover:bg-theme-primary flex h-7 w-7 items-center justify-center rounded-lg"
           title="Go forward"
           type="button"
         >

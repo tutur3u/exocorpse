@@ -531,7 +531,6 @@ export type Database = {
           banner_image: string | null;
           build: string | null;
           color_palette: string[] | null;
-          color_scheme: string | null;
           created_at: string | null;
           created_by: string | null;
           deleted_at: string | null;
@@ -557,6 +556,9 @@ export type Database = {
           species: string | null;
           spotify_link: string | null;
           status: Database["public"]["Enums"]["character_status"] | null;
+          theme_primary_color: string | null;
+          theme_secondary_color: string | null;
+          theme_text_color: string | null;
           updated_at: string | null;
           weight: string | null;
         };
@@ -567,7 +569,6 @@ export type Database = {
           banner_image?: string | null;
           build?: string | null;
           color_palette?: string[] | null;
-          color_scheme?: string | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -593,6 +594,9 @@ export type Database = {
           species?: string | null;
           spotify_link?: string | null;
           status?: Database["public"]["Enums"]["character_status"] | null;
+          theme_primary_color?: string | null;
+          theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           weight?: string | null;
         };
@@ -603,7 +607,6 @@ export type Database = {
           banner_image?: string | null;
           build?: string | null;
           color_palette?: string[] | null;
-          color_scheme?: string | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -629,6 +632,9 @@ export type Database = {
           species?: string | null;
           spotify_link?: string | null;
           status?: Database["public"]["Enums"]["character_status"] | null;
+          theme_primary_color?: string | null;
+          theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           weight?: string | null;
         };
@@ -938,7 +944,6 @@ export type Database = {
       factions: {
         Row: {
           banner_image: string | null;
-          color_scheme: string | null;
           content: string | null;
           created_at: string | null;
           created_by: string | null;
@@ -958,12 +963,14 @@ export type Database = {
           slug: string;
           status: string | null;
           summary: string | null;
+          theme_primary_color: string | null;
+          theme_secondary_color: string | null;
+          theme_text_color: string | null;
           updated_at: string | null;
           world_id: string | null;
         };
         Insert: {
           banner_image?: string | null;
-          color_scheme?: string | null;
           content?: string | null;
           created_at?: string | null;
           created_by?: string | null;
@@ -983,12 +990,14 @@ export type Database = {
           slug: string;
           status?: string | null;
           summary?: string | null;
+          theme_primary_color?: string | null;
+          theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           world_id?: string | null;
         };
         Update: {
           banner_image?: string | null;
-          color_scheme?: string | null;
           content?: string | null;
           created_at?: string | null;
           created_by?: string | null;
@@ -1008,6 +1017,9 @@ export type Database = {
           slug?: string;
           status?: string | null;
           summary?: string | null;
+          theme_primary_color?: string | null;
+          theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           world_id?: string | null;
         };
@@ -1578,19 +1590,15 @@ export type Database = {
           description: string | null;
           id: string;
           is_published: boolean | null;
-          like_count: number | null;
           slug: string;
           summary: string | null;
-          theme_background_color: string | null;
           theme_background_image: string | null;
-          theme_custom_css: string | null;
           theme_primary_color: string | null;
           theme_secondary_color: string | null;
           theme_text_color: string | null;
           title: string;
           updated_at: string | null;
           updated_by: string | null;
-          view_count: number | null;
           visibility: Database["public"]["Enums"]["visibility_level"] | null;
         };
         Insert: {
@@ -1601,19 +1609,15 @@ export type Database = {
           description?: string | null;
           id?: string;
           is_published?: boolean | null;
-          like_count?: number | null;
           slug: string;
           summary?: string | null;
-          theme_background_color?: string | null;
           theme_background_image?: string | null;
-          theme_custom_css?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
           theme_text_color?: string | null;
           title: string;
           updated_at?: string | null;
           updated_by?: string | null;
-          view_count?: number | null;
           visibility?: Database["public"]["Enums"]["visibility_level"] | null;
         };
         Update: {
@@ -1624,19 +1628,15 @@ export type Database = {
           description?: string | null;
           id?: string;
           is_published?: boolean | null;
-          like_count?: number | null;
           slug?: string;
           summary?: string | null;
-          theme_background_color?: string | null;
           theme_background_image?: string | null;
-          theme_custom_css?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
           theme_text_color?: string | null;
           title?: string;
           updated_at?: string | null;
           updated_by?: string | null;
-          view_count?: number | null;
           visibility?: Database["public"]["Enums"]["visibility_level"] | null;
         };
         Relationships: [];
@@ -1777,9 +1777,9 @@ export type Database = {
           story_id: string;
           summary: string | null;
           theme_background_image: string | null;
-          theme_map_image: string | null;
           theme_primary_color: string | null;
           theme_secondary_color: string | null;
+          theme_text_color: string | null;
           updated_at: string | null;
           world_type: string | null;
         };
@@ -1797,9 +1797,9 @@ export type Database = {
           story_id: string;
           summary?: string | null;
           theme_background_image?: string | null;
-          theme_map_image?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           world_type?: string | null;
         };
@@ -1817,9 +1817,9 @@ export type Database = {
           story_id?: string;
           summary?: string | null;
           theme_background_image?: string | null;
-          theme_map_image?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
+          theme_text_color?: string | null;
           updated_at?: string | null;
           world_type?: string | null;
         };
@@ -1907,7 +1907,6 @@ export type Database = {
           banner_image: string | null;
           build: string | null;
           color_palette: string[] | null;
-          color_scheme: string | null;
           created_at: string | null;
           created_by: string | null;
           deleted_at: string | null;
@@ -1934,6 +1933,9 @@ export type Database = {
           species: string | null;
           spotify_link: string | null;
           status: Database["public"]["Enums"]["character_status"] | null;
+          theme_primary_color: string | null;
+          theme_secondary_color: string | null;
+          theme_text_color: string | null;
           updated_at: string | null;
           weight: string | null;
           world_ids: Json | null;

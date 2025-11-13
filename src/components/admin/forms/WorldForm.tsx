@@ -1,6 +1,6 @@
 "use client";
 
-import ColorPicker from "@/components/shared/ColorPicker";
+import ColorPickerGroup from "@/components/admin/forms/ColorPickerGroup";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
@@ -24,6 +24,7 @@ type WorldFormData = {
   population?: number;
   theme_primary_color?: string;
   theme_secondary_color?: string;
+  theme_text_color?: string;
   theme_background_image?: string;
   theme_map_image?: string;
   content?: string;
@@ -69,8 +70,8 @@ export default function WorldForm({
       population: world?.population ?? undefined,
       theme_primary_color: world?.theme_primary_color || "#3b82f6",
       theme_secondary_color: world?.theme_secondary_color || "#1e40af",
+      theme_text_color: world?.theme_text_color || "#000000",
       theme_background_image: world?.theme_background_image || "",
-      theme_map_image: world?.theme_map_image || "",
       content: world?.content || "",
     },
   });
@@ -85,8 +86,8 @@ export default function WorldForm({
   // Watch form values for components that need them
   const themePrimaryColor = watch("theme_primary_color");
   const themeSecondaryColor = watch("theme_secondary_color");
+  const themeTextColor = watch("theme_text_color");
   const themeBackgroundImage = watch("theme_background_image");
-  const themeMapImage = watch("theme_map_image");
   const content = watch("content");
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
@@ -104,8 +105,8 @@ export default function WorldForm({
           "size",
           "theme_primary_color",
           "theme_secondary_color",
+          "theme_text_color",
           "theme_background_image",
-          "theme_map_image",
           "content",
         ],
         ["population"],
@@ -451,26 +452,43 @@ export default function WorldForm({
                     settings can override the story theme.
                   </p>
 
-                  <ColorPicker
-                    label="Primary Color"
-                    value={themePrimaryColor || "#3b82f6"}
-                    onChange={(value) =>
-                      setValue("theme_primary_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Main theme color for this world (overrides story theme)"
-                  />
-
-                  <ColorPicker
-                    label="Secondary Color"
-                    value={themeSecondaryColor || "#1e40af"}
-                    onChange={(value) =>
-                      setValue("theme_secondary_color", value, {
-                        shouldDirty: true,
-                      })
-                    }
-                    helpText="Accent color for this world"
+                  <ColorPickerGroup
+                    configs={[
+                      {
+                        fieldName: "theme_primary_color",
+                        label: "Primary Color",
+                        valueProp: themePrimaryColor,
+                        defaultValue: "#3b82f6",
+                        helpText:
+                          "Main theme color for this world (overrides story theme)",
+                        onChange: (value) =>
+                          setValue("theme_primary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_secondary_color",
+                        label: "Secondary Color",
+                        valueProp: themeSecondaryColor,
+                        defaultValue: "#1e40af",
+                        helpText: "Accent color for this world",
+                        onChange: (value) =>
+                          setValue("theme_secondary_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                      {
+                        fieldName: "theme_text_color",
+                        label: "Text Color",
+                        valueProp: themeTextColor,
+                        defaultValue: "#000000",
+                        helpText: "Text color for this world",
+                        onChange: (value) =>
+                          setValue("theme_text_color", value, {
+                            shouldDirty: true,
+                          }),
+                      },
+                    ]}
                   />
 
                   <ImageUploader
@@ -492,25 +510,6 @@ export default function WorldForm({
                     helpText={
                       world
                         ? "Background image for world pages - uploads to secure storage"
-                        : "Save world first to enable image uploads"
-                    }
-                  />
-
-                  <ImageUploader
-                    label="World Map"
-                    value={themeMapImage || ""}
-                    onChange={(value) =>
-                      setValue("theme_map_image", value, { shouldDirty: true })
-                    }
-                    onFileSelect={(file) =>
-                      setPendingFile("theme_map_image", file)
-                    }
-                    uploadPath={world ? `worlds/${world.id}/map` : undefined}
-                    enableUpload={!!world}
-                    onBeforeChange={handleDeleteOldImage}
-                    helpText={
-                      world
-                        ? "Map image showing this world's geography - uploads to secure storage"
                         : "Save world first to enable image uploads"
                     }
                   />

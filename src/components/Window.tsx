@@ -3,8 +3,9 @@
 import { TASKBAR_HEIGHT } from "@/constants";
 import { useSound } from "@/contexts/SoundContext";
 import { useWindows } from "@/contexts/WindowContext";
+import { useWindowTheme } from "@/contexts/WindowThemeContext";
 import type { AppId } from "@/types/window";
-import { parseAsString, useQueryStates } from "nuqs";
+import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 
@@ -27,6 +28,10 @@ export default function Window({ id, title, children }: WindowProps) {
   } = useWindows();
 
   const { playSound } = useSound();
+  const { getTheme } = useWindowTheme();
+
+  // Get theme for this window
+  const theme = getTheme(id);
 
   // Set up params clearing for wiki, commission, and portfolio windows
   const [, setParams] = useQueryStates(
@@ -46,6 +51,9 @@ export default function Window({ id, title, children }: WindowProps) {
       "faction-tab": parseAsString,
       "character-tab": parseAsString,
       "world-tab": parseAsString,
+      "blog-page": parseAsInteger,
+      "blog-page-size": parseAsInteger,
+      "blog-post": parseAsString,
     },
     {
       shallow: true,
@@ -219,6 +227,14 @@ export default function Window({ id, title, children }: WindowProps) {
       });
     }
 
+    if (id === "blog") {
+      setParams({
+        "blog-page": null,
+        "blog-page-size": null,
+        "blog-post": null,
+      });
+    }
+
     setIsClosing(true);
     setTimeout(() => {
       closeWindow(id);
@@ -281,22 +297,49 @@ export default function Window({ id, title, children }: WindowProps) {
       className="window-container pointer-events-auto"
     >
       <div
-        className={`flex h-full flex-col overflow-hidden bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 ${
-          !isMaximized ? "rounded-lg border border-gray-300" : ""
-        } ${isAnimating ? "animate-scaleIn" : ""} ${isClosing ? "animate-fadeOut" : ""}`}
+        className={`flex h-full flex-col overflow-hidden border ${
+          theme
+            ? "border-theme-primary"
+            : "border-gray-300 dark:border-gray-700"
+        } ${!isMaximized ? "rounded-lg" : ""} ${
+          isAnimating ? "animate-scaleIn" : ""
+        } ${isClosing ? "animate-fadeOut" : ""}`}
         onMouseDown={() => focusWindow(id)}
+        style={
+          theme
+            ? ({
+                "--theme_primary_color": theme.primary || undefined,
+                "--theme_secondary_color": theme.secondary || undefined,
+                "--theme_text_color": theme.text || undefined,
+              } as React.CSSProperties)
+            : undefined
+        }
       >
         {/* Title Bar */}
-        <div className="window-drag-handle flex cursor-move items-center justify-between border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
+        <div
+          className={`window-drag-handle flex cursor-move items-center justify-between border-b px-4 py-2 ${
+            theme
+              ? "bg-theme-secondary border-theme-primary"
+              : "border-gray-300 bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
+          }`}
+        >
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800 dark:text-gray-200">
+            <span
+              className={`font-semibold ${
+                theme ? "text-theme-text" : "text-gray-800 dark:text-gray-200"
+              }`}
+            >
               {title}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleMinimize}
-              className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+              className={`flex h-6 w-6 items-center justify-center rounded ${
+                theme
+                  ? "hover:bg-theme-primary text-theme-text"
+                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
               title="Minimize"
             >
               <svg
@@ -317,7 +360,11 @@ export default function Window({ id, title, children }: WindowProps) {
                   maximizeWindow(id);
                 }
               }}
-              className="flex h-6 w-6 items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+              className={`flex h-6 w-6 items-center justify-center rounded ${
+                theme
+                  ? "hover:bg-theme-primary text-theme-text"
+                  : "hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
               title={isMaximized ? "Restore" : "Maximize"}
             >
               <svg
@@ -340,7 +387,11 @@ export default function Window({ id, title, children }: WindowProps) {
             </button>
             <button
               onClick={handleClose}
-              className="flex h-6 w-6 items-center justify-center rounded hover:bg-red-500 hover:text-white"
+              className={`flex h-6 w-6 items-center justify-center rounded ${
+                theme
+                  ? "text-theme-text hover:bg-red-500 hover:text-white"
+                  : "hover:bg-red-500 hover:text-white"
+              }`}
               title="Close"
             >
               <svg

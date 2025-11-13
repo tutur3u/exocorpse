@@ -40,9 +40,7 @@ export async function createStory(story: {
   summary?: string;
   theme_primary_color?: string;
   theme_secondary_color?: string;
-  theme_background_color?: string;
   theme_text_color?: string;
-  theme_custom_css?: string;
   theme_background_image?: string;
   content?: string;
   is_published?: boolean;
@@ -1233,7 +1231,7 @@ export async function deleteWorld(id: string) {
   // First, get the world to find its images
   const { data: world } = await supabase
     .from("worlds")
-    .select("theme_background_image, theme_map_image")
+    .select("theme_background_image")
     .eq("id", id)
     .single();
 
@@ -1254,11 +1252,6 @@ export async function deleteWorld(id: string) {
         const bgImage = world.theme_background_image;
         if (bgImage && !bgImage.startsWith("http")) {
           await deleteFile(bgImage);
-        }
-
-        const mapImage = world.theme_map_image;
-        if (mapImage && !mapImage.startsWith("http")) {
-          await deleteFile(mapImage);
         }
       } catch (imgError) {
         console.error("Error deleting world images:", imgError);
