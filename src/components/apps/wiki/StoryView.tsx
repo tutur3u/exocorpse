@@ -82,7 +82,7 @@ export default function StoryView({
           />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/50 to-black/90" />
           <div className="absolute inset-x-0 bottom-0 p-6">
-            <h1 className="text-theme-primary mb-2 text-4xl font-bold drop-shadow-lg">
+            <h1 className="text-theme-text mb-2 text-4xl font-bold drop-shadow-lg">
               {story.title}
             </h1>
             {story.summary && (
