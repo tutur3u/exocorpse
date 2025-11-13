@@ -15,7 +15,11 @@ export default function Wiki() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-hidden">
-        <WikiClient stories={stories} initialData={initialData} isLoadingStories={isLoading} />
+        <WikiClient
+          stories={stories}
+          initialData={initialData}
+          isLoadingStories={isLoading}
+        />
       </div>
     </div>
   );
