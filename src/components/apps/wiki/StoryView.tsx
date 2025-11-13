@@ -361,7 +361,7 @@ export default function StoryView({
             {factionsLoading || logoUrlsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="text-theme-text h-8 w-8 animate-spin rounded-full border-4 border-theme-secondary border-t-transparent"></div>
+                  <div className="text-theme-text border-theme-secondary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
                   <div className="text-theme-text font-medium">
                     {factionsLoading
                       ? "Loading factions..."

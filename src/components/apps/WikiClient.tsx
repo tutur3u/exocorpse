@@ -41,7 +41,11 @@ type WikiClientProps = {
   isLoadingStories: boolean;
 };
 
-export default function WikiClient({ stories, initialData, isLoadingStories }: WikiClientProps) {
+export default function WikiClient({
+  stories,
+  initialData,
+  isLoadingStories,
+}: WikiClientProps) {
   const { setTheme } = useWindowTheme();
 
   // Use nuqs for URL state management
@@ -432,7 +436,11 @@ export default function WikiClient({ stories, initialData, isLoadingStories }: W
     // Stories view
     if (viewMode === "stories") {
       return (
-        <StoriesView stories={stories} onStorySelect={handleStorySelect} isLoading={isLoadingStories} />
+        <StoriesView
+          stories={stories}
+          onStorySelect={handleStorySelect}
+          isLoading={isLoadingStories}
+        />
       );
     }
 
