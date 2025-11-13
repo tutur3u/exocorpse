@@ -7,11 +7,13 @@ import type { Story } from "@/lib/actions/wiki";
 type StoriesViewProps = {
   stories: Story[];
   onStorySelect: (story: Story) => void;
+  isLoading?: boolean;
 };
 
 export default function StoriesView({
   stories,
   onStorySelect,
+  isLoading,
 }: StoriesViewProps) {
   // Batch fetch all story background images for optimal performance
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
@@ -42,7 +44,30 @@ export default function StoriesView({
         </div>
       </div>
 
-      {stories.length === 0 ? (
+      {isLoading ? (
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid auto-rows-max grid-cols-1 gap-6 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
+              >
+                {/* Cover Image Skeleton */}
+                <div className="h-48 bg-linear-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" />
+
+                {/* Content Skeleton */}
+                <div className="p-4">
+                  <div className="mb-3 h-6 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="space-y-2">
+                    <div className="h-4 rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : stories.length === 0 ? (
         <div className="flex flex-1 items-center justify-center p-8">
           <div className="max-w-md text-center">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">

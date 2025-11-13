@@ -72,7 +72,6 @@ export default function WorldForm({
       theme_secondary_color: world?.theme_secondary_color || "#1e40af",
       theme_text_color: world?.theme_text_color || "#000000",
       theme_background_image: world?.theme_background_image || "",
-      theme_map_image: world?.theme_map_image || "",
       content: world?.content || "",
     },
   });
@@ -89,7 +88,6 @@ export default function WorldForm({
   const themeSecondaryColor = watch("theme_secondary_color");
   const themeTextColor = watch("theme_text_color");
   const themeBackgroundImage = watch("theme_background_image");
-  const themeMapImage = watch("theme_map_image");
   const content = watch("content");
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
@@ -109,7 +107,6 @@ export default function WorldForm({
           "theme_secondary_color",
           "theme_text_color",
           "theme_background_image",
-          "theme_map_image",
           "content",
         ],
         ["population"],
@@ -513,25 +510,6 @@ export default function WorldForm({
                     helpText={
                       world
                         ? "Background image for world pages - uploads to secure storage"
-                        : "Save world first to enable image uploads"
-                    }
-                  />
-
-                  <ImageUploader
-                    label="World Map"
-                    value={themeMapImage || ""}
-                    onChange={(value) =>
-                      setValue("theme_map_image", value, { shouldDirty: true })
-                    }
-                    onFileSelect={(file) =>
-                      setPendingFile("theme_map_image", file)
-                    }
-                    uploadPath={world ? `worlds/${world.id}/map` : undefined}
-                    enableUpload={!!world}
-                    onBeforeChange={handleDeleteOldImage}
-                    helpText={
-                      world
-                        ? "Map image showing this world's geography - uploads to secure storage"
                         : "Save world first to enable image uploads"
                     }
                   />

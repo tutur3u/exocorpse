@@ -1231,7 +1231,7 @@ export async function deleteWorld(id: string) {
   // First, get the world to find its images
   const { data: world } = await supabase
     .from("worlds")
-    .select("theme_background_image, theme_map_image")
+    .select("theme_background_image")
     .eq("id", id)
     .single();
 
@@ -1252,11 +1252,6 @@ export async function deleteWorld(id: string) {
         const bgImage = world.theme_background_image;
         if (bgImage && !bgImage.startsWith("http")) {
           await deleteFile(bgImage);
-        }
-
-        const mapImage = world.theme_map_image;
-        if (mapImage && !mapImage.startsWith("http")) {
-          await deleteFile(mapImage);
         }
       } catch (imgError) {
         console.error("Error deleting world images:", imgError);

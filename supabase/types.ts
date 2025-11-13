@@ -1777,7 +1777,6 @@ export type Database = {
           story_id: string;
           summary: string | null;
           theme_background_image: string | null;
-          theme_map_image: string | null;
           theme_primary_color: string | null;
           theme_secondary_color: string | null;
           theme_text_color: string | null;
@@ -1798,7 +1797,6 @@ export type Database = {
           story_id: string;
           summary?: string | null;
           theme_background_image?: string | null;
-          theme_map_image?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
           theme_text_color?: string | null;
@@ -1819,7 +1817,6 @@ export type Database = {
           story_id?: string;
           summary?: string | null;
           theme_background_image?: string | null;
-          theme_map_image?: string | null;
           theme_primary_color?: string | null;
           theme_secondary_color?: string | null;
           theme_text_color?: string | null;

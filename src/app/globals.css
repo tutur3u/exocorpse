@@ -195,9 +195,6 @@ body {
   border-color: var(--theme_secondary_color) !important;
 }
 
-.border-theme-primary {
-  border-color: var(--theme_primary_color) !important;
-}
 .ring-theme-primary {
   --tw-ring-color: var(--theme_primary_color) !important;
 }
@@ -214,34 +211,6 @@ body {
   cursor: move;
   user-select: none;
 }
-
-/*
-Source - https://stackoverflow.com/a
-Posted by juliomalves, modified by community. See post 'Timeline' for change history
-Retrieved 2025-11-13, License - CC BY-SA 4.0
-*/
-
-/* @layer utilities {
-  .scrollbar::-webkit-scrollbar {
-    width: 20px;
-    height: 20px;
-  }
-
-  .scrollbar::-webkit-scrollbar-track {
-    border-radius: 100vh;
-    background: #f7f4ed;
-  }
-
-  .scrollbar::-webkit-scrollbar-thumb {
-    background: #e0cbcb;
-    border-radius: 100vh;
-    border: 3px solid #f6f7ed;
-  }
-
-  .scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #c0a0b9;
-  }
-} */
 
 /* Smooth transitions for window state changes */
 .window-container .flex {

@@ -5,10 +5,22 @@ drop view if exists "public"."event_details";
 drop view if exists "public"."story_hierarchy";
 
 alter table "public"."characters" add column "theme_primary_color" text;
+alter table "public"."characters" add constraint "characters_theme_primary_color_check" check ((theme_primary_color IS NULL) or (theme_primary_color ~ '^#[0-9A-Fa-f]{6}$'));
 
 alter table "public"."characters" add column "theme_secondary_color" text;
+alter table "public"."characters" add constraint "characters_theme_secondary_color_check" check ((theme_secondary_color IS NULL) or (theme_secondary_color ~ '^#[0-9A-Fa-f]{6}$'));
 
 alter table "public"."characters" add column "theme_text_color" text;
+alter table "public"."characters" add constraint "characters_theme_text_color_check" check ((theme_text_color IS NULL) or (theme_text_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+alter table "public"."factions" add column "theme_primary_color" text;
+alter table "public"."factions" add constraint "factions_theme_primary_color_check" check ((theme_primary_color IS NULL) or (theme_primary_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+alter table "public"."factions" add column "theme_secondary_color" text;
+alter table "public"."factions" add constraint "factions_theme_secondary_color_check" check ((theme_secondary_color IS NULL) or (theme_secondary_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+alter table "public"."factions" add column "theme_text_color" text;
+alter table "public"."factions" add constraint "factions_theme_text_color_check" check ((theme_text_color IS NULL) or (theme_text_color ~ '^#[0-9A-Fa-f]{6}$'));
 
 -- Migrate existing color_scheme data to new theme columns
 UPDATE public.characters 
@@ -23,12 +35,6 @@ alter table "public"."characters" drop column "color_scheme";
 
 alter table "public"."factions" drop column "color_scheme";
 
-alter table "public"."factions" add column "theme_primary_color" text;
-
-alter table "public"."factions" add column "theme_secondary_color" text;
-
-alter table "public"."factions" add column "theme_text_color" text;
-
 alter table "public"."stories" drop column "like_count";
 
 alter table "public"."stories" drop column "theme_background_color";
@@ -38,6 +44,16 @@ alter table "public"."stories" drop column "theme_custom_css";
 alter table "public"."stories" drop column "view_count";
 
 alter table "public"."worlds" add column "theme_text_color" text;
+
+alter table "public"."worlds" add constraint "worlds_theme_text_color_check" check ((theme_text_color IS NULL) or (theme_text_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+alter table "public"."worlds" add constraint "worlds_theme_primary_color_check" check ((theme_primary_color IS NULL) or (theme_primary_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+alter table "public"."worlds" add constraint "worlds_theme_secondary_color_check" check ((theme_secondary_color IS NULL) or (theme_secondary_color ~ '^#[0-9A-Fa-f]{6}$'));
+
+
+alter table "public"."worlds" drop column "theme_map_image";
+
 
 create or replace view "public"."event_details" as  SELECT e.id,
     e.world_id,

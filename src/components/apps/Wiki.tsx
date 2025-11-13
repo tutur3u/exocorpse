@@ -10,12 +10,12 @@ export default function Wiki() {
     initialData?.stories && initialData.stories.length > 0
       ? initialData.stories
       : undefined;
-  const { data: stories = [] } = useStories(preset);
+  const { data: stories = [], isLoading } = useStories(preset);
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-hidden">
-        <WikiClient stories={stories} initialData={initialData} />
+        <WikiClient stories={stories} initialData={initialData} isLoadingStories={isLoading} />
       </div>
     </div>
   );

@@ -38,9 +38,10 @@ type ViewMode =
 type WikiClientProps = {
   stories: Story[];
   initialData: InitialWikiData;
+  isLoadingStories: boolean;
 };
 
-export default function WikiClient({ stories, initialData }: WikiClientProps) {
+export default function WikiClient({ stories, initialData, isLoadingStories }: WikiClientProps) {
   const { setTheme } = useWindowTheme();
 
   // Use nuqs for URL state management
@@ -386,49 +387,24 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
   // Memoized to prevent infinite re-renders
   const currentTheme = useMemo(() => {
     // Priority: Character > Faction > World > Story
-    if (viewingCharacter && viewingCharacter.theme_primary_color) {
-      return {
-        primary: viewingCharacter.theme_primary_color,
-        secondary: viewingCharacter.theme_secondary_color,
-        text: viewingCharacter.theme_text_color,
-      };
-    }
-    if (viewingFaction && viewingFaction.theme_primary_color) {
-      return {
-        primary: viewingFaction.theme_primary_color,
-        secondary: viewingFaction.theme_secondary_color,
-        text: viewingFaction.theme_text_color,
-      };
-    }
-    if (selectedWorld && selectedWorld.theme_primary_color) {
-      return {
-        primary: selectedWorld.theme_primary_color,
-        secondary: selectedWorld.theme_secondary_color,
-        text: selectedWorld.theme_text_color,
-      };
-    }
-    if (selectedStory && selectedStory.theme_primary_color) {
-      return {
-        primary: selectedStory.theme_primary_color,
-        secondary: selectedStory.theme_secondary_color,
-        text: selectedStory.theme_text_color,
-      };
+    const entities = [
+      viewingCharacter,
+      viewingFaction,
+      selectedWorld,
+      selectedStory,
+    ];
+
+    for (const entity of entities) {
+      if (entity?.theme_primary_color) {
+        return {
+          primary: entity.theme_primary_color,
+          secondary: entity.theme_secondary_color,
+          text: entity.theme_text_color,
+        };
+      }
     }
     return null;
-  }, [
-    viewingCharacter?.theme_primary_color,
-    viewingCharacter?.theme_secondary_color,
-    viewingCharacter?.theme_text_color,
-    viewingFaction?.theme_primary_color,
-    viewingFaction?.theme_secondary_color,
-    viewingFaction?.theme_text_color,
-    selectedWorld?.theme_primary_color,
-    selectedWorld?.theme_secondary_color,
-    selectedWorld?.theme_text_color,
-    selectedStory?.theme_primary_color,
-    selectedStory?.theme_secondary_color,
-    selectedStory?.theme_text_color,
-  ]);
+  }, [viewingCharacter, viewingFaction, selectedWorld, selectedStory]);
 
   // Update window theme whenever it changes
   useEffect(() => {
@@ -456,7 +432,7 @@ export default function WikiClient({ stories, initialData }: WikiClientProps) {
     // Stories view
     if (viewMode === "stories") {
       return (
-        <StoriesView stories={stories} onStorySelect={handleStorySelect} />
+        <StoriesView stories={stories} onStorySelect={handleStorySelect} isLoading={isLoadingStories} />
       );
     }
 
