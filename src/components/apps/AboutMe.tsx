@@ -91,7 +91,7 @@ export default function AboutMe() {
             tabIndex={activeTab === id ? 0 : -1}
             className={`flex items-center justify-center gap-2 font-medium transition-all md:px-4 md:py-3 ${
               activeTab === id
-                ? "border-b-2 border-blue-500 dark:bg-gray-800 text-blue-400"
+                ? "border-b-2 border-blue-500 text-blue-400 dark:bg-gray-800"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
             }`}
             onClick={() => setActiveTab(id)}
