@@ -282,118 +282,118 @@ export default function CharacterDetail({
                       />
                     )}
                   </div>
-                  {character.description && (
-                    <div className="text-theme-text bg-theme-secondary col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1">
-                      {character.quote && (
-                        <blockquote className="text-theme-text ml-4 flex items-center text-xl italic">
-                          "{character.quote}"
-                        </blockquote>
-                      )}
+                  <div className="text-theme-text bg-theme-secondary col-span-1 grid h-full grid-cols-1 gap-2 rounded-xl p-3 shadow-sm md:col-span-2 md:col-start-1 md:row-start-1">
+                    {character.quote && (
+                      <blockquote className="text-theme-text ml-4 flex items-center text-xl italic">
+                        "{character.quote}"
+                      </blockquote>
+                    )}
+                    {character.description && (
                       <MarkdownRenderer
                         content={character.description}
                         className={`h-full ${markdownHeightClass} overflow-y-auto`}
                       />
-                      {/* Physical Traits */}
-                      {(character.height ||
-                        character.build ||
-                        character.hair_color ||
-                        character.eye_color ||
-                        character.weight ||
-                        character.pronouns ||
-                        character.gender ||
-                        character.skin_tone ||
-                        character.distinguishing_features) && (
-                        <div className="flex flex-col justify-center">
-                          <div className="grid grid-cols-2 gap-3">
-                            {(character.height || character.weight) && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
-                                  {[
-                                    character.height && "Height",
-                                    character.weight && "Weight",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" & ")}
-                                </span>
-                                <p className="text-theme-text mt-1 text-sm font-semibold">
-                                  {[character.height, character.weight]
-                                    .filter(Boolean)
-                                    .join(" / ")}
-                                </p>
-                              </div>
-                            )}
-                            {(character.gender || character.pronouns) && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
-                                  {[
-                                    character.gender && "Gender",
-                                    character.pronouns && "Pronouns",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" & ")}
-                                </span>
-                                <p className="text-theme-text mt-1 text-sm font-semibold">
-                                  {[character.gender, character.pronouns]
-                                    .filter(Boolean)
-                                    .join(" - ")}
-                                </p>
-                              </div>
-                            )}
-                            {character.build && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
-                                  Build
-                                </span>
-                                <p className="text-theme-text mt-1 text-sm font-semibold">
-                                  {character.build}
-                                </p>
-                              </div>
-                            )}
-                            {character.skin_tone && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-                                  Skin Tone
-                                </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
-                                  {character.skin_tone}
-                                </p>
-                              </div>
-                            )}
-                            {character.hair_color && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
-                                  Hair
-                                </span>
-                                <p className="text-theme-text mt-1 text-sm font-semibold">
-                                  {character.hair_color}
-                                </p>
-                              </div>
-                            )}
-                            {character.eye_color && (
-                              <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
-                                <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
-                                  Eyes
-                                </span>
-                                <p className="text-theme-text mt-1 text-sm font-semibold">
-                                  {character.eye_color}
-                                </p>
-                              </div>
-                            )}
-                            {character.distinguishing_features && (
-                              <div className="text-theme-text bg-theme-secondary rounded-lg p-2.5">
-                                <span className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-                                  Distinguishing Features
-                                </span>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
-                                  {character.distinguishing_features}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                    )}
+                    {/* Physical Traits */}
+                    {(character.height ||
+                      character.build ||
+                      character.hair_color ||
+                      character.eye_color ||
+                      character.weight ||
+                      character.pronouns ||
+                      character.gender ||
+                      character.skin_tone ||
+                      character.distinguishing_features) && (
+                      <div className="flex flex-col justify-center">
+                        <div className="grid grid-cols-2 gap-3">
+                          {(character.height || character.weight) && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
+                                {[
+                                  character.height && "Height",
+                                  character.weight && "Weight",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" & ")}
+                              </span>
+                              <p className="text-theme-text mt-1 text-sm font-semibold">
+                                {[character.height, character.weight]
+                                  .filter(Boolean)
+                                  .join(" / ")}
+                              </p>
+                            </div>
+                          )}
+                          {(character.gender || character.pronouns) && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
+                                {[
+                                  character.gender && "Gender",
+                                  character.pronouns && "Pronouns",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" & ")}
+                              </span>
+                              <p className="text-theme-text mt-1 text-sm font-semibold">
+                                {[character.gender, character.pronouns]
+                                  .filter(Boolean)
+                                  .join(" - ")}
+                              </p>
+                            </div>
+                          )}
+                          {character.build && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
+                                Build
+                              </span>
+                              <p className="text-theme-text mt-1 text-sm font-semibold">
+                                {character.build}
+                              </p>
+                            </div>
+                          )}
+                          {character.skin_tone && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-xs font-medium tracking-wide uppercase">
+                                Skin Tone
+                              </span>
+                              <p className="mt-1 text-sm font-semibold">
+                                {character.skin_tone}
+                              </p>
+                            </div>
+                          )}
+                          {character.hair_color && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-xs font-medium tracking-wide uppercase">
+                                Hair
+                              </span>
+                              <p className="mt-1 text-sm font-semibold">
+                                {character.hair_color}
+                              </p>
+                            </div>
+                          )}
+                          {character.eye_color && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
+                                Eyes
+                              </span>
+                              <p className="text-theme-text mt-1 text-sm font-semibold">
+                                {character.eye_color}
+                              </p>
+                            </div>
+                          )}
+                          {character.distinguishing_features && (
+                            <div className="text-theme-text bg-theme-secondary rounded-lg p-2.5">
+                              <span className="text-xs font-medium tracking-wide uppercase">
+                                Distinguishing Features
+                              </span>
+                              <p className="mt-1 text-sm font-semibold">
+                                {character.distinguishing_features}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {character.personality_summary && (

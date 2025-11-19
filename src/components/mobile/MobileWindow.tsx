@@ -34,7 +34,7 @@ export default function MobileWindow({
     >
       {/* Window Header */}
       <div
-        className={`flex items-center justify-between px-4 py-2 ${
+        className={`border-theme-primary flex items-center justify-between border-b px-4 py-1 ${
           theme ? "bg-theme-secondary" : ""
         }`}
       >
@@ -48,7 +48,7 @@ export default function MobileWindow({
         <button
           type="button"
           onClick={onClose}
-          className={`flex h-8 w-8 items-center justify-center rounded-sm transition-colors hover:bg-red-600 ${
+          className={`flex items-center justify-center rounded-sm transition-colors hover:bg-red-600 ${
             theme ? "text-theme-text" : "text-white"
           }`}
           aria-label="Close"

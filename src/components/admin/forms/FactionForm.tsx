@@ -43,6 +43,8 @@ type FactionFormProps = {
   onCancel: () => void;
 };
 
+type FactionFormTab = "basic" | "details" | "visuals" | "content";
+
 export default function FactionForm({
   faction,
   worldId,
@@ -57,9 +59,7 @@ export default function FactionForm({
     hasPendingFiles,
   } = usePendingUploads();
 
-  const [activeTab, setActiveTab] = useState<
-    "basic" | "details" | "visuals" | "content"
-  >("basic");
+  const [activeTab, setActiveTab] = useState<FactionFormTab>("basic");
 
   const form = useForm<FactionFormData>({
     defaultValues: {
@@ -227,7 +227,28 @@ export default function FactionForm({
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 border-b border-gray-300 px-6 dark:border-gray-600">
+          {/* Tabs */}
+          {/* Tabs - Mobile Dropdown */}
+          <div className="border-b border-gray-300 px-6 pb-4 sm:hidden dark:border-gray-600">
+            <label htmlFor="tabs" className="sr-only">
+              Select a tab
+            </label>
+            <select
+              id="tabs"
+              name="tabs"
+              className="block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as FactionFormTab)}
+            >
+              <option value="basic">Basic Info</option>
+              <option value="details">Characteristics</option>
+              <option value="visuals">Visuals</option>
+              <option value="content">Content</option>
+            </select>
+          </div>
+
+          {/* Tabs - Desktop */}
+          <div className="hidden gap-1 border-b border-gray-300 px-6 sm:flex dark:border-gray-600">
             <button
               type="button"
               onClick={() => setActiveTab("basic")}
