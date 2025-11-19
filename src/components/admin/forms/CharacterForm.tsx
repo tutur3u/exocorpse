@@ -86,6 +86,15 @@ type CharacterFormProps = {
   onCancel: () => void;
 };
 
+type CharacterTabs =
+  | "basic"
+  | "physical"
+  | "personality"
+  | "history"
+  | "abilities"
+  | "visuals"
+  | "outfits";
+
 export default function CharacterForm({
   character,
   worldId,
@@ -104,15 +113,7 @@ export default function CharacterForm({
     hasPendingFiles,
   } = usePendingUploads();
 
-  const [activeTab, setActiveTab] = useState<
-    | "basic"
-    | "physical"
-    | "personality"
-    | "history"
-    | "abilities"
-    | "visuals"
-    | "outfits"
-  >("basic");
+  const [activeTab, setActiveTab] = useState<CharacterTabs>("basic");
 
   // Extract world_ids from character if editing
   const getInitialWorldIds = (): string[] => {
@@ -692,11 +693,34 @@ export default function CharacterForm({
           </div>
 
           {/* Tabs */}
-          <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-6 dark:border-gray-600">
+          {/* Tabs - Mobile Dropdown */}
+          <div className="border-b border-gray-300 px-6 pb-4 sm:hidden dark:border-gray-600">
+            <label htmlFor="tabs" className="sr-only">
+              Select a tab
+            </label>
+            <select
+              id="tabs"
+              name="tabs"
+              className="block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as CharacterTabs)}
+            >
+              <option value="basic">Basic Info</option>
+              <option value="physical">Physical</option>
+              <option value="personality">Personality</option>
+              <option value="history">History & Lore</option>
+              <option value="abilities">Abilities</option>
+              <option value="visuals">Visuals</option>
+              <option value="outfits">Outfits</option>
+            </select>
+          </div>
+
+          {/* Tabs - Desktop */}
+          <div className="hidden shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-6 sm:flex dark:border-gray-600">
             <button
               type="button"
               onClick={() => setActiveTab("basic")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "basic"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -707,7 +731,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("physical")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "physical"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -718,7 +742,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("personality")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "personality"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -729,7 +753,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("history")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "history"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -740,7 +764,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("abilities")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "abilities"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -751,7 +775,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("visuals")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "visuals"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
@@ -762,7 +786,7 @@ export default function CharacterForm({
             <button
               type="button"
               onClick={() => setActiveTab("outfits")}
-              className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === "outfits"
                   ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"

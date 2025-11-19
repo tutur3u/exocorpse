@@ -448,7 +448,7 @@ export default function WikiClient({
     if (viewMode === "story" && selectedStory) {
       return (
         <div className="bg-theme-primary flex min-h-full flex-col">
-          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
+          <div className="bg-theme-secondary sticky top-0 z-10 backdrop-blur-sm md:p-4">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -472,7 +472,7 @@ export default function WikiClient({
     if (viewMode === "world" && selectedWorld) {
       return (
         <div className="bg-theme-primary flex min-h-full flex-col">
-          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
+          <div className="bg-theme-secondary sticky top-0 z-10 backdrop-blur-sm md:p-4">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -498,7 +498,7 @@ export default function WikiClient({
     if (viewMode === "character" && viewingCharacter) {
       return (
         <div className="bg-theme-primary flex min-h-full flex-col">
-          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
+          <div className="bg-theme-secondary sticky top-0 z-10 backdrop-blur-sm md:p-4">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -521,7 +521,7 @@ export default function WikiClient({
     if (viewMode === "faction" && viewingFaction) {
       return (
         <div className="bg-theme-primary flex min-h-full flex-col">
-          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
+          <div className="bg-theme-secondary sticky top-0 z-10 backdrop-blur-sm md:p-4">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}
@@ -543,7 +543,7 @@ export default function WikiClient({
     if (viewMode === "location" && viewingLocation) {
       return (
         <div className="bg-theme-primary flex min-h-full flex-col">
-          <div className="bg-theme-secondary sticky top-0 z-10 p-4 backdrop-blur-sm">
+          <div className="bg-theme-secondary sticky top-0 z-10 backdrop-blur-sm md:p-4">
             <Breadcrumbs
               viewMode={viewMode}
               selectedStory={selectedStory}

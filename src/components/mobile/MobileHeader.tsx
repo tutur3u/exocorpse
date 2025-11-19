@@ -22,10 +22,10 @@ export default function MobileHeader({ isAppOpen }: { isAppOpen: boolean }) {
 
   return (
     <div
-      className={`flex items-center justify-between bg-transparent px-4 py-3 text-white ${isAppOpen ? "bg-white dark:bg-gray-900" : ""}`}
+      className={`flex items-center justify-between px-4 text-white ${isAppOpen ? "bg-gray-900" : "bg-transparent"}`}
     >
       {/* Time Display */}
-      <div className="flex h-10 items-center justify-center rounded-lg px-4 font-mono text-lg font-medium">
+      <div className="flex h-10 items-center justify-center rounded-lg px-2 font-mono text-lg font-medium">
         {currentTime}
       </div>
 

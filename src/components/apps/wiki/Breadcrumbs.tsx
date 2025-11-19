@@ -195,7 +195,7 @@ export default function Breadcrumbs({
           type="button"
         >
           <svg
-            className="h-4 w-4 text-gray-600 dark:text-gray-400"
+            className="text-theme-text h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -215,7 +215,7 @@ export default function Breadcrumbs({
           type="button"
         >
           <svg
-            className="h-4 w-4 text-gray-600 dark:text-gray-400"
+            className="text-theme-text h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -231,9 +231,7 @@ export default function Breadcrumbs({
       </div>
 
       {/* Separator */}
-      {crumbs.length > 0 && (
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" />
-      )}
+      {crumbs.length > 0 && <div className="bg-theme-primary h-4 w-px" />}
 
       {/* Breadcrumbs */}
       {crumbs.length > 0 && <div className="flex items-center">{crumbs}</div>}
