@@ -1,6 +1,6 @@
 import { verifyAuth } from "@/lib/auth/utils";
 import { type NextRequest, NextResponse } from "next/server";
-import { TuturuuuClient } from "tuturuuu";
+import { RateLimitError, TuturuuuClient } from "tuturuuu";
 
 function getTuturuuuClient() {
   const apiKey = process.env.TUTURUUU_API_KEY;
@@ -9,7 +9,15 @@ function getTuturuuuClient() {
       "TUTURUUU_API_KEY is not set in environment variables. Please add it to your .env file.",
     );
   }
-  return new TuturuuuClient(apiKey);
+  return new TuturuuuClient({
+    apiKey,
+    retry: {
+      maxRetries: 5,
+      initialDelayMs: 500,
+      maxDelayMs: 60000,
+      retryOn429: true,
+    },
+  });
 }
 
 /**
@@ -67,6 +75,16 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error generating signed upload URL:", error);
+
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        {
+          error: `Rate limited. Retry after: ${error.retryAfter}s`,
+        },
+        { status: 429 },
+      );
+    }
+
     return NextResponse.json(
       {
         error:
