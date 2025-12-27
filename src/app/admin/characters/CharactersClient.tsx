@@ -1,12 +1,13 @@
 "use client";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import CopyLinkButton from "@/components/admin/CopyLinkButton";
 import FactionManager, {
   type MembershipUpdate,
 } from "@/components/admin/FactionManager";
-import RelationshipManager from "@/components/admin/RelationshipManager";
 import CharacterForm from "@/components/admin/forms/CharacterForm";
 import RelationshipTypeForm from "@/components/admin/forms/RelationshipTypeForm";
+import RelationshipManager from "@/components/admin/RelationshipManager";
 import CharacterDetail from "@/components/apps/CharacterDetail";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import PreviewModal from "@/components/shared/PreviewModal";
@@ -62,6 +63,7 @@ function CharacterCard({
   onPreview,
   profileUrl,
   bannerUrl,
+  storySlug,
 }: {
   character: Character;
   onEdit: (character: Character) => void;
@@ -71,6 +73,7 @@ function CharacterCard({
   onPreview: (character: Character) => void;
   profileUrl: string | null;
   bannerUrl: string | null;
+  storySlug?: string;
 }) {
   return (
     <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -165,14 +168,20 @@ function CharacterCard({
           <button
             type="button"
             onClick={() => onEdit(character)}
-            className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             Edit
           </button>
+          <CopyLinkButton
+            slug={character.slug}
+            type="character"
+            storySlug={storySlug}
+            variant="icon"
+          />
           <button
             type="button"
             onClick={() => onDelete(character.id)}
-            className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+            className="rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
           >
             Delete
           </button>

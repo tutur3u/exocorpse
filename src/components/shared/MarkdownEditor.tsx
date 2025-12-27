@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useStorageUrl } from "@/hooks/useStorageUrl";
+import toastWithSound from "@/lib/toast";
+import { useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
@@ -12,6 +14,8 @@ type MarkdownEditorProps = {
   helpText?: string;
   rows?: number;
   minHeight?: string;
+  /** Optional upload path prefix for pasted images (e.g., "characters/123/content") */
+  uploadPath?: string;
 };
 
 // Reusable markdown components with consistent styling
@@ -102,6 +106,49 @@ export const markdownComponents: Components = {
   ),
 };
 
+// Component to render storage images with signed URL resolution
+export function StorageImage({ src, alt }: { src?: string; alt?: string }) {
+  // Check if this is a storage path (not a full URL)
+  const isStoragePath = Boolean(
+    src && !src.startsWith("http") && !src.startsWith("/"),
+  );
+  const { signedUrl, loading } = useStorageUrl(
+    isStoragePath ? src : null,
+    isStoragePath,
+  );
+
+  const imageSrc = isStoragePath ? (signedUrl ?? undefined) : src;
+
+  if (loading && isStoragePath) {
+    return (
+      <div className="mb-4 flex h-48 w-full animate-pulse items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-700">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          Loading image...
+        </span>
+      </div>
+    );
+  }
+
+  if (!imageSrc) {
+    return (
+      <div className="mb-4 flex h-48 w-full items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+        <span className="text-sm text-gray-400 dark:text-gray-500">
+          {alt || "Image not found"}
+        </span>
+      </div>
+    );
+  }
+
+  // eslint-disable-next-line @next/next/no-img-element
+  return (
+    <img
+      src={imageSrc}
+      alt={alt || "Image"}
+      className="mb-4 w-full rounded-lg shadow-md"
+    />
+  );
+}
+
 export default function MarkdownEditor({
   label,
   value,
@@ -110,8 +157,73 @@ export default function MarkdownEditor({
   helpText = "Supports markdown formatting",
   rows = 10,
   minHeight = "200px",
+  uploadPath = "markdown-images",
 }: MarkdownEditorProps) {
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadImageFromFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      // Generate unique filename
+      const ext = file.name.split(".").pop() || "png";
+      const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const fullPath = `${uploadPath}/${filename}`;
+
+      // Get signed upload URL
+      const urlResponse = await fetch("/api/storage/signed-upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: fullPath }),
+      });
+
+      if (!urlResponse.ok) {
+        const errorData = await urlResponse.json();
+        throw new Error(errorData.error || "Failed to get upload URL");
+      }
+
+      const { signedUrl, path: storagePath } = await urlResponse.json();
+
+      // Upload to signed URL
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      // Insert markdown image at cursor
+      const textarea = document.getElementById(
+        `markdown-textarea-${label}`,
+      ) as HTMLTextAreaElement;
+      const start = textarea?.selectionStart ?? value.length;
+      const markdownImage = `![image](${storagePath})`;
+      const newText =
+        value.substring(0, start) + markdownImage + value.substring(start);
+      onChange(newText);
+      toastWithSound.success("Image uploaded successfully!");
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      toastWithSound.error(
+        error instanceof Error ? error.message : "Failed to upload image",
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file?.type.startsWith("image/")) {
+      uploadImageFromFile(file);
+    }
+    // Reset input so the same file can be selected again
+    e.target.value = "";
+  };
 
   const insertMarkdown = (before: string, after: string = "") => {
     const textarea = document.getElementById(
@@ -139,6 +251,76 @@ export default function MarkdownEditor({
         start + before.length + selectedText.length,
       );
     }, 0);
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    // Check for image in clipboard
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        setIsUploading(true);
+        try {
+          // Generate unique filename
+          const ext = file.type.split("/")[1] || "png";
+          const filename = `paste-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+          const fullPath = `${uploadPath}/${filename}`;
+
+          // Get signed upload URL
+          const urlResponse = await fetch("/api/storage/signed-upload-url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: fullPath }),
+          });
+
+          if (!urlResponse.ok) {
+            const errorData = await urlResponse.json();
+            throw new Error(errorData.error || "Failed to get upload URL");
+          }
+
+          const { signedUrl, path: storagePath } = await urlResponse.json();
+
+          // Upload to signed URL
+          const uploadResponse = await fetch(signedUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error("Failed to upload image");
+          }
+
+          // Insert markdown image at cursor
+          const textarea = document.getElementById(
+            `markdown-textarea-${label}`,
+          ) as HTMLTextAreaElement;
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const markdownImage = `![image](${storagePath})`;
+            const newText =
+              value.substring(0, start) +
+              markdownImage +
+              value.substring(start);
+            onChange(newText);
+            toastWithSound.success("Image uploaded successfully!");
+          }
+        } catch (error) {
+          console.error("Failed to paste image:", error);
+          toastWithSound.error(
+            error instanceof Error ? error.message : "Failed to paste image",
+          );
+        } finally {
+          setIsUploading(false);
+        }
+        return;
+      }
+    }
   };
 
   return (
@@ -250,6 +432,24 @@ export default function MarkdownEditor({
             >
               Link
             </button>
+            <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              aria-label="Upload image"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="rounded px-2 py-1 text-sm hover:bg-gray-200 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-gray-700"
+              title="Upload Image"
+            >
+              {isUploading ? "⏳" : "🖼️"} Image
+            </button>
           </div>
 
           {/* Textarea */}
@@ -257,9 +457,11 @@ export default function MarkdownEditor({
             id={`markdown-textarea-${label}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onPaste={handlePaste}
             rows={rows}
-            placeholder={placeholder}
-            className="w-full rounded-b-lg border border-gray-300 px-3 py-2 font-mono text-sm dark:border-gray-600 dark:bg-gray-700"
+            placeholder={isUploading ? "Uploading image..." : placeholder}
+            disabled={isUploading}
+            className={`w-full rounded-b-lg border border-gray-300 px-3 py-2 font-mono text-sm dark:border-gray-600 dark:bg-gray-700 ${isUploading ? "cursor-wait opacity-50" : ""}`}
             style={{ minHeight }}
           />
         </div>
@@ -275,7 +477,15 @@ export default function MarkdownEditor({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw, rehypeSanitize]}
-              components={markdownComponents}
+              components={{
+                ...markdownComponents,
+                img: ({ src, alt }) => (
+                  <StorageImage
+                    src={typeof src === "string" ? src : undefined}
+                    alt={alt}
+                  />
+                ),
+              }}
             >
               {value}
             </ReactMarkdown>

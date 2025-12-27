@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import { markdownComponents } from "./MarkdownEditor";
+import { markdownComponents, StorageImage } from "./MarkdownEditor";
 
 type MarkdownRendererProps = {
   content: string;
@@ -24,7 +24,15 @@ export default function MarkdownRenderer({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
-        components={markdownComponents}
+        components={{
+          ...markdownComponents,
+          img: ({ src, alt }) => (
+            <StorageImage
+              src={typeof src === "string" ? src : undefined}
+              alt={alt}
+            />
+          ),
+        }}
       >
         {content}
       </ReactMarkdown>

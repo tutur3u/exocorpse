@@ -31,6 +31,28 @@ export async function getPublishedStories() {
 }
 
 /**
+ * Fetch stories visible in the public Wiki
+ * (published + public visibility only)
+ */
+export async function getPublicStories() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("stories")
+    .select("*")
+    .eq("is_published", true)
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching public stories:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Create a new story
  */
 export async function createStory(story: {

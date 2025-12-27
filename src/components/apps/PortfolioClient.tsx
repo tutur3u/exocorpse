@@ -292,11 +292,11 @@ export default function PortfolioClient({
 
       {/* Filters - Hide when viewing detail */}
       {!selectedArt && !selectedWriting && !selectedGame && (
-        <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-6 py-4">
-          <div className="flex flex-wrap gap-4">
+        <div className="border-b border-gray-700 bg-linear-to-br from-gray-900 to-gray-950 px-4 py-2">
+          <div className="flex items-center gap-3 overflow-x-auto">
             {/* Year Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Year:</label>
+            <div className="flex shrink-0 items-center gap-2">
+              <label className="text-xs font-medium text-gray-400">Year:</label>
               <select
                 value={selectedYear || ""}
                 onChange={(e) =>
@@ -304,7 +304,7 @@ export default function PortfolioClient({
                     e.target.value ? Number(e.target.value) : null,
                   )
                 }
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+                className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-xs"
               >
                 <option value="">All Years</option>
                 {allYears.map((year) => (
@@ -315,42 +315,45 @@ export default function PortfolioClient({
               </select>
             </div>
 
+            {/* Divider */}
+            <div className="h-4 w-px shrink-0 bg-gray-700" />
+
             {/* Tag Filters */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">Tags:</label>
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => {
-                      setSelectedTags((prev) =>
-                        prev.includes(tag)
-                          ? prev.filter((t) => t !== tag)
-                          : [...prev, tag],
-                      );
-                    }}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      selectedTags.includes(tag)
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <label className="text-xs font-medium text-gray-400">Tags:</label>
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTags((prev) =>
+                      prev.includes(tag)
+                        ? prev.filter((t) => t !== tag)
+                        : [...prev, tag],
+                    );
+                  }}
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                    selectedTags.includes(tag)
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
             </div>
 
             {/* Clear Filters */}
             {(selectedYear || selectedTags.length > 0) && (
               <button
+                type="button"
                 onClick={() => {
                   setSelectedYear(null);
                   setSelectedTags([]);
                 }}
-                className="ml-auto text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                className="ml-auto shrink-0 text-xs text-blue-400 hover:text-blue-300"
               >
-                Clear Filters
+                Clear
               </button>
             )}
           </div>

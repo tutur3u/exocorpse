@@ -1,5 +1,6 @@
 "use client";
 
+import CopyLinkButton from "@/components/admin/CopyLinkButton";
 import FactionManager, {
   type FactionMembership,
   type MembershipUpdate,
@@ -444,21 +445,77 @@ export default function FactionsClient({
                     Manage Members
                   </button>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => {
                       setEditingFaction(faction);
                       setShowForm(true);
                     }}
-                    className="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                   >
                     Edit
                   </button>
+                  <CopyLinkButton
+                    slug={faction.slug}
+                    type="faction"
+                    storySlug={
+                      stories.find((s) => s.id === selectedStoryId)?.slug
+                    }
+                    worldSlug={selectedWorld?.slug}
+                    variant="icon"
+                  />
                   <button
-                    onClick={() => handleDelete(faction.id)}
-                    className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                    type="button"
+                    onClick={() => {
+                      const storySlug = stories.find(
+                        (s) => s.id === selectedStoryId,
+                      )?.slug;
+                      window.open(
+                        `/?story=${storySlug}&world=${selectedWorld?.slug}&faction=${faction.slug}`,
+                        "_blank",
+                      );
+                    }}
+                    className="rounded-lg bg-blue-100 p-2 text-blue-700 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                    title="View"
                   >
-                    Delete
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Open</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(faction.id)}
+                    className="rounded-lg bg-red-100 p-2 text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                    title="Delete"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Delete</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
                   </button>
                 </div>
               </div>
