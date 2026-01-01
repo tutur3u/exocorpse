@@ -33,7 +33,8 @@ export type InitialWikiData = {
     story: string | null;
     world: string | null;
   };
-  stories: Story[];
+  stories: Story[]; // List of public stories for the UI
+  currentStory: Story | null; // The currently viewed story (can be unlisted)
   worlds: World[];
   characters: Character[];
   factions: Faction[];

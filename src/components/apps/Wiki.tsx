@@ -1,7 +1,7 @@
 "use client";
 
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
-import { useStories } from "@/hooks/useStories";
+import { usePublicStories } from "@/hooks/useStories";
 import WikiClient from "./WikiClient";
 
 export default function Wiki() {
@@ -10,7 +10,7 @@ export default function Wiki() {
     initialData?.stories && initialData.stories.length > 0
       ? initialData.stories
       : undefined;
-  const { data: stories = [], isLoading } = useStories(preset);
+  const { data: stories = [], isLoading } = usePublicStories(preset);
 
   return (
     <div className="flex h-full flex-col">

@@ -9,7 +9,7 @@ import {
   createWorld,
   deleteWorld,
   getAllWorlds,
-  getPublishedStories,
+  getAllStories,
   type Story,
   updateWorld,
   type World,
@@ -38,7 +38,7 @@ export default function WorldsClient({
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: getPublishedStories,
+    queryFn: getAllStories,
     initialData: initialStories,
   });
 

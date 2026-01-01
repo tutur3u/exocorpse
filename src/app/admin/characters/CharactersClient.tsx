@@ -34,7 +34,7 @@ import {
   getCharactersByWorldId,
   getCharacterWorlds,
   getFactionsByCharacterWorldIds,
-  getPublishedStories,
+  getAllStories,
   getWorldsByStoryId,
   type RelationshipType,
   removeCharacterFromFaction,
@@ -247,7 +247,7 @@ export default function CharactersClient({
 
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: getPublishedStories,
+    queryFn: getAllStories,
     initialData: initialStories,
   });
 
@@ -1077,6 +1077,7 @@ export default function CharactersClient({
                 initialData={{
                   params: { story: null, world: null },
                   stories: [],
+                  currentStory: null,
                   worlds: [],
                   characters: [],
                   factions: [],

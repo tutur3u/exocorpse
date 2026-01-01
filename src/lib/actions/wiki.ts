@@ -14,7 +14,7 @@ export type CharacterFaction = Tables<"character_factions">;
 /**
  * Fetch all stories (including unpublished, since RLS is disabled)
  */
-export async function getPublishedStories() {
+export async function getAllStories() {
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -42,6 +42,24 @@ export async function getPublicStories() {
     .select("*")
     .eq("is_published", true)
     .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching public stories:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getPublishedStories() {
+  const supabase = await getSupabaseServer();
+
+  const { data, error } = await supabase
+    .from("stories")
+    .select("*")
+    .eq("is_published", true)
+    .neq("visibility", "private")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -171,7 +189,7 @@ export async function getStoryBySlug(slug: string) {
     )
     .eq("slug", slug)
     .eq("is_published", true)
-    .eq("visibility", "public")
+    .neq("visibility", "private")
     .maybeSingle();
 
   if (storyError) {
