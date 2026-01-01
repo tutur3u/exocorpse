@@ -28,7 +28,7 @@ import {
   getFactionsByWorldSlug,
   getLocationBySlug,
   getLocationsByWorldSlug,
-  getPublicStories,
+  getPublishedStories,
   getStoryBySlug,
   getWorldBySlug,
   getWorldsByStorySlug,
@@ -413,7 +413,7 @@ async function HomeContent({
   // Only fetch stories if visiting wiki (not blog-only)
   if (hasWikiParams) {
     // Fetch stories + blog data in parallel if blog params also exist
-    const storiesPromise = getPublicStories();
+    const storiesPromise = getPublishedStories();
 
     // Determine which blog fetch to start and await both in parallel
     let stories: Story[];

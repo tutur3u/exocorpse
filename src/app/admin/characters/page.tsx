@@ -1,9 +1,9 @@
 import CharactersClient from "@/app/admin/characters/CharactersClient";
 import StorageAnalytics from "@/components/admin/StorageAnalytics";
-import { getPublishedStories } from "@/lib/actions/wiki";
+import { getAllStories } from "@/lib/actions/wiki";
 
 export default async function CharactersAdminPage() {
-  const stories = await getPublishedStories();
+  const stories = await getAllStories();
 
   return (
     <div className="space-y-4">

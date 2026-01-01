@@ -8,7 +8,7 @@ import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   createStory,
   deleteStory,
-  getPublishedStories,
+  getAllStories,  
   type Story,
   updateStory,
 } from "@/lib/actions/wiki";
@@ -24,7 +24,7 @@ export default function StoriesClient({ initialStories }: StoriesClientProps) {
   const queryClient = useQueryClient();
   const { data: stories = [] } = useQuery({
     queryKey: ["stories"],
-    queryFn: getPublishedStories,
+    queryFn: getAllStories,
     initialData: initialStories,
   });
 
