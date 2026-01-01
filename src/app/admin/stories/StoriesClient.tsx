@@ -8,7 +8,7 @@ import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
   createStory,
   deleteStory,
-  getAllStories,  
+  getAllStories,
   type Story,
   updateStory,
 } from "@/lib/actions/wiki";
