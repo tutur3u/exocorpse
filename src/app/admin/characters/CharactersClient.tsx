@@ -1077,6 +1077,7 @@ export default function CharactersClient({
                 initialData={{
                   params: { story: null, world: null },
                   stories: [],
+                  currentStory: null,
                   worlds: [],
                   characters: [],
                   factions: [],

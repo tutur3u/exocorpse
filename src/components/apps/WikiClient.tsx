@@ -89,8 +89,12 @@ export default function WikiClient({
             : "stories";
 
   // Find selected story from slug
+  // First check currentStory (for unlisted stories accessed via URL)
+  // Then fall back to searching in the stories list
   const selectedStory = storySlug
-    ? stories.find((s) => s.slug === storySlug) || null
+    ? initialData.currentStory?.slug === storySlug
+      ? initialData.currentStory
+      : stories.find((s) => s.slug === storySlug) || null
     : null;
 
   // Worlds query - load when we have a story slug

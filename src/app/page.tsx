@@ -28,7 +28,7 @@ import {
   getFactionsByWorldSlug,
   getLocationBySlug,
   getLocationsByWorldSlug,
-  getPublishedStories,
+  getPublicStories,
   getStoryBySlug,
   getWorldBySlug,
   getWorldsByStorySlug,
@@ -264,6 +264,7 @@ async function HomeContent({
       world: wikiParams.world,
     },
     stories: [],
+    currentStory: null,
     worlds: [],
     characters: [],
     factions: [],
@@ -412,8 +413,9 @@ async function HomeContent({
 
   // Only fetch stories if visiting wiki (not blog-only)
   if (hasWikiParams) {
-    // Fetch stories + blog data in parallel if blog params also exist
-    const storiesPromise = getPublishedStories();
+    // Always fetch only public stories for the stories list
+    // Unlisted stories are accessible via URL but won't appear in the list
+    const storiesPromise = getPublicStories();
 
     // Determine which blog fetch to start and await both in parallel
     let stories: Story[];
@@ -478,6 +480,8 @@ async function HomeContent({
 
   // Fetch worlds if story is selected
   if (wikiParams.story) {
+    // Fetch the current story being viewed (can be unlisted)
+    initialWikiData.currentStory = await getStoryBySlug(wikiParams.story);
     initialWikiData.worlds = await getWorldsByStorySlug(wikiParams.story);
 
     // Fetch characters, factions, and locations if world is selected
