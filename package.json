@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
-    "@tuturuuu/masonry": "^0.4.0",
+    "@tuturuuu/masonry": "^0.4.1",
     "@tuturuuu/supabase": "^0.2.3",
     "@types/dompurify": "^3.2.0",
     "@types/sanitize-html": "^2.16.0",
