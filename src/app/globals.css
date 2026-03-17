@@ -260,6 +260,13 @@ body {
     min-width: 44px;
   }
 
+  /* Allow compact gallery controls without weakening global tap targets */
+  .rotating-gallery button,
+  .rotating-gallery a {
+    min-height: 0;
+    min-width: 0;
+  }
+
   /* Prevent pull-to-refresh on mobile */
   body {
     overscroll-behavior-y: contain;

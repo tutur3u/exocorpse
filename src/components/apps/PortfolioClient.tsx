@@ -388,33 +388,20 @@ export default function PortfolioClient({
         {activeTab === "art" && (
           <div className="relative">
             {!selectedArt && featuredArtSlides.length > 0 && (
-              <div className="mb-6 overflow-hidden rounded-2xl border border-gray-800 bg-black/40">
-                <div className="border-b border-gray-800 px-5 py-3">
+              <div className="mb-6 overflow-hidden rounded-[1.75rem] border border-slate-800/80 bg-linear-to-br from-[#050a13] via-[#090f1d] to-[#03060d] shadow-[0_28px_80px_rgba(0,0,0,0.35)]">
+                <div className="border-b border-slate-800/80 px-5 py-3">
                   <p className="text-xs font-semibold tracking-[0.24em] text-blue-300 uppercase">
                     Featured Rotation
                   </p>
                 </div>
-                <div className="relative aspect-[16/7]">
+                <div className="relative h-[270px] sm:h-[300px] lg:h-[360px] xl:h-[400px] 2xl:h-[420px]">
                   <RotatingGallery
                     images={featuredArtSlides}
                     className="h-full w-full"
                     imageClassName="h-full w-full object-cover"
                     openOnClick
                     showSidePreviews
-                    overlay={(image) => (
-                      <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
-                        <div className="max-w-2xl">
-                          <h2 className="text-2xl font-bold text-white">
-                            {image.title}
-                          </h2>
-                          {image.subtitle && (
-                            <p className="mt-2 line-clamp-2 text-sm text-gray-200">
-                              {image.subtitle}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    showCaptionPanel
                   />
                 </div>
               </div>
@@ -614,33 +601,20 @@ export default function PortfolioClient({
               /* Writing List View */
               <div className="space-y-4">
                 {featuredWritingSlides.length > 0 && (
-                  <div className="overflow-hidden rounded-2xl border border-gray-800 bg-black/40">
-                    <div className="border-b border-gray-800 px-5 py-3">
+                  <div className="overflow-hidden rounded-[1.75rem] border border-slate-800/80 bg-linear-to-br from-[#050a13] via-[#090f1d] to-[#03060d] shadow-[0_28px_80px_rgba(0,0,0,0.35)]">
+                    <div className="border-b border-slate-800/80 px-5 py-3">
                       <p className="text-xs font-semibold tracking-[0.24em] text-cyan-300 uppercase">
                         Featured Rotation
                       </p>
                     </div>
-                    <div className="relative aspect-[16/7]">
+                    <div className="relative h-[270px] sm:h-[300px] lg:h-[360px] xl:h-[400px] 2xl:h-[420px]">
                       <RotatingGallery
                         images={featuredWritingSlides}
                         className="h-full w-full"
                         imageClassName="h-full w-full object-cover"
                         openOnClick
                         showSidePreviews
-                        overlay={(image) => (
-                          <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
-                            <div className="max-w-2xl">
-                              <h2 className="text-2xl font-bold text-white">
-                                {image.title}
-                              </h2>
-                              {image.subtitle && (
-                                <p className="mt-2 line-clamp-2 text-sm text-gray-200">
-                                  {image.subtitle}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                        showCaptionPanel
                       />
                     </div>
                   </div>
