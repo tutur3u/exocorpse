@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { RelationshipType } from "@/lib/actions/wiki";
 import { cleanFormData } from "@/lib/forms";
@@ -46,6 +47,7 @@ export default function RelationshipTypeForm({
     register,
     handleSubmit,
     reset,
+    setValue,
     watch,
     formState: { errors },
   } = form;
@@ -54,6 +56,7 @@ export default function RelationshipTypeForm({
     useFormDirtyState(form);
 
   const isMutual = watch("is_mutual");
+  const description = watch("description");
 
   // Reset form when relationshipType changes or dialog opens
   useEffect(() => {
@@ -185,21 +188,17 @@ export default function RelationshipTypeForm({
             </div>
 
             {/* Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                {...register("description")}
-                placeholder="Brief description of this relationship type..."
-                rows={3}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+            <MarkdownEditor
+              label="Description"
+              value={description || ""}
+              onChange={(value) =>
+                setValue("description", value, { shouldDirty: true })
+              }
+              placeholder="Brief description of this relationship type..."
+              helpText="Supports markdown formatting."
+              rows={4}
+              minHeight="150px"
+            />
 
             {/* Is Mutual Checkbox */}
             <div className="flex items-start gap-3">

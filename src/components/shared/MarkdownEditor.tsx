@@ -1,6 +1,6 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import toastWithSound from "@/lib/toast";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
@@ -159,9 +159,42 @@ export default function MarkdownEditor({
   minHeight = "200px",
   uploadPath = "markdown-images",
 }: MarkdownEditorProps) {
+  const editorId = useId();
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const updateSelection = (
+    formatter: (selectedText: string) => {
+      nextValue: string;
+      selectionStart: number;
+      selectionEnd: number;
+    },
+  ) => {
+    const textarea = textareaRef.current;
+
+    if (!textarea) {
+      const fallback = formatter("");
+      onChange(fallback.nextValue);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    const formatted = formatter(selectedText);
+
+    onChange(formatted.nextValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        formatted.selectionStart,
+        formatted.selectionEnd,
+      );
+    }, 0);
+  };
 
   const uploadImageFromFile = async (file: File) => {
     setIsUploading(true);
@@ -197,14 +230,22 @@ export default function MarkdownEditor({
       }
 
       // Insert markdown image at cursor
-      const textarea = document.getElementById(
-        `markdown-textarea-${label}`,
-      ) as HTMLTextAreaElement;
-      const start = textarea?.selectionStart ?? value.length;
-      const markdownImage = `![image](${storagePath})`;
-      const newText =
-        value.substring(0, start) + markdownImage + value.substring(start);
-      onChange(newText);
+      updateSelection((selectedText) => {
+        const textarea = textareaRef.current;
+        const start = textarea?.selectionStart ?? value.length;
+        const end = textarea?.selectionEnd ?? value.length;
+        const markdownImage = `![image](${storagePath})`;
+        const replacement = selectedText
+          ? `${selectedText}\n${markdownImage}`
+          : markdownImage;
+
+        return {
+          nextValue:
+            value.substring(0, start) + replacement + value.substring(end),
+          selectionStart: start + replacement.length,
+          selectionEnd: start + replacement.length,
+        };
+      });
       toastWithSound.success("Image uploaded successfully!");
     } catch (error) {
       console.error("Failed to upload image:", error);
@@ -226,31 +267,18 @@ export default function MarkdownEditor({
   };
 
   const insertMarkdown = (before: string, after: string = "") => {
-    const textarea = document.getElementById(
-      `markdown-textarea-${label}`,
-    ) as HTMLTextAreaElement;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = value.substring(start, end);
-    const newText =
-      value.substring(0, start) +
-      before +
-      selectedText +
-      after +
-      value.substring(end);
-
-    onChange(newText);
-
-    // Set cursor position after insertion
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + before.length,
-        start + before.length + selectedText.length,
-      );
-    }, 0);
+    updateSelection((selectedText) => {
+      const textarea = textareaRef.current;
+      const start = textarea?.selectionStart ?? value.length;
+      const end = textarea?.selectionEnd ?? value.length;
+      const replacement = `${before}${selectedText}${after}`;
+      return {
+        nextValue:
+          value.substring(0, start) + replacement + value.substring(end),
+        selectionStart: start + before.length,
+        selectionEnd: start + before.length + selectedText.length,
+      };
+    });
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -297,19 +325,23 @@ export default function MarkdownEditor({
           }
 
           // Insert markdown image at cursor
-          const textarea = document.getElementById(
-            `markdown-textarea-${label}`,
-          ) as HTMLTextAreaElement;
-          if (textarea) {
-            const start = textarea.selectionStart;
+          updateSelection((selectedText) => {
+            const textarea = textareaRef.current;
+            const start = textarea?.selectionStart ?? value.length;
+            const end = textarea?.selectionEnd ?? value.length;
             const markdownImage = `![image](${storagePath})`;
-            const newText =
-              value.substring(0, start) +
-              markdownImage +
-              value.substring(start);
-            onChange(newText);
-            toastWithSound.success("Image uploaded successfully!");
-          }
+            const replacement = selectedText
+              ? `${selectedText}\n${markdownImage}`
+              : markdownImage;
+
+            return {
+              nextValue:
+                value.substring(0, start) + replacement + value.substring(end),
+              selectionStart: start + replacement.length,
+              selectionEnd: start + replacement.length,
+            };
+          });
+          toastWithSound.success("Image uploaded successfully!");
         } catch (error) {
           console.error("Failed to paste image:", error);
           toastWithSound.error(
@@ -326,176 +358,174 @@ export default function MarkdownEditor({
   return (
     <div>
       <label className="mb-1 block text-sm font-medium">{label}</label>
-
-      {/* Tabs */}
-      <div className="mb-2 flex gap-2 border-b border-gray-300 dark:border-gray-600">
-        <button
-          type="button"
-          onClick={() => setActiveTab("write")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === "write"
-              ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
-              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-          }`}
-        >
-          Write
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("preview")}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === "preview"
-              ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
-              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-          }`}
-        >
-          Preview
-        </button>
-      </div>
-
-      {/* Write Tab */}
-      {activeTab === "write" && (
-        <div>
-          {/* Toolbar */}
-          <div className="flex flex-wrap gap-1 rounded-t-lg border border-b-0 border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
+      <div className="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700">
+        <div className="sticky top-0 z-10 border-b border-gray-300 bg-white/95 backdrop-blur-sm dark:border-gray-600 dark:bg-gray-700/95">
+          <div className="flex gap-2 px-2 pt-2">
             <button
               type="button"
-              onClick={() => insertMarkdown("# ", "")}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Heading 1"
+              onClick={() => setActiveTab("write")}
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "write"
+                  ? "border border-gray-300 border-b-transparent bg-white text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-blue-400"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
             >
-              H1
+              Write
             </button>
             <button
               type="button"
-              onClick={() => insertMarkdown("## ", "")}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Heading 2"
+              onClick={() => setActiveTab("preview")}
+              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === "preview"
+                  ? "border border-gray-300 border-b-transparent bg-white text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-blue-400"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
             >
-              H2
-            </button>
-            <button
-              type="button"
-              onClick={() => insertMarkdown("### ", "")}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Heading 3"
-            >
-              H3
-            </button>
-            <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
-            <button
-              type="button"
-              onClick={() => insertMarkdown("**", "**")}
-              className="rounded px-2 py-1 text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Bold"
-            >
-              B
-            </button>
-            <button
-              type="button"
-              onClick={() => insertMarkdown("*", "*")}
-              className="rounded px-2 py-1 text-sm italic hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Italic"
-            >
-              I
-            </button>
-            <button
-              type="button"
-              onClick={() => insertMarkdown("`", "`")}
-              className="rounded px-2 py-1 font-mono text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Code"
-            >
-              {"<>"}
-            </button>
-            <button
-              type="button"
-              onClick={() => insertMarkdown("<ins>", "</ins>")}
-              className="rounded px-2 py-1 text-sm underline hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Underline"
-            >
-              U
-            </button>
-            <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
-            <button
-              type="button"
-              onClick={() => insertMarkdown("- ", "")}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Bullet List"
-            >
-              • List
-            </button>
-            <button
-              type="button"
-              onClick={() => insertMarkdown("[", "](url)")}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
-              title="Link"
-            >
-              Link
-            </button>
-            <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-              aria-label="Upload image"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="rounded px-2 py-1 text-sm hover:bg-gray-200 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-gray-700"
-              title="Upload Image"
-            >
-              {isUploading ? "⏳" : "🖼️"} Image
+              Preview
             </button>
           </div>
 
-          {/* Textarea */}
+          {activeTab === "write" && (
+            <div className="flex flex-wrap gap-1 border-t border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
+              <button
+                type="button"
+                onClick={() => insertMarkdown("# ", "")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Heading 1"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("## ", "")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Heading 2"
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("### ", "")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Heading 3"
+              >
+                H3
+              </button>
+              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <button
+                type="button"
+                onClick={() => insertMarkdown("**", "**")}
+                className="rounded px-2 py-1 text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Bold"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("*", "*")}
+                className="rounded px-2 py-1 text-sm italic hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Italic"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("`", "`")}
+                className="rounded px-2 py-1 font-mono text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Code"
+              >
+                {"<>"}
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("<ins>", "</ins>")}
+                className="rounded px-2 py-1 text-sm underline hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Underline"
+              >
+                U
+              </button>
+              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <button
+                type="button"
+                onClick={() => insertMarkdown("- ", "")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Bullet List"
+              >
+                List
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown("[", "](url)")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Link"
+              >
+                Link
+              </button>
+              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                aria-label="Upload image"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-gray-700"
+                title="Upload Image"
+              >
+                {isUploading ? "Uploading..." : "Image"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {activeTab === "write" ? (
           <textarea
-            id={`markdown-textarea-${label}`}
+            ref={textareaRef}
+            id={`markdown-textarea-${editorId}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onPaste={handlePaste}
             rows={rows}
             placeholder={isUploading ? "Uploading image..." : placeholder}
             disabled={isUploading}
-            className={`w-full rounded-b-lg border border-gray-300 px-3 py-2 font-mono text-sm dark:border-gray-600 dark:bg-gray-700 ${isUploading ? "cursor-wait opacity-50" : ""}`}
+            className={`w-full border-0 px-3 py-2 font-mono text-sm focus:ring-0 dark:bg-gray-700 ${isUploading ? "cursor-wait opacity-50" : ""}`}
             style={{ minHeight }}
           />
-        </div>
-      )}
+        ) : (
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none p-4"
+            style={{ minHeight }}
+          >
+            {value ? (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                components={{
+                  ...markdownComponents,
+                  img: ({ src, alt }) => (
+                    <StorageImage
+                      src={typeof src === "string" ? src : undefined}
+                      alt={alt}
+                    />
+                  ),
+                }}
+              >
+                {value}
+              </ReactMarkdown>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">
+                No content to preview
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* Preview Tab */}
-      {activeTab === "preview" && (
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-700"
-          style={{ minHeight }}
-        >
-          {value ? (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw, rehypeSanitize]}
-              components={{
-                ...markdownComponents,
-                img: ({ src, alt }) => (
-                  <StorageImage
-                    src={typeof src === "string" ? src : undefined}
-                    alt={alt}
-                  />
-                ),
-              }}
-            >
-              {value}
-            </ReactMarkdown>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">
-              No content to preview
-            </p>
-          )}
-        </div>
-      )}
       <div className="mt-2 flex justify-between">
         {/* Help Text */}
         {helpText && (

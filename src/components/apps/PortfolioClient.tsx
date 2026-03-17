@@ -1,6 +1,7 @@
 "use client";
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import RotatingGallery from "@/components/shared/RotatingGallery";
 import StorageImage from "@/components/shared/StorageImage";
 import {
   type GamePieceWithGallery,
@@ -12,6 +13,7 @@ import type {
   GamePiece,
   WritingPiece,
 } from "@/lib/actions/portfolio";
+import { markdownToPlainText } from "@/lib/markdown";
 import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
 import { MasonryGallery } from "./Gallery";
@@ -228,6 +230,27 @@ export default function PortfolioClient({
     },
   }));
 
+  const featuredArtSlides = filteredArtPieces
+    .filter((art) => art.is_featured)
+    .map((art) => ({
+      id: art.id,
+      src: artImageUrls.get(art.image_url) || art.image_url,
+      alt: art.title,
+      title: art.title,
+      subtitle: markdownToPlainText(art.description),
+    }));
+
+  const featuredWritingSlides = filteredWritingPieces
+    .filter((writing) => writing.is_featured && !!writing.cover_image)
+    .map((writing) => ({
+      id: writing.id,
+      src:
+        writingImageUrls.get(writing.cover_image || "") || writing.cover_image!,
+      alt: writing.title,
+      title: writing.title,
+      subtitle: writing.excerpt || markdownToPlainText(writing.content),
+    }));
+
   // Effect to lock body scroll when detail view is open
   useEffect(() => {
     if (selectedArt) {
@@ -364,6 +387,38 @@ export default function PortfolioClient({
       <div className="flex-1 overflow-auto bg-linear-to-br from-gray-900 to-gray-950 p-6">
         {activeTab === "art" && (
           <div className="relative">
+            {!selectedArt && featuredArtSlides.length > 0 && (
+              <div className="mb-6 overflow-hidden rounded-2xl border border-gray-800 bg-black/40">
+                <div className="border-b border-gray-800 px-5 py-3">
+                  <p className="text-xs font-semibold tracking-[0.24em] text-blue-300 uppercase">
+                    Featured Rotation
+                  </p>
+                </div>
+                <div className="relative aspect-[16/7]">
+                  <RotatingGallery
+                    images={featuredArtSlides}
+                    className="h-full w-full"
+                    imageClassName="h-full w-full object-cover"
+                    openOnClick
+                    overlay={(image) => (
+                      <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
+                        <div className="max-w-2xl">
+                          <h2 className="text-2xl font-bold text-white">
+                            {image.title}
+                          </h2>
+                          {image.subtitle && (
+                            <p className="mt-2 line-clamp-2 text-sm text-gray-200">
+                              {image.subtitle}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Gallery Grid */}
             {filteredArtPieces.length === 0 ? (
               <div className="py-12 text-center">
@@ -429,9 +484,10 @@ export default function PortfolioClient({
                       {selectedArt.title}
                     </h2>
                     {selectedArt.description && (
-                      <p className="mb-4 text-gray-600 dark:text-gray-400">
-                        {selectedArt.description}
-                      </p>
+                      <MarkdownRenderer
+                        content={selectedArt.description}
+                        className="prose prose-sm dark:prose-invert mb-4 max-w-none text-gray-600 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                      />
                     )}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       {selectedArt.artist_name && (
@@ -555,55 +611,91 @@ export default function PortfolioClient({
               </div>
             ) : (
               /* Writing List View */
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredWritingPieces.map((writing) => (
-                  <div
-                    key={writing.id}
-                    className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
-                    onClick={() =>
-                      setParams({
-                        "portfolio-piece": writing.slug,
-                      })
-                    }
-                  >
-                    {writing.cover_image && (
-                      <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <StorageImage
-                          src={writing.cover_image}
-                          signedUrl={writingImageUrls.get(writing.cover_image)}
-                          alt={writing.title}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
-                        />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
-                        {writing.title}
-                      </h3>
-                      {writing.excerpt && (
-                        <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                          {writing.excerpt}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        {writing.year && <span>{writing.year}</span>}
-                        {writing.word_count && (
-                          <span>{writing.word_count} words</span>
+              <div className="space-y-4">
+                {featuredWritingSlides.length > 0 && (
+                  <div className="overflow-hidden rounded-2xl border border-gray-800 bg-black/40">
+                    <div className="border-b border-gray-800 px-5 py-3">
+                      <p className="text-xs font-semibold tracking-[0.24em] text-cyan-300 uppercase">
+                        Featured Rotation
+                      </p>
+                    </div>
+                    <div className="relative aspect-[16/7]">
+                      <RotatingGallery
+                        images={featuredWritingSlides}
+                        className="h-full w-full"
+                        imageClassName="h-full w-full object-cover"
+                        openOnClick
+                        overlay={(image) => (
+                          <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
+                            <div className="max-w-2xl">
+                              <h2 className="text-2xl font-bold text-white">
+                                {image.title}
+                              </h2>
+                              {image.subtitle && (
+                                <p className="mt-2 line-clamp-2 text-sm text-gray-200">
+                                  {image.subtitle}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        {writing.tags &&
-                          writing.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                      </div>
+                      />
                     </div>
                   </div>
-                ))}
+                )}
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredWritingPieces.map((writing) => (
+                    <div
+                      key={writing.id}
+                      className="group cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                      onClick={() =>
+                        setParams({
+                          "portfolio-piece": writing.slug,
+                        })
+                      }
+                    >
+                      {writing.cover_image && (
+                        <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                          <StorageImage
+                            src={writing.cover_image}
+                            signedUrl={writingImageUrls.get(
+                              writing.cover_image,
+                            )}
+                            alt={writing.title}
+                            fill
+                            className="object-cover transition-transform group-hover:scale-105"
+                          />
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
+                          {writing.title}
+                        </h3>
+                        {writing.excerpt && (
+                          <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                            {writing.excerpt}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          {writing.year && <span>{writing.year}</span>}
+                          {writing.word_count && (
+                            <span>{writing.word_count} words</span>
+                          )}
+                          {writing.tags &&
+                            writing.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-700"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -721,14 +813,17 @@ export default function PortfolioClient({
                                   <StorageImage
                                     src={img.image_url}
                                     signedUrl={gameImageUrls.get(img.image_url)}
-                                    alt={img.description || selectedGame.title}
+                                    alt={
+                                      markdownToPlainText(img.description) ||
+                                      selectedGame.title
+                                    }
                                     className="object-cover transition-transform group-hover:scale-105"
                                     fill
                                   />
                                   {img.description && (
                                     <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 to-transparent p-3">
                                       <p className="text-xs font-medium text-white">
-                                        {img.description}
+                                        {markdownToPlainText(img.description)}
                                       </p>
                                     </div>
                                   )}
@@ -777,7 +872,7 @@ export default function PortfolioClient({
                       </h3>
                       {game.description && (
                         <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                          {game.description}
+                          {markdownToPlainText(game.description)}
                         </p>
                       )}
                       {game.game_url && (

@@ -366,9 +366,10 @@ export default function LocationView({
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                          {item.description}
-                        </p>
+                        <MarkdownRenderer
+                          content={item.description}
+                          className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed text-gray-600 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                        />
                       )}
                       {item.artist_name && (
                         <div className="mt-3 border-t pt-3 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">

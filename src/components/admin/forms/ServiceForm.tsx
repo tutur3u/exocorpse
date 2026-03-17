@@ -2,6 +2,8 @@
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
@@ -129,6 +131,7 @@ export default function ServiceForm({
     useFormDirtyState(form);
 
   const isActive = watch("is_active");
+  const description = watch("description");
 
   // Reset form when service changes
   useEffect(() => {
@@ -436,21 +439,17 @@ export default function ServiceForm({
                   </div>
 
                   {/* Description */}
-                  <div>
-                    <label
-                      htmlFor="description"
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      {...register("description")}
-                      rows={4}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      placeholder="Describe this service..."
-                    />
-                  </div>
+                  <MarkdownEditor
+                    label="Description"
+                    value={description || ""}
+                    onChange={(value) =>
+                      setValue("description", value, { shouldDirty: true })
+                    }
+                    placeholder="Describe this service..."
+                    helpText="Supports markdown formatting."
+                    rows={5}
+                    minHeight="170px"
+                  />
 
                   {/* Cover Image (existing services only) */}
                   {service && (
@@ -616,9 +615,10 @@ export default function ServiceForm({
                                 +€{addon.price_impact.toFixed(2)}
                               </p>
                               {addon.description && (
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                  {addon.description}
-                                </p>
+                                <MarkdownRenderer
+                                  content={addon.description}
+                                  className="prose prose-xs dark:prose-invert mt-1 max-w-none text-xs text-gray-500 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                />
                               )}
                             </div>
                           </label>
@@ -746,9 +746,10 @@ export default function ServiceForm({
                                   {style.name}
                                 </h4>
                                 {style.description && (
-                                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                    {style.description}
-                                  </p>
+                                  <MarkdownRenderer
+                                    content={style.description}
+                                    className="prose prose-sm dark:prose-invert mt-1 max-w-none text-sm text-gray-600 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                  />
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
@@ -893,9 +894,10 @@ export default function ServiceForm({
                             +€{addon.price_impact.toFixed(2)}
                           </p>
                           {addon.description && (
-                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                              {addon.description}
-                            </p>
+                            <MarkdownRenderer
+                              content={addon.description}
+                              className="prose prose-xs dark:prose-invert mt-1 max-w-none text-xs text-gray-500 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                            />
                           )}
                           {addon.is_exclusive && (
                             <span className="mt-1 inline-block text-xs text-yellow-600 dark:text-yellow-400">

@@ -2,6 +2,7 @@
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
 import { deleteLocationGalleryImage } from "@/lib/actions/storage";
@@ -108,6 +109,7 @@ export default function LocationGalleryItemForm({
   const [error, setError] = useState<string | null>(null);
 
   const imageUrl = watch("image_url");
+  const description = watch("description");
 
   // Reset form when gallery item changes to clear dirty state
   useEffect(() => {
@@ -346,21 +348,17 @@ export default function LocationGalleryItemForm({
               </div>
 
               {/* Description */}
-              <div>
-                <label
-                  htmlFor="description"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  {...register("description")}
-                  rows={4}
-                  className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Optional description of the image"
-                />
-              </div>
+              <MarkdownEditor
+                label="Description"
+                value={description || ""}
+                onChange={(value) =>
+                  setValue("description", value, { shouldDirty: true })
+                }
+                placeholder="Optional description of the image"
+                helpText="Supports markdown formatting."
+                rows={5}
+                minHeight="170px"
+              />
 
               {/* Artist Information */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

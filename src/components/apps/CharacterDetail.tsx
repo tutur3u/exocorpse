@@ -666,9 +666,10 @@ export default function CharacterDetail({
                             {outfit.name}
                           </h4>
                           {outfit.description && (
-                            <p className="text-theme-text text-sm leading-relaxed">
-                              {outfit.description}
-                            </p>
+                            <MarkdownRenderer
+                              content={outfit.description}
+                              className="text-theme-text prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                            />
                           )}
                         </div>
                       </div>
@@ -848,9 +849,10 @@ export default function CharacterDetail({
                                   )}
                                 </div>
                                 {relationship.description && (
-                                  <p className="text-theme-text mt-2 text-sm">
-                                    {relationship.description}
-                                  </p>
+                                  <MarkdownRenderer
+                                    content={relationship.description}
+                                    className="text-theme-text prose prose-sm mt-2 max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                  />
                                 )}
                                 {relatedCharacter.personality_summary && (
                                   <p className="text-theme-text mt-2 line-clamp-2 text-xs italic">

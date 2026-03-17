@@ -376,21 +376,17 @@ export default function StoryForm({
                     />
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="story-description"
-                      className="mb-1 block text-sm font-medium"
-                    >
-                      Description
-                    </label>
-                    <textarea
-                      id="story-description"
-                      {...register("description")}
-                      rows={4}
-                      className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      placeholder="A detailed description of your story..."
-                    />
-                  </div>
+                  <MarkdownEditor
+                    label="Description"
+                    value={watch("description") || ""}
+                    onChange={(value) =>
+                      setValue("description", value, { shouldDirty: true })
+                    }
+                    placeholder="A detailed description of your story..."
+                    helpText="Supports markdown formatting."
+                    rows={5}
+                    minHeight="170px"
+                  />
                 </div>
               )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import StorageImage from "@/components/shared/StorageImage";
+import RotatingGallery from "@/components/shared/RotatingGallery";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ServiceWithDetails } from "@/lib/actions/commissions";
@@ -24,13 +24,17 @@ export default function ServicesTab({ services }: ServicesTabProps) {
 
   const isUsingMobile = useMobileDetection();
 
-  // Prefetch only one image per service: cover if present, otherwise first picture
-  const imagePaths = services
-    .map(
-      (service) =>
-        service.cover_image_url || service.pictures?.[0]?.image_url || null,
-    )
-    .filter((p): p is string => !!p);
+  const imagePaths = Array.from(
+    new Set(
+      services.flatMap((service) => [
+        service.cover_image_url,
+        ...(service.pictures?.map((picture) => picture.image_url) || []),
+        ...(service.styles?.flatMap(
+          (style) => style.pictures?.map((picture) => picture.image_url) || [],
+        ) || []),
+      ]),
+    ),
+  ).filter((path): path is string => !!path);
   const { signedUrls } = useBatchStorageUrls(imagePaths);
 
   const handleServiceClick = (slug: string) => {
@@ -86,36 +90,50 @@ export default function ServicesTab({ services }: ServicesTabProps) {
       {/* Services Grid */}
       <div className="grid grid-cols-1 gap-6">
         {services.map((service) => {
-          // Prefer cover image; fallback to first picture
-          const coverPath = service.cover_image_url || null;
-          const primaryPicture =
-            !coverPath && service.pictures && service.pictures.length > 0
-              ? service.pictures[0]
-              : null;
-
-          // Get pre-fetched signed URL if available
-          const preSignedUrl = coverPath
-            ? signedUrls.get(coverPath)
-            : primaryPicture
-              ? signedUrls.get(primaryPicture.image_url)
-              : null;
+          const previewImages = Array.from(
+            new Map(
+              [
+                service.cover_image_url,
+                ...(service.pictures?.map((picture) => picture.image_url) ||
+                  []),
+                ...(service.styles?.flatMap(
+                  (style) =>
+                    style.pictures?.map((picture) => picture.image_url) || [],
+                ) || []),
+              ]
+                .filter((path): path is string => !!path)
+                .map((path, index) => [
+                  path,
+                  {
+                    id: `${service.service_id}-${index}`,
+                    src: signedUrls.get(path) ?? path,
+                    alt: service.name,
+                  },
+                ]),
+            ).values(),
+          );
 
           return (
-            <button
-              type="button"
+            <div
               key={service.service_id}
               onClick={() => handleServiceClick(service.slug)}
-              className="group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl md:flex-row dark:bg-gray-800"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleServiceClick(service.slug);
+                }
+              }}
+              className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl md:flex-row dark:bg-gray-800"
+              role="button"
+              tabIndex={0}
             >
               {/* Service Image */}
               <div className="relative aspect-4/3 h-[225px] w-[400px] overflow-hidden bg-gray-200 dark:bg-gray-700">
-                {coverPath || primaryPicture ? (
-                  <StorageImage
-                    src={coverPath || primaryPicture!.image_url}
-                    signedUrl={preSignedUrl}
-                    alt={service.name}
-                    fill
-                    className="h-full w-full object-cover transition-transform"
+                {previewImages.length > 0 ? (
+                  <RotatingGallery
+                    images={previewImages}
+                    className="h-full w-full"
+                    imageClassName="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -157,7 +175,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
                     </div>
                   )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

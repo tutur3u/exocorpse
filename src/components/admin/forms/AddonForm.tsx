@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Addon, Service } from "@/lib/actions/commissions";
 import { cleanFormData } from "@/lib/forms";
@@ -45,7 +46,7 @@ export default function AddonForm({
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, watch } = form;
+  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
@@ -56,6 +57,7 @@ export default function AddonForm({
   );
 
   const isExclusive = watch("is_exclusive");
+  const description = watch("description");
   const maxServicesAllowed = isExclusive ? 1 : availableServices.length;
 
   const handleFormSubmit = formHandleSubmit(async (data) => {
@@ -187,21 +189,17 @@ export default function AddonForm({
               </div>
 
               {/* Description */}
-              <div>
-                <label
-                  htmlFor="description"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  {...register("description")}
-                  rows={3}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Describe this add-on..."
-                />
-              </div>
+              <MarkdownEditor
+                label="Description"
+                value={description || ""}
+                onChange={(value) =>
+                  setValue("description", value, { shouldDirty: true })
+                }
+                placeholder="Describe this add-on..."
+                helpText="Supports markdown formatting."
+                rows={4}
+                minHeight="150px"
+              />
 
               {/* Price Impact */}
               <div>

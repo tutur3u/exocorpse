@@ -1,6 +1,7 @@
 "use client";
 
 import { MasonryGallery } from "@/components/apps/Gallery";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import type { ServiceWithDetails } from "@/lib/actions/commissions";
 import { parseAsString, useQueryStates } from "nuqs";
@@ -130,6 +131,18 @@ export default function ServiceDetail({
               </div>
             )}
 
+            {selectedStyle?.description && (
+              <div>
+                <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
+                  Current Style:
+                </h3>
+                <MarkdownRenderer
+                  content={selectedStyle.description}
+                  className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                />
+              </div>
+            )}
+
             {/* Add-ons */}
             {service.service_addons && service.service_addons.length > 0 && (
               <div>
@@ -162,9 +175,10 @@ export default function ServiceDetail({
                 <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
                   Description:
                 </h3>
-                <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                  {service.description}
-                </p>
+                <MarkdownRenderer
+                  content={service.description}
+                  className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                />
               </div>
             )}
 

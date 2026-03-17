@@ -1,6 +1,8 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import type { Character, RelationshipType } from "@/lib/actions/wiki";
@@ -132,9 +134,10 @@ function RelationshipCard({
             )}
           </div>
           {relationship.description && (
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {relationship.description}
-            </p>
+            <MarkdownRenderer
+              content={relationship.description}
+              className="prose prose-sm dark:prose-invert mt-2 max-w-none text-sm text-gray-600 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            />
           )}
         </div>
 
@@ -210,12 +213,19 @@ export default function RelationshipManager({
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, watch, reset } = form;
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
   const selectedCharacterId = watch("selectedCharacterId");
   const selectedTypeId = watch("selectedTypeId");
+  const description = watch("description");
 
   // Check if a relationship already exists with the selected character and type
   const isDuplicateRelationship = (excludeId?: string | null) => {
@@ -435,21 +445,17 @@ export default function RelationshipManager({
                     </div>
 
                     {/* Description */}
-                    <div>
-                      <label
-                        htmlFor="description-input"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Description
-                      </label>
-                      <textarea
-                        id="description-input"
-                        {...register("description")}
-                        rows={2}
-                        placeholder="Optional notes about this relationship..."
-                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                      />
-                    </div>
+                    <MarkdownEditor
+                      label="Description"
+                      value={description || ""}
+                      onChange={(value) =>
+                        setValue("description", value, { shouldDirty: true })
+                      }
+                      placeholder="Optional notes about this relationship..."
+                      helpText="Supports markdown formatting."
+                      rows={4}
+                      minHeight="150px"
+                    />
 
                     {/* Duplicate Relationship Warning */}
                     {isDuplicateRelationship(editingId) && (

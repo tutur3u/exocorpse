@@ -4,6 +4,7 @@ import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import ImageUploader from "@/components/shared/ImageUploader";
 import MarkdownEditor from "@/components/shared/MarkdownEditor";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
@@ -507,8 +508,11 @@ export default function GamePieceForm({
                               fill
                             />
                             {img.description && (
-                              <div className="absolute right-0 bottom-0 left-0 bg-black/60 px-2 py-1 text-xs text-white">
-                                {img.description}
+                              <div className="absolute right-0 bottom-0 left-0 bg-black/60 px-2 py-1">
+                                <MarkdownRenderer
+                                  content={img.description}
+                                  className="prose prose-xs max-w-none text-xs text-white [&_*]:text-white [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                />
                               </div>
                             )}
                             {/* Delete Button */}

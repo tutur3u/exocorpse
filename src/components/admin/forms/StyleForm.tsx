@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
+import MarkdownEditor from "@/components/shared/MarkdownEditor";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { Style } from "@/lib/actions/commissions";
 import { cleanFormData } from "@/lib/forms";
@@ -39,12 +40,13 @@ export default function StyleForm({
     },
   });
 
-  const { register, handleSubmit: formHandleSubmit, setValue } = form;
+  const { register, handleSubmit: formHandleSubmit, setValue, watch } = form;
   const { handleExit, showConfirmDialog, confirmExit, cancelExit } =
     useFormDirtyState(form);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const description = watch("description");
 
   const handleNameChange = (value: string) => {
     setValue("name", value, { shouldDirty: true });
@@ -184,25 +186,17 @@ export default function StyleForm({
               </div>
 
               {/* Description */}
-              <div>
-                <label
-                  htmlFor="description"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  {...register("description")}
-                  rows={4}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  placeholder="Describe this style option..."
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Explain what makes this style unique and any specific
-                  characteristics
-                </p>
-              </div>
+              <MarkdownEditor
+                label="Description"
+                value={description || ""}
+                onChange={(value) =>
+                  setValue("description", value, { shouldDirty: true })
+                }
+                placeholder="Describe this style option..."
+                helpText="Explain what makes this style unique. Supports markdown formatting."
+                rows={5}
+                minHeight="170px"
+              />
 
               <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div className="flex">

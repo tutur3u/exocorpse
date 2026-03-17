@@ -3,6 +3,7 @@
 import GamePieceForm from "@/components/admin/forms/GamePieceForm";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import StorageImage from "@/components/shared/StorageImage";
+import { markdownToPlainText } from "@/lib/markdown";
 import type { GamePiece } from "@/lib/actions/portfolio";
 import {
   createGamePiece,
@@ -166,7 +167,7 @@ export default function GamePortfolioTab({
                   </h3>
                   {game.description && (
                     <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                      {game.description}
+                      {markdownToPlainText(game.description)}
                     </p>
                   )}
                   {game.game_url && (

@@ -1,3 +1,4 @@
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -88,9 +89,10 @@ export default function Lightbox({
             {content.title}
           </h3>
           {content.description && (
-            <p className="leading-relaxed text-gray-600 dark:text-gray-400">
-              {content.description}
-            </p>
+            <MarkdownRenderer
+              content={content.description}
+              className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            />
           )}
           {content.footer && <div>{content.footer}</div>}
         </div>
