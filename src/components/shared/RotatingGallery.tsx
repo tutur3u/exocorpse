@@ -24,6 +24,7 @@ type RotatingGalleryProps = {
   openOnClick?: boolean;
   allowFullscreen?: boolean;
   showArrows?: boolean;
+  showSidePreviews?: boolean;
 };
 
 export default function RotatingGallery({
@@ -36,19 +37,27 @@ export default function RotatingGallery({
   openOnClick = false,
   allowFullscreen = true,
   showArrows = true,
+  showSidePreviews = false,
 }: RotatingGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [interactionVersion, setInteractionVersion] = useState(0);
   const imageKey = images.map((image) => image.id).join("|");
+
+  const markInteraction = () => {
+    setInteractionVersion((currentVersion) => currentVersion + 1);
+  };
 
   const goToNext = () => {
     setActiveIndex((currentIndex) => (currentIndex + 1) % images.length);
+    markInteraction();
   };
 
   const goToPrevious = () => {
     setActiveIndex(
       (currentIndex) => (currentIndex - 1 + images.length) % images.length,
     );
+    markInteraction();
   };
 
   useEffect(() => {
@@ -65,13 +74,15 @@ export default function RotatingGallery({
     }, intervalMs);
 
     return () => window.clearInterval(intervalId);
-  }, [images.length, intervalMs, lightboxIndex]);
+  }, [images.length, intervalMs, lightboxIndex, interactionVersion]);
 
   if (images.length === 0) {
     return null;
   }
 
   const activeImage = images[activeIndex];
+  const previousIndex = (activeIndex - 1 + images.length) % images.length;
+  const nextIndex = (activeIndex + 1) % images.length;
   const overlayContent =
     typeof overlay === "function" ? overlay(activeImage) : overlay;
   const lightboxContent: LightboxContent | null =
@@ -93,24 +104,104 @@ export default function RotatingGallery({
           }
         }}
       >
-        {images.map((image, index) => (
-          <div
-            key={image.id}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              index === activeIndex
-                ? "opacity-100"
-                : "pointer-events-none opacity-0"
-            }`}
-            aria-hidden={index !== activeIndex}
-          >
-            <StorageImage
-              src={image.src}
-              alt={image.alt}
-              fill
-              className={imageClassName}
-            />
-          </div>
-        ))}
+        {showSidePreviews && images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                goToPrevious();
+              }}
+              className="absolute top-1/2 left-4 z-[1] hidden h-[72%] w-[18%] -translate-y-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-sm transition hover:border-white/20 hover:bg-black/40 md:block"
+              aria-label="Show previous image"
+            >
+              <StorageImage
+                src={images[previousIndex].src}
+                alt={images[previousIndex].alt}
+                fill
+                className="object-cover opacity-60"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-2 px-3 text-xs font-medium tracking-[0.18em] text-white uppercase">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Prev
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                goToNext();
+              }}
+              className="absolute top-1/2 right-4 z-[1] hidden h-[72%] w-[18%] -translate-y-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-sm transition hover:border-white/20 hover:bg-black/40 md:block"
+              aria-label="Show next image"
+            >
+              <StorageImage
+                src={images[nextIndex].src}
+                alt={images[nextIndex].alt}
+                fill
+                className="object-cover opacity-60"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-2 px-3 text-xs font-medium tracking-[0.18em] text-white uppercase">
+                Next
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </button>
+          </>
+        )}
+
+        <div
+          className={`absolute inset-y-0 ${
+            showSidePreviews && images.length > 1
+              ? "left-1/2 w-[72%] -translate-x-1/2 md:w-[56%]"
+              : "inset-x-0"
+          }`}
+        >
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              className={`absolute inset-0 transition-opacity duration-700 ${
+                index === activeIndex
+                  ? "opacity-100"
+                  : "pointer-events-none opacity-0"
+              }`}
+              aria-hidden={index !== activeIndex}
+            >
+              <StorageImage
+                src={image.src}
+                alt={image.alt}
+                fill
+                className={imageClassName}
+              />
+            </div>
+          ))}
+        </div>
 
         {overlayContent}
 
@@ -148,7 +239,7 @@ export default function RotatingGallery({
                 event.stopPropagation();
                 goToPrevious();
               }}
-              className="absolute top-1/2 left-3 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/80"
+              className="absolute top-1/2 left-3 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/80 md:left-[20%]"
               aria-label="Show previous image"
             >
               <svg
@@ -171,7 +262,7 @@ export default function RotatingGallery({
                 event.stopPropagation();
                 goToNext();
               }}
-              className="absolute top-1/2 right-3 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/80"
+              className="absolute top-1/2 right-3 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/80 md:right-[20%]"
               aria-label="Show next image"
             >
               <svg
@@ -202,6 +293,7 @@ export default function RotatingGallery({
                 onClick={(event) => {
                   event.stopPropagation();
                   setActiveIndex(index);
+                  markInteraction();
                 }}
                 className={`h-2.5 rounded-full transition-all ${
                   index === activeIndex
@@ -226,6 +318,7 @@ export default function RotatingGallery({
                       ? 0
                       : (currentIndex + 1) % images.length;
                   setActiveIndex(nextIndex);
+                  markInteraction();
                   return nextIndex;
                 });
               }
@@ -240,6 +333,7 @@ export default function RotatingGallery({
                       ? 0
                       : (currentIndex - 1 + images.length) % images.length;
                   setActiveIndex(previousIndex);
+                  markInteraction();
                   return previousIndex;
                 });
               }

@@ -400,6 +400,7 @@ export default function PortfolioClient({
                     className="h-full w-full"
                     imageClassName="h-full w-full object-cover"
                     openOnClick
+                    showSidePreviews
                     overlay={(image) => (
                       <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
                         <div className="max-w-2xl">
@@ -625,6 +626,7 @@ export default function PortfolioClient({
                         className="h-full w-full"
                         imageClassName="h-full w-full object-cover"
                         openOnClick
+                        showSidePreviews
                         overlay={(image) => (
                           <div className="absolute inset-0 flex items-end bg-linear-to-t from-black via-black/30 to-transparent p-6">
                             <div className="max-w-2xl">
