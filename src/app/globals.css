@@ -74,6 +74,95 @@
   animation: fadeOut 0.15s ease-in forwards;
 }
 
+@keyframes heavenSpaceDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heavenSpaceNoise {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(-1.5%, 1%, 0);
+  }
+  50% {
+    transform: translate3d(1%, -1%, 0);
+  }
+  75% {
+    transform: translate3d(-1%, 1.5%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heavenSpaceSceneEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes heavenSpaceChoiceEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes heavenSpaceStatChanged {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.24),
+      0 0 0 0 rgba(255, 229, 204, 0.34);
+  }
+  40% {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow:
+      0 22px 46px rgba(0, 0, 0, 0.28),
+      0 0 0 12px rgba(255, 229, 204, 0);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.24),
+      0 0 0 0 rgba(255, 229, 204, 0);
+  }
+}
+
+@keyframes heavenSpaceCtaPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 16px 30px rgba(223, 155, 141, 0.28),
+      0 0 0 0 rgba(223, 155, 141, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 20px 36px rgba(223, 155, 141, 0.34),
+      0 0 0 12px rgba(223, 155, 141, 0);
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -249,6 +338,96 @@ body {
 /* Prevent text selection during drag */
 .window-drag-handle * {
   user-select: none;
+}
+
+.heaven-space-shell {
+  isolation: isolate;
+}
+
+.heaven-space-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+  opacity: 0.12;
+}
+
+.heaven-space-noise::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background-image:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(255, 255, 255, 0.08) 0 0.8px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 70% 60%,
+      rgba(255, 255, 255, 0.06) 0 0.8px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px
+    );
+  background-size:
+    120px 120px,
+    160px 160px,
+    180px 180px;
+  mix-blend-mode: screen;
+  opacity: 0.16;
+  animation: heavenSpaceNoise 18s linear infinite;
+  pointer-events: none;
+}
+
+.heaven-space-float {
+  animation: heavenSpaceDrift 8s ease-in-out infinite;
+}
+
+.heaven-space-enter {
+  animation: heavenSpaceSceneEnter 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.heaven-space-scene-enter {
+  animation: heavenSpaceSceneEnter 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.heaven-space-choice-enter {
+  animation: heavenSpaceChoiceEnter 380ms cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+}
+
+.heaven-space-stat-changed {
+  animation: heavenSpaceStatChanged 920ms cubic-bezier(0.2, 1, 0.36, 1);
+}
+
+.heaven-space-cta {
+  animation: heavenSpaceCtaPulse 2.8s ease-in-out infinite;
+}
+
+.heaven-space-chip {
+  animation:
+    heavenSpaceSceneEnter 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    heavenSpaceDrift 7s ease-in-out infinite 0.45s;
+}
+
+.heaven-space-orb {
+  background: radial-gradient(
+    circle,
+    rgba(255, 223, 208, 0.18) 0%,
+    rgba(255, 223, 208, 0.08) 40%,
+    transparent 72%
+  );
+  animation: heavenSpaceDrift 10s ease-in-out infinite;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.heaven-space-orb-right {
+  animation-direction: reverse;
+  animation-duration: 13s;
 }
 
 /* Mobile-specific styles */

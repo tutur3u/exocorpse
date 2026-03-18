@@ -33,6 +33,8 @@ export default function Icon({
   const isHovered =
     externalIsHovered !== undefined ? externalIsHovered : internalIsHovered;
 
+  const isDirectPath = name.startsWith("/");
+
   // Check if this icon has both PNG and GIF versions
   // Icons with both versions: Blog, Butterflies, Commission, Portfolio, World_Wiki
   const hasGifVersion = [
@@ -45,7 +47,9 @@ export default function Icon({
 
   // Determine which image to show
   const imageType = isHovered && hasGifVersion ? "GIFs" : "PNGs";
-  const imagePath = `/icons/${imageType}/${size}/${name}.${isHovered && hasGifVersion ? "gif" : "png"}`;
+  const imagePath = isDirectPath
+    ? name
+    : `/icons/${imageType}/${size}/${name}.${isHovered && hasGifVersion ? "gif" : "png"}`;
 
   return (
     <div
@@ -58,8 +62,8 @@ export default function Icon({
         alt={alt || name}
         width={size}
         height={size}
-        className="h-full w-full"
-        unoptimized={isHovered && hasGifVersion} // Don't optimize GIFs
+        className={`h-full w-full ${isDirectPath ? "object-contain" : "object-cover"}`}
+        unoptimized={isDirectPath || (isHovered && hasGifVersion)} // Don't optimize GIFs or direct artwork icons
       />
     </div>
   );

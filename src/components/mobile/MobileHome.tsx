@@ -17,6 +17,11 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
     { id: "commission", label: "commissions", icon: "Commission" },
     { id: "wiki", label: "wiki", icon: "World_Wiki" },
     { id: "blog", label: "blog", icon: "Blog" },
+    {
+      id: "heaven-space",
+      label: "heaven space",
+      icon: "/media/heaven-space/epilogue.png",
+    },
   ];
 
   return (
@@ -63,8 +68,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
           ))}
         </div>
 
-        {/* Row 2 — 2 icons offset between top ones */}
-        <div className="flex justify-center gap-4 pl-5">
+        <div className="flex justify-center gap-4">
           {apps.slice(3).map((app) => (
             <button
               key={app.id}

@@ -54,6 +54,7 @@ export default function Window({ id, title, children }: WindowProps) {
       "blog-page": parseAsInteger,
       "blog-page-size": parseAsInteger,
       "blog-post": parseAsString,
+      game: parseAsString,
     },
     {
       shallow: true,
@@ -232,6 +233,12 @@ export default function Window({ id, title, children }: WindowProps) {
         "blog-page": null,
         "blog-page-size": null,
         "blog-post": null,
+      });
+    }
+
+    if (id === "heaven-space") {
+      setParams({
+        game: null,
       });
     }
 

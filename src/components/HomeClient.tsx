@@ -16,6 +16,7 @@ import { WindowProvider } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { GameSearchParams } from "@/lib/game-search-params";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 
@@ -24,6 +25,7 @@ type HomeClientProps = {
   blogParams: BlogSearchParams;
   commissionParams: CommissionSearchParams;
   portfolioParams: PortfolioSearchParams;
+  gameParams: GameSearchParams;
   initialWikiData: InitialWikiData;
   initialBlogData: InitialBlogData;
   initialCommissionData: InitialCommissionData;
@@ -35,6 +37,7 @@ export default function HomeClient({
   blogParams,
   commissionParams,
   portfolioParams,
+  gameParams,
   initialWikiData,
   initialBlogData,
   initialCommissionData,
@@ -58,7 +61,8 @@ export default function HomeClient({
     commissionParams.service ||
     commissionParams.style ||
     portfolioParams["portfolio-tab"] ||
-    portfolioParams["portfolio-piece"]
+    portfolioParams["portfolio-piece"] ||
+    gameParams.game
   );
 
   // Show boot screen only on first visit to root index (no content params)
@@ -72,6 +76,7 @@ export default function HomeClient({
     blogParams,
     commissionParams,
     portfolioParams,
+    gameParams,
   };
 
   return (

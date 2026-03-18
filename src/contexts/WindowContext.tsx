@@ -3,14 +3,18 @@
 import AboutMe from "@/components/apps/AboutMe";
 import Blog from "@/components/apps/Blog";
 import Commission from "@/components/apps/Commission";
+import HeavenSpace from "@/components/apps/HeavenSpace";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
 import { TASKBAR_HEIGHT } from "@/constants";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import { HEAVEN_SPACE_GAME_ID, gameQueryParser } from "@/lib/game-query";
+import type { GameSearchParams } from "@/lib/game-search-params";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
+import { useQueryState } from "nuqs";
 import React, {
   createContext,
   useCallback,
@@ -80,6 +84,14 @@ export const APP_CONFIGS: WindowConfig[] = [
     defaultSize: { width: 700, height: 600 },
     defaultPosition: { x: 150, y: 100 },
   },
+  {
+    id: "heaven-space",
+    title: "Heaven Space",
+    icon: "/media/heaven-space/epilogue.png",
+    component: HeavenSpace,
+    defaultSize: { width: 960, height: 700 },
+    defaultPosition: { x: 80, y: 60 },
+  },
 ];
 
 export function WindowProvider({
@@ -88,12 +100,14 @@ export function WindowProvider({
   blogParams,
   commissionParams,
   portfolioParams,
+  gameParams,
 }: {
   children: React.ReactNode;
   wikiParams?: WikiSearchParams;
   blogParams?: BlogSearchParams;
   commissionParams?: CommissionSearchParams;
   portfolioParams?: PortfolioSearchParams;
+  gameParams?: GameSearchParams;
 }) {
   const hasWikiParams =
     wikiParams &&
@@ -117,59 +131,97 @@ export function WindowProvider({
     portfolioParams &&
     (portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"]);
 
-  // Initialize windows with appropriate window if params are present
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
-  const initializedRef = useRef(false);
+  const [gameQuery, setGameQuery] = useQueryState(
+    "game",
+    gameQueryParser.withOptions({
+      shallow: true,
+      history: "push",
+    }),
+  );
+  const desiredAppId = gameQuery
+    ? "heaven-space"
+    : hasWikiParams
+      ? "wiki"
+      : hasBlogParams
+        ? "blog"
+        : hasCommissionParams
+          ? "commission"
+          : hasPortfolioParams
+            ? "portfolio"
+            : null;
 
-  // Initialize wiki, blog, or commission window on mount if params are present
-  // Using useEffect with empty deps to ensure it only runs once on mount
   useEffect(() => {
-    if (
-      (hasWikiParams ||
-        hasBlogParams ||
-        hasCommissionParams ||
-        hasPortfolioParams) &&
-      !initializedRef.current
-    ) {
-      initializedRef.current = true;
-      let appId: "wiki" | "blog" | "commission" | "portfolio" = "blog";
-
-      if (hasWikiParams) {
-        appId = "wiki";
-      } else if (hasCommissionParams) {
-        appId = "commission";
-      } else if (hasPortfolioParams) {
-        appId = "portfolio";
-      }
-
-      const config = APP_CONFIGS.find((c) => c.id === appId);
-      if (config) {
-        setWindows([
-          {
-            id: appId,
-            state: "maximized",
-            zIndex: 1000,
-            position: { x: 0, y: 0 },
-            size: {
-              width: window.innerWidth,
-              height: window.innerHeight - TASKBAR_HEIGHT,
-            },
-            previousState: {
-              position: config.defaultPosition,
-              size: config.defaultSize,
-            },
-          },
-        ]);
-        setNextZIndex(1001);
-      }
+    if (!desiredAppId) {
+      return;
     }
-    // Empty dependency array - only run once on mount, never again
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    const existing = windows.find((entry) => entry.id === desiredAppId);
+
+    if (existing) {
+      const highestZ = Math.max(...windows.map((entry) => entry.zIndex));
+
+      if (existing.state === "minimized") {
+        setWindows((prev) =>
+          prev.map((entry) =>
+            entry.id === desiredAppId
+              ? {
+                  ...entry,
+                  state:
+                    desiredAppId === "heaven-space" ? "maximized" : "normal",
+                  zIndex: nextZIndex,
+                }
+              : entry,
+          ),
+        );
+        setNextZIndex((prev) => prev + 1);
+      } else if (existing.zIndex !== highestZ) {
+        setWindows((prev) =>
+          prev.map((entry) =>
+            entry.id === desiredAppId
+              ? { ...entry, zIndex: nextZIndex }
+              : entry,
+          ),
+        );
+        setNextZIndex((prev) => prev + 1);
+      }
+
+      return;
+    }
+
+    const config = APP_CONFIGS.find((entry) => entry.id === desiredAppId);
+
+    if (!config) {
+      return;
+    }
+
+    setWindows((prev) => [
+      ...prev,
+      {
+        id: desiredAppId,
+        state: "maximized",
+        zIndex: nextZIndex,
+        position: { x: 0, y: 0 },
+        size: {
+          width: window.innerWidth,
+          height: window.innerHeight - TASKBAR_HEIGHT,
+        },
+        previousState: {
+          position: config.defaultPosition,
+          size: config.defaultSize,
+        },
+      },
+    ]);
+    setNextZIndex((prev) => prev + 1);
+  }, [desiredAppId, nextZIndex, windows]);
 
   const openWindow = useCallback(
     (id: AppId) => {
+      if (id === HEAVEN_SPACE_GAME_ID) {
+        void setGameQuery(HEAVEN_SPACE_GAME_ID);
+      }
+
       const existingWindow = windows.find((w) => w.id === id);
 
       if (existingWindow) {
@@ -177,7 +229,13 @@ export function WindowProvider({
         if (existingWindow.state === "minimized") {
           setWindows((prev) =>
             prev.map((w) =>
-              w.id === id ? { ...w, state: "normal", zIndex: nextZIndex } : w,
+              w.id === id
+                ? {
+                    ...w,
+                    state: id === "heaven-space" ? "maximized" : "normal",
+                    zIndex: nextZIndex,
+                  }
+                : w,
             ),
           );
           setNextZIndex((prev) => prev + 1);
@@ -196,21 +254,42 @@ export function WindowProvider({
 
       const newWindow: WindowInstance = {
         id,
-        state: "normal",
+        state: id === "heaven-space" ? "maximized" : "normal",
         zIndex: nextZIndex,
-        position: config.defaultPosition,
-        size: config.defaultSize,
+        position:
+          id === "heaven-space" ? { x: 0, y: 0 } : config.defaultPosition,
+        size:
+          id === "heaven-space"
+            ? {
+                width: window.innerWidth,
+                height: window.innerHeight - TASKBAR_HEIGHT,
+              }
+            : config.defaultSize,
+        previousState:
+          id === "heaven-space"
+            ? {
+                position: config.defaultPosition,
+                size: config.defaultSize,
+              }
+            : undefined,
       };
 
       setWindows((prev) => [...prev, newWindow]);
       setNextZIndex((prev) => prev + 1);
     },
-    [windows, nextZIndex],
+    [nextZIndex, setGameQuery, windows],
   );
 
-  const closeWindow = useCallback((id: AppId) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }, []);
+  const closeWindow = useCallback(
+    (id: AppId) => {
+      if (id === HEAVEN_SPACE_GAME_ID) {
+        void setGameQuery(null);
+      }
+
+      setWindows((prev) => prev.filter((w) => w.id !== id));
+    },
+    [setGameQuery],
+  );
 
   const minimizeWindow = useCallback((id: AppId) => {
     setWindows((prev) =>

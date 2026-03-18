@@ -40,6 +40,7 @@ export default function PortfolioClient({
         "games",
       ] as const).withDefault("art"),
       "portfolio-piece": parseAsString,
+      game: parseAsStringLiteral(["heaven-space"] as const),
     },
     {
       shallow: true,
@@ -99,6 +100,14 @@ export default function PortfolioClient({
     // Fall back to searching in the gallery list
     return gamePieces.find((g) => g.slug === selectedPieceId) ?? null;
   }, [selectedPieceId, activeTab, gamePieces, initialData.selectedGamePiece]);
+
+  const launchHeavenSpace = () => {
+    setParams({
+      game: "heaven-space",
+      "portfolio-tab": "games",
+      "portfolio-piece": null,
+    });
+  };
 
   // Filter controls
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -746,17 +755,29 @@ export default function PortfolioClient({
                       </div>
 
                       {/* Play Game Button */}
-                      {selectedGame.game_url && (
+                      {isHeavenSpaceGame(selectedGame) ? (
                         <div className="border-t border-gray-800 p-8">
-                          <a
-                            href={selectedGame.game_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={launchHeavenSpace}
                             className="block w-full rounded-lg bg-white py-4 text-center text-lg font-bold tracking-wider text-black uppercase transition-colors hover:bg-gray-200"
                           >
-                            PLAY GAME
-                          </a>
+                            ENTER HEAVEN SPACE
+                          </button>
                         </div>
+                      ) : (
+                        selectedGame.game_url && (
+                          <div className="border-t border-gray-800 p-8">
+                            <a
+                              href={selectedGame.game_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block w-full rounded-lg bg-white py-4 text-center text-lg font-bold tracking-wider text-black uppercase transition-colors hover:bg-gray-200"
+                            >
+                              PLAY GAME
+                            </a>
+                          </div>
+                        )
                       )}
                     </div>
 
@@ -851,7 +872,7 @@ export default function PortfolioClient({
                           {markdownToPlainText(game.description)}
                         </p>
                       )}
-                      {game.game_url && (
+                      {(isHeavenSpaceGame(game) || game.game_url) && (
                         <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
                           <svg
                             className="h-4 w-4"
@@ -872,7 +893,9 @@ export default function PortfolioClient({
                               d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                           </svg>
-                          Play Now
+                          {isHeavenSpaceGame(game)
+                            ? "Launch In App"
+                            : "Play Now"}
                         </div>
                       )}
                     </div>
@@ -884,5 +907,12 @@ export default function PortfolioClient({
         )}
       </div>
     </div>
+  );
+}
+
+function isHeavenSpaceGame(game: Pick<GamePiece, "slug" | "title">) {
+  return (
+    game.slug === "heaven-space" ||
+    game.title.trim().toLowerCase() === "heaven space"
   );
 }

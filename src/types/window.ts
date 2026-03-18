@@ -1,5 +1,11 @@
 export type WindowState = "normal" | "minimized" | "maximized";
-export type AppId = "about" | "portfolio" | "commission" | "wiki" | "blog";
+export type AppId =
+  | "about"
+  | "portfolio"
+  | "commission"
+  | "wiki"
+  | "blog"
+  | "heaven-space";
 
 export interface WindowConfig {
   id: AppId;

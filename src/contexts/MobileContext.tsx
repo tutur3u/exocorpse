@@ -3,10 +3,12 @@
 import AboutMe from "@/components/apps/AboutMe";
 import Blog from "@/components/apps/Blog";
 import Commission from "@/components/apps/Commission";
+import HeavenSpace from "@/components/apps/HeavenSpace";
 import Portfolio from "@/components/apps/Portfolio";
 import Wiki from "@/components/apps/Wiki";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
+import type { GameSearchParams } from "@/lib/game-search-params";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
 import type { AppId } from "@/types/window";
@@ -65,6 +67,12 @@ export const MOBILE_APPS: MobileApp[] = [
     icon: "World_Wiki",
     component: Wiki,
   },
+  {
+    id: "heaven-space",
+    title: "Heaven Space",
+    icon: "/media/heaven-space/epilogue.png",
+    component: HeavenSpace,
+  },
 ];
 
 export function MobileProvider({
@@ -73,12 +81,14 @@ export function MobileProvider({
   blogParams,
   commissionParams,
   portfolioParams,
+  gameParams,
 }: {
   children: React.ReactNode;
   wikiParams: WikiSearchParams;
   blogParams: BlogSearchParams;
   commissionParams: CommissionSearchParams;
   portfolioParams: PortfolioSearchParams;
+  gameParams?: GameSearchParams;
 }) {
   const hasWikiParams =
     wikiParams.story ||
@@ -99,22 +109,30 @@ export function MobileProvider({
   const hasPortfolioParams =
     portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"];
 
+  const hasGameParams = gameParams?.game;
+
   // Initialize state with appropriate app open if params are present
   const [sheetState, setSheetState] = useState<BottomSheetState>(
-    hasWikiParams || hasBlogParams || hasCommissionParams || hasPortfolioParams
+    hasGameParams ||
+      hasWikiParams ||
+      hasBlogParams ||
+      hasCommissionParams ||
+      hasPortfolioParams
       ? "full-open"
       : "closed",
   );
   const [selectedApp, setSelectedApp] = useState<AppId | null>(
-    hasWikiParams
-      ? "wiki"
-      : hasBlogParams
-        ? "blog"
-        : hasCommissionParams
-          ? "commission"
-          : hasPortfolioParams
-            ? "portfolio"
-            : null,
+    hasGameParams
+      ? "heaven-space"
+      : hasWikiParams
+        ? "wiki"
+        : hasBlogParams
+          ? "blog"
+          : hasCommissionParams
+            ? "commission"
+            : hasPortfolioParams
+              ? "portfolio"
+              : null,
   );
 
   const openSheet = useCallback(() => {

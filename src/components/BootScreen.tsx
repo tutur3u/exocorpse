@@ -12,9 +12,17 @@ interface TerminalMessage {
 
 const BOOT_IMAGES = ["Fenrys.webp", "Morris.webp"];
 const BACKGROUND_IMAGE = "/background-image.webp";
+const DEFAULT_BOOT_IMAGE = BOOT_IMAGES[0];
 
 const getRandomBootImage = () => {
   return BOOT_IMAGES[Math.floor(Math.random() * BOOT_IMAGES.length)];
+};
+
+const getFormattedTime = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
 };
 
 const TERMINAL_MESSAGES: Omit<TerminalMessage, "displayedText" | "isTyping">[] =
@@ -35,8 +43,7 @@ export default function BootScreen({
   onBootComplete: () => void;
 }) {
   const { playSound, stopSound } = useSound();
-  const [currentTime, setCurrentTime] = useState("");
-  const [randomBootImage] = useState(() => getRandomBootImage());
+  const [bootImage, setBootImage] = useState(DEFAULT_BOOT_IMAGE);
   const [messages, setMessages] = useState<TerminalMessage[]>(
     TERMINAL_MESSAGES.map((msg) => ({
       ...msg,
@@ -45,18 +52,9 @@ export default function BootScreen({
     })),
   );
 
-  // Update local time
+  // Defer avatar randomization until after hydration so SSR and client markup match.
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      setCurrentTime(`${hours}:${minutes}`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+    setBootImage(getRandomBootImage());
   }, []);
 
   // Animate terminal messages and handle boot completion
@@ -64,12 +62,13 @@ export default function BootScreen({
     let hasCompleted = false;
     const timeouts: NodeJS.Timeout[] = [];
     const intervals: NodeJS.Timeout[] = [];
+    const bootTime = getFormattedTime();
 
     // Schedule each message to start typing sequentially
     let cumulativeDelay = 0;
 
     TERMINAL_MESSAGES.forEach((msg, index) => {
-      const fullText = msg.text.replace("XX:XX", currentTime);
+      const fullText = msg.text.replace("XX:XX", bootTime);
       const typingDuration = fullText.length * 30; // 30ms per character
 
       const timeout = setTimeout(() => {
@@ -139,7 +138,7 @@ export default function BootScreen({
       });
       stopSound("boot");
     };
-  }, [playSound, onBootComplete, stopSound, currentTime]);
+  }, [playSound, onBootComplete, stopSound]);
 
   return (
     <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-cover bg-center">
@@ -161,7 +160,7 @@ export default function BootScreen({
         <div className="animate-fadeIn">
           <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full">
             <Image
-              src={`/boot/${randomBootImage}`}
+              src={`/boot/${bootImage}`}
               alt="Boot Avatar"
               width={192}
               height={192}

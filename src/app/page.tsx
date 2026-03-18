@@ -38,6 +38,10 @@ import {
   serializeBlogSearchParams,
 } from "@/lib/blog-search-params";
 import { loadCommissionSearchParams } from "@/lib/commission-search-params";
+import {
+  loadGameSearchParams,
+  serializeGameSearchParams,
+} from "@/lib/game-search-params";
 import { loadPortfolioSearchParams } from "@/lib/portfolio-search-params";
 import {
   loadWikiSearchParams,
@@ -52,6 +56,20 @@ type Props = {
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
+  const gameParams = await loadGameSearchParams(searchParams);
+
+  if (gameParams.game === "heaven-space") {
+    return {
+      title: "HEAVEN SPACE - EXOCORPSE",
+      description: "Remember, Regret, Reincarnate.",
+      alternates: {
+        canonical: serializeGameSearchParams("/", {
+          game: "heaven-space",
+        }),
+      },
+    };
+  }
+
   // Check for blog params first
   const blogParams = await loadBlogSearchParams(searchParams);
   const { "blog-post": blogPostSlug } = blogParams;
@@ -244,11 +262,13 @@ async function HomeContent({
   blogParamsData,
   commissionParamsData,
   portfolioParamsData,
+  gameParamsData,
 }: {
   wikiParamsData: Awaited<ReturnType<typeof loadWikiSearchParams>>;
   blogParamsData: Awaited<ReturnType<typeof loadBlogSearchParams>>;
   commissionParamsData: Awaited<ReturnType<typeof loadCommissionSearchParams>>;
   portfolioParamsData: Awaited<ReturnType<typeof loadPortfolioSearchParams>>;
+  gameParamsData: Awaited<ReturnType<typeof loadGameSearchParams>>;
 }) {
   const DEFAULT_PAGE_SIZE = 10;
 
@@ -256,6 +276,7 @@ async function HomeContent({
   const blogParams = blogParamsData;
   const commissionParams = commissionParamsData;
   const portfolioParams = portfolioParamsData;
+  const gameParams = gameParamsData;
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -546,6 +567,7 @@ async function HomeContent({
       blogParams={blogParams}
       commissionParams={commissionParams}
       portfolioParams={portfolioParams}
+      gameParams={gameParams}
       initialWikiData={initialWikiData}
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
@@ -568,6 +590,7 @@ async function HomeContentWrapper({
   const blogParamsData = await loadBlogSearchParams(searchParams);
   const commissionParamsData = await loadCommissionSearchParams(searchParams);
   const portfolioParamsData = await loadPortfolioSearchParams(searchParams);
+  const gameParamsData = await loadGameSearchParams(searchParams);
 
   // Pass resolved params to cached component
   return (
@@ -576,6 +599,7 @@ async function HomeContentWrapper({
       blogParamsData={blogParamsData}
       commissionParamsData={commissionParamsData}
       portfolioParamsData={portfolioParamsData}
+      gameParamsData={gameParamsData}
     />
   );
 }
