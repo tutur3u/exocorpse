@@ -1111,6 +1111,182 @@ export type Database = {
         };
         Relationships: [];
       };
+      heaven_space_assets: {
+        Row: {
+          alt_text: string | null;
+          created_at: string;
+          display_order: number;
+          filename: string;
+          id: string;
+          image_url: string;
+          updated_at: string;
+        };
+        Insert: {
+          alt_text?: string | null;
+          created_at?: string;
+          display_order?: number;
+          filename: string;
+          id?: string;
+          image_url?: string;
+          updated_at?: string;
+        };
+        Update: {
+          alt_text?: string | null;
+          created_at?: string;
+          display_order?: number;
+          filename?: string;
+          id?: string;
+          image_url?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      heaven_space_scene_choices: {
+        Row: {
+          conditions: Json;
+          created_at: string;
+          display_order: number;
+          effects: Json;
+          id: string;
+          label: string;
+          scene_id: string;
+          target_scene_id: string | null;
+          target_scene_slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          conditions?: Json;
+          created_at?: string;
+          display_order?: number;
+          effects?: Json;
+          id?: string;
+          label: string;
+          scene_id: string;
+          target_scene_id?: string | null;
+          target_scene_slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          conditions?: Json;
+          created_at?: string;
+          display_order?: number;
+          effects?: Json;
+          id?: string;
+          label?: string;
+          scene_id?: string;
+          target_scene_id?: string | null;
+          target_scene_slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "heaven_space_scene_choices_scene_id_fkey";
+            columns: ["scene_id"];
+            isOneToOne: false;
+            referencedRelation: "heaven_space_scenes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "heaven_space_scene_choices_target_scene_id_fkey";
+            columns: ["target_scene_id"];
+            isOneToOne: false;
+            referencedRelation: "heaven_space_scenes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      heaven_space_scenes: {
+        Row: {
+          body_blocks: Json;
+          created_at: string;
+          display_order: number;
+          ending: string | null;
+          entry_effects: Json;
+          id: string;
+          image_asset_id: string | null;
+          image_filename: string | null;
+          is_start: boolean;
+          legacy_name: string | null;
+          legacy_source: string | null;
+          map_position_x: number | null;
+          map_position_y: number | null;
+          slug: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          body_blocks?: Json;
+          created_at?: string;
+          display_order?: number;
+          ending?: string | null;
+          entry_effects?: Json;
+          id?: string;
+          image_asset_id?: string | null;
+          image_filename?: string | null;
+          is_start?: boolean;
+          legacy_name?: string | null;
+          legacy_source?: string | null;
+          map_position_x?: number | null;
+          map_position_y?: number | null;
+          slug: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          body_blocks?: Json;
+          created_at?: string;
+          display_order?: number;
+          ending?: string | null;
+          entry_effects?: Json;
+          id?: string;
+          image_asset_id?: string | null;
+          image_filename?: string | null;
+          is_start?: boolean;
+          legacy_name?: string | null;
+          legacy_source?: string | null;
+          map_position_x?: number | null;
+          map_position_y?: number | null;
+          slug?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "heaven_space_scenes_image_asset_id_fkey";
+            columns: ["image_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "heaven_space_assets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      heaven_space_passages: {
+        Row: {
+          content: string;
+          created_at: string;
+          display_order: number;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          content?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       locations: {
         Row: {
           banner_image: string | null;
