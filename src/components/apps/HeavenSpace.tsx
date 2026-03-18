@@ -588,34 +588,66 @@ export default function HeavenSpace() {
               className="border-t px-4 py-4 @md:px-6 @md:py-5"
               style={{ borderColor: "rgba(255,255,255,0.08)" }}
             >
-              <div className="grid gap-3 @lg:grid-cols-2 @2xl:grid-cols-1">
-                {deferredScene.choices.map((choice, index) => (
-                  <button
-                    key={`${deferredScene.passage}-${choice.label}-${choice.target}`}
-                    type="button"
-                    onClick={() => handleAdvance(choice.target)}
-                    className="heaven-space-choice-enter group relative overflow-hidden rounded-[1.35rem] border p-4 text-left transition duration-200 hover:-translate-y-0.5"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
-                      borderColor: "rgba(255,255,255,0.1)",
-                      boxShadow:
-                        "0 12px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
-                      animationDelay: `${index * 70}ms`,
-                    }}
-                  >
-                    <div
-                      className="absolute inset-y-0 left-0 w-1.5 transition-all duration-200 group-hover:w-3"
-                      style={{ background: palette.accent }}
-                    />
-                    <div className="pl-4">
-                      <p className="text-sm font-semibold tracking-[0.18em] text-[#fff9f4] uppercase">
-                        {choice.label}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between gap-3">
+                <p
+                  className="text-[10px] tracking-[0.34em] uppercase"
+                  style={{ color: palette.muted }}
+                >
+                  {deferredScene.ending
+                    ? "Run complete"
+                    : deferredScene.choices.length > 0
+                      ? `Choose next action // ${deferredScene.choices.length} option${deferredScene.choices.length === 1 ? "" : "s"}`
+                      : "Awaiting next action"}
+                </p>
               </div>
+
+              {deferredScene.choices.length > 0 ? (
+                <div className="mt-3 grid gap-3 @lg:grid-cols-2 @2xl:grid-cols-1">
+                  {deferredScene.choices.map((choice, index) => (
+                    <button
+                      key={`${deferredScene.passage}-${choice.label}-${choice.target}`}
+                      type="button"
+                      onClick={() => handleAdvance(choice.target)}
+                      className="heaven-space-choice-enter group relative overflow-hidden rounded-[1.35rem] border p-4 text-left transition duration-200 hover:-translate-y-0.5"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
+                        borderColor: "rgba(255,255,255,0.1)",
+                        boxShadow:
+                          "0 12px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
+                        animationDelay: `${index * 70}ms`,
+                      }}
+                    >
+                      <div
+                        className="absolute inset-y-0 left-0 w-1.5 transition-all duration-200 group-hover:w-3"
+                        style={{ background: palette.accent }}
+                      />
+                      <div className="pl-4">
+                        <p className="text-sm font-semibold tracking-[0.18em] text-[#fff9f4] uppercase">
+                          {choice.label}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : !deferredScene.ending ? (
+                <div
+                  className="mt-3 rounded-[1.35rem] border px-4 py-4"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.08)",
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+                  }}
+                >
+                  <p
+                    className="font-[Iowan Old Style,Palatino Linotype,Book Antiqua,serif] text-sm leading-7"
+                    style={{ color: "rgba(245, 239, 232, 0.8)" }}
+                  >
+                    No selectable action surfaced for this passage. If this does
+                    not resolve after a refresh, restart the run.
+                  </p>
+                </div>
+              ) : null}
             </div>
           </section>
 

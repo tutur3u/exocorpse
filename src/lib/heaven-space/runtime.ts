@@ -225,7 +225,15 @@ function renderTwineContent(
     const hook = parseHook(source, hookStart);
 
     if (hook) {
-      output += renderTwineContent(hook.inner, state, applyEntryEffects);
+      // Formatting macros like `(text-colour:red)[[Choice|Target]]` apply to a
+      // link token directly, not to a plain text hook. Preserve full link
+      // markup so downstream choice extraction still works.
+      const hookContent =
+        hook.raw.startsWith("[[") && hook.raw.endsWith("]]")
+          ? hook.raw
+          : hook.inner;
+
+      output += renderTwineContent(hookContent, state, applyEntryEffects);
       index = hook.end + 1;
       continue;
     }
@@ -339,6 +347,7 @@ function parseHook(source: string, start: number) {
       if (depth === 0) {
         return {
           inner: source.slice(start + 1, index),
+          raw: source.slice(start, index + 1),
           end: index,
         };
       }
