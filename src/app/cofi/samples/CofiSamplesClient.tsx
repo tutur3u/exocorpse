@@ -425,7 +425,7 @@ function ZoomableSampleViewer({
                     {sample.boothLocation} • {formatBoothType(sample.boothType)}
                   </p>
                 </div>
-                <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] uppercase tracking-[0.2em] text-[#d4cdbb]">
+                <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] tracking-[0.2em] text-[#d4cdbb] uppercase">
                   {formatJoiningDate(sample.joiningDate)}
                 </span>
               </div>
