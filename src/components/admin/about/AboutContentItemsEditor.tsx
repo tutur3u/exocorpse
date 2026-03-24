@@ -1,6 +1,7 @@
 "use client";
 
 import type { AboutContentItem, AboutContentSection } from "@/lib/about";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type FieldOption = {
@@ -123,17 +124,24 @@ function ItemCard({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-      <div className="mb-4 flex items-center justify-between">
+    <details className="group rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase dark:text-gray-400">
             Existing Item
           </p>
+          <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+            {draft.title.trim() || draft.subtitle.trim() || "Untitled item"}
+          </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            ID: {item.id.slice(0, 8)}
+            Order {draft.display_order} • ID {item.id.slice(0, 8)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
+      </summary>
+
+      <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={async () => {
@@ -165,19 +173,19 @@ function ItemCard({
             {deleting ? "Deleting..." : "Delete"}
           </button>
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {fields.map((field) => (
-          <label key={field.key} className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              {field.label}
-            </span>
-            <FieldInput field={field} draft={draft} onChange={setField} />
-          </label>
-        ))}
+        <div className="grid gap-4 md:grid-cols-2">
+          {fields.map((field) => (
+            <label key={field.key} className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {field.label}
+              </span>
+              <FieldInput field={field} draft={draft} onChange={setField} />
+            </label>
+          ))}
+        </div>
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -296,8 +304,11 @@ export default function AboutContentItemsEditor({
   };
 
   return (
-    <section className="space-y-4 rounded-[1.75rem] border border-gray-200 bg-linear-to-br from-white via-white to-gray-50 p-5 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <details
+      open
+      className="group rounded-[1.75rem] border border-gray-200 bg-linear-to-br from-white via-white to-gray-50 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {title}
@@ -308,66 +319,77 @@ export default function AboutContentItemsEditor({
             </p>
           ) : null}
         </div>
-        <div className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium tracking-[0.2em] text-gray-500 uppercase dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
-          {items.length} item{items.length === 1 ? "" : "s"}
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {items.map((item) => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            section={section}
-            fields={fields}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
-
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-900/40">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-              Add Item
-            </h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Create a new row for this section.
-            </p>
+        <div className="flex items-center gap-3">
+          <div className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium tracking-[0.2em] text-gray-500 uppercase dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+            {items.length} item{items.length === 1 ? "" : "s"}
           </div>
-          <button
-            type="button"
-            onClick={async () => {
-              setCreating(true);
-              try {
-                await onCreate(serializeDraft(newItem));
-              } finally {
-                setCreating(false);
-              }
-            }}
-            disabled={creating}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
-          >
-            {creating ? "Creating..." : "Add Item"}
-          </button>
+          <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
         </div>
+      </summary>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {fields.map((field) => (
-            <label key={field.key} className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                {field.label}
-              </span>
-              <FieldInput
-                field={field}
-                draft={newItem}
-                onChange={setNewField}
-              />
-            </label>
+      <div className="space-y-4 border-t border-gray-200 p-5 dark:border-gray-800">
+        <div className="space-y-4">
+          {items.map((item) => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              section={section}
+              fields={fields}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+            />
           ))}
         </div>
+
+        <details className="group rounded-2xl border border-dashed border-gray-300 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-900/40">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                Add Item
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Create a new row for this section.
+              </p>
+            </div>
+            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
+          </summary>
+
+          <div className="space-y-4 border-t border-dashed border-gray-300 p-4 dark:border-gray-700">
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={async () => {
+                  setCreating(true);
+                  try {
+                    await onCreate(serializeDraft(newItem));
+                  } finally {
+                    setCreating(false);
+                  }
+                }}
+                disabled={creating}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {creating ? "Creating..." : "Add Item"}
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {fields.map((field) => (
+                <label key={field.key} className="flex flex-col gap-2 text-sm">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {field.label}
+                  </span>
+                  <FieldInput
+                    field={field}
+                    draft={newItem}
+                    onChange={setNewField}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        </details>
       </div>
-    </section>
+    </details>
   );
 }

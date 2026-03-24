@@ -15,6 +15,54 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 
+const USERNAME_TEMPLATE_PATTERN =
+  /(\{\{left\}\}|\{\{right\}\}|\{\{result\}\})/g;
+
+function renderUsernameTemplate(faq: AboutFaq) {
+  const template =
+    faq.username_template?.trim() || "{{left}} + {{right}} = {{result}}";
+
+  return template
+    .split(USERNAME_TEMPLATE_PATTERN)
+    .filter((part) => part.length > 0)
+    .map((part, index) => {
+      if (part === "{{left}}") {
+        return (
+          <span
+            key={`${part}-${index}`}
+            className="font-semibold text-blue-600 dark:text-blue-400"
+          >
+            {faq.username_prefix_left}
+          </span>
+        );
+      }
+
+      if (part === "{{right}}") {
+        return (
+          <span
+            key={`${part}-${index}`}
+            className="font-semibold text-purple-600 dark:text-purple-400"
+          >
+            {faq.username_prefix_right}
+          </span>
+        );
+      }
+
+      if (part === "{{result}}") {
+        return (
+          <span
+            key={`${part}-${index}`}
+            className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400"
+          >
+            {faq.username_result}
+          </span>
+        );
+      }
+
+      return <span key={`${part}-${index}`}>{part}</span>;
+    });
+}
+
 export default function FaqTab({ data }: { data: AboutPageData }) {
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
   const itemsBySection = groupAboutItemsBySection(data.items);
@@ -213,18 +261,8 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
 
       case "username":
         return (
-          <p className="text-lg">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">
-              {faq.username_prefix_left}
-            </span>{" "}
-            +{" "}
-            <span className="font-semibold text-purple-600 dark:text-purple-400">
-              {faq.username_prefix_right}
-            </span>{" "}
-            ={" "}
-            <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
-              {faq.username_result}
-            </span>
+          <p className="text-lg whitespace-pre-wrap">
+            {renderUsernameTemplate(faq)}
           </p>
         );
 

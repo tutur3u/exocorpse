@@ -83,6 +83,7 @@ export type Database = {
           username_prefix_left: string | null;
           username_prefix_right: string | null;
           username_result: string | null;
+          username_template: string | null;
         };
         Insert: {
           alias_description?: string | null;
@@ -106,6 +107,7 @@ export type Database = {
           username_prefix_left?: string | null;
           username_prefix_right?: string | null;
           username_result?: string | null;
+          username_template?: string | null;
         };
         Update: {
           alias_description?: string | null;
@@ -129,6 +131,7 @@ export type Database = {
           username_prefix_left?: string | null;
           username_prefix_right?: string | null;
           username_result?: string | null;
+          username_template?: string | null;
         };
         Relationships: [];
       };

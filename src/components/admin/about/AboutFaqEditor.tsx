@@ -11,7 +11,8 @@ import {
   type AboutFaq,
   type AboutPageData,
 } from "@/lib/about";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 type AboutFaqEditorProps = {
   data: AboutPageData;
@@ -33,6 +34,7 @@ type FaqDraft = {
   social_display_name: string;
   social_note_suffix: string;
   commissions_text: string;
+  username_template: string;
   username_prefix_left: string;
   username_prefix_right: string;
   username_result: string;
@@ -54,6 +56,7 @@ function toFaqDraft(faq: AboutFaq): FaqDraft {
     social_display_name: faq.social_display_name ?? "",
     social_note_suffix: faq.social_note_suffix ?? "",
     commissions_text: faq.commissions_text ?? "",
+    username_template: faq.username_template ?? "",
     username_prefix_left: faq.username_prefix_left ?? "",
     username_prefix_right: faq.username_prefix_right ?? "",
     username_result: faq.username_result ?? "",
@@ -77,6 +80,7 @@ function serializeFaqDraft(draft: FaqDraft) {
     social_display_name: draft.social_display_name.trim() || null,
     social_note_suffix: draft.social_note_suffix.trim() || null,
     commissions_text: draft.commissions_text.trim() || null,
+    username_template: draft.username_template.trim() || null,
     username_prefix_left: draft.username_prefix_left.trim() || null,
     username_prefix_right: draft.username_prefix_right.trim() || null,
     username_result: draft.username_result.trim() || null,
@@ -139,6 +143,7 @@ function FaqCard({
 }) {
   const [draft, setDraft] = useState<FaqDraft>(toFaqDraft(faq));
   const [saving, setSaving] = useState(false);
+  const usernameTemplateRef = useRef<HTMLTextAreaElement | null>(null);
   const initialDraft = toFaqDraft(faq);
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
@@ -151,6 +156,31 @@ function FaqCard({
       ...prev,
       [key]: key === "display_order" ? Number(value || 0) : value,
     }));
+  };
+
+  const insertUsernameToken = (token: string) => {
+    const textarea = usernameTemplateRef.current;
+
+    if (!textarea) {
+      setField(
+        "username_template",
+        `${draft.username_template}${draft.username_template ? " " : ""}${token}`,
+      );
+      return;
+    }
+
+    const selectionStart =
+      textarea.selectionStart ?? draft.username_template.length;
+    const selectionEnd = textarea.selectionEnd ?? selectionStart;
+    const nextTemplate = `${draft.username_template.slice(0, selectionStart)}${token}${draft.username_template.slice(selectionEnd)}`;
+
+    setField("username_template", nextTemplate);
+
+    requestAnimationFrame(() => {
+      const nextCursor = selectionStart + token.length;
+      textarea.focus();
+      textarea.setSelectionRange(nextCursor, nextCursor);
+    });
   };
 
   const renderSubtypeFields = () => {
@@ -231,6 +261,48 @@ function FaqCard({
       case "username":
         return (
           <>
+            <div className="space-y-3 rounded-2xl border border-dashed border-violet-200 bg-violet-50/60 p-4 md:col-span-2 dark:border-violet-900/60 dark:bg-violet-950/20">
+              <div>
+                <p className="text-sm font-semibold text-violet-900 dark:text-violet-100">
+                  Username Line Template
+                </p>
+                <p className="mt-1 text-xs text-violet-700 dark:text-violet-300">
+                  Edit the full sentence and drop styled variables wherever they
+                  belong.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ["{{left}}", "Insert {{left}}"],
+                  ["{{right}}", "Insert {{right}}"],
+                  ["{{result}}", "Insert {{result}}"],
+                ].map(([token, label]) => (
+                  <button
+                    key={token}
+                    type="button"
+                    onClick={() => insertUsernameToken(token)}
+                    className="rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-medium text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-gray-950 dark:text-violet-300 dark:hover:bg-violet-950/40"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <label className="flex flex-col gap-2 text-sm">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Template
+                </span>
+                <textarea
+                  ref={usernameTemplateRef}
+                  value={draft.username_template}
+                  rows={3}
+                  placeholder="{{left}}skeleton + {{right}} = {{result}}"
+                  onChange={(event) =>
+                    setField("username_template", event.target.value)
+                  }
+                  className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                />
+              </label>
+            </div>
             <FaqField
               label="Left Word"
               value={draft.username_prefix_left}
@@ -275,8 +347,8 @@ function FaqCard({
   };
 
   return (
-    <div className="space-y-4 rounded-[1.75rem] border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <details className="group rounded-[1.75rem] border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
         <div>
           <p className="text-xs font-semibold tracking-[0.2em] text-violet-600 uppercase dark:text-violet-400">
             FAQ Type
@@ -284,41 +356,50 @@ function FaqCard({
           <h3 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
             {faq.faq_type}
           </h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {faq.question}
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={async () => {
-            setSaving(true);
-            try {
-              await onUpdateFaq(faq.id, serializeFaqDraft(draft));
-            } finally {
-              setSaving(false);
-            }
-          }}
-          disabled={saving || !hasChanges}
-          className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save FAQ"}
-        </button>
-      </div>
+        <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
+      </summary>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <FaqField
-          label="Question"
-          value={draft.question}
-          onChange={(value) => setField("question", value)}
-        />
-        <FaqField
-          label="Display Order"
-          value={draft.display_order}
-          type="number"
-          onChange={(value) => setField("display_order", value)}
-        />
-        {renderSubtypeFields()}
-      </div>
+      <div className="space-y-4 border-t border-gray-200 p-5 dark:border-gray-800">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await onUpdateFaq(faq.id, serializeFaqDraft(draft));
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={saving || !hasChanges}
+            className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save FAQ"}
+          </button>
+        </div>
 
-      {children}
-    </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <FaqField
+            label="Question"
+            value={draft.question}
+            onChange={(value) => setField("question", value)}
+          />
+          <FaqField
+            label="Display Order"
+            value={draft.display_order}
+            type="number"
+            onChange={(value) => setField("display_order", value)}
+          />
+          {renderSubtypeFields()}
+        </div>
+
+        {children}
+      </div>
+    </details>
   );
 }
 

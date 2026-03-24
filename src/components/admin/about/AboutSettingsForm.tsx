@@ -3,6 +3,7 @@
 import ImageUploader from "@/components/shared/ImageUploader";
 import type { AboutPageSettings } from "@/lib/about";
 import { deleteFile } from "@/lib/actions/storage";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type AboutSettingsFormProps = {
@@ -122,87 +123,103 @@ export default function AboutSettingsForm({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-5 rounded-[1.5rem] border border-gray-200 bg-white/80 p-5 dark:border-gray-800 dark:bg-gray-950/80">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Hero
-            </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              This is the panel visitors see before switching tabs.
-            </p>
-          </div>
+        <details
+          open
+          className="group rounded-[1.5rem] border border-gray-200 bg-white/80 dark:border-gray-800 dark:bg-gray-950/80"
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Hero
+              </h3>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                This is the panel visitors see before switching tabs.
+              </p>
+            </div>
+            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
+          </summary>
 
-          <ImageUploader
-            label="Hero Image"
-            value={draft.hero_image_url}
-            onChange={(value) => setField("hero_image_url", value)}
-            helpText="Use a public URL, keep the current local image, or upload a new hero image."
-            uploadPath="about/hero"
-            onBeforeChange={deleteStoredHeroImage}
-          />
+          <div className="space-y-5 border-t border-gray-200 p-5 dark:border-gray-800">
+            <ImageUploader
+              label="Hero Image"
+              value={draft.hero_image_url}
+              onChange={(value) => setField("hero_image_url", value)}
+              helpText="Use a public URL, keep the current local image, or upload a new hero image."
+              uploadPath="about/hero"
+              onBeforeChange={deleteStoredHeroImage}
+            />
 
-          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-2 text-sm">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Hero Name
+                </span>
+                <input
+                  value={draft.hero_name}
+                  onChange={(event) =>
+                    setField("hero_name", event.target.value)
+                  }
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Hero Image Alt
+                </span>
+                <input
+                  value={draft.hero_image_alt}
+                  onChange={(event) =>
+                    setField("hero_image_alt", event.target.value)
+                  }
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                />
+              </label>
+            </div>
+
             <label className="flex flex-col gap-2 text-sm">
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Hero Name
+                Hero Subtitle
               </span>
               <input
-                value={draft.hero_name}
-                onChange={(event) => setField("hero_name", event.target.value)}
-                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Hero Image Alt
-              </span>
-              <input
-                value={draft.hero_image_alt}
+                value={draft.hero_subtitle}
                 onChange={(event) =>
-                  setField("hero_image_alt", event.target.value)
+                  setField("hero_subtitle", event.target.value)
                 }
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
             </label>
+
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Hero Bio
+              </span>
+              <textarea
+                value={draft.hero_bio}
+                rows={6}
+                onChange={(event) => setField("hero_bio", event.target.value)}
+                className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              />
+            </label>
           </div>
+        </details>
 
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Hero Subtitle
-            </span>
-            <input
-              value={draft.hero_subtitle}
-              onChange={(event) =>
-                setField("hero_subtitle", event.target.value)
-              }
-              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-            />
-          </label>
+        <details
+          open
+          className="group rounded-[1.5rem] border border-gray-200 bg-white/80 dark:border-gray-800 dark:bg-gray-950/80"
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Public Labels
+              </h3>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Fine-tune the language used in each public tab and section.
+              </p>
+            </div>
+            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
+          </summary>
 
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Hero Bio
-            </span>
-            <textarea
-              value={draft.hero_bio}
-              rows={6}
-              onChange={(event) => setField("hero_bio", event.target.value)}
-              className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-            />
-          </label>
-        </div>
-
-        <div className="space-y-5 rounded-[1.5rem] border border-gray-200 bg-white/80 p-5 dark:border-gray-800 dark:bg-gray-950/80">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Public Labels
-            </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Fine-tune the language used in each public tab and section.
-            </p>
-          </div>
-
-          <div className="grid gap-4">
+          <div className="grid gap-4 border-t border-gray-200 p-5 dark:border-gray-800">
             {[
               ["about_use_heading", "About Use Heading"],
               ["experiences_heading", "Experiences Heading"],
@@ -247,7 +264,7 @@ export default function AboutSettingsForm({
               );
             })}
           </div>
-        </div>
+        </details>
       </div>
     </section>
   );
