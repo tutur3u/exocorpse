@@ -33,13 +33,20 @@ type StorageImageProps = Omit<ImageProps, "src"> & {
  * Image component that automatically handles tuturuuu storage paths
  * Fetches signed URLs with caching via React Query
  */
-export default function StorageImage({
-  src,
-  fallback,
-  alt,
-  signedUrl: preFetchedSignedUrl,
-  ...imageProps
-}: StorageImageProps) {
+export default function StorageImage({ ...props }: StorageImageProps) {
+  const {
+    src,
+    fallback,
+    alt,
+    signedUrl: preFetchedSignedUrl,
+    ...imageProps
+  } = props;
+
+  const hasExplicitSignedUrl = Object.prototype.hasOwnProperty.call(
+    props,
+    "signedUrl",
+  );
+
   // Determine if this is a storage path (not a http/https URL or data URL)
   const isStoragePath =
     src &&
@@ -48,8 +55,10 @@ export default function StorageImage({
     !src.startsWith("data:") &&
     !src.startsWith("/");
 
-  // Only fetch signed URL if it's a storage path AND no pre-fetched URL was provided
-  const shouldFetchUrl = isStoragePath && !preFetchedSignedUrl;
+  // If signedUrl is passed explicitly, wait for the caller's batch resolver
+  // instead of starting a second per-image request.
+  const shouldFetchUrl =
+    isStoragePath && !hasExplicitSignedUrl && !preFetchedSignedUrl;
   const {
     signedUrl: fetchedSignedUrl,
     loading,
@@ -58,7 +67,8 @@ export default function StorageImage({
 
   // Use pre-fetched URL first, then fetched URL, then src directly
   const imageUrl =
-    preFetchedSignedUrl || (isStoragePath ? fetchedSignedUrl : src);
+    preFetchedSignedUrl ||
+    (isStoragePath ? (hasExplicitSignedUrl ? null : fetchedSignedUrl) : src);
 
   // Show fallback while loading (only if we're actually fetching) or if there's an error or no URL
   const isLoading = shouldFetchUrl && loading;

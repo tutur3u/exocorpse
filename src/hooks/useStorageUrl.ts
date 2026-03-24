@@ -100,8 +100,35 @@ export function useBatchStorageUrls(
     queryFn: async () => {
       if (validPaths.length === 0) return new Map<string, string>();
 
-      // Use cached batch function which checks DB first, then batch-fetches from SDK if needed
-      const resolvedUrls = await batchGetCachedSignedUrls(relativePaths);
+      const response = await fetch("/api/storage/share-batch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paths: relativePaths,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate batch signed URLs");
+      }
+
+      const result = (await response.json()) as {
+        data?: Array<{
+          path: string;
+          signedUrl?: string | null;
+          error?: string | null;
+        }>;
+      };
+
+      const resolvedUrls = new Map<string, string>();
+      for (const item of result.data ?? []) {
+        if (item.path && item.signedUrl && !item.error) {
+          resolvedUrls.set(item.path, item.signedUrl);
+        }
+      }
+
       const aliasedUrls = new Map<string, string>();
 
       for (const originalPath of validPaths) {
