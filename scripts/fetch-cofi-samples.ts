@@ -198,7 +198,9 @@ async function runWithConcurrency<T, R>(
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => consume()),
+    Array.from({ length: Math.min(concurrency, items.length) }, () =>
+      consume(),
+    ),
   );
 
   return results;
@@ -255,22 +257,30 @@ async function main() {
   const joiningDateCounts: Record<string, number> = {};
 
   for (const sample of downloadedSamples) {
-    artistCounts.set(sample.artistName, (artistCounts.get(sample.artistName) ?? 0) + 1);
+    artistCounts.set(
+      sample.artistName,
+      (artistCounts.get(sample.artistName) ?? 0) + 1,
+    );
     sampleIds.add(sample.id);
     boothLocations.add(sample.boothLocation);
     uniqueOriginalImages.add(sample.image.original.localPath);
     uniqueThumbnailImages.add(sample.image.thumbnail.localPath);
-    boothTypeCounts[sample.boothType] = (boothTypeCounts[sample.boothType] ?? 0) + 1;
+    boothTypeCounts[sample.boothType] =
+      (boothTypeCounts[sample.boothType] ?? 0) + 1;
     joiningDateCounts[sample.joiningDate] =
       (joiningDateCounts[sample.joiningDate] ?? 0) + 1;
   }
 
-  const totalStoredAssets = uniqueOriginalImages.size + uniqueThumbnailImages.size;
+  const totalStoredAssets =
+    uniqueOriginalImages.size + uniqueThumbnailImages.size;
 
   const dataset: Dataset = {
     fetchedAt: new Date().toISOString(),
     source: {
-      endpoint: API_ENDPOINT.replace("%PAGE%", "0").replace("%SIZE%", String(PAGE_SIZE)),
+      endpoint: API_ENDPOINT.replace("%PAGE%", "0").replace(
+        "%SIZE%",
+        String(PAGE_SIZE),
+      ),
       pageSize: PAGE_SIZE,
       totalPages: firstPage.data.metadata.totalPages,
       totalElements: firstPage.data.metadata.totalElements,

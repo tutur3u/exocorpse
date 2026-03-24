@@ -57,7 +57,8 @@ function buildCofiDataset(rows: Tables<"cofi_samples">[]): CofiDataset {
       sample.artistName,
       (artistSampleCounts.get(sample.artistName) ?? 0) + 1,
     );
-    boothTypeCounts[sample.boothType] = (boothTypeCounts[sample.boothType] ?? 0) + 1;
+    boothTypeCounts[sample.boothType] =
+      (boothTypeCounts[sample.boothType] ?? 0) + 1;
     joiningDateCounts[sample.joiningDate] =
       (joiningDateCounts[sample.joiningDate] ?? 0) + 1;
   }
