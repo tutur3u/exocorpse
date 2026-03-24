@@ -40,7 +40,9 @@ async function main() {
 
   console.log(`Synced ${result.syncedSamples} COFI samples to Supabase.`);
   if (result.skippedEmbeddings) {
-    console.log("Embeddings were skipped because GOOGLE_GENERATIVE_AI_API_KEY is not set.");
+    console.log(
+      "Embeddings were skipped because GOOGLE_GENERATIVE_AI_API_KEY is not set.",
+    );
   } else {
     console.log(`Updated ${result.embeddedSamples} embeddings.`);
   }

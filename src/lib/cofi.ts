@@ -7,7 +7,9 @@ export const COFI_DOCUMENT_TASK_TYPE = "RETRIEVAL_DOCUMENT";
 export const COFI_QUERY_TASK_TYPE = "RETRIEVAL_QUERY";
 export const COFI_SEMANTIC_SEARCH_MIN_QUERY_LENGTH = 2;
 
-export function getCofiSampleRecordId(sample: Pick<CofiSample, "id" | "index">) {
+export function getCofiSampleRecordId(
+  sample: Pick<CofiSample, "id" | "index">,
+) {
   return `${sample.id}:${sample.index}`;
 }
 

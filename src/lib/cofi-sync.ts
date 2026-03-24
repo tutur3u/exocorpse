@@ -90,10 +90,12 @@ async function syncEmbeddings(
   }
 
   const existingHashes = new Map(
-    (existingRows ?? []).map((row: { sample_id: string; content_hash: string }) => [
-      row.sample_id,
-      row.content_hash,
-    ]),
+    (existingRows ?? []).map(
+      (row: { sample_id: string; content_hash: string }) => [
+        row.sample_id,
+        row.content_hash,
+      ],
+    ),
   );
 
   const pending: Array<{
@@ -149,9 +151,11 @@ async function syncEmbeddings(
       embedding: toPgVector(embedding),
     }));
 
-    const { error } = await supabase.from("cofi_sample_embeddings").upsert(payload, {
-      onConflict: "sample_id",
-    });
+    const { error } = await supabase
+      .from("cofi_sample_embeddings")
+      .upsert(payload, {
+        onConflict: "sample_id",
+      });
 
     if (error) {
       throw error;

@@ -70,7 +70,7 @@ export default function CofiAdminClient({ dataset }: Props) {
   return (
     <div className="space-y-8">
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-600 dark:text-amber-400">
+        <p className="text-sm font-semibold tracking-[0.24em] text-amber-600 uppercase dark:text-amber-400">
           COFI Search
         </p>
         <h1 className="mt-3 text-3xl font-bold text-gray-900 dark:text-white">
@@ -86,13 +86,17 @@ export default function CofiAdminClient({ dataset }: Props) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Archive samples</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Archive samples
+          </p>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
             {dataset.stats.totalSamples}
           </p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-sm text-gray-500 dark:text-gray-400">What this does</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            What this does
+          </p>
           <p className="mt-2 text-sm leading-7 text-gray-900 dark:text-white">
             Regenerates Gemini embeddings for the COFI records already stored in
             the database.
@@ -107,9 +111,9 @@ export default function CofiAdminClient({ dataset }: Props) {
               Run COFI sample sync
             </h2>
             <p className="mt-2 text-sm leading-7 text-gray-600 dark:text-gray-400">
-              This will read the current COFI sample archive from the database and,
-              when the Google key is configured, generate or refresh document
-              embeddings for those records using
+              This will read the current COFI sample archive from the database
+              and, when the Google key is configured, generate or refresh
+              document embeddings for those records using
               `gemini-embedding-2-preview`.
             </p>
 
@@ -122,7 +126,7 @@ export default function CofiAdminClient({ dataset }: Props) {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter COFI sync password"
-                className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </label>
 
@@ -130,10 +134,7 @@ export default function CofiAdminClient({ dataset }: Props) {
               <button
                 type="button"
                 onClick={runSync}
-                disabled={
-                  isSubmitting ||
-                  !password.trim()
-                }
+                disabled={isSubmitting || !password.trim()}
                 className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300 dark:disabled:bg-blue-900"
               >
                 {isSubmitting ? "Syncing..." : "Sync Samples and Embeddings"}
@@ -142,7 +143,7 @@ export default function CofiAdminClient({ dataset }: Props) {
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+            <h3 className="text-sm font-semibold tracking-[0.18em] text-gray-500 uppercase dark:text-gray-400">
               Latest Run
             </h3>
             {lastResult ? (
@@ -150,7 +151,8 @@ export default function CofiAdminClient({ dataset }: Props) {
                 <p>Synced samples: {lastResult.syncedSamples}</p>
                 <p>Updated embeddings: {lastResult.embeddedSamples}</p>
                 <p>
-                  Embeddings skipped: {lastResult.skippedEmbeddings ? "yes" : "no"}
+                  Embeddings skipped:{" "}
+                  {lastResult.skippedEmbeddings ? "yes" : "no"}
                 </p>
               </div>
             ) : (

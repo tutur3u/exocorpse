@@ -194,7 +194,7 @@ function ZoomableSampleViewer({
       >
         <div className="flex flex-col gap-3 border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[#d0a56b]">
+            <p className="text-[0.68rem] tracking-[0.32em] text-[#d0a56b] uppercase">
               Sample Viewer
             </p>
             <h2
@@ -242,11 +242,11 @@ function ZoomableSampleViewer({
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col @container lg:flex-row">
+        <div className="@container flex flex-1 flex-col lg:flex-row">
           <div className="relative min-h-[46dvh] flex-1 overflow-hidden lg:min-h-0">
             <div
               ref={viewportRef}
-              className={`relative h-full w-full select-none overflow-hidden ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              className={`relative h-full w-full overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
               onDoubleClick={(event) =>
                 applyScale(
                   scale > 1 ? 1 : 2.25,
@@ -306,7 +306,7 @@ function ZoomableSampleViewer({
                 }}
               />
 
-              <div className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-3 py-2 text-[0.65rem] uppercase tracking-[0.2em] text-[#d7ccb6] sm:right-4 sm:bottom-4 sm:px-4 sm:text-xs sm:tracking-[0.24em]">
+              <div className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-3 py-2 text-[0.65rem] tracking-[0.2em] text-[#d7ccb6] uppercase sm:right-4 sm:bottom-4 sm:px-4 sm:text-xs sm:tracking-[0.24em]">
                 Wheel to zoom • double-click to toggle • drag to pan
               </div>
             </div>
@@ -335,19 +335,20 @@ function ZoomableSampleViewer({
           <aside className="w-full border-t border-[#c9a56c]/20 bg-[linear-gradient(180deg,rgba(11,16,29,0.98),rgba(5,8,15,0.96))] p-4 sm:p-5 lg:w-[24rem] lg:border-t-0 lg:border-l">
             <div className="grid gap-4">
               <div className="rounded-[1.5rem] border border-[#c9a56c]/16 bg-[linear-gradient(180deg,rgba(125,13,41,0.18),rgba(14,20,34,0.9))] p-4">
-                <p className="text-[0.72rem] uppercase tracking-[0.24em] text-[#b29063]">
+                <p className="text-[0.72rem] tracking-[0.24em] text-[#b29063] uppercase">
                   Artist
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-2 text-2xl font-semibold text-[#fff6de]">
                   {sample.artistName}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[#d7ccbc]">
-                  Booth {sample.boothLocation} • {formatBoothType(sample.boothType)}
+                  Booth {sample.boothLocation} •{" "}
+                  {formatBoothType(sample.boothType)}
                 </p>
               </div>
 
               <div className="rounded-[1.5rem] border border-[#2c4ce5]/20 bg-[linear-gradient(180deg,rgba(18,32,88,0.24),rgba(10,18,31,0.94))] p-4">
-                <p className="text-[0.72rem] uppercase tracking-[0.24em] text-[#90a4ef]">
+                <p className="text-[0.72rem] tracking-[0.24em] text-[#90a4ef] uppercase">
                   Attendance
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-2 text-xl font-semibold text-[#fff6de]">
@@ -361,14 +362,21 @@ function ZoomableSampleViewer({
               </div>
 
               <div className="rounded-[1.5rem] border border-[#d23642]/18 bg-[linear-gradient(180deg,rgba(64,10,23,0.24),rgba(9,14,24,0.94))] p-4">
-                <p className="text-[0.72rem] uppercase tracking-[0.24em] text-[#ef8e8f]">
+                <p className="text-[0.72rem] tracking-[0.24em] text-[#ef8e8f] uppercase">
                   Tips
                 </p>
                 <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#d7ccbc]">
-                  <li>Use your mouse wheel or trackpad scroll to zoom in and out.</li>
-                  <li>Double-click the image to jump between fitted view and zoomed view.</li>
+                  <li>
+                    Use your mouse wheel or trackpad scroll to zoom in and out.
+                  </li>
+                  <li>
+                    Double-click the image to jump between fitted view and
+                    zoomed view.
+                  </li>
                   <li>When zoomed in, drag the artwork to inspect details.</li>
-                  <li>Use your left and right arrow keys to browse nearby samples.</li>
+                  <li>
+                    Use your left and right arrow keys to browse nearby samples.
+                  </li>
                 </ul>
               </div>
             </div>
@@ -536,16 +544,25 @@ export default function CofiSamplesClient({ dataset }: Props) {
         }
 
         setSearchResults(payload.samples ?? []);
-        setSearchMode(payload.mode === "hybrid" || payload.mode === "fts" ? payload.mode : "local");
+        setSearchMode(
+          payload.mode === "hybrid" || payload.mode === "fts"
+            ? payload.mode
+            : "local",
+        );
       } catch (error) {
         if (controller.signal.aborted) {
           return;
         }
 
-        console.error("COFI search failed, falling back to local search.", error);
+        console.error(
+          "COFI search failed, falling back to local search.",
+          error,
+        );
         setSearchResults(null);
         setSearchMode("local");
-        setSearchError("Ranked search is unavailable right now, so local filtering is active.");
+        setSearchError(
+          "Ranked search is unavailable right now, so local filtering is active.",
+        );
       } finally {
         if (!controller.signal.aborted) {
           setIsSearchLoading(false);
@@ -631,13 +648,12 @@ export default function CofiSamplesClient({ dataset }: Props) {
           (sample) => getSampleKey(sample) === getSampleKey(selectedSample),
         );
 
-  const artistsShown = new Set(filteredSamples.map((sample) => sample.artistName)).size;
+  const artistsShown = new Set(
+    filteredSamples.map((sample) => sample.artistName),
+  ).size;
   const filtersActive = boothType !== "ALL" || joiningDate !== "ALL";
   const isCustomizedView =
-    hasQuery ||
-    filtersActive ||
-    sortBy !== "index" ||
-    sortDirection !== "asc";
+    hasQuery || filtersActive || sortBy !== "index" || sortDirection !== "asc";
   const isBusy = isSearchLoading || isQueryDeferred;
   const showEmptyState = !isBusy && filteredSamples.length === 0;
   const searchStatusLabel = isBusy
@@ -654,11 +670,14 @@ export default function CofiSamplesClient({ dataset }: Props) {
       : searchMode === "fts"
         ? "border-[#8ec6a1]/35 bg-[#102218]/80 text-[#d8f3dd]"
         : "border-white/10 bg-[#111a2b]/85 text-[#ddd5c4]";
-  let searchSupportCopy = "Browse the full archive and open any sample fullscreen.";
-  let archiveSupportCopy = "Scroll through the archive vessel and open any sample fullscreen.";
+  let searchSupportCopy =
+    "Browse the full archive and open any sample fullscreen.";
+  let archiveSupportCopy =
+    "Scroll through the archive vessel and open any sample fullscreen.";
 
   if (!hasQuery) {
-    searchSupportCopy = "Browse the full archive and open any sample fullscreen.";
+    searchSupportCopy =
+      "Browse the full archive and open any sample fullscreen.";
   } else if (!canUseRankedSearch) {
     searchSupportCopy = `Type ${COFI_SEMANTIC_SEARCH_MIN_QUERY_LENGTH} or more characters to enable ranked search.`;
   } else if (isBusy) {
@@ -674,7 +693,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
   }
 
   return (
-    <main className="h-screen overflow-y-auto overflow-x-hidden bg-[#04050a] text-[#f4efdd]">
+    <main className="h-screen overflow-x-hidden overflow-y-auto bg-[#04050a] text-[#f4efdd]">
       <div
         className="relative min-h-full overflow-hidden"
         style={{
@@ -692,12 +711,12 @@ export default function CofiSamplesClient({ dataset }: Props) {
           <div className="absolute inset-y-0 right-[8%] w-px bg-gradient-to-b from-transparent via-[#2948d8]/18 to-transparent" />
         </div>
 
-        <section className="relative mx-auto flex w-full max-w-[1800px] flex-col gap-8 px-4 py-6 @container sm:px-6 lg:px-10 lg:py-8">
+        <section className="@container relative mx-auto flex w-full max-w-[1800px] flex-col gap-8 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
           <div className="overflow-hidden rounded-[1.6rem] border border-[#ccb07d]/22 bg-[linear-gradient(180deg,rgba(8,12,24,0.92),rgba(7,10,18,0.94))] shadow-[0_0_0_1px_rgba(210,47,66,0.08),0_32px_90px_rgba(0,0,0,0.55),0_0_90px_rgba(24,47,215,0.08)] backdrop-blur sm:rounded-[2rem]">
             <div className="border-b border-[#ccb07d]/12 bg-[linear-gradient(90deg,rgba(118,12,36,0.22),rgba(11,16,31,0.88),rgba(21,36,113,0.18))] px-5 py-6 sm:px-8 sm:py-8">
               <div className="flex flex-col gap-5 @xl:flex-row @xl:items-end @xl:justify-between">
                 <div className="max-w-4xl">
-                  <p className="text-[0.72rem] uppercase tracking-[0.38em] text-[#d2ac71]">
+                  <p className="text-[0.72rem] tracking-[0.38em] text-[#d2ac71] uppercase">
                     COFI Samples
                   </p>
                   <h1 className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl leading-none font-semibold text-[#fbf0de] sm:text-5xl">
@@ -705,13 +724,13 @@ export default function CofiSamplesClient({ dataset }: Props) {
                   </h1>
                   <p className="mt-4 max-w-3xl text-sm leading-7 text-[#d4c8b7] sm:text-base">
                     Powered by EXOCORPSE, this gallery makes it easier to browse
-                    artists, booths, and attendance days in one place. Tap any card
-                    to open it fullscreen and inspect the artwork closely.
+                    artists, booths, and attendance days in one place. Tap any
+                    card to open it fullscreen and inspect the artwork closely.
                   </p>
                 </div>
 
                 <div className="rounded-[1.5rem] border border-[#ccb07d]/16 bg-[linear-gradient(135deg,rgba(45,7,20,0.66),rgba(8,12,26,0.94),rgba(16,26,72,0.74))] px-5 py-4 text-sm text-[#d8d0bf] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
-                  <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[#aa8c64]">
+                  <p className="text-[0.68rem] tracking-[0.28em] text-[#aa8c64] uppercase">
                     Exocorpse View
                   </p>
                   <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-2 text-lg font-semibold text-[#fff6de]">
@@ -726,9 +745,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
               </div>
             </div>
 
-            <div className="grid gap-4 border-b border-[#ccb07d]/12 px-5 py-5 @lg:grid-cols-4 sm:px-8">
+            <div className="grid gap-4 border-b border-[#ccb07d]/12 px-5 py-5 sm:px-8 @lg:grid-cols-4">
               <div className="rounded-[1.5rem] border border-[#ccb07d]/14 bg-[linear-gradient(180deg,rgba(55,11,22,0.34),rgba(9,12,22,0.92))] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-                <p className="text-[0.7rem] uppercase tracking-[0.26em] text-[#b08f64]">
+                <p className="text-[0.7rem] tracking-[0.26em] text-[#b08f64] uppercase">
                   Sample Sheets
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl font-semibold text-[#fff6de]">
@@ -740,7 +759,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
               </div>
 
               <div className="rounded-[1.5rem] border border-[#2948d8]/16 bg-[linear-gradient(180deg,rgba(15,27,84,0.32),rgba(9,12,22,0.92))] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-                <p className="text-[0.7rem] uppercase tracking-[0.26em] text-[#90a4ef]">
+                <p className="text-[0.7rem] tracking-[0.26em] text-[#90a4ef] uppercase">
                   Artists
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl font-semibold text-[#fff6de]">
@@ -752,35 +771,37 @@ export default function CofiSamplesClient({ dataset }: Props) {
               </div>
 
               <div className="rounded-[1.5rem] border border-[#ccb07d]/14 bg-[linear-gradient(180deg,rgba(52,18,13,0.34),rgba(9,12,22,0.92))] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-                <p className="text-[0.7rem] uppercase tracking-[0.26em] text-[#d5bb8d]">
+                <p className="text-[0.7rem] tracking-[0.26em] text-[#d5bb8d] uppercase">
                   Booth Mix
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl font-semibold text-[#fff6de]">
                   {dataset.stats.boothTypeCounts.STANDARD ?? 0}
                 </p>
                 <p className="mt-2 text-sm text-[#d3c7b7]">
-                  Standard booths, with {dataset.stats.boothTypeCounts.PREMIUM ?? 0}{" "}
-                  premium booths in the archive.
+                  Standard booths, with{" "}
+                  {dataset.stats.boothTypeCounts.PREMIUM ?? 0} premium booths in
+                  the archive.
                 </p>
               </div>
 
               <div className="rounded-[1.5rem] border border-[#d23642]/16 bg-[linear-gradient(180deg,rgba(77,9,26,0.34),rgba(9,12,22,0.92))] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-                <p className="text-[0.7rem] uppercase tracking-[0.26em] text-[#ef9491]">
+                <p className="text-[0.7rem] tracking-[0.26em] text-[#ef9491] uppercase">
                   Attendance Split
                 </p>
                 <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl font-semibold text-[#fff6de]">
                   {dataset.stats.joiningDateCounts.BOTH_DAYS ?? 0}
                 </p>
                 <p className="mt-2 text-sm text-[#d3c7b7]">
-                  Both days, plus {dataset.stats.joiningDateCounts.DAY_1 ?? 0} day
-                  1 only and {dataset.stats.joiningDateCounts.DAY_2 ?? 0} day 2 only.
+                  Both days, plus {dataset.stats.joiningDateCounts.DAY_1 ?? 0}{" "}
+                  day 1 only and {dataset.stats.joiningDateCounts.DAY_2 ?? 0}{" "}
+                  day 2 only.
                 </p>
               </div>
             </div>
 
-            <div className="grid gap-4 border-b border-[#ccb07d]/12 bg-[linear-gradient(180deg,rgba(7,10,19,0.82),rgba(6,8,14,0.92))] px-5 py-5 @xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)] sm:px-8">
+            <div className="grid gap-4 border-b border-[#ccb07d]/12 bg-[linear-gradient(180deg,rgba(7,10,19,0.82),rgba(6,8,14,0.92))] px-5 py-5 sm:px-8 @xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)]">
               <label className="grid gap-2">
-                <span className="text-[0.72rem] uppercase tracking-[0.26em] text-[#b39165]">
+                <span className="text-[0.72rem] tracking-[0.26em] text-[#b39165] uppercase">
                   Search
                 </span>
                 <div className="relative">
@@ -804,11 +825,11 @@ export default function CofiSamplesClient({ dataset }: Props) {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search artist, booth, or attendance day"
-                    className="w-full rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(17,22,39,0.96),rgba(13,18,31,0.98))] py-3 pr-24 pl-12 text-sm text-[#fff6de] outline-none transition placeholder:text-[#776e67] focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
+                    className="w-full rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(17,22,39,0.96),rgba(13,18,31,0.98))] py-3 pr-24 pl-12 text-sm text-[#fff6de] transition outline-none placeholder:text-[#776e67] focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
                   />
                   <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
                     {isBusy && (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-[#efb06f]/25 bg-[#251811]/90 px-3 py-1 text-[0.68rem] font-medium uppercase tracking-[0.2em] text-[#ffd5a0]">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-[#efb06f]/25 bg-[#251811]/90 px-3 py-1 text-[0.68rem] font-medium tracking-[0.2em] text-[#ffd5a0] uppercase">
                         <span className="h-2 w-2 animate-pulse rounded-full bg-[#efb06f]" />
                         Loading
                       </span>
@@ -827,30 +848,32 @@ export default function CofiSamplesClient({ dataset }: Props) {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-[0.72rem] uppercase tracking-[0.26em] text-[#90a4ef]">
+                <span className="text-[0.72rem] tracking-[0.26em] text-[#90a4ef] uppercase">
                   Booth Type
                 </span>
                 <select
                   value={boothType}
                   onChange={(event) => setBoothType(event.target.value)}
-                  className="rounded-2xl border border-[#2948d8]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] outline-none transition focus:border-[#2948d8] focus:shadow-[0_0_0_1px_rgba(41,72,216,0.16)]"
+                  className="rounded-2xl border border-[#2948d8]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#2948d8] focus:shadow-[0_0_0_1px_rgba(41,72,216,0.16)]"
                 >
                   {boothTypes.map((option) => (
                     <option key={option} value={option}>
-                      {option === "ALL" ? "All booth types" : formatBoothType(option)}
+                      {option === "ALL"
+                        ? "All booth types"
+                        : formatBoothType(option)}
                     </option>
                   ))}
                 </select>
               </label>
 
               <label className="grid gap-2">
-                <span className="text-[0.72rem] uppercase tracking-[0.26em] text-[#ef9491]">
+                <span className="text-[0.72rem] tracking-[0.26em] text-[#ef9491] uppercase">
                   Attendance
                 </span>
                 <select
                   value={joiningDate}
                   onChange={(event) => setJoiningDate(event.target.value)}
-                  className="rounded-2xl border border-[#d23642]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] outline-none transition focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
+                  className="rounded-2xl border border-[#d23642]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
                 >
                   {joiningDates.map((option) => (
                     <option key={option} value={option}>
@@ -864,17 +887,18 @@ export default function CofiSamplesClient({ dataset }: Props) {
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                 <label className="grid gap-2">
-                  <span className="text-[0.72rem] uppercase tracking-[0.26em] text-[#d5bb8d]">
+                  <span className="text-[0.72rem] tracking-[0.26em] text-[#d5bb8d] uppercase">
                     Sort
                   </span>
                   <select
                     value={sortBy}
                     onChange={(event) =>
                       setSortBy(
-                        event.target.value as (typeof SORT_OPTIONS)[number]["value"],
+                        event.target
+                          .value as (typeof SORT_OPTIONS)[number]["value"],
                       )
                     }
-                    className="rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] outline-none transition focus:border-[#c8aa75] focus:shadow-[0_0_0_1px_rgba(200,170,117,0.14)]"
+                    className="rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#c8aa75] focus:shadow-[0_0_0_1px_rgba(200,170,117,0.14)]"
                   >
                     {SORT_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -904,7 +928,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                   {isCustomizedView ? (
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em] ${searchStatusTone}`}
+                        className={`rounded-full border px-3 py-1 text-[0.68rem] font-semibold tracking-[0.22em] uppercase ${searchStatusTone}`}
                       >
                         {searchStatusLabel}
                       </span>
@@ -921,14 +945,17 @@ export default function CofiSamplesClient({ dataset }: Props) {
                     </div>
                   ) : (
                     <div>
-                      <p className="text-[0.72rem] uppercase tracking-[0.24em] text-[#b39165]">
+                      <p className="text-[0.72rem] tracking-[0.24em] text-[#b39165] uppercase">
                         Archive Overview
                       </p>
                     </div>
                   )}
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {(query || filtersActive || sortBy !== "index" || sortDirection !== "asc") && (
+                    {(query ||
+                      filtersActive ||
+                      sortBy !== "index" ||
+                      sortDirection !== "asc") && (
                       <button
                         type="button"
                         onClick={() => {
@@ -951,26 +978,35 @@ export default function CofiSamplesClient({ dataset }: Props) {
                 <div className="grid gap-3 @lg:grid-cols-[minmax(0,1.2fr)_auto] @lg:items-center">
                   <div>
                     <p className="text-sm text-[#f0e6d3]">
-                      {isCustomizedView ? searchSupportCopy : archiveSupportCopy}
+                      {isCustomizedView
+                        ? searchSupportCopy
+                        : archiveSupportCopy}
                     </p>
                     <p className="mt-1 text-sm text-[#c2b4a0]">
-                      Showing <span className="text-[#fff6de]">{visibleSamples.length}</span>{" "}
-                      of <span className="text-[#fff6de]">{filteredSamples.length}</span>{" "}
-                      matches across <span className="text-[#fff6de]">{artistsShown}</span>{" "}
+                      Showing{" "}
+                      <span className="text-[#fff6de]">
+                        {visibleSamples.length}
+                      </span>{" "}
+                      of{" "}
+                      <span className="text-[#fff6de]">
+                        {filteredSamples.length}
+                      </span>{" "}
+                      matches across{" "}
+                      <span className="text-[#fff6de]">{artistsShown}</span>{" "}
                       artists.
                     </p>
                   </div>
 
                   <div className="rounded-[1.25rem] border border-[#ccb07d]/14 bg-[linear-gradient(180deg,rgba(18,24,40,0.96),rgba(10,14,25,0.98))] px-4 py-3 text-sm text-[#d8d0bf]">
-                    <p className="text-[0.68rem] uppercase tracking-[0.22em] text-[#a98a60]">
+                    <p className="text-[0.68rem] tracking-[0.22em] text-[#a98a60] uppercase">
                       {isCustomizedView ? "Results" : "Archive"}
                     </p>
                     <p className="mt-1 font-medium text-[#fff6de]">
                       {isBusy
                         ? "Updating visible results"
                         : visibleCount < filteredSamples.length
-                        ? `${filteredSamples.length - visibleSamples.length} more samples remain`
-                        : "All current results are on screen"}
+                          ? `${filteredSamples.length - visibleSamples.length} more samples remain`
+                          : "All current results are on screen"}
                     </p>
                   </div>
                 </div>
@@ -989,7 +1025,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
                           : filteredSamples.length === 0
                             ? 0
                             : Math.max(
-                                (visibleSamples.length / filteredSamples.length) * 100,
+                                (visibleSamples.length /
+                                  filteredSamples.length) *
+                                  100,
                                 6,
                               )
                       }%`,
@@ -1002,90 +1040,93 @@ export default function CofiSamplesClient({ dataset }: Props) {
 
           {showEmptyState ? (
             <section className="rounded-[2rem] border border-[#ccb07d]/18 bg-[linear-gradient(180deg,rgba(12,18,32,0.94),rgba(8,11,19,0.98))] px-6 py-10 text-center shadow-[0_18px_45px_rgba(0,0,0,0.26)]">
-              <p className="text-[0.72rem] uppercase tracking-[0.28em] text-[#b39165]">
+              <p className="text-[0.72rem] tracking-[0.28em] text-[#b39165] uppercase">
                 No Results
               </p>
               <h2 className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-3 text-3xl font-semibold text-[#fff6de]">
                 Nothing matches this view.
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#d0c3b0]">
-                Try a different artist name, booth code, or attendance day. You can
-                also clear the search and filters to return to the full COFI April
-                2026 gallery.
+                Try a different artist name, booth code, or attendance day. You
+                can also clear the search and filters to return to the full COFI
+                April 2026 gallery.
               </p>
             </section>
           ) : (
             <section
-              className={`grid gap-4 @md:grid-cols-2 @xl:grid-cols-3 @2xl:grid-cols-4 sm:gap-5 ${
+              className={`grid gap-4 sm:gap-5 @md:grid-cols-2 @xl:grid-cols-3 @2xl:grid-cols-4 ${
                 isBusy ? "opacity-80" : ""
               }`}
             >
-            {visibleSamples.map((sample, visibleIndex) => {
-              const artistSampleCount = artistSampleCounts.get(sample.artistName) ?? 1;
+              {visibleSamples.map((sample, visibleIndex) => {
+                const artistSampleCount =
+                  artistSampleCounts.get(sample.artistName) ?? 1;
 
-              return (
-                <article
-                  key={getSampleKey(sample)}
-                  className="group overflow-hidden rounded-[1.4rem] border border-[#ccb07d]/16 bg-[linear-gradient(180deg,rgba(10,15,28,0.96),rgba(7,10,18,0.98))] shadow-[0_18px_45px_rgba(0,0,0,0.34),0_0_30px_rgba(27,44,132,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#d23642]/45 hover:shadow-[0_22px_60px_rgba(0,0,0,0.42),0_0_48px_rgba(210,54,66,0.12)] sm:rounded-[1.75rem]"
-                  style={{
-                    contentVisibility: "auto",
-                    containIntrinsicSize: "520px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedKey(getSampleKey(sample))}
-                    className="block w-full text-left"
+                return (
+                  <article
+                    key={getSampleKey(sample)}
+                    className="group overflow-hidden rounded-[1.4rem] border border-[#ccb07d]/16 bg-[linear-gradient(180deg,rgba(10,15,28,0.96),rgba(7,10,18,0.98))] shadow-[0_18px_45px_rgba(0,0,0,0.34),0_0_30px_rgba(27,44,132,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#d23642]/45 hover:shadow-[0_22px_60px_rgba(0,0,0,0.42),0_0_48px_rgba(210,54,66,0.12)] sm:rounded-[1.75rem]"
+                    style={{
+                      contentVisibility: "auto",
+                      containIntrinsicSize: "520px",
+                    }}
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#17120f]">
-                      <Image
-                        src={sample.image.thumbnail.localPath}
-                        alt={`${sample.artistName} sample`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 25vw"
-                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                        priority={visibleIndex < 8}
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,8,14,0.06),rgba(7,8,14,0.18),rgba(6,9,16,0.88))]" />
-                      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(174,16,44,0.18),transparent)] mix-blend-screen" />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedKey(getSampleKey(sample))}
+                      className="block w-full text-left"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-[#17120f]">
+                        <Image
+                          src={sample.image.thumbnail.localPath}
+                          alt={`${sample.artistName} sample`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 25vw"
+                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                          priority={visibleIndex < 8}
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,8,14,0.06),rgba(7,8,14,0.18),rgba(6,9,16,0.88))]" />
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(174,16,44,0.18),transparent)] mix-blend-screen" />
 
-                      <div className="absolute top-3 left-3 flex max-w-[calc(100%-5.5rem)] flex-wrap gap-2">
-                        <span className="rounded-full border border-[#d7bf90]/30 bg-[rgba(34,18,20,0.82)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#ffe3ab]">
-                          {sample.boothLocation}
-                        </span>
-                        <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] uppercase tracking-[0.2em] text-[#d4cdbb]">
-                          {formatJoiningDate(sample.joiningDate)}
+                        <div className="absolute top-3 left-3 flex max-w-[calc(100%-5.5rem)] flex-wrap gap-2">
+                          <span className="rounded-full border border-[#d7bf90]/30 bg-[rgba(34,18,20,0.82)] px-3 py-1 text-[0.68rem] font-semibold tracking-[0.22em] text-[#ffe3ab] uppercase">
+                            {sample.boothLocation}
+                          </span>
+                          <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] tracking-[0.2em] text-[#d4cdbb] uppercase">
+                            {formatJoiningDate(sample.joiningDate)}
+                          </span>
+                        </div>
+
+                        <span className="absolute top-3 right-3 rounded-full bg-[linear-gradient(135deg,#f2ad7a,#c83342)] px-3 py-2 text-xs font-semibold text-[#2f130b] shadow-[0_8px_18px_rgba(0,0,0,0.22)]">
+                          Open
                         </span>
                       </div>
 
-                      <span className="absolute top-3 right-3 rounded-full bg-[linear-gradient(135deg,#f2ad7a,#c83342)] px-3 py-2 text-xs font-semibold text-[#2f130b] shadow-[0_8px_18px_rgba(0,0,0,0.22)]">
-                        Open
-                      </span>
-                    </div>
+                      <div className="grid gap-4 p-4 sm:p-5">
+                        <div>
+                          <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] text-xl leading-tight font-semibold text-[#fff6de] sm:text-2xl">
+                            {sample.artistName}
+                          </p>
+                          <p className="mt-2 text-sm text-[#d0c4b4] sm:text-base">
+                            {formatBoothType(sample.boothType)}
+                          </p>
+                        </div>
 
-                    <div className="grid gap-4 p-4 sm:p-5">
-                      <div>
-                        <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] text-xl leading-tight font-semibold text-[#fff6de] sm:text-2xl">
-                          {sample.artistName}
-                        </p>
-                        <p className="mt-2 text-sm text-[#d0c4b4] sm:text-base">
-                          {formatBoothType(sample.boothType)}
-                        </p>
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="rounded-full border border-[#ccb07d]/16 bg-[rgba(255,255,255,0.04)] px-3 py-1 text-[#d7d0bf]">
+                            {artistSampleCount > 1
+                              ? `${artistSampleCount} samples`
+                              : "Single sample"}
+                          </span>
+                          <span className="text-[#f1b26e]">
+                            View fullscreen
+                          </span>
+                        </div>
                       </div>
-
-                      <div className="flex items-center justify-between gap-3 text-sm">
-                        <span className="rounded-full border border-[#ccb07d]/16 bg-[rgba(255,255,255,0.04)] px-3 py-1 text-[#d7d0bf]">
-                          {artistSampleCount > 1
-                            ? `${artistSampleCount} samples`
-                            : "Single sample"}
-                        </span>
-                        <span className="text-[#f1b26e]">View fullscreen</span>
-                      </div>
-                    </div>
-                  </button>
-                </article>
-              );
-            })}
+                    </button>
+                  </article>
+                );
+              })}
             </section>
           )}
 
@@ -1130,7 +1171,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
       {selectedSample && (
         <ZoomableSampleViewer
           sample={selectedSample}
-          artistSampleCount={artistSampleCounts.get(selectedSample.artistName) ?? 1}
+          artistSampleCount={
+            artistSampleCounts.get(selectedSample.artistName) ?? 1
+          }
           onClose={() => setSelectedKey(null)}
           onPrevious={
             selectedFilteredIndex > 0
