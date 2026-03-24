@@ -420,6 +420,49 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      <div>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-1 w-12 rounded-full bg-linear-to-r from-rose-500 to-orange-500"></div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Search Tooling
+          </h3>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/admin/cofi"
+            className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-rose-300 hover:shadow-xl dark:border-gray-800 dark:bg-gray-950 dark:hover:border-rose-700"
+          >
+            <div className="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-linear-to-br from-rose-500/10 to-orange-500/10"></div>
+            <div className="relative">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-orange-500 shadow-lg transition-transform group-hover:scale-110">
+                <svg
+                  className="h-7 w-7 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  role="img"
+                  aria-labelledby="cofi-icon-title"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16l2.879-2.879m0 0A3 3 0 1115.12 8.88a3 3 0 01-4.242 4.242zM21 21l-4.35-4.35"
+                  />
+                  <title id="cofi-icon-title">COFI Search Icon</title>
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                COFI Search
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                Sync COFI samples into Supabase and generate Gemini embeddings
+              </p>
+            </div>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

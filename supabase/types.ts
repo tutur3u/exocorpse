@@ -345,6 +345,128 @@ export type Database = {
         };
         Relationships: [];
       };
+      cofi_sample_embeddings: {
+        Row: {
+          content_hash: string;
+          created_at: string;
+          dimensions: number;
+          embedding: string;
+          model: string;
+          sample_id: string;
+          task_type: string;
+          updated_at: string;
+        };
+        Insert: {
+          content_hash: string;
+          created_at?: string;
+          dimensions: number;
+          embedding: string;
+          model: string;
+          sample_id: string;
+          task_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          content_hash?: string;
+          created_at?: string;
+          dimensions?: number;
+          embedding?: string;
+          model?: string;
+          sample_id?: string;
+          task_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cofi_sample_embeddings_sample_id_fkey";
+            columns: ["sample_id"];
+            isOneToOne: true;
+            referencedRelation: "cofi_samples";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cofi_samples: {
+        Row: {
+          artist_name: string;
+          artist_slug: string;
+          booth_location: string;
+          booth_type: string;
+          created_at: string;
+          id: string;
+          joining_date: string;
+          original_bytes: number;
+          original_content_type: string | null;
+          original_extension: string;
+          original_filename: string;
+          original_image_url: string;
+          original_local_path: string;
+          search_text: string;
+          search_tsv: unknown | null;
+          snapshot_index: number;
+          source_sample_id: string;
+          thumbnail_bytes: number;
+          thumbnail_content_type: string | null;
+          thumbnail_extension: string;
+          thumbnail_filename: string;
+          thumbnail_local_path: string;
+          thumbnail_url: string;
+          updated_at: string;
+        };
+        Insert: {
+          artist_name: string;
+          artist_slug: string;
+          booth_location: string;
+          booth_type: string;
+          created_at?: string;
+          id: string;
+          joining_date: string;
+          original_bytes: number;
+          original_content_type?: string | null;
+          original_extension: string;
+          original_filename: string;
+          original_image_url: string;
+          original_local_path: string;
+          search_text: string;
+          search_tsv?: unknown | null;
+          snapshot_index: number;
+          source_sample_id: string;
+          thumbnail_bytes: number;
+          thumbnail_content_type?: string | null;
+          thumbnail_extension: string;
+          thumbnail_filename: string;
+          thumbnail_local_path: string;
+          thumbnail_url: string;
+          updated_at?: string;
+        };
+        Update: {
+          artist_name?: string;
+          artist_slug?: string;
+          booth_location?: string;
+          booth_type?: string;
+          created_at?: string;
+          id?: string;
+          joining_date?: string;
+          original_bytes?: number;
+          original_content_type?: string | null;
+          original_extension?: string;
+          original_filename?: string;
+          original_image_url?: string;
+          original_local_path?: string;
+          search_text?: string;
+          search_tsv?: unknown | null;
+          snapshot_index?: number;
+          source_sample_id?: string;
+          thumbnail_bytes?: number;
+          thumbnail_content_type?: string | null;
+          thumbnail_extension?: string;
+          thumbnail_filename?: string;
+          thumbnail_local_path?: string;
+          thumbnail_url?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       character_factions: {
         Row: {
           character_id: string;
@@ -2394,6 +2516,40 @@ export type Database = {
           related_character: Json;
           relationship_id: string;
           relationship_type: Json;
+        }[];
+      };
+      search_cofi_samples_hybrid: {
+        Args: {
+          p_booth_type?: string | null;
+          p_joining_date?: string | null;
+          p_match_count?: number;
+          p_query: string;
+          p_query_embedding_text?: string | null;
+        };
+        Returns: {
+          artist_name: string;
+          artist_slug: string;
+          booth_location: string;
+          booth_type: string;
+          combined_score: number;
+          id: string;
+          joining_date: string;
+          lexical_score: number;
+          original_bytes: number;
+          original_content_type: string | null;
+          original_extension: string;
+          original_filename: string;
+          original_image_url: string;
+          original_local_path: string;
+          semantic_score: number;
+          snapshot_index: number;
+          source_sample_id: string;
+          thumbnail_bytes: number;
+          thumbnail_content_type: string | null;
+          thumbnail_extension: string;
+          thumbnail_filename: string;
+          thumbnail_local_path: string;
+          thumbnail_url: string;
         }[];
       };
       replace_service_addons: {
