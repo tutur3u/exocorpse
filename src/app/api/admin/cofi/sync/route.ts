@@ -1,6 +1,6 @@
 import { verifyAuth } from "@/lib/auth/utils";
 import { getCofiSamplesFromDb } from "@/lib/cofi-data";
-import { syncCofiSamplesAndEmbeddings } from "@/lib/cofi-sync";
+import { refreshCofiEmbeddings } from "@/lib/cofi-sync";
 import { getSupabaseAdminServer } from "@/lib/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await syncCofiSamplesAndEmbeddings(supabase, samples);
+    const result = await refreshCofiEmbeddings(supabase, samples);
 
     return NextResponse.json({
       success: true,

@@ -6,15 +6,9 @@ import { useState } from "react";
 
 type Props = {
   dataset: CofiDataset;
-  summary: {
-    sampleCount: number;
-    embeddingCount: number;
-    hasGoogleApiKey: boolean;
-    hasAdminPassword: boolean;
-  };
 };
 
-export default function CofiAdminClient({ dataset, summary }: Props) {
+export default function CofiAdminClient({ dataset }: Props) {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastResult, setLastResult] = useState<{
@@ -90,7 +84,7 @@ export default function CofiAdminClient({ dataset, summary }: Props) {
         </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-4">
+      <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
           <p className="text-sm text-gray-500 dark:text-gray-400">Archive samples</p>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
@@ -98,24 +92,10 @@ export default function CofiAdminClient({ dataset, summary }: Props) {
           </p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-sm text-gray-500 dark:text-gray-400">DB samples</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-            {summary.sampleCount}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-sm text-gray-500 dark:text-gray-400">DB embeddings</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-            {summary.embeddingCount}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Environment</p>
-          <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            Google API key: {summary.hasGoogleApiKey ? "ready" : "missing"}
-          </p>
-          <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-            Sync password: {summary.hasAdminPassword ? "ready" : "missing"}
+          <p className="text-sm text-gray-500 dark:text-gray-400">What this does</p>
+          <p className="mt-2 text-sm leading-7 text-gray-900 dark:text-white">
+            Regenerates Gemini embeddings for the COFI records already stored in
+            the database.
           </p>
         </div>
       </div>
@@ -152,18 +132,12 @@ export default function CofiAdminClient({ dataset, summary }: Props) {
                 onClick={runSync}
                 disabled={
                   isSubmitting ||
-                  !password.trim() ||
-                  !summary.hasAdminPassword
+                  !password.trim()
                 }
                 className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300 dark:disabled:bg-blue-900"
               >
                 {isSubmitting ? "Syncing..." : "Sync Samples and Embeddings"}
               </button>
-              {!summary.hasAdminPassword && (
-                <p className="text-sm text-amber-600 dark:text-amber-400">
-                  Configure `COFI_ADMIN_SYNC_PASSWORD` before using this action.
-                </p>
-              )}
             </div>
           </div>
 

@@ -1,6 +1,4 @@
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { google, type GoogleEmbeddingModelOptions } from "@ai-sdk/google";
 import { embedMany } from "ai";
 import type { CofiSample } from "@/data/cofi/types";
@@ -13,7 +11,6 @@ import {
   toPgVector,
 } from "@/lib/cofi";
 
-const ROOT = process.cwd();
 const UPSERT_BATCH_SIZE = 100;
 const EMBEDDING_BATCH_SIZE = 24;
 
@@ -27,17 +24,8 @@ type SyncProgress = {
   skippedEmbeddings: boolean;
 };
 
-async function sha256File(filePath: string) {
-  const buffer = await readFile(filePath);
-  return createHash("sha256").update(buffer).digest("hex");
-}
-
-function buildContentHash(sample: CofiSample, thumbnailHash: string) {
-  return createHash("sha256")
-    .update(buildCofiSearchText(sample))
-    .update("\n")
-    .update(thumbnailHash)
-    .digest("hex");
+function buildContentHash(sample: CofiSample) {
+  return createHash("sha256").update(buildCofiSearchText(sample)).digest("hex");
 }
 
 async function upsertSamples(
@@ -112,19 +100,10 @@ async function syncEmbeddings(
     sample: CofiSample;
     searchText: string;
     contentHash: string;
-    mimeType: string;
-    base64Data: string;
   }> = [];
 
   for (const sample of samples) {
-    const thumbnailAbsolutePath = path.join(
-      ROOT,
-      "public",
-      sample.image.thumbnail.localPath.replace(/^\//, ""),
-    );
-    const thumbnailBuffer = await readFile(thumbnailAbsolutePath);
-    const thumbnailHash = await sha256File(thumbnailAbsolutePath);
-    const contentHash = buildContentHash(sample, thumbnailHash);
+    const contentHash = buildContentHash(sample);
     const sampleId = getCofiSampleRecordId(sample);
 
     if (existingHashes.get(sampleId) === contentHash) {
@@ -135,8 +114,6 @@ async function syncEmbeddings(
       sample,
       searchText: buildCofiSearchText(sample),
       contentHash,
-      mimeType: sample.image.thumbnail.contentType ?? "image/jpeg",
-      base64Data: thumbnailBuffer.toString("base64"),
     });
   }
 
@@ -159,14 +136,6 @@ async function syncEmbeddings(
         google: {
           taskType: COFI_DOCUMENT_TASK_TYPE,
           outputDimensionality: COFI_EMBEDDING_DIMENSIONS,
-          content: chunk.map((entry) => [
-            {
-              inlineData: {
-                mimeType: entry.mimeType,
-                data: entry.base64Data,
-              },
-            },
-          ]),
         } satisfies GoogleEmbeddingModelOptions,
       },
     });
@@ -202,6 +171,18 @@ export async function syncCofiSamplesAndEmbeddings(
   samples: CofiSample[],
 ): Promise<SyncProgress> {
   await upsertSamples(supabase, samples);
+  const embeddingResult = await syncEmbeddings(supabase, samples);
+
+  return {
+    syncedSamples: samples.length,
+    ...embeddingResult,
+  };
+}
+
+export async function refreshCofiEmbeddings(
+  supabase: CofiSupabaseClient,
+  samples: CofiSample[],
+): Promise<SyncProgress> {
   const embeddingResult = await syncEmbeddings(supabase, samples);
 
   return {
