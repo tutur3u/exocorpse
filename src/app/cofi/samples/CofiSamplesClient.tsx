@@ -242,11 +242,11 @@ function ZoomableSampleViewer({
           </div>
         </div>
 
-        <div className="@container flex flex-1 flex-col lg:flex-row">
-          <div className="relative min-h-[46dvh] flex-1 overflow-hidden lg:min-h-0">
+        <div className="@container relative flex flex-1 flex-col lg:flex-row">
+          <div className="relative h-[calc(100dvh-8.5rem)] flex-none overflow-hidden lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
-              className={`relative h-full w-full overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              className={`absolute inset-0 overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
               onDoubleClick={(event) =>
                 applyScale(
                   scale > 1 ? 1 : 2.25,
@@ -306,16 +306,40 @@ function ZoomableSampleViewer({
                 }}
               />
 
-              <div className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-3 py-2 text-[0.65rem] tracking-[0.2em] text-[#d7ccb6] uppercase sm:right-4 sm:bottom-4 sm:px-4 sm:text-xs sm:tracking-[0.24em]">
+              <div className="pointer-events-none absolute right-3 bottom-28 rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-3 py-2 text-[0.65rem] tracking-[0.2em] text-[#d7ccb6] uppercase sm:right-4 sm:bottom-4 sm:px-4 sm:text-xs sm:tracking-[0.24em]">
                 Wheel to zoom • double-click to toggle • drag to pan
               </div>
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(3,5,10,0.78),transparent)] lg:hidden" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,5,10,0.92))] lg:hidden" />
+
+            <div className="absolute right-3 bottom-3 left-3 rounded-[1.4rem] border border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(11,16,29,0.82),rgba(5,8,15,0.92))] p-3 shadow-[0_18px_45px_rgba(0,0,0,0.26)] backdrop-blur lg:hidden">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-lg font-semibold text-[#fff6de]">
+                    {sample.artistName}
+                  </p>
+                  <p className="mt-1 text-xs text-[#d7ccbc]">
+                    {sample.boothLocation} • {formatBoothType(sample.boothType)}
+                  </p>
+                </div>
+                <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] uppercase tracking-[0.2em] text-[#d4cdbb]">
+                  {formatJoiningDate(sample.joiningDate)}
+                </span>
+              </div>
+              {artistSampleCount > 1 && (
+                <p className="mt-2 text-xs text-[#bfae98]">
+                  {artistSampleCount} samples in the archive
+                </p>
+              )}
             </div>
 
             {onPrevious && (
               <button
                 type="button"
                 onClick={onPrevious}
-                className="absolute bottom-4 left-4 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#d23642] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
+                className="absolute bottom-28 left-4 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#d23642] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
               >
                 Prev
               </button>
@@ -325,14 +349,14 @@ function ZoomableSampleViewer({
               <button
                 type="button"
                 onClick={onNext}
-                className="absolute right-4 bottom-4 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#3350e4] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
+                className="absolute right-4 bottom-28 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#3350e4] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
               >
                 Next
               </button>
             )}
           </div>
 
-          <aside className="w-full border-t border-[#c9a56c]/20 bg-[linear-gradient(180deg,rgba(11,16,29,0.98),rgba(5,8,15,0.96))] p-4 sm:p-5 lg:w-[24rem] lg:border-t-0 lg:border-l">
+          <aside className="hidden w-full border-t border-[#c9a56c]/20 bg-[linear-gradient(180deg,rgba(11,16,29,0.98),rgba(5,8,15,0.96))] p-4 sm:p-5 lg:block lg:w-[24rem] lg:border-t-0 lg:border-l">
             <div className="grid gap-4">
               <div className="rounded-[1.5rem] border border-[#c9a56c]/16 bg-[linear-gradient(180deg,rgba(125,13,41,0.18),rgba(14,20,34,0.9))] p-4">
                 <p className="text-[0.72rem] tracking-[0.24em] text-[#b29063] uppercase">
