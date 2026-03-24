@@ -533,9 +533,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [searchResults, setSearchResults] = useState<CofiSample[] | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
-  const [searchMode, setSearchMode] = useState<"hybrid" | "fts" | "local">(
-    "local",
-  );
+  const [searchMode, setSearchMode] = useState<
+    "hybrid" | "fts" | "fallback" | "local"
+  >("local");
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchFallbackReason, setSearchFallbackReason] = useState<
     "none" | "empty_ranked"
@@ -675,7 +675,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
         });
         const payload = (await response.json()) as {
           success: boolean;
-          mode?: "hybrid" | "fts" | "none";
+          mode?: "hybrid" | "fts" | "fallback" | "none";
           samples?: CofiSample[];
         };
 
@@ -694,7 +694,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
 
         setSearchResults(rankedSamples);
         setSearchMode(
-          payload.mode === "hybrid" || payload.mode === "fts"
+          payload.mode === "hybrid" ||
+            payload.mode === "fts" ||
+            payload.mode === "fallback"
             ? payload.mode
             : "local",
         );
@@ -813,6 +815,8 @@ export default function CofiSamplesClient({ dataset }: Props) {
       ? "Semantic + keyword"
       : searchMode === "fts"
         ? "Keyword ranked"
+        : searchMode === "fallback"
+          ? "Archive ranked"
         : "Instant filter";
   const searchStatusTone = isBusy
     ? "border-[#efb06f]/40 bg-[#261912]/80 text-[#ffd8ae]"
@@ -820,6 +824,8 @@ export default function CofiSamplesClient({ dataset }: Props) {
       ? "border-[#7ab8ff]/35 bg-[#102136]/80 text-[#d6e8ff]"
       : searchMode === "fts"
         ? "border-[#8ec6a1]/35 bg-[#102218]/80 text-[#d8f3dd]"
+        : searchMode === "fallback"
+          ? "border-[#d5bb8d]/35 bg-[#251b14]/80 text-[#f3e1bf]"
         : "border-white/10 bg-[#111a2b]/85 text-[#ddd5c4]";
   let searchSupportCopy =
     "Browse the full archive and open any sample fullscreen.";
@@ -841,6 +847,8 @@ export default function CofiSamplesClient({ dataset }: Props) {
     searchSupportCopy = `Showing ranked matches for “${normalizedQuery}” using semantic and keyword search.`;
   } else if (searchMode === "fts") {
     searchSupportCopy = `Showing keyword-ranked matches for “${normalizedQuery}”.`;
+  } else if (searchMode === "fallback") {
+    searchSupportCopy = `Showing direct archive matches for “${normalizedQuery}” because the ranked database path was unavailable or too strict.`;
   } else {
     searchSupportCopy = `Showing local matches for “${normalizedQuery}”.`;
   }
