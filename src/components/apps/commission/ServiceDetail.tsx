@@ -47,7 +47,8 @@ export default function ServiceDetail({
   // Convert pictures to gallery format with signed URLs and metadata
   const galleryImages = displayPictures.map((picture, idx) => ({
     id: picture.picture_id ?? `${idx}`,
-    url: signedUrls.get(picture.image_url) ?? picture.image_url,
+    url: picture.image_url,
+    signedUrl: signedUrls.get(picture.image_url) ?? null,
     alt: `${service.name} example ${idx + 1}`,
     title: picture.caption ?? service.name,
   }));

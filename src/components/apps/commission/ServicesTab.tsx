@@ -106,7 +106,8 @@ export default function ServicesTab({ services }: ServicesTabProps) {
                   path,
                   {
                     id: `${service.service_id}-${index}`,
-                    src: signedUrls.get(path) ?? path,
+                    src: path,
+                    signedUrl: signedUrls.get(path) ?? null,
                     alt: service.name,
                   },
                 ]),

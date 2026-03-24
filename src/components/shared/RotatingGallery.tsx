@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 export type RotatingGalleryImage = {
   id: string;
   src: string;
+  signedUrl?: string | null;
   alt: string;
   title?: string;
   subtitle?: string;
@@ -97,6 +98,7 @@ export default function RotatingGallery({
       ? null
       : {
           imageUrl: images[lightboxIndex].src,
+          signedUrl: images[lightboxIndex].signedUrl ?? undefined,
           title: images[lightboxIndex].title || images[lightboxIndex].alt,
           description: images[lightboxIndex].subtitle,
         };
@@ -153,6 +155,7 @@ export default function RotatingGallery({
               >
                 <StorageImage
                   src={images[previousIndex].src}
+                  signedUrl={images[previousIndex].signedUrl ?? undefined}
                   alt={images[previousIndex].alt}
                   fill
                   className="object-cover opacity-70 transition duration-500 group-hover:scale-[1.04]"
@@ -187,6 +190,7 @@ export default function RotatingGallery({
               >
                 <StorageImage
                   src={images[nextIndex].src}
+                  signedUrl={images[nextIndex].signedUrl ?? undefined}
                   alt={images[nextIndex].alt}
                   fill
                   className="object-cover opacity-70 transition duration-500 group-hover:scale-[1.04]"
@@ -238,6 +242,7 @@ export default function RotatingGallery({
                 >
                   <StorageImage
                     src={image.src}
+                    signedUrl={image.signedUrl ?? undefined}
                     alt={image.alt}
                     fill
                     className={imageClassName}

@@ -10,6 +10,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 export interface GalleryImage {
   id: string;
   url: string;
+  signedUrl?: string | null;
   width?: number;
   height?: number;
   alt?: string;
@@ -64,6 +65,7 @@ export function MasonryGallery({
 
     setSelectedContent({
       imageUrl: image.url,
+      signedUrl: image.signedUrl ?? undefined,
       title: image.title || image.alt || `Image ${index + 1}`,
       description: image.description || image.metadata?.author || undefined,
     });
@@ -80,6 +82,7 @@ export function MasonryGallery({
     const nextImage = images[nextIndex];
     setSelectedContent({
       imageUrl: nextImage.url,
+      signedUrl: nextImage.signedUrl ?? undefined,
       title: nextImage.title || nextImage.alt || `Image ${nextIndex + 1}`,
       description:
         nextImage.description || nextImage.metadata?.author || undefined,
@@ -92,6 +95,7 @@ export function MasonryGallery({
     const prevImage = images[prevIndex];
     setSelectedContent({
       imageUrl: prevImage.url,
+      signedUrl: prevImage.signedUrl ?? undefined,
       title: prevImage.title || prevImage.alt || `Image ${prevIndex + 1}`,
       description:
         prevImage.description || prevImage.metadata?.author || undefined,
@@ -144,7 +148,7 @@ export function MasonryGallery({
             >
               <StorageImage
                 src={image.url}
-                signedUrl={image.url}
+                signedUrl={image.signedUrl ?? undefined}
                 alt={image.alt || image.title || `Gallery image ${index + 1}`}
                 width={image.width || 500}
                 height={image.height || 500}
