@@ -1,6 +1,6 @@
+import { getCofiAdminSummary } from "@/lib/cofi-admin";
 import { getCofiDatasetFromDb } from "@/lib/cofi-data";
 import CofiAdminClient from "./CofiAdminClient";
-import { getCofiAdminSummary } from "@/lib/cofi-sync";
 import { getSupabaseAdminServer } from "@/lib/supabase/server";
 
 export default async function AdminCofiPage() {
