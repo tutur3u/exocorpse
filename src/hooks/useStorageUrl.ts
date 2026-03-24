@@ -90,17 +90,33 @@ export function useBatchStorageUrls(
 ) {
   // Filter out null/undefined paths and get unique paths
   const validPaths = Array.from(new Set(paths.filter((p): p is string => !!p)));
+  const relativePaths = Array.from(
+    new Set(validPaths.map((path) => extractRelativePath(path))),
+  );
 
   // Use a single query for batch fetching - more efficient than useQueries for this case
   const query = useQuery({
-    queryKey: ["storage-urls-batch", validPaths.sort().join(",")],
+    queryKey: ["storage-urls-batch", relativePaths.sort().join(",")],
     queryFn: async () => {
       if (validPaths.length === 0) return new Map<string, string>();
 
-      // Extract relative paths in case full paths are provided
-      const relativePaths = validPaths.map(extractRelativePath);
       // Use cached batch function which checks DB first, then batch-fetches from SDK if needed
-      return await batchGetCachedSignedUrls(relativePaths);
+      const resolvedUrls = await batchGetCachedSignedUrls(relativePaths);
+      const aliasedUrls = new Map<string, string>();
+
+      for (const originalPath of validPaths) {
+        const relativePath = extractRelativePath(originalPath);
+        const signedUrl = resolvedUrls.get(relativePath);
+
+        if (!signedUrl) {
+          continue;
+        }
+
+        aliasedUrls.set(relativePath, signedUrl);
+        aliasedUrls.set(originalPath, signedUrl);
+      }
+
+      return aliasedUrls;
     },
     enabled: validPaths.length > 0 && enabled,
     // Cache for 6 days (1 day before storage URL expiration)
