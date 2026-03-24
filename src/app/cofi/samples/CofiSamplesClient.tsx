@@ -527,6 +527,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
     "local",
   );
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchFallbackReason, setSearchFallbackReason] = useState<
+    "none" | "empty_ranked"
+  >("none");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim();
@@ -632,6 +635,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
       setSearchResults(null);
       setSearchMode("local");
       setSearchError(null);
+      setSearchFallbackReason("none");
       setIsSearchLoading(false);
       return;
     }
@@ -640,6 +644,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
     const timer = window.setTimeout(async () => {
       try {
         setSearchError(null);
+        setSearchFallbackReason("none");
         setIsSearchLoading(true);
 
         const params = new URLSearchParams({
@@ -668,7 +673,16 @@ export default function CofiSamplesClient({ dataset }: Props) {
           throw new Error("Search request failed");
         }
 
-        setSearchResults(payload.samples ?? []);
+        const rankedSamples = payload.samples ?? [];
+
+        if (rankedSamples.length === 0 && localFilteredSamples.length > 0) {
+          setSearchResults(null);
+          setSearchMode("local");
+          setSearchFallbackReason("empty_ranked");
+          return;
+        }
+
+        setSearchResults(rankedSamples);
         setSearchMode(
           payload.mode === "hybrid" || payload.mode === "fts"
             ? payload.mode
@@ -685,6 +699,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
         );
         setSearchResults(null);
         setSearchMode("local");
+        setSearchFallbackReason("none");
         setSearchError(
           "Ranked search is unavailable right now, so local filtering is active.",
         );
@@ -701,6 +716,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
     };
   }, [
     canUseRankedSearch,
+    localFilteredSamples.length,
     normalizedQuery,
     boothType,
     joiningDate,
@@ -809,6 +825,8 @@ export default function CofiSamplesClient({ dataset }: Props) {
     searchSupportCopy = `Refreshing results for “${normalizedQuery || query.trim()}”.`;
   } else if (searchError) {
     searchSupportCopy = searchError;
+  } else if (searchFallbackReason === "empty_ranked") {
+    searchSupportCopy = `Ranked search found no exact database hits for “${normalizedQuery}”, so archive filtering is active instead.`;
   } else if (searchMode === "hybrid") {
     searchSupportCopy = `Showing ranked matches for “${normalizedQuery}” using semantic and keyword search.`;
   } else if (searchMode === "fts") {
