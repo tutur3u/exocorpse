@@ -84,6 +84,7 @@ function ZoomableSampleViewer({
     startX: number;
     startY: number;
   } | null>(null);
+  const [isTabletUp, setIsTabletUp] = useState(false);
 
   const canPan = scale > 1;
   const canGoPrevious = Boolean(onPrevious);
@@ -213,6 +214,18 @@ function ZoomableSampleViewer({
     };
   }, [onClose, onNext, onPrevious]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const applyMatch = () => setIsTabletUp(mediaQuery.matches);
+
+    applyMatch();
+    mediaQuery.addEventListener("change", applyMatch);
+
+    return () => {
+      mediaQuery.removeEventListener("change", applyMatch);
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top,rgba(206,32,34,0.15),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(45,66,224,0.18),transparent_30%),linear-gradient(180deg,rgba(2,4,9,0.98),rgba(4,5,11,0.98))] backdrop-blur-sm"
@@ -226,7 +239,7 @@ function ZoomableSampleViewer({
         aria-modal="true"
         aria-labelledby="cofi-fullscreen-title"
       >
-        <div className="border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-3 py-2 sm:px-6 sm:py-3">
+        <div className="border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-3 py-1.5 sm:px-6 sm:py-3">
           <div className="hidden items-center justify-between gap-3 sm:flex lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[0.68rem] tracking-[0.32em] text-[#d0a56b] uppercase">
@@ -296,39 +309,14 @@ function ZoomableSampleViewer({
           </div>
 
           <div className="sm:hidden">
-            <div className="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={onPrevious}
-                disabled={!canGoPrevious}
-                className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-1.5 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-1.5 text-sm font-medium text-[#fff0c6]"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={!canGoNext}
-                className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-1.5 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                Next
-              </button>
-            </div>
-            <div className="mt-2 min-w-0">
+            <div className="min-w-0">
               <h2
                 id="cofi-fullscreen-title-mobile"
-                className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-xl font-semibold text-[#f8efdd]"
+                className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-lg font-semibold text-[#f8efdd]"
               >
                 {sample.artistName}
               </h2>
-              <p className="mt-0.5 truncate text-xs text-[#d1c6b5]">
+              <p className="mt-0.5 truncate text-[0.78rem] text-[#d1c6b5]">
                 {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
                 {formatJoiningDate(sample.joiningDate)}
               </p>
@@ -337,24 +325,31 @@ function ZoomableSampleViewer({
         </div>
 
         <div className="@container relative flex flex-1 flex-col lg:flex-row">
-          <div className="relative h-[calc(100dvh-5.5rem)] flex-none overflow-hidden sm:h-[calc(100dvh-8.5rem)] lg:h-auto lg:min-h-0 lg:flex-1">
+          <div className="relative h-[calc(100dvh-7.9rem)] flex-none overflow-hidden sm:h-[calc(100dvh-8.5rem)] lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
               className={`relative h-full w-full overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
               style={{ touchAction: "none" }}
-              onDoubleClick={(event) =>
-                applyScale(
-                  scaleRef.current > 1 ? 1 : 2.25,
-                  getAnchorPoint(event.clientX, event.clientY),
-                )
+              onDoubleClick={
+                isTabletUp
+                  ? (event) =>
+                      applyScale(
+                        scaleRef.current > 1 ? 1 : 2.25,
+                        getAnchorPoint(event.clientX, event.clientY),
+                      )
+                  : undefined
               }
-              onWheel={(event) => {
-                event.preventDefault();
-                applyScale(
-                  scaleRef.current + (event.deltaY < 0 ? 0.25 : -0.25),
-                  getAnchorPoint(event.clientX, event.clientY),
-                );
-              }}
+              onWheel={
+                isTabletUp
+                  ? (event) => {
+                      event.preventDefault();
+                      applyScale(
+                        scaleRef.current + (event.deltaY < 0 ? 0.25 : -0.25),
+                        getAnchorPoint(event.clientX, event.clientY),
+                      );
+                    }
+                  : undefined
+              }
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 activePointersRef.current.set(event.pointerId, {
@@ -535,6 +530,34 @@ function ZoomableSampleViewer({
               </div>
             </div>
           </aside>
+        </div>
+
+        <div className="border-t border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(8,13,24,0.94),rgba(6,10,18,0.98))] px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:hidden">
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={onPrevious}
+              disabled={!canGoPrevious}
+              className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-2 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-2 text-sm font-medium text-[#fff0c6]"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              disabled={!canGoNext}
+              className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-2 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1005,7 +1028,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search artist, booth, or attendance day"
-                    className="w-full rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(17,22,39,0.96),rgba(13,18,31,0.98))] py-3 pr-24 pl-12 text-sm text-[#fff6de] transition outline-none placeholder:text-[#776e67] focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
+                    className="w-full rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(17,22,39,0.96),rgba(13,18,31,0.98))] py-3 pr-24 pl-12 text-base text-[#fff6de] transition outline-none placeholder:text-[#776e67] focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)] sm:text-sm"
                   />
                   <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
                     {isBusy && (
@@ -1034,7 +1057,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                 <select
                   value={boothType}
                   onChange={(event) => setBoothType(event.target.value)}
-                  className="rounded-2xl border border-[#2948d8]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#2948d8] focus:shadow-[0_0_0_1px_rgba(41,72,216,0.16)]"
+                  className="rounded-2xl border border-[#2948d8]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-base text-[#fff6de] transition outline-none focus:border-[#2948d8] focus:shadow-[0_0_0_1px_rgba(41,72,216,0.16)] sm:text-sm"
                 >
                   {boothTypes.map((option) => (
                     <option key={option} value={option}>
@@ -1053,7 +1076,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                 <select
                   value={joiningDate}
                   onChange={(event) => setJoiningDate(event.target.value)}
-                  className="rounded-2xl border border-[#d23642]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)]"
+                  className="rounded-2xl border border-[#d23642]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-base text-[#fff6de] transition outline-none focus:border-[#d23642] focus:shadow-[0_0_0_1px_rgba(210,54,66,0.16)] sm:text-sm"
                 >
                   {joiningDates.map((option) => (
                     <option key={option} value={option}>
@@ -1078,7 +1101,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                           .value as (typeof SORT_OPTIONS)[number]["value"],
                       )
                     }
-                    className="rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition outline-none focus:border-[#c8aa75] focus:shadow-[0_0_0_1px_rgba(200,170,117,0.14)]"
+                    className="rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-base text-[#fff6de] transition outline-none focus:border-[#c8aa75] focus:shadow-[0_0_0_1px_rgba(200,170,117,0.14)] sm:text-sm"
                   >
                     {SORT_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -1095,7 +1118,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                       current === "asc" ? "desc" : "asc",
                     )
                   }
-                  className="mt-[1.45rem] rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-sm text-[#fff6de] transition hover:border-[#d23642]"
+                  className="mt-[1.45rem] rounded-2xl border border-[#c8aa75]/16 bg-[linear-gradient(180deg,rgba(16,22,41,0.96),rgba(11,17,31,0.98))] px-4 py-3 text-base text-[#fff6de] transition hover:border-[#d23642] sm:text-sm"
                 >
                   {sortDirection === "asc" ? "Asc" : "Desc"}
                 </button>
