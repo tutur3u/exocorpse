@@ -86,6 +86,8 @@ function ZoomableSampleViewer({
   } | null>(null);
 
   const canPan = scale > 1;
+  const canGoPrevious = Boolean(onPrevious);
+  const canGoNext = Boolean(onNext);
 
   const clampOffset = (x: number, y: number, currentScale: number) => {
     if (currentScale <= 1) {
@@ -224,61 +226,121 @@ function ZoomableSampleViewer({
         aria-modal="true"
         aria-labelledby="cofi-fullscreen-title"
       >
-        <div className="flex flex-col gap-3 border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[0.68rem] tracking-[0.32em] text-[#d0a56b] uppercase">
-              Sample Viewer
-            </p>
-            <h2
-              id="cofi-fullscreen-title"
-              className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-1 text-xl font-semibold text-[#f8efdd] sm:text-2xl"
-            >
-              {sample.artistName}
-            </h2>
-            <p className="mt-1 text-sm text-[#d1c6b5]">
-              {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
-              {formatJoiningDate(sample.joiningDate)}
-              {artistSampleCount > 1 ? ` • ${artistSampleCount} samples` : ""}
-            </p>
+        <div className="border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-3 py-2 sm:px-6 sm:py-3">
+          <div className="hidden items-center justify-between gap-3 sm:flex lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[0.68rem] tracking-[0.32em] text-[#d0a56b] uppercase">
+                Sample Viewer
+              </p>
+              <h2
+                id="cofi-fullscreen-title"
+                className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] mt-1 text-xl font-semibold text-[#f8efdd] sm:text-2xl"
+              >
+                {sample.artistName}
+              </h2>
+              <p className="mt-1 text-sm text-[#d1c6b5]">
+                {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
+                {formatJoiningDate(sample.joiningDate)}
+                {artistSampleCount > 1 ? ` • ${artistSampleCount} samples` : ""}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={onPrevious}
+                disabled={!canGoPrevious}
+                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-4 py-2 text-sm font-medium text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={() => applyScale(scale - 0.3)}
+                disabled={scale <= 1}
+                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={() => applyScale(1)}
+                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#3350e4] hover:text-white"
+              >
+                {Math.round(scale * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={() => applyScale(scale + 0.3)}
+                disabled={scale >= 5}
+                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-4 py-2 text-sm font-medium text-[#fff0c6] transition hover:border-[#f17d6b]"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={!canGoNext}
+                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-4 py-2 text-sm font-medium text-[#ece4d0] transition hover:border-[#3350e4] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+              >
+                Next
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:items-center">
-            <button
-              type="button"
-              onClick={() => applyScale(scale - 0.3)}
-              className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white"
-            >
-              -
-            </button>
-            <button
-              type="button"
-              onClick={() => applyScale(1)}
-              className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#3350e4] hover:text-white"
-            >
-              {Math.round(scale * 100)}%
-            </button>
-            <button
-              type="button"
-              onClick={() => applyScale(scale + 0.3)}
-              className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white"
-            >
-              +
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-4 py-2 text-sm font-medium text-[#fff0c6] transition hover:border-[#f17d6b]"
-            >
-              Close
-            </button>
+          <div className="sm:hidden">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={onPrevious}
+                disabled={!canGoPrevious}
+                className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-1.5 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-1.5 text-sm font-medium text-[#fff0c6]"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={!canGoNext}
+                className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-1.5 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Next
+              </button>
+            </div>
+            <div className="mt-2 min-w-0">
+              <h2
+                id="cofi-fullscreen-title-mobile"
+                className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-xl font-semibold text-[#f8efdd]"
+              >
+                {sample.artistName}
+              </h2>
+              <p className="mt-0.5 truncate text-xs text-[#d1c6b5]">
+                {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
+                {formatJoiningDate(sample.joiningDate)}
+              </p>
+            </div>
           </div>
         </div>
 
         <div className="@container relative flex flex-1 flex-col lg:flex-row">
-          <div className="relative h-[calc(100dvh-8.5rem)] flex-none overflow-hidden lg:h-auto lg:min-h-0 lg:flex-1">
+          <div className="relative h-[calc(100dvh-5.5rem)] flex-none overflow-hidden sm:h-[calc(100dvh-8.5rem)] lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
-              className={`absolute inset-0 overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              className={`relative h-full w-full overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
               style={{ touchAction: "none" }}
               onDoubleClick={(event) =>
                 applyScale(
@@ -417,54 +479,11 @@ function ZoomableSampleViewer({
                 }}
               />
 
-              <div className="pointer-events-none absolute right-3 bottom-28 rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-3 py-2 text-[0.65rem] tracking-[0.2em] text-[#d7ccb6] uppercase sm:right-4 sm:bottom-4 sm:px-4 sm:text-xs sm:tracking-[0.24em]">
+              <div className="pointer-events-none absolute right-4 bottom-4 hidden rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-4 py-2 text-xs tracking-[0.24em] text-[#d7ccb6] uppercase sm:block">
                 Wheel to zoom • double-click to toggle • drag to pan
               </div>
             </div>
 
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(3,5,10,0.78),transparent)] lg:hidden" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,5,10,0.92))] lg:hidden" />
-
-            <div className="absolute right-3 bottom-3 left-3 rounded-[1.4rem] border border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(11,16,29,0.82),rgba(5,8,15,0.92))] p-3 shadow-[0_18px_45px_rgba(0,0,0,0.26)] backdrop-blur lg:hidden">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-lg font-semibold text-[#fff6de]">
-                    {sample.artistName}
-                  </p>
-                  <p className="mt-1 text-xs text-[#d7ccbc]">
-                    {sample.boothLocation} • {formatBoothType(sample.boothType)}
-                  </p>
-                </div>
-                <span className="rounded-full border border-[#2948d8]/24 bg-[rgba(13,18,39,0.88)] px-3 py-1 text-[0.68rem] tracking-[0.2em] text-[#d4cdbb] uppercase">
-                  {formatJoiningDate(sample.joiningDate)}
-                </span>
-              </div>
-              {artistSampleCount > 1 && (
-                <p className="mt-2 text-xs text-[#bfae98]">
-                  {artistSampleCount} samples in the archive
-                </p>
-              )}
-            </div>
-
-            {onPrevious && (
-              <button
-                type="button"
-                onClick={onPrevious}
-                className="absolute bottom-28 left-4 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#d23642] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
-              >
-                Prev
-              </button>
-            )}
-
-            {onNext && (
-              <button
-                type="button"
-                onClick={onNext}
-                className="absolute right-4 bottom-28 rounded-full border border-[#c9a56c]/20 bg-[#09111dcc] px-4 py-3 text-sm font-medium text-[#fff6de] backdrop-blur transition hover:border-[#3350e4] lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
-              >
-                Next
-              </button>
-            )}
           </div>
 
           <aside className="hidden w-full border-t border-[#c9a56c]/20 bg-[linear-gradient(180deg,rgba(11,16,29,0.98),rgba(5,8,15,0.96))] p-4 sm:p-5 lg:block lg:w-[24rem] lg:border-t-0 lg:border-l">
