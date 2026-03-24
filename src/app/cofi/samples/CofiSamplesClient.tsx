@@ -69,6 +69,14 @@ function ZoomableSampleViewer({
   onPrevious,
 }: ViewerProps) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const scaleRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchStateRef = useRef<{
+    distance: number;
+    scale: number;
+    offset: { x: number; y: number };
+  } | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragState, setDragState] = useState<{
@@ -99,6 +107,13 @@ function ZoomableSampleViewer({
     };
   };
 
+  const commitView = (nextScale: number, nextOffset: { x: number; y: number }) => {
+    scaleRef.current = nextScale;
+    offsetRef.current = nextOffset;
+    setScale(nextScale);
+    setOffset(nextOffset);
+  };
+
   const getAnchorPoint = (clientX: number, clientY: number) => {
     const bounds = viewportRef.current?.getBoundingClientRect();
 
@@ -115,30 +130,44 @@ function ZoomableSampleViewer({
   const applyScale = (
     nextScale: number,
     anchor: { x: number; y: number } = { x: 0, y: 0 },
+    baseScale = scaleRef.current,
+    baseOffset = offsetRef.current,
   ) => {
     const clampedScale = clamp(nextScale, 1, 5);
 
     if (clampedScale === 1) {
-      setScale(1);
-      setOffset({ x: 0, y: 0 });
+      commitView(1, { x: 0, y: 0 });
       return;
     }
 
-    const zoomRatio = clampedScale / scale;
+    const zoomRatio = clampedScale / baseScale;
     const nextOffset = clampOffset(
-      anchor.x - (anchor.x - offset.x) * zoomRatio,
-      anchor.y - (anchor.y - offset.y) * zoomRatio,
+      anchor.x - (anchor.x - baseOffset.x) * zoomRatio,
+      anchor.y - (anchor.y - baseOffset.y) * zoomRatio,
       clampedScale,
     );
 
-    setScale(clampedScale);
-    setOffset(nextOffset);
+    commitView(clampedScale, nextOffset);
   };
 
+  const getPointerDistance = (
+    left: { x: number; y: number },
+    right: { x: number; y: number },
+  ) => Math.hypot(right.x - left.x, right.y - left.y);
+
+  const getPointerMidpoint = (
+    left: { x: number; y: number },
+    right: { x: number; y: number },
+  ) => ({
+    x: (left.x + right.x) / 2,
+    y: (left.y + right.y) / 2,
+  });
+
   useEffect(() => {
-    setScale(1);
-    setOffset({ x: 0, y: 0 });
+    commitView(1, { x: 0, y: 0 });
     setDragState(null);
+    activePointersRef.current.clear();
+    pinchStateRef.current = null;
   }, [sample.id, sample.index]);
 
   useEffect(() => {
@@ -159,11 +188,11 @@ function ZoomableSampleViewer({
       }
 
       if (event.key === "+" || event.key === "=") {
-        applyScale(scale + 0.3);
+        applyScale(scaleRef.current + 0.3);
       }
 
       if (event.key === "-") {
-        applyScale(scale - 0.3);
+        applyScale(scaleRef.current - 0.3);
       }
 
       if (event.key === "0") {
@@ -177,7 +206,7 @@ function ZoomableSampleViewer({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClose, onNext, onPrevious, scale]);
+  }, [onClose, onNext, onPrevious]);
 
   return (
     <div
@@ -247,32 +276,84 @@ function ZoomableSampleViewer({
             <div
               ref={viewportRef}
               className={`absolute inset-0 overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              style={{ touchAction: "none" }}
               onDoubleClick={(event) =>
                 applyScale(
-                  scale > 1 ? 1 : 2.25,
+                  scaleRef.current > 1 ? 1 : 2.25,
                   getAnchorPoint(event.clientX, event.clientY),
                 )
               }
               onWheel={(event) => {
                 event.preventDefault();
                 applyScale(
-                  scale + (event.deltaY < 0 ? 0.25 : -0.25),
+                  scaleRef.current + (event.deltaY < 0 ? 0.25 : -0.25),
                   getAnchorPoint(event.clientX, event.clientY),
                 );
               }}
               onPointerDown={(event) => {
-                if (!canPan) {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                activePointersRef.current.set(event.pointerId, {
+                  x: event.clientX,
+                  y: event.clientY,
+                });
+
+                const pointers = [...activePointersRef.current.values()];
+
+                if (pointers.length === 2) {
+                  setDragState(null);
+                  pinchStateRef.current = {
+                    distance: getPointerDistance(pointers[0], pointers[1]),
+                    scale: scaleRef.current,
+                    offset: offsetRef.current,
+                  };
                   return;
                 }
 
-                event.currentTarget.setPointerCapture(event.pointerId);
-                setDragState({
-                  pointerId: event.pointerId,
-                  startX: event.clientX - offset.x,
-                  startY: event.clientY - offset.y,
-                });
+                if (pointers.length === 1 && scaleRef.current > 1) {
+                  setDragState({
+                    pointerId: event.pointerId,
+                    startX: event.clientX - offsetRef.current.x,
+                    startY: event.clientY - offsetRef.current.y,
+                  });
+                }
               }}
               onPointerMove={(event) => {
+                if (!activePointersRef.current.has(event.pointerId)) {
+                  return;
+                }
+
+                activePointersRef.current.set(event.pointerId, {
+                  x: event.clientX,
+                  y: event.clientY,
+                });
+
+                const pointers = [...activePointersRef.current.values()];
+
+                if (pointers.length === 2) {
+                  const [left, right] = pointers;
+                  const pinchState =
+                    pinchStateRef.current ??
+                    ({
+                      distance: getPointerDistance(left, right),
+                      scale: scaleRef.current,
+                      offset: offsetRef.current,
+                    } as const);
+
+                  pinchStateRef.current = pinchState;
+
+                  const midpoint = getPointerMidpoint(left, right);
+                  applyScale(
+                    pinchState.scale *
+                      (getPointerDistance(left, right) / pinchState.distance),
+                    getAnchorPoint(midpoint.x, midpoint.y),
+                    pinchState.scale,
+                    pinchState.offset,
+                  );
+                  return;
+                }
+
+                pinchStateRef.current = null;
+
                 if (!dragState || dragState.pointerId !== event.pointerId) {
                   return;
                 }
@@ -280,16 +361,36 @@ function ZoomableSampleViewer({
                 const nextOffset = clampOffset(
                   event.clientX - dragState.startX,
                   event.clientY - dragState.startY,
-                  scale,
+                  scaleRef.current,
                 );
-                setOffset(nextOffset);
+                commitView(scaleRef.current, nextOffset);
               }}
               onPointerUp={(event) => {
-                if (dragState?.pointerId === event.pointerId) {
+                activePointersRef.current.delete(event.pointerId);
+                pinchStateRef.current =
+                  activePointersRef.current.size < 2 ? null : pinchStateRef.current;
+
+                if (dragState?.pointerId === event.pointerId || activePointersRef.current.size === 0) {
                   setDragState(null);
                 }
+
+                const remainingPointer = [...activePointersRef.current.entries()][0];
+
+                if (
+                  activePointersRef.current.size === 1 &&
+                  remainingPointer &&
+                  scaleRef.current > 1
+                ) {
+                  setDragState({
+                    pointerId: remainingPointer[0],
+                    startX: remainingPointer[1].x - offsetRef.current.x,
+                    startY: remainingPointer[1].y - offsetRef.current.y,
+                  });
+                }
               }}
-              onPointerCancel={() => {
+              onPointerCancel={(event) => {
+                activePointersRef.current.delete(event.pointerId);
+                pinchStateRef.current = null;
                 setDragState(null);
               }}
             >
