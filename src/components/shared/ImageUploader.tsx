@@ -63,6 +63,7 @@ export default function ImageUploader({
     !value.startsWith("http://") &&
     !value.startsWith("https://") &&
     !value.startsWith("data:") &&
+    !value.startsWith("/") &&
     !isPending;
 
   // Use the hook to get the signed URL if it's a storage path

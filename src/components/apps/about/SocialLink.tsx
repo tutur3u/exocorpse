@@ -1,4 +1,9 @@
 import Image from "next/image";
+import type {
+  AboutContentItem,
+  AboutSocialColorKey,
+  AboutSocialIconKey,
+} from "@/lib/about";
 import type { ComponentType } from "react";
 import {
   FaDiscord,
@@ -8,9 +13,11 @@ import {
   FaTwitter,
 } from "react-icons/fa";
 import { SiBluesky } from "react-icons/si";
-import type { SocialMediaLink } from "./data";
 
-const iconMap = {
+const iconMap: Record<
+  AboutSocialIconKey,
+  ComponentType<{ className?: string }> | null
+> = {
   tumblr: FaTumblr,
   twitch: FaTwitch,
   vgen: null, // Custom "V" letter
@@ -19,7 +26,16 @@ const iconMap = {
   twitter: FaTwitter,
 };
 
-const colorMap = {
+const colorMap: Record<
+  AboutSocialColorKey,
+  {
+    border: string;
+    bg: string;
+    iconBg: string;
+    iconColor: string;
+    externalLink: string;
+  }
+> = {
   blue: {
     border: "hover:border-blue-400 dark:hover:border-blue-500",
     bg: "from-blue-50 dark:from-blue-950",
@@ -73,21 +89,19 @@ const colorMap = {
 };
 
 interface Props {
-  link: SocialMediaLink;
+  link: AboutContentItem;
 }
 
 export default function SocialLink({ link }: Props) {
-  const Icon = iconMap[link.icon] as ComponentType<{
-    className?: string;
-  }> | null;
-  const colors = colorMap[link.color];
+  const Icon = iconMap[(link.icon_key as AboutSocialIconKey) || "tumblr"];
+  const colors = colorMap[(link.color_key as AboutSocialColorKey) || "blue"];
 
   return (
     <a
-      href={link.url}
+      href={link.url || "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 ${colors.border} ${link.fullWidth ? "md:col-span-2" : ""}`}
+      className={`group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 ${colors.border} ${link.is_full_width ? "md:col-span-2" : ""}`}
     >
       <div
         className={`absolute inset-0 bg-linear-to-br ${colors.bg} to-transparent opacity-0 transition-opacity group-hover:opacity-100`}
@@ -112,10 +126,10 @@ export default function SocialLink({ link }: Props) {
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            {link.name}
+            {link.title}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {link.username}
+            {link.subtitle}
           </p>
         </div>
         <FaExternalLinkAlt

@@ -3,6 +3,8 @@
 import BootScreen from "@/components/BootScreen";
 import Desktop from "@/components/Desktop";
 import MobileLayout from "@/components/mobile/MobileLayout";
+import { InitialAboutDataProvider } from "@/contexts/InitialAboutDataContext";
+import type { InitialAboutData } from "@/lib/about";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import { InitialBlogDataProvider } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
@@ -30,6 +32,7 @@ type HomeClientProps = {
   initialBlogData: InitialBlogData;
   initialCommissionData: InitialCommissionData;
   initialPortfolioData: InitialPortfolioData;
+  initialAboutData: InitialAboutData;
 };
 
 export default function HomeClient({
@@ -42,6 +45,7 @@ export default function HomeClient({
   initialBlogData,
   initialCommissionData,
   initialPortfolioData,
+  initialAboutData,
 }: HomeClientProps) {
   const isMobile = useMobileDetection();
   const { isBootComplete, setBootComplete } = useSound();
@@ -80,20 +84,22 @@ export default function HomeClient({
   };
 
   return (
-    <InitialPortfolioDataProvider initialData={initialPortfolioData}>
-      <InitialCommissionDataProvider value={initialCommissionData}>
-        <InitialBlogDataProvider initialData={initialBlogData}>
-          <InitialWikiDataProvider initialData={initialWikiData}>
-            {isMobile ? (
-              <MobileLayout {...commonProps} />
-            ) : (
-              <WindowProvider {...commonProps}>
-                <Desktop />
-              </WindowProvider>
-            )}
-          </InitialWikiDataProvider>
-        </InitialBlogDataProvider>
-      </InitialCommissionDataProvider>
-    </InitialPortfolioDataProvider>
+    <InitialAboutDataProvider initialData={initialAboutData}>
+      <InitialPortfolioDataProvider initialData={initialPortfolioData}>
+        <InitialCommissionDataProvider value={initialCommissionData}>
+          <InitialBlogDataProvider initialData={initialBlogData}>
+            <InitialWikiDataProvider initialData={initialWikiData}>
+              {isMobile ? (
+                <MobileLayout {...commonProps} />
+              ) : (
+                <WindowProvider {...commonProps}>
+                  <Desktop />
+                </WindowProvider>
+              )}
+            </InitialWikiDataProvider>
+          </InitialBlogDataProvider>
+        </InitialCommissionDataProvider>
+      </InitialPortfolioDataProvider>
+    </InitialAboutDataProvider>
   );
 }

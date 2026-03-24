@@ -216,6 +216,39 @@ export default function AdminDashboard() {
           </h3>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/admin/about"
+            className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-cyan-300 hover:shadow-xl dark:border-gray-800 dark:bg-gray-950 dark:hover:border-cyan-700"
+          >
+            <div className="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-linear-to-br from-cyan-500/10 to-blue-500/10"></div>
+            <div className="relative">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br from-cyan-500 to-blue-500 shadow-lg transition-transform group-hover:scale-110">
+                <svg
+                  className="h-7 w-7 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  role="img"
+                  aria-labelledby="about-icon-title"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5.121 17.804A9 9 0 1118.879 17.8M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <title id="about-icon-title">About Icon</title>
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                About Me
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                Manage profile copy, FAQ content, DNI rules, and socials
+              </p>
+            </div>
+          </Link>
+
           {/* Portfolio Card */}
           <Link
             href="/admin/portfolio"

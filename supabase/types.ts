@@ -9,6 +9,198 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      about_content_items: {
+        Row: {
+          body: string;
+          color_key: string | null;
+          created_at: string;
+          display_order: number;
+          icon_key: string | null;
+          id: string;
+          is_full_width: boolean;
+          section: string;
+          seed_key: string | null;
+          subtitle: string | null;
+          title: string | null;
+          updated_at: string;
+          url: string | null;
+          variant: string | null;
+        };
+        Insert: {
+          body?: string;
+          color_key?: string | null;
+          created_at?: string;
+          display_order?: number;
+          icon_key?: string | null;
+          id?: string;
+          is_full_width?: boolean;
+          section: string;
+          seed_key?: string | null;
+          subtitle?: string | null;
+          title?: string | null;
+          updated_at?: string;
+          url?: string | null;
+          variant?: string | null;
+        };
+        Update: {
+          body?: string;
+          color_key?: string | null;
+          created_at?: string;
+          display_order?: number;
+          icon_key?: string | null;
+          id?: string;
+          is_full_width?: boolean;
+          section?: string;
+          seed_key?: string | null;
+          subtitle?: string | null;
+          title?: string | null;
+          updated_at?: string;
+          url?: string | null;
+          variant?: string | null;
+        };
+        Relationships: [];
+      };
+      about_faqs: {
+        Row: {
+          alias_description: string | null;
+          alias_primary: string | null;
+          alias_secondary: string | null;
+          brushes_paint_tool_sai_text: string | null;
+          brushes_procreate_text: string | null;
+          commissions_text: string | null;
+          created_at: string;
+          devices_text: string | null;
+          display_order: number;
+          faq_type: string;
+          id: string;
+          programs_text: string | null;
+          question: string;
+          social_display_name: string | null;
+          social_intro_text: string | null;
+          social_note_prefix: string | null;
+          social_note_suffix: string | null;
+          updated_at: string;
+          username_prefix_left: string | null;
+          username_prefix_right: string | null;
+          username_result: string | null;
+        };
+        Insert: {
+          alias_description?: string | null;
+          alias_primary?: string | null;
+          alias_secondary?: string | null;
+          brushes_paint_tool_sai_text?: string | null;
+          brushes_procreate_text?: string | null;
+          commissions_text?: string | null;
+          created_at?: string;
+          devices_text?: string | null;
+          display_order?: number;
+          faq_type: string;
+          id?: string;
+          programs_text?: string | null;
+          question?: string;
+          social_display_name?: string | null;
+          social_intro_text?: string | null;
+          social_note_prefix?: string | null;
+          social_note_suffix?: string | null;
+          updated_at?: string;
+          username_prefix_left?: string | null;
+          username_prefix_right?: string | null;
+          username_result?: string | null;
+        };
+        Update: {
+          alias_description?: string | null;
+          alias_primary?: string | null;
+          alias_secondary?: string | null;
+          brushes_paint_tool_sai_text?: string | null;
+          brushes_procreate_text?: string | null;
+          commissions_text?: string | null;
+          created_at?: string;
+          devices_text?: string | null;
+          display_order?: number;
+          faq_type?: string;
+          id?: string;
+          programs_text?: string | null;
+          question?: string;
+          social_display_name?: string | null;
+          social_intro_text?: string | null;
+          social_note_prefix?: string | null;
+          social_note_suffix?: string | null;
+          updated_at?: string;
+          username_prefix_left?: string | null;
+          username_prefix_right?: string | null;
+          username_result?: string | null;
+        };
+        Relationships: [];
+      };
+      about_page_settings: {
+        Row: {
+          about_use_heading: string;
+          created_at: string;
+          dni_intro: string;
+          dni_title: string;
+          experiences_heading: string;
+          faq_intro: string;
+          faq_title: string;
+          favorites_heading: string;
+          hero_bio: string;
+          hero_image_alt: string;
+          hero_image_url: string | null;
+          hero_name: string;
+          hero_subtitle: string;
+          id: number;
+          more_info_heading: string;
+          socials_intro: string;
+          socials_primary_username: string;
+          socials_secondary_username: string;
+          socials_title: string;
+          updated_at: string;
+        };
+        Insert: {
+          about_use_heading?: string;
+          created_at?: string;
+          dni_intro?: string;
+          dni_title?: string;
+          experiences_heading?: string;
+          faq_intro?: string;
+          faq_title?: string;
+          favorites_heading?: string;
+          hero_bio?: string;
+          hero_image_alt?: string;
+          hero_image_url?: string | null;
+          hero_name?: string;
+          hero_subtitle?: string;
+          id?: number;
+          more_info_heading?: string;
+          socials_intro?: string;
+          socials_primary_username?: string;
+          socials_secondary_username?: string;
+          socials_title?: string;
+          updated_at?: string;
+        };
+        Update: {
+          about_use_heading?: string;
+          created_at?: string;
+          dni_intro?: string;
+          dni_title?: string;
+          experiences_heading?: string;
+          faq_intro?: string;
+          faq_title?: string;
+          favorites_heading?: string;
+          hero_bio?: string;
+          hero_image_alt?: string;
+          hero_image_url?: string | null;
+          hero_name?: string;
+          hero_subtitle?: string;
+          id?: number;
+          more_info_heading?: string;
+          socials_intro?: string;
+          socials_primary_username?: string;
+          socials_secondary_username?: string;
+          socials_title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       addons: {
         Row: {
           addon_id: string;
@@ -1141,6 +1333,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      heaven_space_passages: {
+        Row: {
+          content: string;
+          created_at: string;
+          display_order: number;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          content?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       heaven_space_scene_choices: {
         Row: {
           conditions: Json;
@@ -1259,33 +1478,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
-      };
-      heaven_space_passages: {
-        Row: {
-          content: string;
-          created_at: string;
-          display_order: number;
-          id: string;
-          name: string;
-          updated_at: string;
-        };
-        Insert: {
-          content?: string;
-          created_at?: string;
-          display_order?: number;
-          id?: string;
-          name: string;
-          updated_at?: string;
-        };
-        Update: {
-          content?: string;
-          created_at?: string;
-          display_order?: number;
-          id?: string;
-          name?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
       };
       locations: {
         Row: {

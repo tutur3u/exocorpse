@@ -1,7 +1,11 @@
 "use client";
 
+import StorageImage from "@/components/shared/StorageImage";
+import { useInitialAboutData } from "@/contexts/InitialAboutDataContext";
+import type { AboutPageData } from "@/lib/about";
+import { getAboutPageData } from "@/lib/actions/about";
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, HelpCircle, Sparkles, User } from "lucide-react";
-import Image from "next/image";
 import { type ComponentType, useState } from "react";
 import AboutTab from "./about/AboutTab";
 import DniTab from "./about/DniTab";
@@ -24,18 +28,24 @@ const tabs: TabConfig[] = [
 ];
 
 export default function AboutMe() {
+  const initialData = useInitialAboutData();
   const [activeTab, setActiveTab] = useState<TabType>("about");
+  const { data = initialData, isLoading } = useQuery<AboutPageData>({
+    queryKey: ["about-page"],
+    queryFn: getAboutPageData,
+    initialData,
+  });
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "about":
-        return <AboutTab />;
+        return <AboutTab data={data} />;
       case "faq":
-        return <FaqTab />;
+        return <FaqTab data={data} />;
       case "dni":
-        return <DniTab />;
+        return <DniTab data={data} />;
       case "socials":
-        return <SocialsTab />;
+        return <SocialsTab data={data} />;
       default:
         return null;
     }
@@ -46,9 +56,9 @@ export default function AboutMe() {
       {/* Header Section - scrolls off first */}
       <div className="mx-auto flex flex-col gap-6 p-6 md:flex-row md:gap-10">
         <div className="flex items-center justify-center">
-          <Image
-            src="/LykoTwins.webp"
-            alt="About Me"
+          <StorageImage
+            src={data.settings.hero_image_url || "/LykoTwins.webp"}
+            alt={data.settings.hero_image_alt || "About Me"}
             width={256}
             height={256}
             className="rounded-xl object-cover"
@@ -57,20 +67,14 @@ export default function AboutMe() {
         <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-center text-2xl font-bold md:text-left">
-              Fenrys & Morris
+              {data.settings.hero_name}
             </h1>
             <p className="text-center text-gray-600 md:ml-4 md:text-left dark:text-gray-400">
-              Freelance Illustrator, Writer & Game Developer
+              {data.settings.hero_subtitle}
             </p>
           </div>
-          <div className="max-w-2xl">
-            I'm Fenrys & Morris, an illustrator and writer duo in one. I
-            specialize in illustrative works, story & dialogue writing, and
-            sprite work for game development. I try to be a jack of all trades
-            while trying to keep my limits behind creative work as much as
-            possible. Fenrys serves as the artist representative, while Morris
-            as the writer representative. They represent me as a branding and as
-            who I am.
+          <div className="max-w-2xl whitespace-pre-line">
+            {data.settings.hero_bio}
           </div>
         </div>
       </div>
@@ -109,7 +113,13 @@ export default function AboutMe() {
         id={`${activeTab}-panel`}
         aria-labelledby={`${activeTab}-tab`}
       >
-        {renderTabContent()}
+        {isLoading ? (
+          <div className="flex min-h-48 items-center justify-center">
+            <div className="text-sm text-gray-400">Loading about page...</div>
+          </div>
+        ) : (
+          renderTabContent()
+        )}
       </div>
     </div>
   );

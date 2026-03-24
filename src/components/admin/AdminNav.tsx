@@ -30,6 +30,7 @@ const navSections: NavSection[] = [
   {
     label: "Content",
     items: [
+      { href: "/admin/about", label: "About Me" },
       { href: "/admin/portfolio", label: "Portfolio" },
       { href: "/admin/blog-posts", label: "Blog Posts" },
       { href: "/admin/services", label: "Commission Services" },

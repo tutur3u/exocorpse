@@ -1,5 +1,7 @@
 import HomeClient from "@/components/HomeClient";
 import { MAX_DESCRIPTION_LENGTH } from "@/constants";
+import { getAboutPageData } from "@/lib/actions/about";
+import type { InitialAboutData } from "@/lib/about";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
 import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
@@ -277,6 +279,7 @@ async function HomeContent({
   const commissionParams = commissionParamsData;
   const portfolioParams = portfolioParamsData;
   const gameParams = gameParamsData;
+  const initialAboutDataPromise = getAboutPageData();
 
   // Fetch initial wiki data based on params
   const initialWikiData: InitialWikiData = {
@@ -561,6 +564,8 @@ async function HomeContent({
     }
   }
 
+  const initialAboutData: InitialAboutData = await initialAboutDataPromise;
+
   return (
     <HomeClient
       wikiParams={wikiParams}
@@ -572,6 +577,7 @@ async function HomeContent({
       initialBlogData={initialBlogData}
       initialCommissionData={initialCommissionData}
       initialPortfolioData={initialPortfolioData}
+      initialAboutData={initialAboutData}
     />
   );
 }

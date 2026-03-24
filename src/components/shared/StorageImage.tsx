@@ -45,7 +45,8 @@ export default function StorageImage({
     src &&
     !src.startsWith("http://") &&
     !src.startsWith("https://") &&
-    !src.startsWith("data:");
+    !src.startsWith("data:") &&
+    !src.startsWith("/");
 
   // Only fetch signed URL if it's a storage path AND no pre-fetched URL was provided
   const shouldFetchUrl = isStoragePath && !preFetchedSignedUrl;
