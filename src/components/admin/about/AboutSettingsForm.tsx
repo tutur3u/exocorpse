@@ -3,7 +3,7 @@
 import ImageUploader from "@/components/shared/ImageUploader";
 import type { AboutPageSettings } from "@/lib/about";
 import { deleteFile } from "@/lib/actions/storage";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type AboutSettingsFormProps = {
   settings: AboutPageSettings;
@@ -72,6 +72,8 @@ export default function AboutSettingsForm({
 }: AboutSettingsFormProps) {
   const [draft, setDraft] = useState<SettingsDraft>(toDraft(settings));
   const [saving, setSaving] = useState(false);
+  const initialDraft = useMemo(() => toDraft(settings), [settings]);
+  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
   useEffect(() => {
     setDraft(toDraft(settings));
@@ -112,8 +114,8 @@ export default function AboutSettingsForm({
               setSaving(false);
             }
           }}
-          disabled={saving}
-          className="rounded-xl bg-linear-to-r from-blue-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50"
+          disabled={saving || !hasChanges}
+          className="rounded-xl bg-linear-to-r from-blue-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Profile Settings"}
         </button>

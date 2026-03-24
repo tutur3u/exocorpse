@@ -139,6 +139,8 @@ function FaqCard({
 }) {
   const [draft, setDraft] = useState<FaqDraft>(toFaqDraft(faq));
   const [saving, setSaving] = useState(false);
+  const initialDraft = toFaqDraft(faq);
+  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
   useEffect(() => {
     setDraft(toFaqDraft(faq));
@@ -293,8 +295,8 @@ function FaqCard({
               setSaving(false);
             }
           }}
-          disabled={saving}
-          className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-50"
+          disabled={saving || !hasChanges}
+          className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save FAQ"}
         </button>

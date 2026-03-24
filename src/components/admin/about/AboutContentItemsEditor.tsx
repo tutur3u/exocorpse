@@ -102,6 +102,11 @@ function ItemCard({
   );
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const initialDraft = useMemo(
+    () => createDraft(section, item),
+    [item, section],
+  );
+  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
   useEffect(() => {
     setDraft(createDraft(section, item));
@@ -139,8 +144,8 @@ function ItemCard({
                 setSaving(false);
               }
             }}
-            disabled={saving || deleting}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            disabled={saving || deleting || !hasChanges}
+            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save"}
           </button>
