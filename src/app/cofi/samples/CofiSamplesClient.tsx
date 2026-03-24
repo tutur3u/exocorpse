@@ -107,7 +107,10 @@ function ZoomableSampleViewer({
     };
   };
 
-  const commitView = (nextScale: number, nextOffset: { x: number; y: number }) => {
+  const commitView = (
+    nextScale: number,
+    nextOffset: { x: number; y: number },
+  ) => {
     scaleRef.current = nextScale;
     offsetRef.current = nextOffset;
     setScale(nextScale);
@@ -368,13 +371,20 @@ function ZoomableSampleViewer({
               onPointerUp={(event) => {
                 activePointersRef.current.delete(event.pointerId);
                 pinchStateRef.current =
-                  activePointersRef.current.size < 2 ? null : pinchStateRef.current;
+                  activePointersRef.current.size < 2
+                    ? null
+                    : pinchStateRef.current;
 
-                if (dragState?.pointerId === event.pointerId || activePointersRef.current.size === 0) {
+                if (
+                  dragState?.pointerId === event.pointerId ||
+                  activePointersRef.current.size === 0
+                ) {
                   setDragState(null);
                 }
 
-                const remainingPointer = [...activePointersRef.current.entries()][0];
+                const remainingPointer = [
+                  ...activePointersRef.current.entries(),
+                ][0];
 
                 if (
                   activePointersRef.current.size === 1 &&
