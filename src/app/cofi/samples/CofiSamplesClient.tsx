@@ -3,6 +3,7 @@
 import type { CofiDataset, CofiSample } from "@/data/cofi/types";
 import { COFI_SEMANTIC_SEARCH_MIN_QUERY_LENGTH } from "@/lib/cofi";
 import Image from "next/image";
+import { parseAsString, useQueryState } from "nuqs";
 import {
   startTransition,
   useDeferredValue,
@@ -71,6 +72,11 @@ function ZoomableSampleViewer({
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
+  const mouseDragRef = useRef<{ startX: number; startY: number } | null>(null);
+  const pendingViewRef = useRef<{ scale: number; offset: { x: number; y: number } } | null>(
+    null,
+  );
+  const frameRef = useRef<number | null>(null);
   const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
   const pinchStateRef = useRef<{
     distance: number;
@@ -84,11 +90,13 @@ function ZoomableSampleViewer({
     startX: number;
     startY: number;
   } | null>(null);
-  const [isTabletUp, setIsTabletUp] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [isMouseDragging, setIsMouseDragging] = useState(false);
 
   const canPan = scale > 1;
   const canGoPrevious = Boolean(onPrevious);
   const canGoNext = Boolean(onNext);
+  const isDragging = isInteracting || isMouseDragging;
 
   const clampOffset = (x: number, y: number, currentScale: number) => {
     if (currentScale <= 1) {
@@ -116,8 +124,26 @@ function ZoomableSampleViewer({
   ) => {
     scaleRef.current = nextScale;
     offsetRef.current = nextOffset;
-    setScale(nextScale);
-    setOffset(nextOffset);
+    pendingViewRef.current = {
+      scale: nextScale,
+      offset: nextOffset,
+    };
+
+    if (frameRef.current !== null) {
+      return;
+    }
+
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = null;
+
+      if (!pendingViewRef.current) {
+        return;
+      }
+
+      setScale(pendingViewRef.current.scale);
+      setOffset(pendingViewRef.current.offset);
+      pendingViewRef.current = null;
+    });
   };
 
   const getAnchorPoint = (clientX: number, clientY: number) => {
@@ -169,12 +195,28 @@ function ZoomableSampleViewer({
     y: (left.y + right.y) / 2,
   });
 
+  const canUseDesktopWheelZoom = () =>
+    typeof window !== "undefined" &&
+    (window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
+      window.matchMedia("(min-width: 768px)").matches);
+
   useEffect(() => {
     commitView(1, { x: 0, y: 0 });
     setDragState(null);
+    setIsInteracting(false);
+    setIsMouseDragging(false);
+    mouseDragRef.current = null;
     activePointersRef.current.clear();
     pinchStateRef.current = null;
   }, [sample.id, sample.index]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -215,14 +257,34 @@ function ZoomableSampleViewer({
   }, [onClose, onNext, onPrevious]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
-    const applyMatch = () => setIsTabletUp(mediaQuery.matches);
+    const onMouseMove = (event: MouseEvent) => {
+      if (!mouseDragRef.current) {
+        return;
+      }
 
-    applyMatch();
-    mediaQuery.addEventListener("change", applyMatch);
+      event.preventDefault();
+
+      const nextOffset = clampOffset(
+        event.clientX - mouseDragRef.current.startX,
+        event.clientY - mouseDragRef.current.startY,
+        scaleRef.current,
+      );
+      commitView(scaleRef.current, nextOffset);
+    };
+
+    const stopMouseDrag = () => {
+      mouseDragRef.current = null;
+      setIsMouseDragging(false);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", stopMouseDrag);
+    window.addEventListener("mouseleave", stopMouseDrag);
 
     return () => {
-      mediaQuery.removeEventListener("change", applyMatch);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", stopMouseDrag);
+      window.removeEventListener("mouseleave", stopMouseDrag);
     };
   }, []);
 
@@ -328,34 +390,63 @@ function ZoomableSampleViewer({
           <div className="relative h-[calc(100dvh-7.9rem)] flex-none overflow-hidden sm:h-[calc(100dvh-8.5rem)] lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
-              className={`relative h-full w-full overflow-hidden select-none ${canPan ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              className={`relative h-full w-full overflow-hidden select-none ${
+                canPan
+                  ? isDragging
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
+                  : "cursor-zoom-in"
+              }`}
               style={{ touchAction: "none" }}
-              onDoubleClick={
-                isTabletUp
-                  ? (event) =>
-                      applyScale(
-                        scaleRef.current > 1 ? 1 : 2.25,
-                        getAnchorPoint(event.clientX, event.clientY),
-                      )
-                  : undefined
-              }
-              onWheel={
-                isTabletUp
-                  ? (event) => {
-                      event.preventDefault();
-                      applyScale(
-                        scaleRef.current + (event.deltaY < 0 ? 0.25 : -0.25),
-                        getAnchorPoint(event.clientX, event.clientY),
-                      );
-                    }
-                  : undefined
-              }
+              onDoubleClick={(event) => {
+                if (!canUseDesktopWheelZoom()) {
+                  return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                applyScale(
+                  scaleRef.current > 1 ? 1 : 2.25,
+                  getAnchorPoint(event.clientX, event.clientY),
+                );
+              }}
+              onWheel={(event) => {
+                if (!canUseDesktopWheelZoom()) {
+                  return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                applyScale(
+                  scaleRef.current + (event.deltaY < 0 ? 0.25 : -0.25),
+                  getAnchorPoint(event.clientX, event.clientY),
+                );
+              }}
+              onMouseDown={(event) => {
+                if (!canUseDesktopWheelZoom() || scaleRef.current <= 1) {
+                  return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                mouseDragRef.current = {
+                  startX: event.clientX - offsetRef.current.x,
+                  startY: event.clientY - offsetRef.current.y,
+                };
+                setIsMouseDragging(true);
+              }}
               onPointerDown={(event) => {
+                if (event.pointerType === "mouse") {
+                  return;
+                }
+
+                event.preventDefault();
                 event.currentTarget.setPointerCapture(event.pointerId);
                 activePointersRef.current.set(event.pointerId, {
                   x: event.clientX,
                   y: event.clientY,
                 });
+                setIsInteracting(true);
 
                 const pointers = [...activePointersRef.current.values()];
 
@@ -378,6 +469,10 @@ function ZoomableSampleViewer({
                 }
               }}
               onPointerMove={(event) => {
+                if (event.pointerType === "mouse") {
+                  return;
+                }
+
                 if (!activePointersRef.current.has(event.pointerId)) {
                   return;
                 }
@@ -426,6 +521,10 @@ function ZoomableSampleViewer({
                 commitView(scaleRef.current, nextOffset);
               }}
               onPointerUp={(event) => {
+                if (event.pointerType === "mouse") {
+                  return;
+                }
+
                 activePointersRef.current.delete(event.pointerId);
                 pinchStateRef.current =
                   activePointersRef.current.size < 2
@@ -454,25 +553,42 @@ function ZoomableSampleViewer({
                     startY: remainingPointer[1].y - offsetRef.current.y,
                   });
                 }
+
+                if (activePointersRef.current.size === 0) {
+                  setIsInteracting(false);
+                }
               }}
               onPointerCancel={(event) => {
+                if (event.pointerType === "mouse") {
+                  return;
+                }
+
                 activePointersRef.current.delete(event.pointerId);
                 pinchStateRef.current = null;
                 setDragState(null);
+                if (activePointersRef.current.size === 0) {
+                  setIsInteracting(false);
+                }
               }}
             >
-              <Image
-                src={sample.image.original.localPath}
-                alt={sample.artistName}
-                fill
-                sizes="100vw"
-                priority
-                draggable={false}
-                className="object-contain transition-transform duration-150 ease-out"
+              <div
+                className="pointer-events-none absolute inset-0"
                 style={{
                   transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
+                  transformOrigin: "center center",
+                  willChange: isDragging ? "transform" : "auto",
                 }}
-              />
+              >
+                <Image
+                  src={sample.image.original.localPath}
+                  alt={sample.artistName}
+                  fill
+                  sizes="100vw"
+                  priority
+                  draggable={false}
+                  className="pointer-events-none select-none object-contain"
+                />
+              </div>
 
               <div className="pointer-events-none absolute right-4 bottom-4 hidden rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-4 py-2 text-xs tracking-[0.24em] text-[#d7ccb6] uppercase sm:block">
                 Wheel to zoom • double-click to toggle • drag to pan
@@ -565,13 +681,19 @@ function ZoomableSampleViewer({
 }
 
 export default function CofiSamplesClient({ dataset }: Props) {
+  const [selectedKey, setSelectedKey] = useQueryState(
+    "sample",
+    parseAsString.withOptions({
+      shallow: true,
+      history: "push",
+    }),
+  );
   const [query, setQuery] = useState("");
   const [boothType, setBoothType] = useState("ALL");
   const [joiningDate, setJoiningDate] = useState("ALL");
   const [sortBy, setSortBy] =
     useState<(typeof SORT_OPTIONS)[number]["value"]>("index");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [searchResults, setSearchResults] = useState<CofiSample[] | null>(null);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -835,6 +957,12 @@ export default function CofiSamplesClient({ dataset }: Props) {
       null,
     [dataset.samples, filteredSamples, selectedKey],
   );
+
+  useEffect(() => {
+    if (selectedKey && !selectedSample) {
+      void setSelectedKey(null);
+    }
+  }, [selectedKey, selectedSample, setSelectedKey]);
 
   const selectedFilteredIndex =
     selectedSample === null
@@ -1276,7 +1404,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                   >
                     <button
                       type="button"
-                      onClick={() => setSelectedKey(getSampleKey(sample))}
+                      onClick={() => void setSelectedKey(getSampleKey(sample))}
                       className="block w-full text-left"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-[#17120f]">
@@ -1377,11 +1505,11 @@ export default function CofiSamplesClient({ dataset }: Props) {
           artistSampleCount={
             artistSampleCounts.get(selectedSample.artistName) ?? 1
           }
-          onClose={() => setSelectedKey(null)}
+          onClose={() => void setSelectedKey(null)}
           onPrevious={
             selectedFilteredIndex > 0
               ? () =>
-                  setSelectedKey(
+                  void setSelectedKey(
                     getSampleKey(filteredSamples[selectedFilteredIndex - 1]),
                   )
               : undefined
@@ -1390,7 +1518,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
             selectedFilteredIndex >= 0 &&
             selectedFilteredIndex < filteredSamples.length - 1
               ? () =>
-                  setSelectedKey(
+                  void setSelectedKey(
                     getSampleKey(filteredSamples[selectedFilteredIndex + 1]),
                   )
               : undefined

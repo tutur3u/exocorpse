@@ -1,5 +1,5 @@
 import { getCofiDatasetFromDb } from "@/lib/cofi-data";
-import CofiSamplesShell from "./CofiSamplesShell";
+import CofiSamplesClient from "./CofiSamplesClient";
 
 export const metadata = {
   title: "COFI Samples - EXOCORPSE",
@@ -10,5 +10,5 @@ export const metadata = {
 export default async function CofiSamplesPage() {
   const dataset = await getCofiDatasetFromDb();
 
-  return <CofiSamplesShell dataset={dataset} />;
+  return <CofiSamplesClient dataset={dataset} />;
 }
