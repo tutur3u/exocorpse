@@ -4,13 +4,13 @@ import { STORAGE_URL_GC_TIME, STORAGE_URL_STALE_TIME } from "@/constants";
 import { useQueries, useQuery } from "@tanstack/react-query";
 
 async function fetchSignedUrl(path: string): Promise<string | null> {
-  const response = await fetch("/api/storage/share", {
+  const response = await fetch("/api/storage/share-batch", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      path,
+      paths: [path],
     }),
   });
 
@@ -23,10 +23,19 @@ async function fetchSignedUrl(path: string): Promise<string | null> {
   }
 
   const result = (await response.json()) as {
-    signedUrl?: string | null;
+    data?: Array<{
+      path: string;
+      signedUrl?: string | null;
+      error?: string | null;
+    }>;
   };
 
-  return result.signedUrl ?? null;
+  const item = result.data?.[0];
+  if (!item || item.error) {
+    return null;
+  }
+
+  return item.signedUrl ?? null;
 }
 
 /**
