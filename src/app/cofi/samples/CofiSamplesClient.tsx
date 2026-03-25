@@ -2,6 +2,7 @@
 
 import type { CofiDataset, CofiSample } from "@/data/cofi/types";
 import { COFI_SEMANTIC_SEARCH_MIN_QUERY_LENGTH } from "@/lib/cofi";
+import { sanitizeFilename } from "@/lib/fileUtils";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
 import {
@@ -62,6 +63,17 @@ function formatFetchedAt(value: string) {
   });
 }
 
+function getSampleDownloadFilename(sample: CofiSample) {
+  const originalExtension =
+    sample.image.original.extension.replace(/^\./, "") ||
+    sample.image.original.filename.match(/\.([^.]+)$/)?.[1] ||
+    "jpg";
+
+  return sanitizeFilename(
+    `${sample.artistName}-${sample.boothLocation}-${sample.joiningDate}-sample-${sample.index}.${originalExtension}`,
+  );
+}
+
 function ZoomableSampleViewer({
   sample,
   artistSampleCount,
@@ -98,6 +110,7 @@ function ZoomableSampleViewer({
   const canGoPrevious = Boolean(onPrevious);
   const canGoNext = Boolean(onNext);
   const isDragging = isInteracting || isMouseDragging;
+  const downloadFilename = getSampleDownloadFilename(sample);
 
   const clampOffset = (x: number, y: number, currentScale: number) => {
     if (currentScale <= 1) {
@@ -353,6 +366,14 @@ function ZoomableSampleViewer({
               >
                 +
               </button>
+              <a
+                href={sample.image.original.localPath}
+                download={downloadFilename}
+                className="rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-4 py-2 text-sm font-medium text-[#eef3ff] transition hover:border-[#7ab8ff] hover:text-white"
+                aria-label={`Download ${sample.artistName} sample image`}
+              >
+                Download
+              </a>
               <button
                 type="button"
                 onClick={onClose}
@@ -626,6 +647,22 @@ function ZoomableSampleViewer({
                 </p>
               </div>
 
+              <div className="rounded-[1.5rem] border border-[#2d49d8]/20 bg-[linear-gradient(180deg,rgba(18,32,88,0.2),rgba(10,18,31,0.94))] p-4">
+                <p className="text-[0.72rem] tracking-[0.24em] text-[#90a4ef] uppercase">
+                  Download
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#d7ccbc]">
+                  Save the original sample image for offline viewing.
+                </p>
+                <a
+                  href={sample.image.original.localPath}
+                  download={downloadFilename}
+                  className="mt-4 inline-flex rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-4 py-2 text-sm font-medium text-[#eef3ff] transition hover:border-[#7ab8ff] hover:text-white"
+                >
+                  Download original
+                </a>
+              </div>
+
               <div className="rounded-[1.5rem] border border-[#d23642]/18 bg-[linear-gradient(180deg,rgba(64,10,23,0.24),rgba(9,14,24,0.94))] p-4">
                 <p className="text-[0.72rem] tracking-[0.24em] text-[#ef8e8f] uppercase">
                   Tips
@@ -649,7 +686,7 @@ function ZoomableSampleViewer({
         </div>
 
         <div className="border-t border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(8,13,24,0.94),rgba(6,10,18,0.98))] px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:hidden">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={onPrevious}
@@ -660,18 +697,25 @@ function ZoomableSampleViewer({
             </button>
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-2 text-sm font-medium text-[#fff0c6]"
-            >
-              Close
-            </button>
-            <button
-              type="button"
               onClick={onNext}
               disabled={!canGoNext}
               className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-2 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
             >
               Next
+            </button>
+            <a
+              href={sample.image.original.localPath}
+              download={downloadFilename}
+              className="rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-3 py-2 text-center text-sm font-medium text-[#eef3ff]"
+            >
+              Download
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-2 text-sm font-medium text-[#fff0c6]"
+            >
+              Close
             </button>
           </div>
         </div>
