@@ -1,11 +1,33 @@
 "use client";
 
 import { STORAGE_URL_GC_TIME, STORAGE_URL_STALE_TIME } from "@/constants";
-import {
-  batchGetCachedSignedUrls,
-  getCachedSignedUrl,
-} from "@/lib/actions/storage";
 import { useQueries, useQuery } from "@tanstack/react-query";
+
+async function fetchSignedUrl(path: string): Promise<string | null> {
+  const response = await fetch("/api/storage/share", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      path,
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null;
+    }
+
+    throw new Error("Failed to generate signed URL");
+  }
+
+  const result = (await response.json()) as {
+    signedUrl?: string | null;
+  };
+
+  return result.signedUrl ?? null;
+}
 
 /**
  * Extract the relative path from a full storage path
@@ -40,8 +62,7 @@ export function useStorageUrl(path: string | null | undefined, enabled = true) {
       try {
         // Extract relative path in case full path is provided
         const relativePath = extractRelativePath(path);
-        // Use cached function which checks DB first, then fetches from SDK if needed
-        return await getCachedSignedUrl(relativePath);
+        return await fetchSignedUrl(relativePath);
       } catch (error) {
         // Handle file not found and other errors gracefully
         console.warn(`Failed to get signed URL for ${path}:`, error);
@@ -100,32 +121,55 @@ export function useBatchStorageUrls(
     queryFn: async () => {
       if (validPaths.length === 0) return new Map<string, string>();
 
-      const response = await fetch("/api/storage/share-batch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          paths: relativePaths,
-        }),
-      });
+      const resolvedUrls = new Map<string, string>();
+      let unresolvedPaths = [...relativePaths];
 
-      if (!response.ok) {
-        throw new Error("Failed to generate batch signed URLs");
+      try {
+        const response = await fetch("/api/storage/share-batch", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paths: relativePaths,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to generate batch signed URLs");
+        }
+
+        const result = (await response.json()) as {
+          data?: Array<{
+            path: string;
+            signedUrl?: string | null;
+            error?: string | null;
+          }>;
+        };
+
+        for (const item of result.data ?? []) {
+          if (item.path && item.signedUrl && !item.error) {
+            resolvedUrls.set(item.path, item.signedUrl);
+          }
+        }
+      } catch (error) {
+        console.warn("Batch signed URL generation failed, falling back:", error);
       }
 
-      const result = (await response.json()) as {
-        data?: Array<{
-          path: string;
-          signedUrl?: string | null;
-          error?: string | null;
-        }>;
-      };
+      unresolvedPaths = unresolvedPaths.filter((path) => !resolvedUrls.has(path));
 
-      const resolvedUrls = new Map<string, string>();
-      for (const item of result.data ?? []) {
-        if (item.path && item.signedUrl && !item.error) {
-          resolvedUrls.set(item.path, item.signedUrl);
+      if (unresolvedPaths.length > 0) {
+        const fallbackResults = await Promise.all(
+          unresolvedPaths.map(async (path) => ({
+            path,
+            signedUrl: await fetchSignedUrl(path),
+          })),
+        );
+
+        for (const item of fallbackResults) {
+          if (item.signedUrl) {
+            resolvedUrls.set(item.path, item.signedUrl);
+          }
         }
       }
 
@@ -179,8 +223,7 @@ export function useIndividualStorageUrls(
       queryFn: async () => {
         try {
           const relativePath = extractRelativePath(path);
-          // Use cached function which checks DB first, then fetches from SDK if needed
-          return await getCachedSignedUrl(relativePath);
+          return await fetchSignedUrl(relativePath);
         } catch (error) {
           console.warn(`Failed to get signed URL for ${path}:`, error);
           return null;
