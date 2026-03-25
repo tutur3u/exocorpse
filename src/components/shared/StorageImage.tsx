@@ -42,11 +42,6 @@ export default function StorageImage({ ...props }: StorageImageProps) {
     ...imageProps
   } = props;
 
-  const hasExplicitSignedUrl = Object.prototype.hasOwnProperty.call(
-    props,
-    "signedUrl",
-  );
-
   // Determine if this is a storage path (not a http/https URL or data URL)
   const isStoragePath =
     src &&
@@ -55,10 +50,14 @@ export default function StorageImage({ ...props }: StorageImageProps) {
     !src.startsWith("data:") &&
     !src.startsWith("/");
 
-  // If signedUrl is passed explicitly, wait for the caller's batch resolver
-  // instead of starting a second per-image request.
-  const shouldFetchUrl =
-    isStoragePath && !hasExplicitSignedUrl && !preFetchedSignedUrl;
+  // Only treat the prop as resolved when it's an actual signed URL string.
+  // Callers often pass `signedUrl={map.get(path)}`; while the batch map is still
+  // loading, that expression evaluates to `undefined`, and we still need the
+  // component to fall back to its own per-image fetch instead of rendering empty.
+  const hasResolvedSignedUrl =
+    typeof preFetchedSignedUrl === "string" && preFetchedSignedUrl.length > 0;
+
+  const shouldFetchUrl = Boolean(isStoragePath && !hasResolvedSignedUrl);
   const {
     signedUrl: fetchedSignedUrl,
     loading,
@@ -67,8 +66,7 @@ export default function StorageImage({ ...props }: StorageImageProps) {
 
   // Use pre-fetched URL first, then fetched URL, then src directly
   const imageUrl =
-    preFetchedSignedUrl ||
-    (isStoragePath ? (hasExplicitSignedUrl ? null : fetchedSignedUrl) : src);
+    preFetchedSignedUrl || (isStoragePath ? fetchedSignedUrl : src);
 
   // Show fallback while loading (only if we're actually fetching) or if there's an error or no URL
   const isLoading = shouldFetchUrl && loading;
