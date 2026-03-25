@@ -73,9 +73,10 @@ function ZoomableSampleViewer({
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   const mouseDragRef = useRef<{ startX: number; startY: number } | null>(null);
-  const pendingViewRef = useRef<{ scale: number; offset: { x: number; y: number } } | null>(
-    null,
-  );
+  const pendingViewRef = useRef<{
+    scale: number;
+    offset: { x: number; y: number };
+  } | null>(null);
   const frameRef = useRef<number | null>(null);
   const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
   const pinchStateRef = useRef<{
@@ -586,7 +587,7 @@ function ZoomableSampleViewer({
                   sizes="100vw"
                   priority
                   draggable={false}
-                  className="pointer-events-none select-none object-contain"
+                  className="pointer-events-none object-contain select-none"
                 />
               </div>
 
@@ -594,7 +595,6 @@ function ZoomableSampleViewer({
                 Wheel to zoom • double-click to toggle • drag to pan
               </div>
             </div>
-
           </div>
 
           <aside className="hidden w-full border-t border-[#c9a56c]/20 bg-[linear-gradient(180deg,rgba(11,16,29,0.98),rgba(5,8,15,0.96))] p-4 sm:p-5 lg:block lg:w-[24rem] lg:border-t-0 lg:border-l">
@@ -987,7 +987,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
         ? "Keyword ranked"
         : searchMode === "fallback"
           ? "Archive ranked"
-        : "Instant filter";
+          : "Instant filter";
   const searchStatusTone = isBusy
     ? "border-[#efb06f]/40 bg-[#261912]/80 text-[#ffd8ae]"
     : searchMode === "hybrid"
@@ -996,7 +996,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
         ? "border-[#8ec6a1]/35 bg-[#102218]/80 text-[#d8f3dd]"
         : searchMode === "fallback"
           ? "border-[#d5bb8d]/35 bg-[#251b14]/80 text-[#f3e1bf]"
-        : "border-white/10 bg-[#111a2b]/85 text-[#ddd5c4]";
+          : "border-white/10 bg-[#111a2b]/85 text-[#ddd5c4]";
   let searchSupportCopy =
     "Browse the full archive and open any sample fullscreen.";
   let archiveSupportCopy =
