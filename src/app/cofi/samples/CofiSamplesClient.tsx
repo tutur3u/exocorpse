@@ -633,7 +633,7 @@ function ZoomableSampleViewer({
                   sizes="100vw"
                   priority
                   draggable={false}
-                  className={`pointer-events-none object-contain select-none transition-opacity duration-150 ${
+                  className={`pointer-events-none object-contain transition-opacity duration-150 select-none ${
                     isImageLoading ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -645,7 +645,7 @@ function ZoomableSampleViewer({
                   sizes="100vw"
                   priority
                   draggable={false}
-                  className={`pointer-events-none object-contain select-none transition-opacity duration-150 ${
+                  className={`pointer-events-none object-contain transition-opacity duration-150 select-none ${
                     isImageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   onLoad={() => setIsImageLoading(false)}
