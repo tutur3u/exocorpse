@@ -108,6 +108,24 @@ function ItemCard({
     [item, section],
   );
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
+  const itemSummary = useMemo(() => {
+    const title = draft.title.trim();
+    if (title) {
+      return title;
+    }
+
+    const subtitle = draft.subtitle.trim();
+    if (subtitle) {
+      return subtitle;
+    }
+
+    const body = draft.body.trim();
+    if (!body) {
+      return "Untitled item";
+    }
+
+    return body.length > 96 ? `${body.slice(0, 93).trimEnd()}...` : body;
+  }, [draft.body, draft.subtitle, draft.title]);
 
   useEffect(() => {
     setDraft(createDraft(section, item));
@@ -131,7 +149,7 @@ function ItemCard({
             Existing Item
           </p>
           <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-            {draft.title.trim() || draft.subtitle.trim() || "Untitled item"}
+            {itemSummary}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Order {draft.display_order} • ID {item.id.slice(0, 8)}
