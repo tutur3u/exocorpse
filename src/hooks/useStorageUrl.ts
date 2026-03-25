@@ -162,10 +162,15 @@ export function useBatchStorageUrls(
           }
         }
       } catch (error) {
-        console.warn("Batch signed URL generation failed, falling back:", error);
+        console.warn(
+          "Batch signed URL generation failed, falling back:",
+          error,
+        );
       }
 
-      unresolvedPaths = unresolvedPaths.filter((path) => !resolvedUrls.has(path));
+      unresolvedPaths = unresolvedPaths.filter(
+        (path) => !resolvedUrls.has(path),
+      );
 
       if (unresolvedPaths.length > 0) {
         const fallbackResults = await Promise.all(
