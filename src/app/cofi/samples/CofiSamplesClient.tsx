@@ -24,6 +24,8 @@ type ViewerProps = {
   onClose: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
+  nextSample?: CofiSample | null;
+  previousSample?: CofiSample | null;
 };
 
 const JOINING_DATE_LABELS: Record<string, string> = {
@@ -80,6 +82,8 @@ function ZoomableSampleViewer({
   onClose,
   onNext,
   onPrevious,
+  nextSample,
+  previousSample,
 }: ViewerProps) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const scaleRef = useRef(1);
@@ -103,6 +107,7 @@ function ZoomableSampleViewer({
     startX: number;
     startY: number;
   } | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const [isInteracting, setIsInteracting] = useState(false);
   const [isMouseDragging, setIsMouseDragging] = useState(false);
 
@@ -215,6 +220,7 @@ function ZoomableSampleViewer({
       window.matchMedia("(min-width: 768px)").matches);
 
   useEffect(() => {
+    setIsImageLoading(true);
     commitView(1, { x: 0, y: 0 });
     setDragState(null);
     setIsInteracting(false);
@@ -223,6 +229,24 @@ function ZoomableSampleViewer({
     activePointersRef.current.clear();
     pinchStateRef.current = null;
   }, [sample.id, sample.index]);
+
+  useEffect(() => {
+    const preloadTargets = [
+      sample.image.original.localPath,
+      nextSample?.image.original.localPath,
+      previousSample?.image.original.localPath,
+    ].filter((value): value is string => Boolean(value));
+
+    for (const src of preloadTargets) {
+      const image = new window.Image();
+      image.decoding = "async";
+      image.src = src;
+    }
+  }, [
+    nextSample?.image.original.localPath,
+    previousSample?.image.original.localPath,
+    sample.image.original.localPath,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -602,15 +626,39 @@ function ZoomableSampleViewer({
                 }}
               >
                 <Image
+                  key={`${sample.image.thumbnail.localPath}-thumbnail`}
+                  src={sample.image.thumbnail.localPath}
+                  alt={sample.artistName}
+                  fill
+                  sizes="100vw"
+                  priority
+                  draggable={false}
+                  className={`pointer-events-none object-contain select-none transition-opacity duration-150 ${
+                    isImageLoading ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                <Image
+                  key={sample.image.original.localPath}
                   src={sample.image.original.localPath}
                   alt={sample.artistName}
                   fill
                   sizes="100vw"
                   priority
                   draggable={false}
-                  className="pointer-events-none object-contain select-none"
+                  className={`pointer-events-none object-contain select-none transition-opacity duration-150 ${
+                    isImageLoading ? "opacity-0" : "opacity-100"
+                  }`}
+                  onLoad={() => setIsImageLoading(false)}
                 />
               </div>
+
+              {isImageLoading && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-18 flex justify-center sm:bottom-4">
+                  <div className="rounded-full border border-[#d5bb8d]/25 bg-[#07101dcc] px-4 py-2 text-xs tracking-[0.24em] text-[#f3e1bf] uppercase">
+                    Loading sample
+                  </div>
+                </div>
+              )}
 
               <div className="pointer-events-none absolute right-4 bottom-4 hidden rounded-full border border-[#c9a56c]/20 bg-[#07101dcc] px-4 py-2 text-xs tracking-[0.24em] text-[#d7ccb6] uppercase sm:block">
                 Wheel to zoom • double-click to toggle • drag to pan
@@ -1558,6 +1606,11 @@ export default function CofiSamplesClient({ dataset }: Props) {
                   )
               : undefined
           }
+          previousSample={
+            selectedFilteredIndex > 0
+              ? filteredSamples[selectedFilteredIndex - 1]
+              : null
+          }
           onNext={
             selectedFilteredIndex >= 0 &&
             selectedFilteredIndex < filteredSamples.length - 1
@@ -1566,6 +1619,12 @@ export default function CofiSamplesClient({ dataset }: Props) {
                     getSampleKey(filteredSamples[selectedFilteredIndex + 1]),
                   )
               : undefined
+          }
+          nextSample={
+            selectedFilteredIndex >= 0 &&
+            selectedFilteredIndex < filteredSamples.length - 1
+              ? filteredSamples[selectedFilteredIndex + 1]
+              : null
           }
         />
       )}
