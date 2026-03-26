@@ -345,7 +345,7 @@ function ZoomableSampleViewer({
       aria-hidden="true"
     >
       <div
-        className="flex min-h-dvh flex-col"
+        className="flex h-dvh min-h-dvh flex-col overflow-hidden"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -464,7 +464,7 @@ function ZoomableSampleViewer({
           </div>
         </div>
 
-        <div className="@container relative flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="@container relative flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <div className="relative min-h-0 flex-1 overflow-hidden lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
