@@ -116,6 +116,18 @@ function ZoomableSampleViewer({
   const canGoNext = Boolean(onNext);
   const isDragging = isInteracting || isMouseDragging;
   const downloadFilename = getSampleDownloadFilename(sample);
+  const actionButtonClass =
+    "rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3.5 py-1.5 text-[0.82rem] font-medium text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]";
+  const utilityButtonClass =
+    "rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-1.5 text-[0.82rem] text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]";
+  const downloadButtonClass =
+    "rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-3.5 py-1.5 text-[0.82rem] font-medium text-[#eef3ff] transition hover:border-[#7ab8ff] hover:text-white";
+  const closeButtonClass =
+    "rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3.5 py-1.5 text-[0.82rem] font-medium text-[#fff0c6] transition hover:border-[#f17d6b]";
+  const mobilePillButtonClass =
+    "inline-flex min-h-10 items-center justify-center rounded-full border border-[#ceb17e]/18 bg-[#101523]/92 px-3 text-[0.76rem] font-medium tracking-[0.14em] text-[#ece4d0] uppercase disabled:cursor-not-allowed disabled:opacity-35";
+  const mobileMetaPillClass =
+    "inline-flex min-h-10 items-center justify-center rounded-full border border-[#2d49d8]/24 bg-[linear-gradient(135deg,rgba(16,25,46,0.96),rgba(12,17,30,0.98))] px-3 text-[0.76rem] font-medium tracking-[0.16em] text-[#edf2ff] uppercase";
 
   const clampOffset = (x: number, y: number, currentScale: number) => {
     if (currentScale <= 1) {
@@ -339,7 +351,7 @@ function ZoomableSampleViewer({
         aria-modal="true"
         aria-labelledby="cofi-fullscreen-title"
       >
-        <div className="border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-3 py-1.5 sm:px-6 sm:py-3">
+        <div className="shrink-0 border-b border-[#c9a56c]/20 bg-[linear-gradient(90deg,rgba(103,13,33,0.2),rgba(8,13,24,0.82),rgba(23,42,121,0.18))] px-3 py-1.5 sm:px-6 sm:py-3">
           <div className="hidden items-center justify-between gap-3 sm:flex lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[0.68rem] tracking-[0.32em] text-[#d0a56b] uppercase">
@@ -363,7 +375,7 @@ function ZoomableSampleViewer({
                 type="button"
                 onClick={onPrevious}
                 disabled={!canGoPrevious}
-                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-4 py-2 text-sm font-medium text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+                className={actionButtonClass}
               >
                 Prev
               </button>
@@ -371,14 +383,14 @@ function ZoomableSampleViewer({
                 type="button"
                 onClick={() => applyScale(scale - 0.3)}
                 disabled={scale <= 1}
-                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+                className={utilityButtonClass}
               >
                 -
               </button>
               <button
                 type="button"
                 onClick={() => applyScale(1)}
-                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#3350e4] hover:text-white"
+                className={utilityButtonClass}
               >
                 {Math.round(scale * 100)}%
               </button>
@@ -386,14 +398,14 @@ function ZoomableSampleViewer({
                 type="button"
                 onClick={() => applyScale(scale + 0.3)}
                 disabled={scale >= 5}
-                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-3 py-2 text-sm text-[#ece4d0] transition hover:border-[#d23642] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+                className={utilityButtonClass}
               >
                 +
               </button>
               <a
                 href={sample.image.original.localPath}
                 download={downloadFilename}
-                className="rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-4 py-2 text-sm font-medium text-[#eef3ff] transition hover:border-[#7ab8ff] hover:text-white"
+                className={downloadButtonClass}
                 aria-label={`Download ${sample.artistName} sample image`}
               >
                 Download
@@ -401,7 +413,7 @@ function ZoomableSampleViewer({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-4 py-2 text-sm font-medium text-[#fff0c6] transition hover:border-[#f17d6b]"
+                className={closeButtonClass}
               >
                 Close
               </button>
@@ -409,7 +421,7 @@ function ZoomableSampleViewer({
                 type="button"
                 onClick={onNext}
                 disabled={!canGoNext}
-                className="rounded-full border border-[#ceb17e]/20 bg-[#101523]/90 px-4 py-2 text-sm font-medium text-[#ece4d0] transition hover:border-[#3350e4] hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#ceb17e]/20 disabled:hover:text-[#ece4d0]"
+                className={actionButtonClass}
               >
                 Next
               </button>
@@ -417,23 +429,43 @@ function ZoomableSampleViewer({
           </div>
 
           <div className="sm:hidden">
-            <div className="min-w-0">
-              <h2
-                id="cofi-fullscreen-title-mobile"
-                className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-lg font-semibold text-[#f8efdd]"
-              >
-                {sample.artistName}
-              </h2>
-              <p className="mt-0.5 truncate text-[0.78rem] text-[#d1c6b5]">
-                {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
-                {formatJoiningDate(sample.joiningDate)}
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2
+                  id="cofi-fullscreen-title-mobile"
+                  className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] truncate text-lg font-semibold text-[#f8efdd]"
+                >
+                  {sample.artistName}
+                </h2>
+                <p className="mt-0.5 truncate text-[0.78rem] text-[#d1c6b5]">
+                  {sample.boothLocation} • {formatBoothType(sample.boothType)} •{" "}
+                  {formatJoiningDate(sample.joiningDate)}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1.5">
+                <a
+                  href={sample.image.original.localPath}
+                  download={downloadFilename}
+                  className="inline-flex min-h-9 items-center justify-center rounded-full border border-[#2d49d8]/24 bg-[linear-gradient(135deg,#13203c,#101523)] px-3 text-[0.7rem] font-medium tracking-[0.14em] text-[#eef3ff] uppercase"
+                  aria-label={`Download ${sample.artistName} sample image`}
+                >
+                  Save
+                </a>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex min-h-9 items-center justify-center rounded-full border border-[#d23642]/28 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 text-[0.7rem] font-medium tracking-[0.14em] text-[#fff0c6] uppercase"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="@container relative flex flex-1 flex-col lg:flex-row">
-          <div className="relative h-[calc(100dvh-7.9rem)] flex-none overflow-hidden sm:h-[calc(100dvh-8.5rem)] lg:h-auto lg:min-h-0 lg:flex-1">
+        <div className="@container relative flex min-h-0 flex-1 flex-col lg:flex-row">
+          <div className="relative min-h-0 flex-1 overflow-hidden lg:h-auto lg:min-h-0 lg:flex-1">
             <div
               ref={viewportRef}
               className={`relative h-full w-full overflow-hidden select-none ${
@@ -733,37 +765,31 @@ function ZoomableSampleViewer({
           </aside>
         </div>
 
-        <div className="border-t border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(8,13,24,0.94),rgba(6,10,18,0.98))] px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:hidden">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="shrink-0 border-t border-[#c9a56c]/18 bg-[linear-gradient(180deg,rgba(8,13,24,0.94),rgba(6,10,18,0.98))] px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:hidden">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
             <button
               type="button"
               onClick={onPrevious}
               disabled={!canGoPrevious}
-              className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-2 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+              className={mobilePillButtonClass}
             >
               Prev
             </button>
             <button
               type="button"
-              onClick={onNext}
-              disabled={!canGoNext}
-              className="rounded-full border border-[#ceb17e]/18 bg-[#101523]/90 px-3 py-2 text-sm font-medium text-[#ece4d0] disabled:cursor-not-allowed disabled:opacity-35"
+              onClick={() => applyScale(1)}
+              className={mobileMetaPillClass}
+              aria-label="Reset zoom"
             >
-              Next
+              {Math.round(scale * 100)}%
             </button>
-            <a
-              href={sample.image.original.localPath}
-              download={downloadFilename}
-              className="rounded-full border border-[#2d49d8]/28 bg-[linear-gradient(135deg,#13203c,#101523)] px-3 py-2 text-center text-sm font-medium text-[#eef3ff]"
-            >
-              Download
-            </a>
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-full border border-[#d23642]/35 bg-[linear-gradient(135deg,#34111a,#12182b)] px-3 py-2 text-sm font-medium text-[#fff0c6]"
+              onClick={onNext}
+              disabled={!canGoNext}
+              className={mobilePillButtonClass}
             >
-              Close
+              Next
             </button>
           </div>
         </div>
