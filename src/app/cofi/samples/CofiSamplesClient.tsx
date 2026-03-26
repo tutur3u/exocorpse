@@ -663,8 +663,8 @@ function ZoomableSampleViewer({
                   alt={sample.artistName}
                   fill
                   sizes="100vw"
-                  priority
                   draggable={false}
+                  decoding="async"
                   className={`pointer-events-none object-contain transition-opacity duration-150 select-none ${
                     isImageLoading ? "opacity-100" : "opacity-0"
                   }`}
@@ -677,6 +677,7 @@ function ZoomableSampleViewer({
                   sizes="100vw"
                   priority
                   draggable={false}
+                  decoding="async"
                   className={`pointer-events-none object-contain transition-opacity duration-150 select-none ${
                     isImageLoading ? "opacity-0" : "opacity-100"
                   }`}
@@ -822,6 +823,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
   const [searchFallbackReason, setSearchFallbackReason] = useState<
     "none" | "empty_ranked"
   >("none");
+  const mainRef = useRef<HTMLElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim();
@@ -1026,6 +1028,11 @@ export default function CofiSamplesClient({ dataset }: Props) {
 
   useEffect(() => {
     setVisibleCount(Math.min(PAGE_SIZE, filteredSamples.length));
+
+    const main = mainRef.current;
+    if (main) {
+      main.scrollTop = 0;
+    }
   }, [
     normalizedQuery,
     boothType,
@@ -1037,8 +1044,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
 
   useEffect(() => {
     const target = loadMoreRef.current;
+    const root = mainRef.current;
 
-    if (!target || visibleCount >= filteredSamples.length) {
+    if (!target || !root || visibleCount >= filteredSamples.length) {
       return;
     }
 
@@ -1057,7 +1065,8 @@ export default function CofiSamplesClient({ dataset }: Props) {
         });
       },
       {
-        rootMargin: "600px 0px",
+        root,
+        rootMargin: "800px 0px",
       },
     );
 
@@ -1097,6 +1106,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
     hasQuery || filtersActive || sortBy !== "index" || sortDirection !== "asc";
   const isBusy = isSearchLoading || isQueryDeferred;
   const showEmptyState = !isBusy && filteredSamples.length === 0;
+
   const searchStatusLabel = isBusy
     ? "Searching"
     : searchMode === "hybrid"
@@ -1142,7 +1152,10 @@ export default function CofiSamplesClient({ dataset }: Props) {
   }
 
   return (
-    <main className="h-screen overflow-x-hidden overflow-y-auto bg-[#04050a] text-[#f4efdd]">
+    <main
+      ref={mainRef}
+      className="h-screen overflow-x-hidden overflow-y-auto bg-[#04050a] text-[#f4efdd]"
+    >
       <div
         className="relative min-h-full overflow-hidden"
         style={{
@@ -1510,20 +1523,17 @@ export default function CofiSamplesClient({ dataset }: Props) {
               {visibleSamples.map((sample, visibleIndex) => {
                 const artistSampleCount =
                   artistSampleCounts.get(sample.artistName) ?? 1;
+                const sampleKey = getSampleKey(sample);
 
                 return (
                   <article
-                    key={getSampleKey(sample)}
+                    key={sampleKey}
                     className="group overflow-hidden rounded-[1.4rem] border border-[#ccb07d]/16 bg-[linear-gradient(180deg,rgba(10,15,28,0.96),rgba(7,10,18,0.98))] shadow-[0_18px_45px_rgba(0,0,0,0.34),0_0_30px_rgba(27,44,132,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#d23642]/45 hover:shadow-[0_22px_60px_rgba(0,0,0,0.42),0_0_48px_rgba(210,54,66,0.12)] sm:rounded-[1.75rem]"
-                    style={{
-                      contentVisibility: "auto",
-                      containIntrinsicSize: "520px",
-                    }}
                   >
                     <button
                       type="button"
-                      onClick={() => void setSelectedKey(getSampleKey(sample))}
-                      className="block w-full text-left"
+                      onClick={() => void setSelectedKey(sampleKey)}
+                      className="flex h-full w-full flex-col text-left"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-[#17120f]">
                         <Image
@@ -1533,6 +1543,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                           sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 25vw"
                           className="object-cover transition duration-500 group-hover:scale-[1.03]"
                           priority={visibleIndex < 8}
+                          decoding="async"
                         />
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,8,14,0.06),rgba(7,8,14,0.18),rgba(6,9,16,0.88))]" />
                         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(174,16,44,0.18),transparent)] mix-blend-screen" />
@@ -1551,9 +1562,9 @@ export default function CofiSamplesClient({ dataset }: Props) {
                         </span>
                       </div>
 
-                      <div className="grid gap-4 p-4 sm:p-5">
+                      <div className="grid flex-1 gap-4 p-4 sm:p-5">
                         <div>
-                          <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] text-xl leading-tight font-semibold text-[#fff6de] sm:text-2xl">
+                          <p className="font-[Baskerville,Palatino Linotype,Book Antiqua,serif] line-clamp-2 min-h-[3.5rem] text-xl leading-tight font-semibold text-[#fff6de] sm:min-h-[4.25rem] sm:text-2xl">
                             {sample.artistName}
                           </p>
                           <p className="mt-2 text-sm text-[#d0c4b4] sm:text-base">
@@ -1561,7 +1572,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between gap-3 text-sm">
+                        <div className="mt-auto flex items-center justify-between gap-3 text-sm">
                           <span className="rounded-full border border-[#ccb07d]/16 bg-[rgba(255,255,255,0.04)] px-3 py-1 text-[#d7d0bf]">
                             {artistSampleCount > 1
                               ? `${artistSampleCount} samples`
