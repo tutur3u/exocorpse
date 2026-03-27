@@ -3,6 +3,7 @@ import { SoundProvider } from "@/contexts/SoundContext";
 import { WindowThemeProvider } from "@/contexts/WindowThemeContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
+import { getSiteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { Baskervville } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -18,6 +19,7 @@ const baskervvile = Baskervville({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: "EXOCORPSE",
   description:
     "the duo of artist and writer in one vessel: a portfolio and terminal to the works created by the officers - fenrys & morris - who overlook the security and future of exocorpse. exocorpse is a corporation - ran by director lykomedes and surgeon aeveilith - that aims to cleanse the world from all sins by devoting themselves to becoming sinners - saints who taint their hands with blood are luminaries, shining stars that choose to burn out more quickly for the sake of humanity in a twisted manner. if you wish to enlist yourself, register your name within our terminal at any time.",

@@ -52,12 +52,22 @@ import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
-import { fetchStorageUrl } from "@/lib/storage-fetch";
+import { toAbsoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+function resolveOgImageUrl(pathOrUrl: string | null | undefined) {
+  if (!pathOrUrl) return null;
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+    return pathOrUrl;
+  }
+
+  const params = new URLSearchParams({ path: pathOrUrl });
+  return toAbsoluteUrl(`/api/og-image?${params.toString()}`);
+}
 
 export async function generateMetadata({
   searchParams,
@@ -83,11 +93,11 @@ export async function generateMetadata({
   if (blogPostSlug) {
     const blogPost = await getBlogPostBySlug(blogPostSlug);
     if (blogPost) {
-      const coverImageUrl = blogPost.cover_url
-        ? blogPost.cover_url.startsWith("http")
-          ? blogPost.cover_url
-          : await fetchStorageUrl(blogPost.cover_url)
-        : null;
+      const canonicalUrl = serializeBlogSearchParams("/", {
+        "blog-post": blogPostSlug,
+        "blog-page": null,
+      });
+      const coverImageUrl = resolveOgImageUrl(blogPost.cover_url);
 
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
@@ -96,13 +106,11 @@ export async function generateMetadata({
           blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           "Blog post from EXOCORPSE",
         alternates: {
-          canonical: serializeBlogSearchParams("/", {
-            "blog-post": blogPostSlug,
-            "blog-page": null,
-          }),
+          canonical: canonicalUrl,
         },
         openGraph: {
           type: "article",
+          url: canonicalUrl,
           title: `${blogPost.title} - EXOCORPSE Blog`,
           description:
             blogPost.excerpt ||
@@ -135,15 +143,19 @@ export async function generateMetadata({
       (blogParams["blog-page"] ?? 1) > 1
         ? ` - Page ${blogParams["blog-page"]}`
         : "";
+    const canonicalUrl = serializeBlogSearchParams("/", {
+      "blog-post": null,
+      "blog-page": blogParams["blog-page"] ?? 1,
+      "blog-page-size": blogParams["blog-page-size"] ?? undefined,
+    });
     return {
       title: `EXOCORPSE Blog${page}`,
       description: "Latest posts and updates from EXOCORPSE",
       alternates: {
-        canonical: serializeBlogSearchParams("/", {
-          "blog-post": null,
-          "blog-page": blogParams["blog-page"] ?? 1,
-          "blog-page-size": blogParams["blog-page-size"] ?? undefined,
-        }),
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        url: canonicalUrl,
       },
     };
   }
@@ -162,11 +174,11 @@ export async function generateMetadata({
     }
 
     if (writingPiece) {
-      const coverImageUrl = writingPiece.cover_image
-        ? writingPiece.cover_image.startsWith("http")
-          ? writingPiece.cover_image
-          : await fetchStorageUrl(writingPiece.cover_image)
-        : null;
+      const canonicalUrl = serializePortfolioSearchParams("/", {
+        "portfolio-tab": "writing",
+        "portfolio-piece": portfolioPieceSlug,
+      });
+      const coverImageUrl = resolveOgImageUrl(writingPiece.cover_image);
 
       return {
         title: `${writingPiece.title} - EXOCORPSE Portfolio`,
@@ -175,13 +187,11 @@ export async function generateMetadata({
           writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
           "Writing from EXOCORPSE",
         alternates: {
-          canonical: serializePortfolioSearchParams("/", {
-            "portfolio-tab": "writing",
-            "portfolio-piece": portfolioPieceSlug,
-          }),
+          canonical: canonicalUrl,
         },
         openGraph: {
           type: "article",
+          url: canonicalUrl,
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
           description:
             writingPiece.excerpt ||
