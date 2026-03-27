@@ -13,7 +13,7 @@ import {
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -41,6 +41,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
     title?: string;
     signedUrl?: string | null;
   } | null>(null);
+  const markdownContentRef = useRef<HTMLDivElement | null>(null);
 
   const [params, setParams] = useQueryStates(
     {
@@ -127,6 +128,45 @@ export default function BlogClient({ initialData }: BlogClientProps) {
       });
     }
   }, [clampedCurrentPage, currentPage, postSlug, pageSize, setParams]);
+
+  useEffect(() => {
+    const container = markdownContentRef.current;
+    if (!container || !selectedPost) {
+      return;
+    }
+
+    const handleImageActivate = (event: MouseEvent | PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const image = target.closest(
+        "img.markdown-fullscreen-image",
+      ) as HTMLImageElement | null;
+
+      if (!image) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      setFullscreenImage({
+        src: image.currentSrc || image.src,
+        alt: image.alt || selectedPost.title,
+        title: image.alt || selectedPost.title,
+      });
+    };
+
+    container.addEventListener("pointerup", handleImageActivate);
+    container.addEventListener("click", handleImageActivate);
+
+    return () => {
+      container.removeEventListener("pointerup", handleImageActivate);
+      container.removeEventListener("click", handleImageActivate);
+    };
+  }, [selectedPost]);
 
   const handlePostSelect = (post: BlogPost) => {
     setParams({
@@ -265,7 +305,10 @@ export default function BlogClient({ initialData }: BlogClientProps) {
               </button>
             )}
 
-            <div className="mx-auto w-full max-w-[46rem] rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,15,24,0.94),rgba(8,10,16,0.98))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.32)] @md:p-8">
+            <div
+              ref={markdownContentRef}
+              className="mx-auto w-full max-w-[46rem] rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,15,24,0.94),rgba(8,10,16,0.98))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.32)] @md:p-8"
+            >
               <MarkdownRenderer
                 content={selectedPost.content}
                 className="text-[#ece3d1]"

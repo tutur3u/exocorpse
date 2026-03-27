@@ -35,6 +35,8 @@ function paragraphNeedsBlockWrapper(children: React.ReactNode) {
 
     return (
       child.type === StorageImage ||
+      child.type === "img" ||
+      child.type === "button" ||
       child.type === "div" ||
       child.type === "figure" ||
       child.type === "pre" ||
@@ -168,6 +170,7 @@ export const markdownComponents: Components = {
     <img
       src={src}
       alt={alt}
+      data-markdown-image="true"
       className="mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80"
     />
   ),
@@ -219,6 +222,7 @@ export function StorageImage({
     <img
       src={imageSrc}
       alt={alt || "Image"}
+      data-markdown-image="true"
       onClick={
         onOpen
           ? (event) => {
