@@ -219,6 +219,15 @@ export function StorageImage({
     <img
       src={imageSrc}
       alt={alt || "Image"}
+      onClick={
+        onOpen
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onOpen({ src: imageSrc, alt });
+            }
+          : undefined
+      }
       className={`mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80 ${
         onOpen
           ? "cursor-zoom-in transition duration-200 hover:border-red-400/50 hover:shadow-[0_24px_60px_rgba(15,23,42,0.22)]"
@@ -232,9 +241,20 @@ export function StorageImage({
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => onOpen({ src: imageSrc, alt })}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onOpen({ src: imageSrc, alt });
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen({ src: imageSrc, alt });
+        }
+      }}
       className="group relative mx-auto my-8 block max-w-full bg-transparent text-left"
       aria-label={`Open fullscreen preview${alt ? ` for ${alt}` : ""}`}
     >
@@ -242,7 +262,7 @@ export function StorageImage({
       <span className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-white/15 bg-black/65 px-3 py-1 text-[0.68rem] font-medium tracking-[0.18em] text-white uppercase opacity-0 transition duration-200 group-hover:opacity-100">
         Fullscreen
       </span>
-    </button>
+    </div>
   );
 }
 
