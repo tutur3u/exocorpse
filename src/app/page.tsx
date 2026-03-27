@@ -11,7 +11,6 @@ import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
-import { batchGetCachedSignedUrls } from "@/lib/actions/storage";
 import { getActiveServices, getServiceBySlug } from "@/lib/actions/commissions";
 import {
   getArtPieceBySlug,
@@ -53,6 +52,7 @@ import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
+import { toAbsoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
 type Props = {
@@ -77,16 +77,16 @@ function truncateMetaDescription(value: string | null | undefined) {
   return `${normalized.slice(0, SOCIAL_DESCRIPTION_LENGTH - 1).trimEnd()}…`;
 }
 
-async function resolveSignedCoverUrl(pathOrUrl: string | null | undefined) {
-  if (!pathOrUrl) return null;
-  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
-    return pathOrUrl;
+function buildOgCoverImageUrl(pathOrUrl: string | null | undefined) {
+  if (!pathOrUrl) {
+    return null;
   }
 
-  const signedUrls = await batchGetCachedSignedUrls([pathOrUrl], {
-    transform: OG_COVER_TRANSFORM,
+  const params = new URLSearchParams({
+    src: pathOrUrl,
   });
-  return signedUrls.get(pathOrUrl) ?? null;
+
+  return toAbsoluteUrl(`/api/og-image?${params.toString()}`);
 }
 
 export async function generateMetadata({
@@ -120,7 +120,7 @@ export async function generateMetadata({
         "blog-post": blogPostSlug,
         "blog-page": null,
       });
-      const coverImageUrl = await resolveSignedCoverUrl(blogPost.cover_url);
+      const ogImageUrl = buildOgCoverImageUrl(blogPost.cover_url);
 
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
@@ -133,10 +133,10 @@ export async function generateMetadata({
           url: canonicalUrl,
           title: `${blogPost.title} - EXOCORPSE Blog`,
           description: metaDescription,
-          images: coverImageUrl
+          images: ogImageUrl
             ? [
                 {
-                  url: coverImageUrl,
+                  url: ogImageUrl,
                   type: "image/jpeg",
                   width: OG_COVER_TRANSFORM.width,
                   height: OG_COVER_TRANSFORM.height,
@@ -149,7 +149,7 @@ export async function generateMetadata({
           card: "summary_large_image",
           title: `${blogPost.title} - EXOCORPSE Blog`,
           description: metaDescription,
-          images: coverImageUrl ? [coverImageUrl] : undefined,
+          images: ogImageUrl ? [ogImageUrl] : undefined,
         },
       };
     }
@@ -198,9 +198,7 @@ export async function generateMetadata({
         "portfolio-tab": "writing",
         "portfolio-piece": portfolioPieceSlug,
       });
-      const coverImageUrl = await resolveSignedCoverUrl(
-        writingPiece.cover_image,
-      );
+      const ogImageUrl = buildOgCoverImageUrl(writingPiece.cover_image);
 
       return {
         title: `${writingPiece.title} - EXOCORPSE Portfolio`,
@@ -213,10 +211,10 @@ export async function generateMetadata({
           url: canonicalUrl,
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
           description: metaDescription,
-          images: coverImageUrl
+          images: ogImageUrl
             ? [
                 {
-                  url: coverImageUrl,
+                  url: ogImageUrl,
                   type: "image/jpeg",
                   width: OG_COVER_TRANSFORM.width,
                   height: OG_COVER_TRANSFORM.height,
@@ -229,7 +227,7 @@ export async function generateMetadata({
           card: "summary_large_image",
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
           description: metaDescription,
-          images: coverImageUrl ? [coverImageUrl] : undefined,
+          images: ogImageUrl ? [ogImageUrl] : undefined,
         },
       };
     }
