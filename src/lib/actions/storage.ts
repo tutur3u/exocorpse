@@ -12,6 +12,18 @@ import {
 } from "@/lib/supabase/server";
 import { TuturuuuClient } from "tuturuuu";
 
+type StorageImageTransform = {
+  width?: number;
+  height?: number;
+  resize?: "cover" | "contain" | "fill";
+  quality?: number;
+};
+
+type CachedShareOptions = {
+  expiresIn?: number;
+  transform?: StorageImageTransform;
+};
+
 // Initialize the Tuturuuu client with API key from environment
 // Make sure to add TUTURUUU_API_KEY to your .env file (NOT .env.local with NEXT_PUBLIC_ prefix!)
 
@@ -27,6 +39,43 @@ function getTuturuuuClient() {
     );
   }
   return new TuturuuuClient(apiKey);
+}
+
+function normalizeShareOptions(
+  options?: CachedShareOptions,
+): CachedShareOptions {
+  const expiresIn = Math.min(
+    options?.expiresIn ?? MAX_SIGNED_URL_EXPIRATION,
+    MAX_SIGNED_URL_EXPIRATION,
+  );
+  const transform = options?.transform
+    ? {
+        width: options.transform.width,
+        height: options.transform.height,
+        resize: options.transform.resize,
+        quality: options.transform.quality,
+      }
+    : undefined;
+
+  return {
+    expiresIn,
+    transform,
+  };
+}
+
+function createResourceCacheKey(path: string, options?: CachedShareOptions) {
+  const normalized = normalizeShareOptions(options);
+
+  if (
+    !normalized.transform &&
+    normalized.expiresIn === MAX_SIGNED_URL_EXPIRATION
+  ) {
+    return path;
+  }
+
+  return `${path}#__ttr_share=${encodeURIComponent(
+    JSON.stringify(normalized),
+  )}`;
 }
 
 // NOTE: File uploads now use signed upload URLs for direct client-to-storage uploads
@@ -188,17 +237,22 @@ export async function deleteGameImage(path: string) {
  * @param path - Path to the file in storage
  * @returns The signed URL
  */
-export async function getCachedSignedUrl(path: string): Promise<string | null> {
+export async function getCachedSignedUrl(
+  path: string,
+  options?: CachedShareOptions,
+): Promise<string | null> {
   if (!path) return null;
 
   try {
+    const cacheKey = createResourceCacheKey(path, options);
+    const shareOptions = normalizeShareOptions(options);
     const supabase = await getSupabaseServer();
 
     // Check if we have a cached URL that hasn't expired yet
     const { data: cachedUrl } = await supabase
       .from("resource_urls")
       .select("url, expired_at")
-      .eq("resource_path", path)
+      .eq("resource_path", cacheKey)
       .single();
 
     const now = new Date();
@@ -211,9 +265,7 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     // Otherwise, fetch a new signed URL from the SDK
     const client = getTuturuuuClient();
 
-    const result = await client.storage.share(path, {
-      expiresIn: MAX_SIGNED_URL_EXPIRATION,
-    });
+    const result = await client.storage.share(path, shareOptions);
 
     if (!result.data.signedUrl) {
       console.error("No signed URL returned from SDK for path:", path);
@@ -228,7 +280,7 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
     // Upsert the new URL into the cache
     await sbAdmin.from("resource_urls").upsert(
       {
-        resource_path: path,
+        resource_path: cacheKey,
         url: result.data.signedUrl,
         expired_at: expiresAt.toISOString(),
       },
@@ -252,12 +304,17 @@ export async function getCachedSignedUrl(path: string): Promise<string | null> {
  */
 export async function batchGetCachedSignedUrls(
   paths: string[],
+  options?: CachedShareOptions,
 ): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
 
   if (!paths.length) return urlMap;
 
   try {
+    const shareOptions = normalizeShareOptions(options);
+    const cacheKeys = paths.map((path) =>
+      createResourceCacheKey(path, shareOptions),
+    );
     const supabase = await getSupabaseServer();
     const now = new Date();
 
@@ -265,7 +322,7 @@ export async function batchGetCachedSignedUrls(
     const { data: cachedUrls } = await supabase
       .from("resource_urls")
       .select("resource_path, url, expired_at")
-      .in("resource_path", paths);
+      .in("resource_path", cacheKeys);
 
     // Separate cached (valid) and expired/missing paths
     const validCached: { path: string; url: string }[] = [];
@@ -276,7 +333,8 @@ export async function batchGetCachedSignedUrls(
     );
 
     for (const path of paths) {
-      const cached = cachedMap.get(path);
+      const cacheKey = createResourceCacheKey(path, shareOptions);
+      const cached = cachedMap.get(cacheKey);
       if (cached?.expired_at && new Date(cached.expired_at) > now) {
         validCached.push({ path, url: cached.url });
       } else {
@@ -292,12 +350,6 @@ export async function batchGetCachedSignedUrls(
     // If we have paths that need fetching, get them from the SDK
     if (pathsToFetch.length > 0) {
       const client = getTuturuuuClient();
-
-      const result = await client.storage.createSignedUrls(
-        pathsToFetch,
-        MAX_SIGNED_URL_EXPIRATION,
-      );
-
       const expiresAt = getExpirationTime(now);
       const upsertData: Array<{
         resource_path: string;
@@ -305,15 +357,45 @@ export async function batchGetCachedSignedUrls(
         expired_at: string;
       }> = [];
 
-      // Process the results
-      for (const item of result.data) {
-        if (item.signedUrl && !item.error) {
-          urlMap.set(item.path, item.signedUrl);
-          upsertData.push({
-            resource_path: item.path,
-            url: item.signedUrl,
-            expired_at: expiresAt.toISOString(),
-          });
+      if (shareOptions.transform) {
+        const results = await Promise.all(
+          pathsToFetch.map(async (path) => {
+            const result = await client.storage.share(path, shareOptions);
+            return {
+              path,
+              signedUrl: result.data.signedUrl || null,
+            };
+          }),
+        );
+
+        for (const item of results) {
+          if (item.signedUrl) {
+            const cacheKey = createResourceCacheKey(item.path, shareOptions);
+            urlMap.set(item.path, item.signedUrl);
+            upsertData.push({
+              resource_path: cacheKey,
+              url: item.signedUrl,
+              expired_at: expiresAt.toISOString(),
+            });
+          }
+        }
+      } else {
+        const result = await client.storage.createSignedUrls(
+          pathsToFetch,
+          shareOptions.expiresIn ?? MAX_SIGNED_URL_EXPIRATION,
+        );
+
+        // Process the results
+        for (const item of result.data) {
+          if (item.signedUrl && !item.error) {
+            const cacheKey = createResourceCacheKey(item.path, shareOptions);
+            urlMap.set(item.path, item.signedUrl);
+            upsertData.push({
+              resource_path: cacheKey,
+              url: item.signedUrl,
+              expired_at: expiresAt.toISOString(),
+            });
+          }
         }
       }
 

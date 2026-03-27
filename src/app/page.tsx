@@ -53,7 +53,6 @@ import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
-import { toAbsoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
 
 type Props = {
@@ -61,6 +60,12 @@ type Props = {
 };
 
 const SOCIAL_DESCRIPTION_LENGTH = 150;
+const OG_COVER_TRANSFORM = {
+  width: 1200,
+  height: 630,
+  resize: "cover" as const,
+  quality: 72,
+};
 
 function truncateMetaDescription(value: string | null | undefined) {
   const normalized =
@@ -78,35 +83,10 @@ async function resolveSignedCoverUrl(pathOrUrl: string | null | undefined) {
     return pathOrUrl;
   }
 
-  const signedUrls = await batchGetCachedSignedUrls([pathOrUrl]);
-  return signedUrls.get(pathOrUrl) ?? null;
-}
-
-function buildOgCardUrl({
-  title,
-  description,
-  label,
-  cta,
-  coverUrl,
-}: {
-  title: string;
-  description: string;
-  label: string;
-  cta: string;
-  coverUrl?: string | null;
-}) {
-  const params = new URLSearchParams({
-    title,
-    description,
-    label,
-    cta,
+  const signedUrls = await batchGetCachedSignedUrls([pathOrUrl], {
+    transform: OG_COVER_TRANSFORM,
   });
-
-  if (coverUrl) {
-    params.set("cover", coverUrl);
-  }
-
-  return toAbsoluteUrl(`/api/og-image?${params.toString()}`);
+  return signedUrls.get(pathOrUrl) ?? null;
 }
 
 export async function generateMetadata({
@@ -141,13 +121,6 @@ export async function generateMetadata({
         "blog-page": null,
       });
       const coverImageUrl = await resolveSignedCoverUrl(blogPost.cover_url);
-      const ogImageUrl = buildOgCardUrl({
-        title: blogPost.title,
-        description: metaDescription,
-        label: "EXOCORPSE BLOG",
-        cta: "Read on EXOCORPSE",
-        coverUrl: coverImageUrl,
-      });
 
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
@@ -160,21 +133,23 @@ export async function generateMetadata({
           url: canonicalUrl,
           title: `${blogPost.title} - EXOCORPSE Blog`,
           description: metaDescription,
-          images: [
-            {
-              url: ogImageUrl,
-              type: "image/jpeg",
-              width: 1200,
-              height: 630,
-              alt: blogPost.title,
-            },
-          ],
+          images: coverImageUrl
+            ? [
+                {
+                  url: coverImageUrl,
+                  type: "image/jpeg",
+                  width: OG_COVER_TRANSFORM.width,
+                  height: OG_COVER_TRANSFORM.height,
+                  alt: blogPost.title,
+                },
+              ]
+            : undefined,
         },
         twitter: {
           card: "summary_large_image",
           title: `${blogPost.title} - EXOCORPSE Blog`,
           description: metaDescription,
-          images: [ogImageUrl],
+          images: coverImageUrl ? [coverImageUrl] : undefined,
         },
       };
     }
@@ -226,13 +201,6 @@ export async function generateMetadata({
       const coverImageUrl = await resolveSignedCoverUrl(
         writingPiece.cover_image,
       );
-      const ogImageUrl = buildOgCardUrl({
-        title: writingPiece.title,
-        description: metaDescription,
-        label: "EXOCORPSE WRITING",
-        cta: "Open Portfolio Entry",
-        coverUrl: coverImageUrl,
-      });
 
       return {
         title: `${writingPiece.title} - EXOCORPSE Portfolio`,
@@ -245,21 +213,23 @@ export async function generateMetadata({
           url: canonicalUrl,
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
           description: metaDescription,
-          images: [
-            {
-              url: ogImageUrl,
-              type: "image/jpeg",
-              width: 1200,
-              height: 630,
-              alt: writingPiece.title,
-            },
-          ],
+          images: coverImageUrl
+            ? [
+                {
+                  url: coverImageUrl,
+                  type: "image/jpeg",
+                  width: OG_COVER_TRANSFORM.width,
+                  height: OG_COVER_TRANSFORM.height,
+                  alt: writingPiece.title,
+                },
+              ]
+            : undefined,
         },
         twitter: {
           card: "summary_large_image",
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
           description: metaDescription,
-          images: [ogImageUrl],
+          images: coverImageUrl ? [coverImageUrl] : undefined,
         },
       };
     }
