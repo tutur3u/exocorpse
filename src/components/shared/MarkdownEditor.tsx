@@ -174,7 +174,15 @@ export const markdownComponents: Components = {
 };
 
 // Component to render storage images with signed URL resolution
-export function StorageImage({ src, alt }: { src?: string; alt?: string }) {
+export function StorageImage({
+  src,
+  alt,
+  onOpen,
+}: {
+  src?: string;
+  alt?: string;
+  onOpen?: (image: { src: string; alt?: string }) => void;
+}) {
   // Check if this is a storage path (not a full URL)
   const isStoragePath = Boolean(
     src && !src.startsWith("http") && !src.startsWith("/"),
@@ -207,12 +215,34 @@ export function StorageImage({ src, alt }: { src?: string; alt?: string }) {
   }
 
   // eslint-disable-next-line @next/next/no-img-element
-  return (
+  const imageElement = (
     <img
       src={imageSrc}
       alt={alt || "Image"}
-      className="mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80"
+      className={`mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80 ${
+        onOpen
+          ? "cursor-zoom-in transition duration-200 hover:border-red-400/50 hover:shadow-[0_24px_60px_rgba(15,23,42,0.22)]"
+          : ""
+      }`}
     />
+  );
+
+  if (!onOpen) {
+    return imageElement;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen({ src: imageSrc, alt })}
+      className="group relative mx-auto my-8 block max-w-full bg-transparent text-left"
+      aria-label={`Open fullscreen preview${alt ? ` for ${alt}` : ""}`}
+    >
+      {imageElement}
+      <span className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-white/15 bg-black/65 px-3 py-1 text-[0.68rem] font-medium tracking-[0.18em] text-white uppercase opacity-0 transition duration-200 group-hover:opacity-100">
+        Fullscreen
+      </span>
+    </button>
   );
 }
 

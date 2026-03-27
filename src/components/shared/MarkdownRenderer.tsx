@@ -9,11 +9,13 @@ import { markdownComponents, StorageImage } from "./MarkdownEditor";
 type MarkdownRendererProps = {
   content: string;
   className?: string;
+  onImageClick?: (image: { src: string; alt?: string }) => void;
 };
 
 export default function MarkdownRenderer({
   content,
   className = "max-w-none",
+  onImageClick,
 }: MarkdownRendererProps) {
   if (!content) {
     return null;
@@ -30,6 +32,7 @@ export default function MarkdownRenderer({
             <StorageImage
               src={typeof src === "string" ? src : undefined}
               alt={alt}
+              onOpen={onImageClick}
             />
           ),
         }}

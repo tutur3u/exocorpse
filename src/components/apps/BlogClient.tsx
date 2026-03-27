@@ -2,6 +2,7 @@
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
+import ZoomableImageDialog from "@/components/shared/ZoomableImageDialog";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
 import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
 import {
@@ -12,7 +13,7 @@ import {
 import { generatePaginationRange } from "@/lib/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -34,6 +35,13 @@ type BlogClientProps = {
 };
 
 export default function BlogClient({ initialData }: BlogClientProps) {
+  const [fullscreenImage, setFullscreenImage] = useState<{
+    src: string;
+    alt: string;
+    title?: string;
+    signedUrl?: string | null;
+  } | null>(null);
+
   const [params, setParams] = useQueryStates(
     {
       "blog-post": parseAsString,
@@ -224,7 +232,18 @@ export default function BlogClient({ initialData }: BlogClientProps) {
 
           <article className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 @md:px-6 @lg:px-8 @xl:py-8">
             {selectedPost.cover_url && (
-              <div className="overflow-hidden rounded-[2rem] border border-white/8 bg-[rgba(10,12,18,0.7)] shadow-[0_28px_80px_rgba(0,0,0,0.35)]">
+              <button
+                type="button"
+                onClick={() =>
+                  setFullscreenImage({
+                    src: selectedPost.cover_url!,
+                    signedUrl: coverImageUrls.get(selectedPost.cover_url!),
+                    alt: selectedPost.title,
+                    title: selectedPost.title,
+                  })
+                }
+                className="group relative block overflow-hidden rounded-[2rem] border border-white/8 bg-[rgba(10,12,18,0.7)] text-left shadow-[0_28px_80px_rgba(0,0,0,0.35)] transition duration-200 hover:border-[#d23b4b]/24"
+              >
                 <div className="relative aspect-[16/10] w-full @lg:aspect-[16/8.5]">
                   <StorageImage
                     src={selectedPost.cover_url}
@@ -235,17 +254,40 @@ export default function BlogClient({ initialData }: BlogClientProps) {
                     sizes="(max-width: 768px) 100vw, 960px"
                   />
                 </div>
-              </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-[linear-gradient(180deg,transparent,rgba(4,6,10,0.82))] px-5 py-4">
+                  <span className="text-[0.68rem] font-semibold tracking-[0.22em] text-[#efe2ca] uppercase">
+                    Cover Art
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[0.68rem] font-medium tracking-[0.18em] text-white uppercase opacity-0 transition duration-200 group-hover:opacity-100">
+                    Open fullscreen
+                  </span>
+                </div>
+              </button>
             )}
 
             <div className="mx-auto w-full max-w-[46rem] rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,15,24,0.94),rgba(8,10,16,0.98))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.32)] @md:p-8">
               <MarkdownRenderer
                 content={selectedPost.content}
                 className="text-[#ece3d1]"
+                onImageClick={({ src, alt }) =>
+                  setFullscreenImage({
+                    src,
+                    alt: alt || selectedPost.title,
+                    title: alt || selectedPost.title,
+                  })
+                }
               />
             </div>
           </article>
         </div>
+        <ZoomableImageDialog
+          isOpen={Boolean(fullscreenImage)}
+          imageSrc={fullscreenImage?.src}
+          signedUrl={fullscreenImage?.signedUrl}
+          imageAlt={fullscreenImage?.alt || "Blog image"}
+          title={fullscreenImage?.title}
+          onClose={() => setFullscreenImage(null)}
+        />
       </div>
     );
   }
