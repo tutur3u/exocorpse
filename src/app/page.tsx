@@ -120,6 +120,7 @@ export async function generateMetadata({
             ? [
                 {
                   url: coverImageUrl,
+                  type: "image/png",
                   alt: blogPost.title,
                 },
               ]
@@ -201,6 +202,7 @@ export async function generateMetadata({
             ? [
                 {
                   url: coverImageUrl,
+                  type: "image/png",
                   alt: writingPiece.title,
                 },
               ]

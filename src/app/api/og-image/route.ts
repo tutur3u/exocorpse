@@ -1,4 +1,4 @@
-import { fetchStorageUrl } from "@/lib/storage-fetch";
+import { batchGetCachedSignedUrls } from "@/lib/actions/storage";
 import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -10,32 +10,36 @@ export async function GET(request: NextRequest) {
     return new Response("Missing path", { status: 400 });
   }
 
-  const signedUrl = await fetchStorageUrl(path);
+  try {
+    const signedUrls = await batchGetCachedSignedUrls([path]);
+    const signedUrl = signedUrls.get(path);
 
-  if (!signedUrl) {
-    return new Response("Image not found", { status: 404 });
+    if (!signedUrl) {
+      return new Response("Image not found", { status: 404 });
+    }
+
+    const upstreamResponse = await fetch(signedUrl, {
+      next: { revalidate: 60 * 60 * 24 },
+    });
+
+    if (!upstreamResponse.ok) {
+      return new Response("Failed to fetch image", { status: 502 });
+    }
+
+    const buffer = Buffer.from(await upstreamResponse.arrayBuffer());
+    const sharp = (await import("sharp")).default;
+    const pngBuffer = await sharp(buffer).png().toBuffer();
+
+    return new Response(new Uint8Array(pngBuffer), {
+      status: 200,
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control":
+          "public, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to serve og image:", error);
+    return new Response("Failed to generate og image", { status: 500 });
   }
-
-  const upstreamResponse = await fetch(signedUrl, {
-    next: { revalidate: 60 * 60 * 24 },
-  });
-
-  if (!upstreamResponse.ok) {
-    return new Response("Failed to fetch image", { status: 502 });
-  }
-
-  const headers = new Headers();
-  headers.set(
-    "Content-Type",
-    upstreamResponse.headers.get("content-type") || "image/webp",
-  );
-  headers.set(
-    "Cache-Control",
-    "public, s-maxage=86400, stale-while-revalidate=604800",
-  );
-
-  return new Response(upstreamResponse.body, {
-    status: 200,
-    headers,
-  });
 }
