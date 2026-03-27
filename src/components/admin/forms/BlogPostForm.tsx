@@ -43,7 +43,7 @@ function formatDatetimeLocal(dateString: string | null | undefined) {
 }
 
 function getFieldClassName(hasError: boolean) {
-  return `w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${
+  return `w-full appearance-none rounded-2xl border px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 [color-scheme:light] dark:placeholder:text-zinc-500 dark:[color-scheme:dark] ${
     hasError
       ? "border-red-400 bg-red-50/70 text-red-950 focus:border-red-500 dark:border-red-500/70 dark:bg-red-950/30 dark:text-red-50"
       : "border-zinc-200 bg-zinc-50/85 text-zinc-950 focus:border-red-500 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-100 dark:focus:border-red-400"
@@ -483,7 +483,7 @@ export default function BlogPostForm({
                             })
                           }
                           placeholder="# My Post\n\nWrite your blog post content here..."
-                          helpText="Markdown is supported. Paste images directly into the editor if needed."
+                          helpText="Markdown is supported, including dividers, quotes, bullet and numbered lists. Plain line breaks are preserved, and pasted images can be embedded directly."
                           rows={18}
                           uploadPath={
                             post

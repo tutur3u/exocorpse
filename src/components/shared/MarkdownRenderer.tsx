@@ -13,14 +13,14 @@ type MarkdownRendererProps = {
 
 export default function MarkdownRenderer({
   content,
-  className = "prose prose-sm dark:prose-invert max-w-none",
+  className = "max-w-none",
 }: MarkdownRendererProps) {
   if (!content) {
     return null;
   }
 
   return (
-    <div className={className}>
+    <div className={`@container ${className}`.trim()}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}

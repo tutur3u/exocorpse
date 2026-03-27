@@ -1,6 +1,6 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import toastWithSound from "@/lib/toast";
-import { useId, useRef, useState } from "react";
+import { Children, isValidElement, useId, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
@@ -19,32 +19,79 @@ type MarkdownEditorProps = {
 };
 
 // Reusable markdown components with consistent styling
+function paragraphNeedsBlockWrapper(children: React.ReactNode) {
+  const normalizedChildren = Children.toArray(children).filter((child) => {
+    return !(typeof child === "string" && child.trim().length === 0);
+  });
+
+  if (normalizedChildren.length === 0) {
+    return false;
+  }
+
+  return normalizedChildren.some((child) => {
+    if (!isValidElement(child)) {
+      return false;
+    }
+
+    return (
+      child.type === StorageImage ||
+      child.type === "div" ||
+      child.type === "figure" ||
+      child.type === "pre" ||
+      child.type === "table" ||
+      child.type === "blockquote" ||
+      child.type === "hr" ||
+      child.type === "ul" ||
+      child.type === "ol"
+    );
+  });
+}
+
 export const markdownComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="mt-6 mb-4 text-3xl font-bold">{children}</h1>
+    <h1 className="mt-10 mb-5 font-serif text-4xl leading-tight font-semibold tracking-tight">
+      {children}
+    </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mt-5 mb-3 text-2xl font-bold">{children}</h2>
+    <h2 className="mt-8 mb-4 font-serif text-3xl leading-tight font-semibold tracking-tight">
+      {children}
+    </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-4 mb-2 text-xl font-bold">{children}</h3>
+    <h3 className="mt-7 mb-3 text-2xl font-semibold tracking-tight">
+      {children}
+    </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mt-3 mb-2 text-lg font-bold">{children}</h4>
+    <h4 className="mt-6 mb-3 text-xl font-semibold tracking-tight">
+      {children}
+    </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mt-3 mb-2 text-base font-bold">{children}</h5>
+    <h5 className="mt-5 mb-2 text-lg font-semibold">{children}</h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mt-2 mb-2 text-sm font-bold">{children}</h6>
+    <h6 className="mt-4 mb-2 text-sm font-semibold tracking-[0.18em] uppercase">
+      {children}
+    </h6>
   ),
-  p: ({ children }) => <p className="mb-3 leading-7">{children}</p>,
+  p: ({ children }) =>
+    paragraphNeedsBlockWrapper(children) ? (
+      <div className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
+        {children}
+      </div>
+    ) : (
+      <p className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
+        {children}
+      </p>
+    ),
   a: ({ href, children }) => (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+      className="font-medium text-red-600 underline decoration-red-400/60 underline-offset-4 transition hover:text-red-500 dark:text-red-300 dark:decoration-red-300/50 dark:hover:text-red-200"
     >
       {children}
     </a>
@@ -65,44 +112,64 @@ export const markdownComponents: Components = {
     );
   },
   pre: ({ children }) => (
-    <pre className="mb-4 overflow-x-auto rounded-lg bg-gray-900 p-4 dark:bg-gray-950">
+    <pre className="my-6 overflow-x-auto rounded-[1.5rem] bg-zinc-950 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.24)] dark:bg-black">
       {children}
     </pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-1 pr-4 pl-4 text-gray-700 italic dark:border-blue-400 dark:bg-blue-900/20 dark:text-gray-300">
+    <blockquote className="my-6 border-l-2 border-red-500/60 bg-zinc-100/80 px-5 py-4 text-[1rem] leading-8 text-zinc-700 italic dark:bg-zinc-900/70 dark:text-zinc-300">
       {children}
     </blockquote>
   ),
   ul: ({ children }) => (
-    <ul className="mb-4 ml-6 list-disc space-y-2">{children}</ul>
+    <ul className="my-5 ml-6 list-disc space-y-2 marker:text-red-500 dark:marker:text-red-300">
+      {children}
+    </ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-4 ml-6 list-decimal space-y-2">{children}</ol>
+    <ol className="my-5 ml-6 list-decimal space-y-2 marker:font-semibold marker:text-red-500 dark:marker:text-red-300">
+      {children}
+    </ol>
   ),
-  li: ({ children }) => <li>{children}</li>,
+  li: ({ children }) => (
+    <li className="pl-1 leading-8 whitespace-pre-wrap">{children}</li>
+  ),
   table: ({ children }) => (
-    <table className="mb-4 w-full border-collapse">{children}</table>
+    <div className="my-6 overflow-x-auto rounded-[1.5rem] border border-zinc-200/80 dark:border-zinc-800/80">
+      <table className="w-full border-collapse text-sm">{children}</table>
+    </div>
   ),
   thead: ({ children }) => (
-    <thead className="border-b-2 border-gray-300 bg-gray-100">{children}</thead>
+    <thead className="border-b border-zinc-300 bg-zinc-100/90 dark:border-zinc-700 dark:bg-zinc-900/90">
+      {children}
+    </thead>
   ),
   tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: ({ children }) => (
-    <tr className="border-b border-gray-200">{children}</tr>
+    <tr className="border-b border-zinc-200/80 dark:border-zinc-800/80">
+      {children}
+    </tr>
   ),
   th: ({ children }) => (
-    <th className="border border-gray-300 px-4 py-2 text-left font-bold">
+    <th className="border-zinc-200 px-4 py-3 text-left font-semibold tracking-[0.12em] uppercase dark:border-zinc-800">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border border-gray-300 px-4 py-2">{children}</td>
+    <td className="border-zinc-200 px-4 py-3 align-top dark:border-zinc-800">
+      {children}
+    </td>
   ),
-  hr: () => <hr className="my-6 border-t-2 border-gray-300" />,
+  hr: () => (
+    <hr className="my-8 border-0 border-t border-zinc-300/80 dark:border-zinc-700/80" />
+  ),
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} className="mb-4 max-w-full rounded-lg shadow-md" />
+    <img
+      src={src}
+      alt={alt}
+      className="mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80"
+    />
   ),
 };
 
@@ -144,7 +211,7 @@ export function StorageImage({ src, alt }: { src?: string; alt?: string }) {
     <img
       src={imageSrc}
       alt={alt || "Image"}
-      className="mb-4 w-full rounded-lg shadow-md"
+      className="mx-auto my-8 block h-auto w-auto max-w-full rounded-[1.5rem] border border-zinc-200/80 shadow-[0_18px_48px_rgba(15,23,42,0.16)] @lg:max-w-2xl @2xl:max-w-3xl dark:border-zinc-800/80"
     />
   );
 }
@@ -277,6 +344,53 @@ export default function MarkdownEditor({
           value.substring(0, start) + replacement + value.substring(end),
         selectionStart: start + before.length,
         selectionEnd: start + before.length + selectedText.length,
+      };
+    });
+  };
+
+  const prefixSelectedLines = (
+    getPrefix: string | ((index: number) => string),
+    placeholder: string,
+  ) => {
+    updateSelection((selectedText) => {
+      const textarea = textareaRef.current;
+      const start = textarea?.selectionStart ?? value.length;
+      const end = textarea?.selectionEnd ?? value.length;
+      const block = selectedText || placeholder;
+      const replacement = block
+        .split("\n")
+        .map((line, index) => {
+          const prefix =
+            typeof getPrefix === "function" ? getPrefix(index) : getPrefix;
+          return `${prefix}${line || placeholder}`;
+        })
+        .join("\n");
+
+      return {
+        nextValue:
+          value.substring(0, start) + replacement + value.substring(end),
+        selectionStart: start,
+        selectionEnd: start + replacement.length,
+      };
+    });
+  };
+
+  const insertDivider = () => {
+    updateSelection(() => {
+      const textarea = textareaRef.current;
+      const start = textarea?.selectionStart ?? value.length;
+      const end = textarea?.selectionEnd ?? value.length;
+      const prefix =
+        start > 0 && !value.slice(0, start).endsWith("\n") ? "\n" : "";
+      const suffix =
+        end < value.length && !value.slice(end).startsWith("\n") ? "\n" : "";
+      const replacement = `${prefix}\n---\n${suffix}`;
+
+      return {
+        nextValue:
+          value.substring(0, start) + replacement + value.substring(end),
+        selectionStart: start + replacement.length,
+        selectionEnd: start + replacement.length,
       };
     });
   };
@@ -447,11 +561,37 @@ export default function MarkdownEditor({
               <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
               <button
                 type="button"
-                onClick={() => insertMarkdown("- ", "")}
+                onClick={() => prefixSelectedLines("- ", "List item")}
                 className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
                 title="Bullet List"
               >
-                List
+                Bullet
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  prefixSelectedLines((index) => `${index + 1}. `, "List item")
+                }
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Numbered List"
+              >
+                1. List
+              </button>
+              <button
+                type="button"
+                onClick={() => prefixSelectedLines("> ", "Quoted text")}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Quote"
+              >
+                Quote
+              </button>
+              <button
+                type="button"
+                onClick={insertDivider}
+                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Divider"
+              >
+                Divider
               </button>
               <button
                 type="button"
@@ -497,10 +637,7 @@ export default function MarkdownEditor({
             style={{ minHeight }}
           />
         ) : (
-          <div
-            className="prose prose-sm dark:prose-invert max-w-none p-4"
-            style={{ minHeight }}
-          >
+          <div className="@container max-w-none p-4" style={{ minHeight }}>
             {value ? (
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}

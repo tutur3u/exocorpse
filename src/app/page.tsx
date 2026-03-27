@@ -11,6 +11,7 @@ import {
   getBlogPostBySlug,
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
+import { batchGetCachedSignedUrls } from "@/lib/actions/storage";
 import { getActiveServices, getServiceBySlug } from "@/lib/actions/commissions";
 import {
   getArtPieceBySlug,
@@ -59,13 +60,52 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function resolveOgImageUrl(pathOrUrl: string | null | undefined) {
+const SOCIAL_DESCRIPTION_LENGTH = 150;
+
+function truncateMetaDescription(value: string | null | undefined) {
+  const normalized =
+    value?.replace(/\s+/g, " ").trim() ||
+    "Explore the archive entry on EXOCORPSE.";
+  if (normalized.length <= SOCIAL_DESCRIPTION_LENGTH) {
+    return normalized;
+  }
+  return `${normalized.slice(0, SOCIAL_DESCRIPTION_LENGTH - 1).trimEnd()}…`;
+}
+
+async function resolveSignedCoverUrl(pathOrUrl: string | null | undefined) {
   if (!pathOrUrl) return null;
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
     return pathOrUrl;
   }
 
-  const params = new URLSearchParams({ path: pathOrUrl });
+  const signedUrls = await batchGetCachedSignedUrls([pathOrUrl]);
+  return signedUrls.get(pathOrUrl) ?? null;
+}
+
+function buildOgCardUrl({
+  title,
+  description,
+  label,
+  cta,
+  coverUrl,
+}: {
+  title: string;
+  description: string;
+  label: string;
+  cta: string;
+  coverUrl?: string | null;
+}) {
+  const params = new URLSearchParams({
+    title,
+    description,
+    label,
+    cta,
+  });
+
+  if (coverUrl) {
+    params.set("cover", coverUrl);
+  }
+
   return toAbsoluteUrl(`/api/og-image?${params.toString()}`);
 }
 
@@ -93,18 +133,25 @@ export async function generateMetadata({
   if (blogPostSlug) {
     const blogPost = await getBlogPostBySlug(blogPostSlug);
     if (blogPost) {
+      const metaDescription = truncateMetaDescription(
+        blogPost.excerpt || blogPost.content,
+      );
       const canonicalUrl = serializeBlogSearchParams("/", {
         "blog-post": blogPostSlug,
         "blog-page": null,
       });
-      const coverImageUrl = resolveOgImageUrl(blogPost.cover_url);
+      const coverImageUrl = await resolveSignedCoverUrl(blogPost.cover_url);
+      const ogImageUrl = buildOgCardUrl({
+        title: blogPost.title,
+        description: metaDescription,
+        label: "EXOCORPSE BLOG",
+        cta: "Read on EXOCORPSE",
+        coverUrl: coverImageUrl,
+      });
 
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
-        description:
-          blogPost.excerpt ||
-          blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-          "Blog post from EXOCORPSE",
+        description: metaDescription,
         alternates: {
           canonical: canonicalUrl,
         },
@@ -112,28 +159,22 @@ export async function generateMetadata({
           type: "article",
           url: canonicalUrl,
           title: `${blogPost.title} - EXOCORPSE Blog`,
-          description:
-            blogPost.excerpt ||
-            blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-            "Blog post from EXOCORPSE",
-          images: coverImageUrl
-            ? [
-                {
-                  url: coverImageUrl,
-                  type: "image/png",
-                  alt: blogPost.title,
-                },
-              ]
-            : undefined,
+          description: metaDescription,
+          images: [
+            {
+              url: ogImageUrl,
+              type: "image/jpeg",
+              width: 1200,
+              height: 630,
+              alt: blogPost.title,
+            },
+          ],
         },
         twitter: {
-          card: coverImageUrl ? "summary_large_image" : "summary",
+          card: "summary_large_image",
           title: `${blogPost.title} - EXOCORPSE Blog`,
-          description:
-            blogPost.excerpt ||
-            blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-            "Blog post from EXOCORPSE",
-          images: coverImageUrl ? [coverImageUrl] : undefined,
+          description: metaDescription,
+          images: [ogImageUrl],
         },
       };
     }
@@ -175,18 +216,27 @@ export async function generateMetadata({
     }
 
     if (writingPiece) {
+      const metaDescription = truncateMetaDescription(
+        writingPiece.excerpt || writingPiece.content,
+      );
       const canonicalUrl = serializePortfolioSearchParams("/", {
         "portfolio-tab": "writing",
         "portfolio-piece": portfolioPieceSlug,
       });
-      const coverImageUrl = resolveOgImageUrl(writingPiece.cover_image);
+      const coverImageUrl = await resolveSignedCoverUrl(
+        writingPiece.cover_image,
+      );
+      const ogImageUrl = buildOgCardUrl({
+        title: writingPiece.title,
+        description: metaDescription,
+        label: "EXOCORPSE WRITING",
+        cta: "Open Portfolio Entry",
+        coverUrl: coverImageUrl,
+      });
 
       return {
         title: `${writingPiece.title} - EXOCORPSE Portfolio`,
-        description:
-          writingPiece.excerpt ||
-          writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-          "Writing from EXOCORPSE",
+        description: metaDescription,
         alternates: {
           canonical: canonicalUrl,
         },
@@ -194,28 +244,22 @@ export async function generateMetadata({
           type: "article",
           url: canonicalUrl,
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
-          description:
-            writingPiece.excerpt ||
-            writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-            "Writing from EXOCORPSE",
-          images: coverImageUrl
-            ? [
-                {
-                  url: coverImageUrl,
-                  type: "image/png",
-                  alt: writingPiece.title,
-                },
-              ]
-            : undefined,
+          description: metaDescription,
+          images: [
+            {
+              url: ogImageUrl,
+              type: "image/jpeg",
+              width: 1200,
+              height: 630,
+              alt: writingPiece.title,
+            },
+          ],
         },
         twitter: {
-          card: coverImageUrl ? "summary_large_image" : "summary",
+          card: "summary_large_image",
           title: `${writingPiece.title} - EXOCORPSE Portfolio`,
-          description:
-            writingPiece.excerpt ||
-            writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
-            "Writing from EXOCORPSE",
-          images: coverImageUrl ? [coverImageUrl] : undefined,
+          description: metaDescription,
+          images: [ogImageUrl],
         },
       };
     }
