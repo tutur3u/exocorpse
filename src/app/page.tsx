@@ -44,11 +44,15 @@ import {
   loadGameSearchParams,
   serializeGameSearchParams,
 } from "@/lib/game-search-params";
-import { loadPortfolioSearchParams } from "@/lib/portfolio-search-params";
+import {
+  loadPortfolioSearchParams,
+  serializePortfolioSearchParams,
+} from "@/lib/portfolio-search-params";
 import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
+import { fetchStorageUrl } from "@/lib/storage-fetch";
 import type { Metadata } from "next";
 
 type Props = {
@@ -79,6 +83,12 @@ export async function generateMetadata({
   if (blogPostSlug) {
     const blogPost = await getBlogPostBySlug(blogPostSlug);
     if (blogPost) {
+      const coverImageUrl = blogPost.cover_url
+        ? blogPost.cover_url.startsWith("http")
+          ? blogPost.cover_url
+          : await fetchStorageUrl(blogPost.cover_url)
+        : null;
+
       return {
         title: `${blogPost.title} - EXOCORPSE Blog`,
         description:
@@ -90,6 +100,31 @@ export async function generateMetadata({
             "blog-post": blogPostSlug,
             "blog-page": null,
           }),
+        },
+        openGraph: {
+          type: "article",
+          title: `${blogPost.title} - EXOCORPSE Blog`,
+          description:
+            blogPost.excerpt ||
+            blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+            "Blog post from EXOCORPSE",
+          images: coverImageUrl
+            ? [
+                {
+                  url: coverImageUrl,
+                  alt: blogPost.title,
+                },
+              ]
+            : undefined,
+        },
+        twitter: {
+          card: coverImageUrl ? "summary_large_image" : "summary",
+          title: `${blogPost.title} - EXOCORPSE Blog`,
+          description:
+            blogPost.excerpt ||
+            blogPost.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+            "Blog post from EXOCORPSE",
+          images: coverImageUrl ? [coverImageUrl] : undefined,
         },
       };
     }
@@ -111,6 +146,67 @@ export async function generateMetadata({
         }),
       },
     };
+  }
+
+  const portfolioParams = await loadPortfolioSearchParams(searchParams);
+  const portfolioPieceSlug = portfolioParams["portfolio-piece"];
+
+  if (portfolioPieceSlug) {
+    let writingPiece =
+      portfolioParams["portfolio-tab"] === "writing"
+        ? await getWritingPieceBySlug(portfolioPieceSlug)
+        : null;
+
+    if (!writingPiece && !portfolioParams["portfolio-tab"]) {
+      writingPiece = await getWritingPieceBySlug(portfolioPieceSlug);
+    }
+
+    if (writingPiece) {
+      const coverImageUrl = writingPiece.cover_image
+        ? writingPiece.cover_image.startsWith("http")
+          ? writingPiece.cover_image
+          : await fetchStorageUrl(writingPiece.cover_image)
+        : null;
+
+      return {
+        title: `${writingPiece.title} - EXOCORPSE Portfolio`,
+        description:
+          writingPiece.excerpt ||
+          writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+          "Writing from EXOCORPSE",
+        alternates: {
+          canonical: serializePortfolioSearchParams("/", {
+            "portfolio-tab": "writing",
+            "portfolio-piece": portfolioPieceSlug,
+          }),
+        },
+        openGraph: {
+          type: "article",
+          title: `${writingPiece.title} - EXOCORPSE Portfolio`,
+          description:
+            writingPiece.excerpt ||
+            writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+            "Writing from EXOCORPSE",
+          images: coverImageUrl
+            ? [
+                {
+                  url: coverImageUrl,
+                  alt: writingPiece.title,
+                },
+              ]
+            : undefined,
+        },
+        twitter: {
+          card: coverImageUrl ? "summary_large_image" : "summary",
+          title: `${writingPiece.title} - EXOCORPSE Portfolio`,
+          description:
+            writingPiece.excerpt ||
+            writingPiece.content?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+            "Writing from EXOCORPSE",
+          images: coverImageUrl ? [coverImageUrl] : undefined,
+        },
+      };
+    }
   }
 
   // Check for wiki params
