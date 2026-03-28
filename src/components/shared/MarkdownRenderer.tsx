@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import { markdownComponents } from "./MarkdownEditor";
+import { markdownComponents, renderMarkdownParagraph } from "./MarkdownEditor";
 
 type MarkdownRendererProps = {
   content: string;
@@ -29,26 +29,7 @@ export default function MarkdownRenderer({
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
           ...markdownComponents,
-          p: ({ node, children }) => {
-            const hasImageChild = node?.children?.some(
-              (child: { type?: string; tagName?: string }) =>
-                child?.type === "element" && child?.tagName === "img",
-            );
-
-            if (hasImageChild) {
-              return (
-                <div className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
-                  {children}
-                </div>
-              );
-            }
-
-            return (
-              <p className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
-                {children}
-              </p>
-            );
-          },
+          p: ({ children }) => renderMarkdownParagraph(children),
           img: ({ src, alt }) => {
             const imageSrc = typeof src === "string" ? src : undefined;
 

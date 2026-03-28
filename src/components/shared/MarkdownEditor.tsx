@@ -1,5 +1,6 @@
 import { useStorageUrl } from "@/hooks/useStorageUrl";
 import toastWithSound from "@/lib/toast";
+import { Columns2, Eye, PenSquare } from "lucide-react";
 import { Children, isValidElement, useId, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -18,7 +19,11 @@ type MarkdownEditorProps = {
   uploadPath?: string;
 };
 
-// Reusable markdown components with consistent styling
+type EditorTab = "write" | "preview" | "split";
+
+export const markdownSurfaceClassName =
+  "rounded-[1.75rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,245,242,0.88))] px-5 py-5 text-zinc-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,rgba(21,28,43,0.96),rgba(34,43,63,0.92))] dark:text-zinc-100";
+
 function paragraphNeedsBlockWrapper(children: React.ReactNode) {
   const normalizedChildren = Children.toArray(children).filter((child) => {
     return !(typeof child === "string" && child.trim().length === 0);
@@ -49,45 +54,49 @@ function paragraphNeedsBlockWrapper(children: React.ReactNode) {
   });
 }
 
+export function renderMarkdownParagraph(children: React.ReactNode) {
+  const className =
+    "mb-4 text-[1rem] leading-8 whitespace-pre-wrap text-zinc-800 dark:text-zinc-100";
+
+  if (paragraphNeedsBlockWrapper(children)) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return <p className={className}>{children}</p>;
+}
+
 export const markdownComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="mt-10 mb-5 font-serif text-4xl leading-tight font-semibold tracking-tight">
+    <h1 className="mt-10 mb-5 font-serif text-4xl leading-tight font-semibold tracking-tight text-balance text-zinc-950 dark:text-zinc-50">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mt-8 mb-4 font-serif text-3xl leading-tight font-semibold tracking-tight">
+    <h2 className="mt-8 mb-4 font-serif text-3xl leading-tight font-semibold tracking-tight text-balance text-zinc-950 dark:text-zinc-50">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-7 mb-3 text-2xl font-semibold tracking-tight">
+    <h3 className="mt-7 mb-3 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mt-6 mb-3 text-xl font-semibold tracking-tight">
+    <h4 className="mt-6 mb-3 text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
       {children}
     </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mt-5 mb-2 text-lg font-semibold">{children}</h5>
+    <h5 className="mt-5 mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      {children}
+    </h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mt-4 mb-2 text-sm font-semibold tracking-[0.18em] uppercase">
+    <h6 className="mt-4 mb-2 text-sm font-semibold tracking-[0.18em] text-zinc-600 uppercase dark:text-zinc-400">
       {children}
     </h6>
   ),
-  p: ({ children }) =>
-    paragraphNeedsBlockWrapper(children) ? (
-      <div className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
-        {children}
-      </div>
-    ) : (
-      <p className="mb-4 text-[1rem] leading-8 whitespace-pre-wrap">
-        {children}
-      </p>
-    ),
+  p: ({ children }) => renderMarkdownParagraph(children),
   a: ({ href, children }) => (
     <a
       href={href}
@@ -163,7 +172,17 @@ export const markdownComponents: Components = {
     </td>
   ),
   hr: () => (
-    <hr className="my-8 border-0 border-t border-zinc-300/80 dark:border-zinc-700/80" />
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      className="my-10 flex items-center gap-3 text-zinc-400 dark:text-zinc-500"
+    >
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-red-400/75 to-zinc-300/20 dark:via-red-300/70 dark:to-zinc-700/20" />
+      <span className="rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-[0.62rem] font-semibold tracking-[0.38em] uppercase dark:border-red-300/25 dark:bg-red-300/10">
+        Cut
+      </span>
+      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-red-400/75 to-zinc-300/20 dark:via-red-300/70 dark:to-zinc-700/20" />
+    </div>
   ),
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element
@@ -176,7 +195,6 @@ export const markdownComponents: Components = {
   ),
 };
 
-// Component to render storage images with signed URL resolution
 export function StorageImage({
   src,
   alt,
@@ -186,7 +204,6 @@ export function StorageImage({
   alt?: string;
   onOpen?: (image: { src: string; alt?: string }) => void;
 }) {
-  // Check if this is a storage path (not a full URL)
   const isStoragePath = Boolean(
     src && !src.startsWith("http") && !src.startsWith("/"),
   );
@@ -281,10 +298,15 @@ export default function MarkdownEditor({
   uploadPath = "markdown-images",
 }: MarkdownEditorProps) {
   const editorId = useId();
-  const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
+  const [activeTab, setActiveTab] = useState<EditorTab>("write");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const trimmedValue = value.trim();
+  const wordCount = trimmedValue ? trimmedValue.split(/\s+/).length : 0;
+  const lineCount = value ? value.split("\n").length : 0;
+  const readingTimeMinutes =
+    wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 180)) : 0;
 
   const updateSelection = (
     formatter: (selectedText: string) => {
@@ -320,12 +342,10 @@ export default function MarkdownEditor({
   const uploadImageFromFile = async (file: File) => {
     setIsUploading(true);
     try {
-      // Generate unique filename
       const ext = file.name.split(".").pop() || "png";
       const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const fullPath = `${uploadPath}/${filename}`;
 
-      // Get signed upload URL
       const urlResponse = await fetch("/api/storage/signed-upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -338,8 +358,6 @@ export default function MarkdownEditor({
       }
 
       const { signedUrl, path: storagePath } = await urlResponse.json();
-
-      // Upload to signed URL
       const uploadResponse = await fetch(signedUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type },
@@ -350,7 +368,6 @@ export default function MarkdownEditor({
         throw new Error("Failed to upload image");
       }
 
-      // Insert markdown image at cursor
       updateSelection((selectedText) => {
         const textarea = textareaRef.current;
         const start = textarea?.selectionStart ?? value.length;
@@ -383,7 +400,6 @@ export default function MarkdownEditor({
     if (file?.type.startsWith("image/")) {
       uploadImageFromFile(file);
     }
-    // Reset input so the same file can be selected again
     e.target.value = "";
   };
 
@@ -404,19 +420,19 @@ export default function MarkdownEditor({
 
   const prefixSelectedLines = (
     getPrefix: string | ((index: number) => string),
-    placeholder: string,
+    placeholderText: string,
   ) => {
     updateSelection((selectedText) => {
       const textarea = textareaRef.current;
       const start = textarea?.selectionStart ?? value.length;
       const end = textarea?.selectionEnd ?? value.length;
-      const block = selectedText || placeholder;
+      const block = selectedText || placeholderText;
       const replacement = block
         .split("\n")
         .map((line, index) => {
           const prefix =
             typeof getPrefix === "function" ? getPrefix(index) : getPrefix;
-          return `${prefix}${line || placeholder}`;
+          return `${prefix}${line || placeholderText}`;
         })
         .join("\n");
 
@@ -434,11 +450,13 @@ export default function MarkdownEditor({
       const textarea = textareaRef.current;
       const start = textarea?.selectionStart ?? value.length;
       const end = textarea?.selectionEnd ?? value.length;
-      const prefix =
-        start > 0 && !value.slice(0, start).endsWith("\n") ? "\n" : "";
-      const suffix =
-        end < value.length && !value.slice(end).startsWith("\n") ? "\n" : "";
-      const replacement = `${prefix}\n---\n${suffix}`;
+      const needsLeadingBreak =
+        start > 0 && !value.slice(0, start).endsWith("\n\n");
+      const needsTrailingBreak =
+        end < value.length && !value.slice(end).startsWith("\n\n");
+      const replacement = `${needsLeadingBreak ? "\n\n" : ""}---${
+        needsTrailingBreak ? "\n\n" : ""
+      }`;
 
       return {
         nextValue:
@@ -453,7 +471,6 @@ export default function MarkdownEditor({
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    // Check for image in clipboard
     for (const item of items) {
       if (item.type.startsWith("image/")) {
         e.preventDefault();
@@ -462,12 +479,10 @@ export default function MarkdownEditor({
 
         setIsUploading(true);
         try {
-          // Generate unique filename
           const ext = file.type.split("/")[1] || "png";
           const filename = `paste-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
           const fullPath = `${uploadPath}/${filename}`;
 
-          // Get signed upload URL
           const urlResponse = await fetch("/api/storage/signed-upload-url", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -480,8 +495,6 @@ export default function MarkdownEditor({
           }
 
           const { signedUrl, path: storagePath } = await urlResponse.json();
-
-          // Upload to signed URL
           const uploadResponse = await fetch(signedUrl, {
             method: "PUT",
             headers: { "Content-Type": file.type },
@@ -492,7 +505,6 @@ export default function MarkdownEditor({
             throw new Error("Failed to upload image");
           }
 
-          // Insert markdown image at cursor
           updateSelection((selectedText) => {
             const textarea = textareaRef.current;
             const start = textarea?.selectionStart ?? value.length;
@@ -523,42 +535,130 @@ export default function MarkdownEditor({
     }
   };
 
+  const renderPreview = () => (
+    <div
+      className={`${markdownSurfaceClassName} @container max-w-none`}
+      style={{ minHeight }}
+    >
+      {value ? (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize]}
+          components={{
+            ...markdownComponents,
+            p: ({ children }) => renderMarkdownParagraph(children),
+            img: ({ src, alt }) => (
+              <StorageImage
+                src={typeof src === "string" ? src : undefined}
+                alt={alt}
+              />
+            ),
+          }}
+        >
+          {value}
+        </ReactMarkdown>
+      ) : (
+        <div className="flex min-h-32 items-center justify-center">
+          <div className="max-w-sm text-center">
+            <p className="text-sm font-semibold tracking-[0.18em] text-zinc-500 uppercase dark:text-zinc-400">
+              Preview idle
+            </p>
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              Start writing to see headings, dividers, lists, quotes, and
+              embedded images render here.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderTextarea = () => (
+    <textarea
+      ref={textareaRef}
+      id={`markdown-textarea-${editorId}`}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onPaste={handlePaste}
+      rows={rows}
+      placeholder={isUploading ? "Uploading image..." : placeholder}
+      disabled={isUploading}
+      className={`w-full resize-y border-0 bg-transparent px-5 py-5 font-mono text-[0.95rem] leading-7 text-zinc-900 outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100 dark:placeholder:text-zinc-500 ${isUploading ? "cursor-wait opacity-50" : ""}`}
+      style={{ minHeight }}
+    />
+  );
+
+  const tabButtonClassName = (tab: EditorTab) =>
+    `inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
+      activeTab === tab
+        ? "border-red-400/45 bg-red-500/12 text-red-700 shadow-[0_8px_24px_rgba(185,28,28,0.12)] dark:border-red-300/35 dark:bg-red-300/12 dark:text-red-200"
+        : "border-transparent bg-transparent text-zinc-500 hover:border-zinc-200 hover:bg-white/65 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-100"
+    }`;
+
+  const toolbarButtonClassName =
+    "rounded-full border border-transparent px-3 py-1.5 text-sm text-zinc-600 transition hover:border-zinc-200 hover:bg-white hover:text-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-100";
+
   return (
-    <div>
-      <label className="mb-1 block text-sm font-medium">{label}</label>
-      <div className="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700">
-        <div className="sticky top-0 z-10 border-b border-gray-300 bg-white/95 backdrop-blur-sm dark:border-gray-600 dark:bg-gray-700/95">
-          <div className="flex gap-2 px-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("write")}
-              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "write"
-                  ? "border border-gray-300 border-b-transparent bg-white text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-blue-400"
-                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
-            >
-              Write
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("preview")}
-              className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "preview"
-                  ? "border border-gray-300 border-b-transparent bg-white text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-blue-400"
-                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
-            >
-              Preview
-            </button>
+    <div className="@container">
+      <label className="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-100">
+        {label}
+      </label>
+      <div className="overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(250,248,245,0.98),rgba(243,239,235,0.92))] shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:border-zinc-700/70 dark:bg-[linear-gradient(180deg,rgba(18,23,36,0.98),rgba(12,16,27,0.94))]">
+        <div className="sticky top-0 z-10 border-b border-zinc-200/80 bg-white/85 backdrop-blur-xl dark:border-zinc-700/80 dark:bg-zinc-950/78">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 pb-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("write")}
+                className={tabButtonClassName("write")}
+              >
+                <PenSquare className="h-4 w-4" />
+                Write
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("split")}
+                className={tabButtonClassName("split")}
+              >
+                <Columns2 className="h-4 w-4" />
+                Split
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("preview")}
+                className={tabButtonClassName("preview")}
+              >
+                <Eye className="h-4 w-4" />
+                Preview
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-[0.68rem] font-semibold tracking-[0.22em] uppercase">
+              <span className="rounded-full border border-zinc-200 bg-white/75 px-3 py-1 text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-400">
+                {lineCount} lines
+              </span>
+              <span className="rounded-full border border-zinc-200 bg-white/75 px-3 py-1 text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-400">
+                {wordCount} words
+              </span>
+              <span className="rounded-full border border-zinc-200 bg-white/75 px-3 py-1 text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-400">
+                {readingTimeMinutes > 0
+                  ? `~${readingTimeMinutes} min read`
+                  : "Draft"}
+              </span>
+            </div>
           </div>
 
-          {activeTab === "write" && (
-            <div className="flex flex-wrap gap-1 border-t border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
+          <div className="border-t border-zinc-200/70 bg-zinc-50/75 px-4 py-2 text-[0.72rem] font-medium tracking-[0.16em] text-zinc-500 uppercase dark:border-zinc-700/70 dark:bg-zinc-900/55 dark:text-zinc-400">
+            Use `---` for dividers, paste images directly, and switch to split
+            view when you need live layout feedback.
+          </div>
+
+          {activeTab !== "preview" && (
+            <div className="flex flex-wrap gap-1 border-t border-zinc-200/80 bg-white/55 px-3 py-3 dark:border-zinc-700/80 dark:bg-zinc-950/38">
               <button
                 type="button"
                 onClick={() => insertMarkdown("# ", "")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Heading 1"
               >
                 H1
@@ -566,7 +666,7 @@ export default function MarkdownEditor({
               <button
                 type="button"
                 onClick={() => insertMarkdown("## ", "")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Heading 2"
               >
                 H2
@@ -574,49 +674,49 @@ export default function MarkdownEditor({
               <button
                 type="button"
                 onClick={() => insertMarkdown("### ", "")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Heading 3"
               >
                 H3
               </button>
-              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <div className="mx-1 my-1 w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
               <button
                 type="button"
                 onClick={() => insertMarkdown("**", "**")}
-                className="rounded px-2 py-1 text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={`${toolbarButtonClassName} font-bold`}
                 title="Bold"
               >
-                B
+                Bold
               </button>
               <button
                 type="button"
                 onClick={() => insertMarkdown("*", "*")}
-                className="rounded px-2 py-1 text-sm italic hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={`${toolbarButtonClassName} italic`}
                 title="Italic"
               >
-                I
+                Italic
               </button>
               <button
                 type="button"
                 onClick={() => insertMarkdown("`", "`")}
-                className="rounded px-2 py-1 font-mono text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={`${toolbarButtonClassName} font-mono`}
                 title="Code"
               >
-                {"<>"}
+                Code
               </button>
               <button
                 type="button"
                 onClick={() => insertMarkdown("<ins>", "</ins>")}
-                className="rounded px-2 py-1 text-sm underline hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={`${toolbarButtonClassName} underline`}
                 title="Underline"
               >
-                U
+                Underline
               </button>
-              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <div className="mx-1 my-1 w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
               <button
                 type="button"
                 onClick={() => prefixSelectedLines("- ", "List item")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Bullet List"
               >
                 Bullet
@@ -626,7 +726,7 @@ export default function MarkdownEditor({
                 onClick={() =>
                   prefixSelectedLines((index) => `${index + 1}. `, "List item")
                 }
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Numbered List"
               >
                 1. List
@@ -634,7 +734,7 @@ export default function MarkdownEditor({
               <button
                 type="button"
                 onClick={() => prefixSelectedLines("> ", "Quoted text")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Quote"
               >
                 Quote
@@ -642,7 +742,7 @@ export default function MarkdownEditor({
               <button
                 type="button"
                 onClick={insertDivider}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Divider"
               >
                 Divider
@@ -650,12 +750,12 @@ export default function MarkdownEditor({
               <button
                 type="button"
                 onClick={() => insertMarkdown("[", "](url)")}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Link"
               >
                 Link
               </button>
-              <div className="mx-1 border-l border-gray-300 dark:border-gray-600" />
+              <div className="mx-1 my-1 w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -668,7 +768,7 @@ export default function MarkdownEditor({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="rounded px-2 py-1 text-sm hover:bg-gray-200 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-gray-700"
+                className={toolbarButtonClassName}
                 title="Upload Image"
               >
                 {isUploading ? "Uploading..." : "Image"}
@@ -677,56 +777,33 @@ export default function MarkdownEditor({
           )}
         </div>
 
-        {activeTab === "write" ? (
-          <textarea
-            ref={textareaRef}
-            id={`markdown-textarea-${editorId}`}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onPaste={handlePaste}
-            rows={rows}
-            placeholder={isUploading ? "Uploading image..." : placeholder}
-            disabled={isUploading}
-            className={`w-full border-0 px-3 py-2 font-mono text-sm focus:ring-0 dark:bg-gray-700 ${isUploading ? "cursor-wait opacity-50" : ""}`}
-            style={{ minHeight }}
-          />
-        ) : (
-          <div className="@container max-w-none p-4" style={{ minHeight }}>
-            {value ? (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                components={{
-                  ...markdownComponents,
-                  img: ({ src, alt }) => (
-                    <StorageImage
-                      src={typeof src === "string" ? src : undefined}
-                      alt={alt}
-                    />
-                  ),
-                }}
-              >
-                {value}
-              </ReactMarkdown>
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400">
-                No content to preview
-              </p>
-            )}
+        {activeTab === "write" && (
+          <div className="bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.08),transparent_35%)] dark:bg-[radial-gradient(circle_at_top,rgba(248,113,113,0.09),transparent_38%)]">
+            {renderTextarea()}
+          </div>
+        )}
+
+        {activeTab === "preview" && (
+          <div className="p-4">{renderPreview()}</div>
+        )}
+
+        {activeTab === "split" && (
+          <div className="grid gap-0 @2xl:grid-cols-2">
+            <div className="border-b border-zinc-200/80 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.08),transparent_35%)] @2xl:border-r @2xl:border-b-0 dark:border-zinc-700/80 dark:bg-[radial-gradient(circle_at_top,rgba(248,113,113,0.09),transparent_38%)]">
+              {renderTextarea()}
+            </div>
+            <div className="p-4">{renderPreview()}</div>
           </div>
         )}
       </div>
 
-      <div className="mt-2 flex justify-between">
-        {/* Help Text */}
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         {helpText && (
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="max-w-3xl text-xs leading-5 text-zinc-500 dark:text-zinc-400">
             {helpText}
           </p>
         )}
-
-        {/* Character count */}
-        <p className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-right text-xs text-zinc-500 dark:text-zinc-400">
           {value.length} characters
         </p>
       </div>
