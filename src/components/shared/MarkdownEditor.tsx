@@ -178,9 +178,7 @@ export const markdownComponents: Components = {
       className="my-10 flex items-center gap-3 text-zinc-400 dark:text-zinc-500"
     >
       <span className="h-px flex-1 bg-gradient-to-r from-transparent via-red-400/75 to-zinc-300/20 dark:via-red-300/70 dark:to-zinc-700/20" />
-      <span className="rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-[0.62rem] font-semibold tracking-[0.38em] uppercase dark:border-red-300/25 dark:bg-red-300/10">
-        Cut
-      </span>
+      <span className="h-1.5 w-1.5 rounded-full bg-red-400/70 dark:bg-red-300/70" />
       <span className="h-px flex-1 bg-gradient-to-l from-transparent via-red-400/75 to-zinc-300/20 dark:via-red-300/70 dark:to-zinc-700/20" />
     </div>
   ),
