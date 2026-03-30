@@ -672,7 +672,7 @@ export default function CharacterForm({
   return (
     <>
       <div
-        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-black p-4"
+        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex h-screen w-screen items-end justify-center overflow-hidden bg-black sm:items-center sm:p-4"
         role="button"
         tabIndex={0}
         aria-label="Close and discard changes"
@@ -680,13 +680,13 @@ export default function CharacterForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="animate-slideUp flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex h-[100dvh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-white sm:h-auto sm:max-h-[90vh] sm:rounded-lg dark:bg-gray-800"
           role="dialog"
           aria-modal="true"
           aria-labelledby="character-form-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="shrink-0 px-6 pt-6 pb-4">
+          <div className="shrink-0 px-4 pt-6 pb-4 sm:px-6">
             <h2 id="character-form-title" className="text-2xl font-bold">
               {character ? "Edit Character" : "Create New Character"}
             </h2>
@@ -694,7 +694,7 @@ export default function CharacterForm({
 
           {/* Tabs */}
           {/* Tabs - Mobile Dropdown */}
-          <div className="border-b border-gray-300 px-6 pb-4 sm:hidden dark:border-gray-600">
+          <div className="border-b border-gray-300 px-4 pb-4 sm:hidden sm:px-6 dark:border-gray-600">
             <label htmlFor="tabs" className="sr-only">
               Select a tab
             </label>
@@ -716,7 +716,7 @@ export default function CharacterForm({
           </div>
 
           {/* Tabs - Desktop */}
-          <div className="hidden shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-6 sm:flex dark:border-gray-600">
+          <div className="hidden shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-4 sm:flex sm:px-6 dark:border-gray-600">
             <button
               type="button"
               onClick={() => setActiveTab("basic")}
@@ -800,7 +800,7 @@ export default function CharacterForm({
             onSubmit={handleFormSubmit}
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
               {/* Error Display */}
               {error && (
                 <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -1700,19 +1700,19 @@ export default function CharacterForm({
             </div>
 
             {/* Form Actions */}
-            <div className="flex shrink-0 justify-end gap-2 border-t border-gray-300 px-6 py-4 dark:border-gray-600">
+            <div className="sticky bottom-0 flex shrink-0 flex-col-reverse items-stretch gap-2 border-t border-gray-300 bg-white/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:justify-end sm:px-6 sm:pb-4 dark:border-gray-600 dark:bg-gray-800/95">
               <button
                 type="button"
                 onClick={handleCancelClick}
                 disabled={loading}
-                className="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:hover:bg-gray-600"
+                className="w-full rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300 disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 sm:w-auto"
               >
                 {loading
                   ? "Saving..."

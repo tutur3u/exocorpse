@@ -340,7 +340,7 @@ export default function LocationForm({
   return (
     <>
       <div
-        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
+        className="bg-opacity-50 animate-fadeIn fixed inset-0 z-50 flex items-end justify-center overflow-hidden bg-black sm:items-center sm:p-4"
         onClick={handleBackdropClick}
         onKeyDown={handleBackdropKeyDown}
         role="button"
@@ -348,13 +348,13 @@ export default function LocationForm({
         aria-label="Close and discard changes"
       >
         <div
-          className="animate-slideUp flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800"
+          className="animate-slideUp flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t-2xl bg-white sm:h-auto sm:max-h-[90vh] sm:rounded-lg dark:bg-gray-800"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
           aria-labelledby="location-form-title"
         >
-          <div className="px-6 pt-6 pb-4">
+          <div className="px-4 pt-6 pb-4 sm:px-6">
             <h2 id="location-form-title" className="text-2xl font-bold">
               {location ? "Edit Location" : "Create New Location"}
             </h2>
@@ -363,7 +363,7 @@ export default function LocationForm({
           {/* Tabs */}
           {/* Tabs */}
           {/* Tabs - Mobile Dropdown */}
-          <div className="border-b border-gray-300 px-6 pb-4 sm:hidden dark:border-gray-600">
+          <div className="border-b border-gray-300 px-4 pb-4 sm:hidden sm:px-6 dark:border-gray-600">
             <label htmlFor="tabs" className="sr-only">
               Select a tab
             </label>
@@ -382,7 +382,7 @@ export default function LocationForm({
           </div>
 
           {/* Tabs - Desktop */}
-          <div className="hidden gap-1 border-b border-gray-300 px-6 sm:flex dark:border-gray-600">
+          <div className="hidden gap-1 border-b border-gray-300 px-4 sm:flex sm:px-6 dark:border-gray-600">
             <button
               type="button"
               onClick={() => setActiveTab("basic")}
@@ -438,7 +438,7 @@ export default function LocationForm({
             onSubmit={handleFormSubmit}
             className="flex flex-1 flex-col overflow-hidden"
           >
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
               {/* Error Display */}
               {error && (
                 <div
@@ -779,18 +779,18 @@ export default function LocationForm({
             </div>
 
             {/* Footer */}
-            <div className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div className="sticky bottom-0 flex shrink-0 flex-col-reverse items-stretch gap-3 border-t border-gray-200 bg-white/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:justify-end sm:px-6 sm:pb-4 dark:border-gray-700 dark:bg-gray-800/95">
               <button
                 type="button"
                 onClick={handleCancelClick}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 sm:w-auto dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 {loading ? "Saving..." : location ? "Update" : "Create"}
               </button>
