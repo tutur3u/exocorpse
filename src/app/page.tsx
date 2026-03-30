@@ -1,5 +1,4 @@
 import HomeClient from "@/components/HomeClient";
-import { MAX_DESCRIPTION_LENGTH } from "@/constants";
 import { getAboutPageData } from "@/lib/actions/about";
 import type { InitialAboutData } from "@/lib/about";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
@@ -25,9 +24,12 @@ import {
   getCharacterBySlug,
   getCharacterBySlugInStory,
   getCharacterDetailData,
+  getCharacterGallery,
   getCharactersByWorldSlug,
   getFactionBySlug,
+  getFactionBySlugInStory,
   getFactionsByWorldSlug,
+  getLocationGallery,
   getLocationBySlug,
   getLocationsByWorldSlug,
   getPublicStories,
@@ -87,6 +89,112 @@ function buildOgCoverImageUrl(pathOrUrl: string | null | undefined) {
   });
 
   return toAbsoluteUrl(`/api/og-image?${params.toString()}`);
+}
+
+function buildSocialImages(
+  title: string,
+  pathOrUrl: string | null | undefined,
+) {
+  const ogImageUrl = buildOgCoverImageUrl(pathOrUrl);
+
+  if (!ogImageUrl) {
+    return {
+      openGraphImages: undefined,
+      twitterImages: undefined,
+    };
+  }
+
+  return {
+    openGraphImages: [
+      {
+        url: ogImageUrl,
+        type: "image/jpeg",
+        width: OG_COVER_TRANSFORM.width,
+        height: OG_COVER_TRANSFORM.height,
+        alt: title,
+      },
+    ],
+    twitterImages: [ogImageUrl],
+  };
+}
+
+function buildWikiSocialMetadata({
+  title,
+  description,
+  canonicalUrl,
+  imagePathOrUrl,
+}: {
+  title: string;
+  description: string;
+  canonicalUrl: string;
+  imagePathOrUrl?: string | null;
+}): Pick<Metadata, "alternates" | "openGraph" | "twitter"> {
+  const { openGraphImages, twitterImages } = buildSocialImages(
+    title,
+    imagePathOrUrl,
+  );
+
+  return {
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      url: canonicalUrl,
+      title,
+      description,
+      images: openGraphImages,
+    },
+    twitter: {
+      card: twitterImages ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: twitterImages,
+    },
+  };
+}
+
+async function resolveCharacterOgImage(characterId: string | null | undefined) {
+  if (!characterId) {
+    return null;
+  }
+
+  const gallery = await getCharacterGallery(characterId);
+  return gallery.find((item) => Boolean(item.image_url))?.image_url ?? null;
+}
+
+async function resolveLocationOgImage(locationId: string | null | undefined) {
+  if (!locationId) {
+    return null;
+  }
+
+  const gallery = await getLocationGallery(locationId);
+  return gallery.find((item) => Boolean(item.image_url))?.image_url ?? null;
+}
+
+function getFactionWorldSlug(
+  faction:
+    | (Awaited<ReturnType<typeof getFactionBySlugInStory>> & {
+        worlds?:
+          | {
+              slug: string | null;
+            }
+          | Array<{
+              slug: string | null;
+            }>
+          | null;
+      })
+    | null,
+) {
+  if (!faction) {
+    return null;
+  }
+
+  const worlds = faction.worlds;
+  if (Array.isArray(worlds)) {
+    return worlds[0]?.slug ?? null;
+  }
+
+  return worlds?.slug ?? null;
 }
 
 export async function generateMetadata({
@@ -258,20 +366,33 @@ export async function generateMetadata({
   if (world && character) {
     const characterData = await getCharacterBySlug(story, world, character);
     if (characterData) {
-      return {
-        title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
-        description:
-          characterData.personality_summary ||
-          characterData.backstory?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+      const metaTitle = `${characterData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        characterData.personality_summary ||
+          characterData.backstory ||
           `Character profile for ${characterData.name}`,
-        alternates: {
-          canonical: serializeWikiSearchParams("/", {
-            story,
-            world,
-            character,
-            faction: null,
-          }),
-        },
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world,
+        character,
+        faction: null,
+      });
+      const imagePath =
+        characterData.featured_image ||
+        characterData.banner_image ||
+        characterData.profile_image ||
+        (await resolveCharacterOgImage(characterData.id));
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: imagePath,
+        }),
       };
     }
   }
@@ -280,20 +401,64 @@ export async function generateMetadata({
   if (character && !world) {
     const characterData = await getCharacterBySlugInStory(story, character);
     if (characterData) {
-      return {
-        title: `${characterData.name} - ${storyData.title} - EXOCORPSE`,
-        description:
-          characterData.personality_summary ||
-          characterData.backstory?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+      const metaTitle = `${characterData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        characterData.personality_summary ||
+          characterData.backstory ||
           `Character profile for ${characterData.name}`,
-        alternates: {
-          canonical: serializeWikiSearchParams("/", {
-            story,
-            world: null,
-            character,
-            faction: null,
-          }),
-        },
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world: null,
+        character,
+        faction: null,
+      });
+      const imagePath =
+        characterData.featured_image ||
+        characterData.banner_image ||
+        characterData.profile_image ||
+        (await resolveCharacterOgImage(characterData.id));
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: imagePath,
+        }),
+      };
+    }
+  }
+
+  // Faction view without world - resolve canonical metadata before client redirect
+  if (faction && !world) {
+    const factionData = await getFactionBySlugInStory(story, faction);
+    if (factionData) {
+      const worldSlug = getFactionWorldSlug(factionData);
+      const metaTitle = `${factionData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        factionData.description ||
+          factionData.summary ||
+          `Faction information for ${factionData.name}`,
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world: worldSlug,
+        character: null,
+        faction,
+      });
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: factionData.banner_image || factionData.logo_url,
+        }),
       };
     }
   }
@@ -302,19 +467,28 @@ export async function generateMetadata({
   if (world && faction) {
     const factionData = await getFactionBySlug(story, world, faction);
     if (factionData) {
-      return {
-        title: `${factionData.name} - ${storyData.title} - EXOCORPSE`,
-        description:
-          factionData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+      const metaTitle = `${factionData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        factionData.description ||
+          factionData.summary ||
           `Faction information for ${factionData.name}`,
-        alternates: {
-          canonical: serializeWikiSearchParams("/", {
-            story,
-            world,
-            character: null,
-            faction,
-          }),
-        },
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world,
+        character: null,
+        faction,
+      });
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: factionData.banner_image || factionData.logo_url,
+        }),
       };
     }
   }
@@ -323,19 +497,32 @@ export async function generateMetadata({
   if (world && location) {
     const locationData = await getLocationBySlug(story, world, location);
     if (locationData) {
-      return {
-        title: `${locationData.name} - ${storyData.title} - EXOCORPSE`,
-        description:
-          locationData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+      const metaTitle = `${locationData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        locationData.description ||
+          locationData.summary ||
           `Location information for ${locationData.name}`,
-        alternates: {
-          canonical: serializeWikiSearchParams("/", {
-            story,
-            world,
-            character: null,
-            location,
-          }),
-        },
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world,
+        character: null,
+        location,
+      });
+      const imagePath =
+        locationData.banner_image ||
+        locationData.image_url ||
+        (await resolveLocationOgImage(locationData.id));
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: imagePath,
+        }),
       };
     }
   }
@@ -344,38 +531,55 @@ export async function generateMetadata({
   if (world) {
     const worldData = await getWorldBySlug(story, world);
     if (worldData) {
-      return {
-        title: `${worldData.name} - ${storyData.title} - EXOCORPSE`,
-        description:
-          worldData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+      const metaTitle = `${worldData.name} - ${storyData.title} - EXOCORPSE`;
+      const metaDescription = truncateMetaDescription(
+        worldData.description ||
+          worldData.summary ||
           `World information for ${worldData.name}`,
-        alternates: {
-          canonical: serializeWikiSearchParams("/", {
-            story,
-            world,
-            character: null,
-            faction: null,
-          }),
-        },
+      );
+      const canonicalUrl = serializeWikiSearchParams("/", {
+        story,
+        world,
+        character: null,
+        faction: null,
+      });
+
+      return {
+        title: metaTitle,
+        description: metaDescription,
+        ...buildWikiSocialMetadata({
+          title: metaTitle,
+          description: metaDescription,
+          canonicalUrl,
+          imagePathOrUrl: worldData.theme_background_image,
+        }),
       };
     }
   }
 
   // Story view
-  return {
-    title: `${storyData.title} - EXOCORPSE`,
-    description:
-      storyData.description?.substring(0, MAX_DESCRIPTION_LENGTH) ||
+  const metaTitle = `${storyData.title} - EXOCORPSE`;
+  const metaDescription = truncateMetaDescription(
+    storyData.description ||
       storyData.summary ||
       `Explore the ${storyData.title} story`,
-    alternates: {
-      canonical: serializeWikiSearchParams("/", {
-        story,
-        world: null,
-        character: null,
-        faction: null,
-      }),
-    },
+  );
+  const canonicalUrl = serializeWikiSearchParams("/", {
+    story,
+    world: null,
+    character: null,
+    faction: null,
+  });
+
+  return {
+    title: metaTitle,
+    description: metaDescription,
+    ...buildWikiSocialMetadata({
+      title: metaTitle,
+      description: metaDescription,
+      canonicalUrl,
+      imagePathOrUrl: storyData.theme_background_image,
+    }),
   };
 }
 
