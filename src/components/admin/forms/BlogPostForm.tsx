@@ -247,7 +247,7 @@ export default function BlogPostForm({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 overflow-y-auto bg-black/65 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-50 overflow-hidden bg-black/65 backdrop-blur-sm sm:p-4"
         role="button"
         tabIndex={0}
         aria-label="Close blog post editor"
@@ -255,14 +255,14 @@ export default function BlogPostForm({
         onKeyDown={handleBackdropKeyDown}
       >
         <div
-          className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center justify-center"
+          className="mx-auto flex min-h-full w-full max-w-6xl items-end justify-center sm:min-h-[calc(100vh-2rem)] sm:items-center"
           onClick={(event) => event.stopPropagation()}
           role="dialog"
           aria-modal="true"
           aria-labelledby="blog-post-form-title"
         >
-          <div className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,_rgba(255,252,249,0.98),_rgba(247,242,236,0.96))] shadow-[0_40px_140px_-60px_rgba(0,0,0,0.75)] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,_rgba(22,22,24,0.98),_rgba(10,10,12,0.98))]">
-            <div className="border-b border-zinc-200/80 px-6 py-5 @lg:px-8 dark:border-zinc-800/80">
+          <div className="flex h-[100dvh] w-full flex-col overflow-hidden rounded-t-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,_rgba(255,252,249,0.98),_rgba(247,242,236,0.96))] shadow-[0_40px_140px_-60px_rgba(0,0,0,0.75)] sm:h-auto sm:max-h-[92vh] sm:rounded-[2rem] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,_rgba(22,22,24,0.98),_rgba(10,10,12,0.98))]">
+            <div className="border-b border-zinc-200/80 px-4 py-5 sm:px-6 @lg:px-8 dark:border-zinc-800/80">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold tracking-[0.32em] text-red-700 uppercase dark:text-red-300">
@@ -295,7 +295,7 @@ export default function BlogPostForm({
               onSubmit={handleFormSubmit}
               className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="@container flex-1 overflow-y-auto px-6 py-6 @lg:px-8">
+              <div className="@container flex-1 overflow-y-auto px-4 py-6 sm:px-6 @lg:px-8">
                 <div className="grid gap-6 @2xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.8fr)]">
                   <div className="space-y-6">
                     {uploadProgress && (
@@ -599,40 +599,42 @@ export default function BlogPostForm({
               </div>
 
               {error && (
-                <div className="mx-6 mb-4 rounded-[1.25rem] border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 @lg:mx-8 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+                <div className="mx-4 mb-4 rounded-[1.25rem] border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 sm:mx-6 @lg:mx-8 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
                   {error}
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/80 px-6 py-4 @lg:px-8 dark:border-zinc-800/80">
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {slug ? (
-                    <span>Preview path: {previewPath}</span>
-                  ) : (
-                    <span>Add a title to generate the post slug.</span>
-                  )}
-                </div>
+              <div className="sticky bottom-0 border-t border-zinc-200/80 bg-[rgba(255,252,249,0.96)] px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur-xl sm:px-6 sm:py-4 sm:pb-4 @lg:px-8 dark:border-zinc-800/80 dark:bg-[rgba(10,10,12,0.94)]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {slug ? (
+                      <span>Preview path: {previewPath}</span>
+                    ) : (
+                      <span>Add a title to generate the post slug.</span>
+                    )}
+                  </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleExit(onCancel)}
-                    disabled={loading}
-                    className="rounded-full border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-600 dark:text-zinc-950 dark:hover:bg-red-500"
-                  >
-                    {loading
-                      ? "Saving..."
-                      : post
-                        ? "Update post"
-                        : "Create post"}
-                  </button>
+                  <div className="flex w-full flex-col-reverse items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
+                    <button
+                      type="button"
+                      onClick={() => handleExit(onCancel)}
+                      disabled={loading}
+                      className="w-full rounded-full border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5 dark:bg-red-600 dark:text-zinc-950 dark:hover:bg-red-500"
+                    >
+                      {loading
+                        ? "Saving..."
+                        : post
+                          ? "Update post"
+                          : "Create post"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
