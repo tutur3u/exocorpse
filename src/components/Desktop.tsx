@@ -18,15 +18,13 @@ export default function Desktop() {
       onClick={() => setSelectedIconId(null)}
     >
       <Image
-        src="/LykoTwins.webp"
-        alt="Exocorpse character wallpaper"
+        src="/background-image.webp"
+        alt="Background image"
         fill
         className="object-cover object-center"
         loading="eager"
         priority
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_38%),linear-gradient(180deg,rgba(2,6,23,0.34),rgba(2,6,23,0.68)_45%,rgba(2,6,23,0.92))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.6),transparent_30%,transparent_70%,rgba(15,23,42,0.55))]" />
       {/* Desktop Icons - Logo at Top, Icons Centered */}
       <div className="absolute top-1/2 left-1/2 z-10 flex w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 transform flex-col items-center gap-7 px-6">
         {/* Logo - Top of screen */}
@@ -44,7 +42,7 @@ export default function Desktop() {
           </p>
         </div>
         {/* Icons - Just below logo */}
-        <div className="pointer-events-auto flex flex-wrap items-start justify-center gap-8 rounded-[1.75rem] border border-white/10 bg-slate-950/28 px-8 py-7 shadow-[0_24px_60px_rgba(2,6,23,0.48)] backdrop-blur-sm">
+        <div className="pointer-events-auto flex flex-wrap items-start justify-center gap-8 px-8 py-7">
           {appConfigs.map((app) => (
             <DesktopIcon
               key={app.id}
