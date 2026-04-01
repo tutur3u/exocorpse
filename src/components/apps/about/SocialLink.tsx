@@ -37,54 +37,46 @@ const colorMap: Record<
   }
 > = {
   blue: {
-    border: "hover:border-blue-400 dark:hover:border-blue-500",
-    bg: "from-blue-50 dark:from-blue-950",
-    iconBg:
-      "bg-blue-100 group-hover:bg-blue-200 dark:bg-blue-900 dark:group-hover:bg-blue-800",
-    iconColor: "text-blue-600 dark:text-blue-400",
-    externalLink: "group-hover:text-blue-600 dark:group-hover:text-blue-400",
+    border: "hover:border-blue-400",
+    bg: "from-blue-950/60",
+    iconBg: "bg-blue-950/75 group-hover:bg-blue-900",
+    iconColor: "text-blue-300",
+    externalLink: "group-hover:text-blue-300",
   },
   purple: {
-    border: "hover:border-purple-400 dark:hover:border-purple-500",
-    bg: "from-purple-50 dark:from-purple-950",
-    iconBg:
-      "bg-purple-100 group-hover:bg-purple-200 dark:bg-purple-900 dark:group-hover:bg-purple-800",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    externalLink:
-      "group-hover:text-purple-600 dark:group-hover:text-purple-400",
+    border: "hover:border-purple-400",
+    bg: "from-purple-950/60",
+    iconBg: "bg-purple-950/75 group-hover:bg-purple-900",
+    iconColor: "text-purple-300",
+    externalLink: "group-hover:text-purple-300",
   },
   pink: {
-    border: "hover:border-pink-400 dark:hover:border-pink-500",
-    bg: "from-pink-50 dark:from-pink-950",
-    iconBg:
-      "bg-pink-100 group-hover:bg-pink-200 dark:bg-pink-900 dark:group-hover:bg-pink-800",
-    iconColor: "text-pink-600 dark:text-pink-400",
-    externalLink: "group-hover:text-pink-600 dark:group-hover:text-pink-400",
+    border: "hover:border-pink-400",
+    bg: "from-pink-950/60",
+    iconBg: "bg-pink-950/75 group-hover:bg-pink-900",
+    iconColor: "text-pink-300",
+    externalLink: "group-hover:text-pink-300",
   },
   sky: {
-    border: "hover:border-sky-400 dark:hover:border-sky-500",
-    bg: "from-sky-50 dark:from-sky-950",
-    iconBg:
-      "bg-sky-100 group-hover:bg-sky-200 dark:bg-sky-900 dark:group-hover:bg-sky-800",
-    iconColor: "text-sky-600 dark:text-sky-400",
-    externalLink: "group-hover:text-sky-600 dark:group-hover:text-sky-400",
+    border: "hover:border-sky-400",
+    bg: "from-sky-950/60",
+    iconBg: "bg-sky-950/75 group-hover:bg-sky-900",
+    iconColor: "text-sky-300",
+    externalLink: "group-hover:text-sky-300",
   },
   indigo: {
-    border: "hover:border-indigo-400 dark:hover:border-indigo-500",
-    bg: "from-indigo-50 dark:from-indigo-950",
-    iconBg:
-      "bg-indigo-100 group-hover:bg-indigo-200 dark:bg-indigo-900 dark:group-hover:bg-indigo-800",
-    iconColor: "text-indigo-600 dark:text-indigo-400",
-    externalLink:
-      "group-hover:text-indigo-600 dark:group-hover:text-indigo-400",
+    border: "hover:border-indigo-400",
+    bg: "from-indigo-950/60",
+    iconBg: "bg-indigo-950/75 group-hover:bg-indigo-900",
+    iconColor: "text-indigo-300",
+    externalLink: "group-hover:text-indigo-300",
   },
   vgen: {
-    border: "hover:border-lime-400 dark:hover:border-lime-500",
-    bg: "from-lime-50 dark:from-lime-950",
-    iconBg:
-      "bg-lime-100 group-hover:bg-lime-200 dark:bg-lime-900 dark:group-hover:bg-lime-800",
-    iconColor: "text-lime-600 dark:text-lime-400",
-    externalLink: "group-hover:text-lime-600 dark:group-hover:text-lime-400",
+    border: "hover:border-lime-400",
+    bg: "from-lime-950/60",
+    iconBg: "bg-lime-950/75 group-hover:bg-lime-900",
+    iconColor: "text-lime-300",
+    externalLink: "group-hover:text-lime-300",
   },
 };
 
@@ -101,7 +93,7 @@ export default function SocialLink({ link }: Props) {
       href={link.url || "#"}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 ${colors.border} ${link.is_full_width ? "md:col-span-2" : ""}`}
+      className={`group relative overflow-hidden rounded-xl border border-slate-700/80 bg-slate-900/80 p-5 shadow-sm transition-all hover:shadow-lg ${colors.border} ${link.is_full_width ? "md:col-span-2" : ""}`}
     >
       <div
         className={`absolute inset-0 bg-linear-to-br ${colors.bg} to-transparent opacity-0 transition-opacity group-hover:opacity-100`}
@@ -125,15 +117,11 @@ export default function SocialLink({ link }: Props) {
           )}
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            {link.title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {link.subtitle}
-          </p>
+          <h3 className="font-semibold text-slate-100">{link.title}</h3>
+          <p className="text-sm text-slate-300">{link.subtitle}</p>
         </div>
         <FaExternalLinkAlt
-          className={`h-4 w-4 text-gray-400 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${colors.externalLink}`}
+          className={`h-4 w-4 text-slate-400 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${colors.externalLink}`}
           aria-hidden="true"
         />
       </div>

@@ -30,7 +30,7 @@ function renderUsernameTemplate(faq: AboutFaq) {
         return (
           <span
             key={`${part}-${index}`}
-            className="font-semibold text-blue-600 dark:text-blue-400"
+            className="font-semibold text-cyan-300"
           >
             {faq.username_prefix_left}
           </span>
@@ -41,7 +41,7 @@ function renderUsernameTemplate(faq: AboutFaq) {
         return (
           <span
             key={`${part}-${index}`}
-            className="font-semibold text-purple-600 dark:text-purple-400"
+            className="font-semibold text-fuchsia-300"
           >
             {faq.username_prefix_right}
           </span>
@@ -52,7 +52,7 @@ function renderUsernameTemplate(faq: AboutFaq) {
         return (
           <span
             key={`${part}-${index}`}
-            className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-transparent dark:from-blue-400 dark:to-purple-400"
+            className="bg-linear-to-r from-cyan-300 to-fuchsia-300 bg-clip-text font-bold text-transparent"
           >
             {faq.username_result}
           </span>
@@ -79,13 +79,13 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
           <div className="space-y-2">
             <p>
               <strong>PROGRAMS:</strong>{" "}
-              <code className="rounded bg-gray-200 px-1.5 py-0.5 text-sm dark:bg-gray-700">
+              <code className="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-slate-100">
                 {faq.programs_text}
               </code>
             </p>
             <p>
               <strong>DEVICES:</strong>{" "}
-              <code className="rounded bg-gray-200 px-1.5 py-0.5 text-sm dark:bg-gray-700">
+              <code className="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-slate-100">
                 {faq.devices_text}
               </code>
             </p>
@@ -96,7 +96,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
               {itemsBySection.faq_program_other.map((item) => (
                 <li key={item.id}>
                   <strong>{item.title}:</strong>{" "}
-                  <code className="rounded bg-gray-200 px-1.5 py-0.5 text-sm dark:bg-gray-700">
+                  <code className="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-slate-100">
                     {item.body}
                   </code>
                 </li>
@@ -109,7 +109,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
         return (
           <div className="space-y-3">
             <div>
-              <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
+              <p className="mb-2 font-medium text-slate-100">
                 CLIP STUDIO PAINT:
               </p>
               <div className="ml-4 space-y-2 text-sm">
@@ -123,7 +123,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
                           href={brush.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
+                          className="inline-flex items-center gap-1 rounded-md bg-cyan-950/80 px-2 py-1 text-xs text-cyan-200 hover:bg-cyan-900"
                         >
                           {brush.title}{" "}
                           <FaExternalLinkAlt className="h-2 w-2" />
@@ -131,7 +131,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
                       ) : (
                         <span
                           key={brush.id}
-                          className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          className="inline-flex items-center rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-200"
                         >
                           {brush.title}
                         </span>
@@ -150,7 +150,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
                         href={brush.url ?? undefined}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:hover:bg-purple-800"
+                        className="inline-flex items-center gap-1 rounded-md bg-fuchsia-950/75 px-2 py-1 text-xs text-fuchsia-200 hover:bg-fuchsia-900"
                       >
                         {brush.title} <FaExternalLinkAlt className="h-2 w-2" />
                       </a>
@@ -160,15 +160,11 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
               </div>
             </div>
             <div>
-              <p className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                PROCREATE:
-              </p>
+              <p className="mb-1 font-medium text-slate-100">PROCREATE:</p>
               <p className="ml-4 text-sm">{faq.brushes_procreate_text}</p>
             </div>
             <div>
-              <p className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                PAINT TOOL SAI:
-              </p>
+              <p className="mb-1 font-medium text-slate-100">PAINT TOOL SAI:</p>
               <p className="ml-4 text-sm">{faq.brushes_paint_tool_sai_text}</p>
             </div>
           </div>
@@ -177,11 +173,11 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
       case "permissions":
         return (
           <div className="space-y-3">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
-              <p className="mb-2 flex items-center gap-2 font-semibold text-green-700 dark:text-green-300">
+            <div className="rounded-lg border border-emerald-400/25 bg-emerald-950/55 p-3">
+              <p className="mb-2 flex items-center gap-2 font-semibold text-emerald-200">
                 <FaCheckCircle /> ALLOWED
               </p>
-              <ul className="ml-4 list-inside list-disc space-y-1 text-sm text-green-800 dark:text-green-200">
+              <ul className="ml-4 list-inside list-disc space-y-1 text-sm text-emerald-100/88">
                 {itemsBySection.faq_permission_allowed.map((item) => (
                   <li key={item.id}>
                     <strong>{item.title}:</strong> {item.body}
@@ -189,11 +185,11 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
-              <p className="mb-2 flex items-center gap-2 font-semibold text-red-700 dark:text-red-300">
+            <div className="rounded-lg border border-red-400/25 bg-red-950/55 p-3">
+              <p className="mb-2 flex items-center gap-2 font-semibold text-red-200">
                 <FaTimesCircle /> PROHIBITED
               </p>
-              <ul className="ml-4 list-inside list-disc space-y-1 text-sm text-red-800 dark:text-red-200">
+              <ul className="ml-4 list-inside list-disc space-y-1 text-sm text-red-100/88">
                 {itemsBySection.faq_permission_prohibited.map((item) => (
                   <li key={item.id}>
                     <strong>{item.title}:</strong> {item.body}
@@ -208,9 +204,9 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
         return (
           <div className="space-y-2">
             <p>{faq.social_intro_text}</p>
-            <blockquote className="border-l-4 border-blue-500 bg-blue-50 py-2 pl-4 text-sm italic dark:bg-blue-950">
+            <blockquote className="border-l-4 border-cyan-400 bg-cyan-950/45 py-2 pl-4 text-sm text-slate-100 italic">
               {faq.social_note_prefix}{" "}
-              <code className="rounded bg-gray-200 px-1.5 py-0.5 not-italic dark:bg-gray-700">
+              <code className="rounded bg-slate-800 px-1.5 py-0.5 text-slate-100 not-italic">
                 {faq.social_display_name}
               </code>{" "}
               {faq.social_note_suffix}
@@ -248,7 +244,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
             {itemsBySection.faq_artist.map((artist) => (
               <span
                 key={artist.id}
-                className="rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700 dark:bg-purple-900 dark:text-purple-200"
+                className="rounded-full bg-fuchsia-950/70 px-3 py-1 text-sm text-fuchsia-200"
               >
                 {artist.title}
               </span>
@@ -270,13 +266,8 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
         return (
           <p>
             Either{" "}
-            <strong className="text-blue-600 dark:text-blue-400">
-              {faq.alias_primary}
-            </strong>{" "}
-            or{" "}
-            <strong className="text-purple-600 dark:text-purple-400">
-              {faq.alias_secondary}
-            </strong>{" "}
+            <strong className="text-cyan-300">{faq.alias_primary}</strong> or{" "}
+            <strong className="text-fuchsia-300">{faq.alias_secondary}</strong>{" "}
             {faq.alias_description}
           </p>
         );
@@ -288,13 +279,11 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
 
   return (
     <div className="space-y-4">
-      <div className="mb-6 rounded-xl bg-linear-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-        <h2 className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
+      <div className="mb-6 rounded-xl border border-cyan-400/18 bg-linear-to-br from-cyan-950/60 to-fuchsia-950/45 p-6">
+        <h2 className="bg-linear-to-r from-cyan-200 to-fuchsia-300 bg-clip-text text-3xl font-bold text-transparent">
           {data.settings.faq_title}
         </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {data.settings.faq_intro}
-        </p>
+        <p className="mt-2 text-sm text-slate-300">{data.settings.faq_intro}</p>
       </div>
 
       <div className="space-y-3">
@@ -308,26 +297,26 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
           return (
             <div
               key={stableFaq.id}
-              className="overflow-hidden rounded-xl border-2 border-gray-200 bg-white shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+              className="overflow-hidden rounded-xl border border-slate-700/80 bg-slate-900/80 shadow-sm transition-all hover:border-cyan-400/38 hover:shadow-md"
             >
               <button
                 type="button"
                 onClick={() => toggleFaq(stableFaq.id)}
-                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-800"
                 aria-expanded={expandedFaq === stableFaq.id}
                 aria-controls={`faq-panel-${stableFaq.id}`}
               >
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="font-semibold text-slate-100">
                   {stableFaq.question}
                 </h3>
                 {expandedFaq === stableFaq.id ? (
                   <FaChevronUp
-                    className="h-4 w-4 flex-shrink-0 text-blue-500 transition-transform"
+                    className="h-4 w-4 flex-shrink-0 text-cyan-300 transition-transform"
                     aria-hidden="true"
                   />
                 ) : (
                   <FaChevronDown
-                    className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                    className="h-4 w-4 flex-shrink-0 text-slate-400 transition-transform"
                     aria-hidden="true"
                   />
                 )}
@@ -341,7 +330,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="border-t border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                <div className="border-t border-slate-700/80 bg-slate-950/80 p-4 text-sm text-slate-300">
                   {renderFaqAnswer(stableFaq)}
                 </div>
               </section>

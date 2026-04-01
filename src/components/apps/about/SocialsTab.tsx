@@ -6,17 +6,17 @@ export default function SocialsTab({ data }: { data: AboutPageData }) {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6 rounded-xl bg-linear-to-br from-blue-50 to-purple-50 p-6 dark:from-blue-950 dark:to-purple-950">
-        <h2 className="mb-3 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent dark:from-blue-400 dark:to-purple-400">
+      <div className="mb-6 rounded-xl border border-cyan-400/18 bg-linear-to-br from-cyan-950/60 to-fuchsia-950/45 p-6">
+        <h2 className="mb-3 bg-linear-to-r from-cyan-200 to-fuchsia-300 bg-clip-text text-3xl font-bold text-transparent">
           {data.settings.socials_title}
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-slate-300">
           {data.settings.socials_intro}{" "}
-          <span className="font-semibold text-blue-600 dark:text-blue-400">
+          <span className="font-semibold text-cyan-300">
             {data.settings.socials_primary_username}
           </span>{" "}
           or{" "}
-          <span className="font-semibold text-purple-600 dark:text-purple-400">
+          <span className="font-semibold text-fuchsia-300">
             {data.settings.socials_secondary_username}
           </span>
           .

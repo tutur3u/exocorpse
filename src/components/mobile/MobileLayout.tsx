@@ -180,17 +180,20 @@ export default function MobileLayout({
       gameParams={safeGameParams}
     >
       <WindowProvider gameParams={safeGameParams}>
-        <div className="relative flex h-screen w-screen flex-col overflow-hidden">
+        <div className="relative flex h-screen w-screen flex-col overflow-hidden bg-black text-slate-100">
           {/* Background Image spans entire screen */}
           <div className="absolute inset-0">
             <Image
-              src="/background-image.webp"
-              alt="Background Image"
+              src="/LykoTwins.webp"
+              alt="Exocorpse character wallpaper"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               loading="eager"
+              priority
             />
           </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(45,212,191,0.18),transparent_36%),linear-gradient(180deg,rgba(2,6,23,0.26),rgba(2,6,23,0.76)_52%,rgba(2,6,23,0.92))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.22),transparent_20%,transparent_68%,rgba(2,6,23,0.66))]" />
 
           {/* Foreground content */}
           <div className="relative z-10 flex h-full flex-col overflow-hidden">

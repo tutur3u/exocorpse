@@ -13,14 +13,18 @@ import { HEAVEN_SPACE_GAME_ID, gameQueryParser } from "@/lib/game-query";
 import type { GameSearchParams } from "@/lib/game-search-params";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
-import type { AppId, WindowConfig, WindowInstance } from "@/types/window";
+import type {
+  AppId,
+  RestorableWindowState,
+  WindowConfig,
+  WindowInstance,
+} from "@/types/window";
 import { useQueryState } from "nuqs";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -43,6 +47,137 @@ interface WindowContextType {
 
 const WindowContext = createContext<WindowContextType | undefined>(undefined);
 
+const WINDOW_LAYOUT_STORAGE_KEY = "exocorpse.desktop.windows.v1";
+const MIN_WINDOW_WIDTH = 300;
+const MIN_WINDOW_HEIGHT = 200;
+
+type PersistedWindowLayout = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  state: RestorableWindowState;
+};
+
+type PersistedWindowLayouts = Partial<Record<AppId, PersistedWindowLayout>>;
+
+function getDefaultState(config: WindowConfig): RestorableWindowState {
+  return config.defaultState ?? "normal";
+}
+
+function getViewportBounds() {
+  return {
+    width: globalThis.window.innerWidth,
+    height: Math.max(globalThis.window.innerHeight - TASKBAR_HEIGHT, 0),
+  };
+}
+
+function clampWindowLayout(layout: PersistedWindowLayout) {
+  const viewport = getViewportBounds();
+  const width = Math.min(
+    Math.max(layout.width, MIN_WINDOW_WIDTH),
+    viewport.width || MIN_WINDOW_WIDTH,
+  );
+  const height = Math.min(
+    Math.max(layout.height, MIN_WINDOW_HEIGHT),
+    viewport.height || MIN_WINDOW_HEIGHT,
+  );
+
+  return {
+    x: Math.min(Math.max(0, layout.x), Math.max(viewport.width - width, 0)),
+    y: Math.min(Math.max(0, layout.y), Math.max(viewport.height - height, 0)),
+    width,
+    height,
+    state: layout.state,
+  };
+}
+
+function isValidPersistedLayout(
+  value: unknown,
+): value is PersistedWindowLayout {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const layout = value as Record<string, unknown>;
+  return (
+    typeof layout.x === "number" &&
+    typeof layout.y === "number" &&
+    typeof layout.width === "number" &&
+    typeof layout.height === "number" &&
+    (layout.state === "normal" || layout.state === "maximized")
+  );
+}
+
+function sanitizePersistedLayouts(value: unknown): PersistedWindowLayouts {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(([key, layout]) => {
+      return (
+        APP_CONFIGS.some((config) => config.id === key) &&
+        isValidPersistedLayout(layout)
+      );
+    }),
+  ) as PersistedWindowLayouts;
+}
+
+function getStoredLayout(
+  config: WindowConfig,
+  layouts: PersistedWindowLayouts,
+): PersistedWindowLayout {
+  const stored = layouts[config.id];
+  if (stored) {
+    return clampWindowLayout(stored);
+  }
+
+  return clampWindowLayout({
+    x: config.defaultPosition.x,
+    y: config.defaultPosition.y,
+    width: config.defaultSize.width,
+    height: config.defaultSize.height,
+    state: getDefaultState(config),
+  });
+}
+
+function createWindowInstance(
+  config: WindowConfig,
+  zIndex: number,
+  layouts: PersistedWindowLayouts,
+): WindowInstance {
+  const storedLayout = getStoredLayout(config, layouts);
+
+  if (storedLayout.state === "maximized") {
+    const viewport = getViewportBounds();
+    return {
+      id: config.id,
+      state: "maximized",
+      zIndex,
+      position: { x: 0, y: 0 },
+      size: {
+        width: viewport.width,
+        height: viewport.height,
+      },
+      previousState: {
+        position: { x: storedLayout.x, y: storedLayout.y },
+        size: { width: storedLayout.width, height: storedLayout.height },
+      },
+      lastNonMinimizedState: "maximized",
+    };
+  }
+
+  return {
+    id: config.id,
+    state: "normal",
+    zIndex,
+    position: { x: storedLayout.x, y: storedLayout.y },
+    size: { width: storedLayout.width, height: storedLayout.height },
+    lastNonMinimizedState: "normal",
+  };
+}
+
 export const APP_CONFIGS: WindowConfig[] = [
   {
     id: "about",
@@ -57,6 +192,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     title: "Portfolio",
     icon: "Portfolio",
     component: Portfolio,
+    defaultState: "maximized",
     defaultSize: { width: 700, height: 500 },
     defaultPosition: { x: 150, y: 150 },
   },
@@ -81,6 +217,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     title: "Blog",
     icon: "Blog",
     component: Blog,
+    defaultState: "maximized",
     defaultSize: { width: 700, height: 600 },
     defaultPosition: { x: 150, y: 100 },
   },
@@ -89,6 +226,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     title: "Heaven Space",
     icon: "/media/heaven-space/epilogue.png",
     component: HeavenSpace,
+    defaultState: "maximized",
     defaultSize: { width: 960, height: 700 },
     defaultPosition: { x: 80, y: 60 },
   },
@@ -100,7 +238,6 @@ export function WindowProvider({
   blogParams,
   commissionParams,
   portfolioParams,
-  gameParams,
 }: {
   children: React.ReactNode;
   wikiParams?: WikiSearchParams;
@@ -132,6 +269,9 @@ export function WindowProvider({
     (portfolioParams["portfolio-tab"] || portfolioParams["portfolio-piece"]);
 
   const [windows, setWindows] = useState<WindowInstance[]>([]);
+  const [persistedLayouts, setPersistedLayouts] =
+    useState<PersistedWindowLayouts>({});
+  const [hasHydratedLayouts, setHasHydratedLayouts] = useState(false);
   const [nextZIndex, setNextZIndex] = useState(1000);
   const [gameQuery, setGameQuery] = useQueryState(
     "game",
@@ -153,6 +293,106 @@ export function WindowProvider({
             : null;
 
   useEffect(() => {
+    try {
+      const rawLayouts = globalThis.window.localStorage.getItem(
+        WINDOW_LAYOUT_STORAGE_KEY,
+      );
+
+      if (!rawLayouts) {
+        setHasHydratedLayouts(true);
+        return;
+      }
+
+      const parsedLayouts = JSON.parse(rawLayouts) as unknown;
+      setPersistedLayouts(sanitizePersistedLayouts(parsedLayouts));
+    } catch {
+      setPersistedLayouts({});
+    } finally {
+      setHasHydratedLayouts(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedLayouts) {
+      return;
+    }
+
+    globalThis.window.localStorage.setItem(
+      WINDOW_LAYOUT_STORAGE_KEY,
+      JSON.stringify(persistedLayouts),
+    );
+  }, [hasHydratedLayouts, persistedLayouts]);
+
+  useEffect(() => {
+    if (!hasHydratedLayouts) {
+      return;
+    }
+
+    setPersistedLayouts((previousLayouts) => {
+      let hasChanges = false;
+      const nextLayouts = { ...previousLayouts };
+
+      for (const windowInstance of windows) {
+        if (windowInstance.state === "minimized") {
+          continue;
+        }
+
+        const config = APP_CONFIGS.find(
+          (entry) => entry.id === windowInstance.id,
+        );
+        if (!config) {
+          continue;
+        }
+
+        const layout =
+          windowInstance.state === "maximized"
+            ? {
+                x:
+                  windowInstance.previousState?.position.x ??
+                  config.defaultPosition.x,
+                y:
+                  windowInstance.previousState?.position.y ??
+                  config.defaultPosition.y,
+                width:
+                  windowInstance.previousState?.size.width ??
+                  config.defaultSize.width,
+                height:
+                  windowInstance.previousState?.size.height ??
+                  config.defaultSize.height,
+                state: "maximized" as const,
+              }
+            : {
+                x: windowInstance.position.x,
+                y: windowInstance.position.y,
+                width: windowInstance.size.width,
+                height: windowInstance.size.height,
+                state: "normal" as const,
+              };
+
+        const clampedLayout = clampWindowLayout(layout);
+        const currentLayout = previousLayouts[windowInstance.id];
+        if (
+          !currentLayout ||
+          currentLayout.x !== clampedLayout.x ||
+          currentLayout.y !== clampedLayout.y ||
+          currentLayout.width !== clampedLayout.width ||
+          currentLayout.height !== clampedLayout.height ||
+          currentLayout.state !== clampedLayout.state
+        ) {
+          nextLayouts[windowInstance.id] = clampedLayout;
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? nextLayouts : previousLayouts;
+    });
+  }, [hasHydratedLayouts, windows]);
+
+  useEffect(() => {
+    if (!hasHydratedLayouts || !desiredAppId) {
+      return;
+    }
+
     if (!desiredAppId) {
       return;
     }
@@ -163,13 +403,18 @@ export function WindowProvider({
       const highestZ = Math.max(...windows.map((entry) => entry.zIndex));
 
       if (existing.state === "minimized") {
+        const config = APP_CONFIGS.find((entry) => entry.id === desiredAppId);
+        const nextState =
+          existing.lastNonMinimizedState ??
+          (config ? getDefaultState(config) : "normal");
+
         setWindows((prev) =>
           prev.map((entry) =>
             entry.id === desiredAppId
               ? {
                   ...entry,
-                  state:
-                    desiredAppId === "heaven-space" ? "maximized" : "normal",
+                  state: nextState,
+                  lastNonMinimizedState: nextState,
                   zIndex: nextZIndex,
                 }
               : entry,
@@ -191,30 +436,16 @@ export function WindowProvider({
     }
 
     const config = APP_CONFIGS.find((entry) => entry.id === desiredAppId);
-
     if (!config) {
       return;
     }
 
     setWindows((prev) => [
       ...prev,
-      {
-        id: desiredAppId,
-        state: "maximized",
-        zIndex: nextZIndex,
-        position: { x: 0, y: 0 },
-        size: {
-          width: window.innerWidth,
-          height: window.innerHeight - TASKBAR_HEIGHT,
-        },
-        previousState: {
-          position: config.defaultPosition,
-          size: config.defaultSize,
-        },
-      },
+      createWindowInstance(config, nextZIndex, persistedLayouts),
     ]);
     setNextZIndex((prev) => prev + 1);
-  }, [desiredAppId, nextZIndex, windows]);
+  }, [desiredAppId, hasHydratedLayouts, nextZIndex, persistedLayouts, windows]);
 
   const openWindow = useCallback(
     (id: AppId) => {
@@ -223,16 +454,22 @@ export function WindowProvider({
       }
 
       const existingWindow = windows.find((w) => w.id === id);
+      const config = APP_CONFIGS.find((entry) => entry.id === id);
 
       if (existingWindow) {
         // If window exists but is minimized, restore it (set state to "normal" and bring to front)
         if (existingWindow.state === "minimized") {
+          const nextState =
+            existingWindow.lastNonMinimizedState ??
+            (config ? getDefaultState(config) : "normal");
+
           setWindows((prev) =>
             prev.map((w) =>
               w.id === id
                 ? {
                     ...w,
-                    state: id === "heaven-space" ? "maximized" : "normal",
+                    state: nextState,
+                    lastNonMinimizedState: nextState,
                     zIndex: nextZIndex,
                   }
                 : w,
@@ -249,35 +486,15 @@ export function WindowProvider({
         return;
       }
 
-      const config = APP_CONFIGS.find((c) => c.id === id);
       if (!config) return;
 
-      const newWindow: WindowInstance = {
-        id,
-        state: id === "heaven-space" ? "maximized" : "normal",
-        zIndex: nextZIndex,
-        position:
-          id === "heaven-space" ? { x: 0, y: 0 } : config.defaultPosition,
-        size:
-          id === "heaven-space"
-            ? {
-                width: window.innerWidth,
-                height: window.innerHeight - TASKBAR_HEIGHT,
-              }
-            : config.defaultSize,
-        previousState:
-          id === "heaven-space"
-            ? {
-                position: config.defaultPosition,
-                size: config.defaultSize,
-              }
-            : undefined,
-      };
-
-      setWindows((prev) => [...prev, newWindow]);
+      setWindows((prev) => [
+        ...prev,
+        createWindowInstance(config, nextZIndex, persistedLayouts),
+      ]);
       setNextZIndex((prev) => prev + 1);
     },
-    [nextZIndex, setGameQuery, windows],
+    [nextZIndex, persistedLayouts, setGameQuery, windows],
   );
 
   const closeWindow = useCallback(
@@ -298,6 +515,8 @@ export function WindowProvider({
           ? {
               ...w,
               state: "minimized" as const,
+              lastNonMinimizedState:
+                w.state === "minimized" ? w.lastNonMinimizedState : w.state,
             }
           : w,
       ),
@@ -311,6 +530,7 @@ export function WindowProvider({
           ? {
               ...w,
               state: "maximized" as const,
+              lastNonMinimizedState: "maximized" as const,
               previousState: {
                 position: w.position,
                 size: w.size,
@@ -330,6 +550,7 @@ export function WindowProvider({
             return {
               ...w,
               state: "normal" as const,
+              lastNonMinimizedState: "normal" as const,
               // Don't update position/size yet - let animation handle it
               previousState: w.previousState, // Keep previousState for animation
             };
@@ -337,6 +558,7 @@ export function WindowProvider({
           return {
             ...w,
             state: "normal" as const,
+            lastNonMinimizedState: "normal" as const,
           };
         }
         return w;
@@ -368,6 +590,8 @@ export function WindowProvider({
       prev.map((w) => ({
         ...w,
         state: "minimized" as const,
+        lastNonMinimizedState:
+          w.state === "minimized" ? w.lastNonMinimizedState : w.state,
       })),
     );
   }, []);

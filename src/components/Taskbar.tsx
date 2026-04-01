@@ -32,8 +32,8 @@ function TaskbarButton({
       onMouseLeave={() => setIsHovered(false)}
       className={`flex h-10 items-center gap-2 rounded px-3 transition-colors ${
         isOpen
-          ? "bg-white dark:bg-gray-700"
-          : "hover:bg-gray-300 dark:hover:bg-gray-700"
+          ? "bg-slate-700 text-slate-100"
+          : "text-slate-200 hover:bg-slate-700/85"
       } ${isMinimized ? "opacity-60" : ""}`}
       title={title}
     >
@@ -145,12 +145,12 @@ export default function Taskbar() {
   };
 
   return (
-    <div className="fixed right-0 bottom-0 left-0 z-10000 flex h-12 items-center gap-1 border-t border-gray-300 bg-gray-200 px-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+    <div className="fixed right-0 bottom-0 left-0 z-10000 flex h-12 items-center gap-1 border-t border-cyan-400/20 bg-slate-900/95 px-2 text-slate-100 shadow-[0_-10px_30px_rgba(2,6,23,0.52)] backdrop-blur-md">
       {/* OS Icon - Left aligned */}
       <button
         type="button"
         onClick={handleOSIconClick}
-        className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+        className="flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-slate-700/85"
         title="Minimize all windows"
       >
         <Image
@@ -163,7 +163,7 @@ export default function Taskbar() {
       </button>
 
       {/* Separator */}
-      <div className="h-8 w-px bg-gray-400 dark:bg-gray-600" />
+      <div className="h-8 w-px bg-white/12" />
 
       {/* App Icons */}
       {appConfigs.map((app) => {
@@ -192,7 +192,7 @@ export default function Taskbar() {
         <button
           type="button"
           onClick={() => setIsLocalTime(!isLocalTime)}
-          className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
+          className="rounded px-2 py-1 text-xs font-medium transition-colors hover:bg-slate-700/85"
           title="Toggle between local time and Vietnam time (GMT +7)"
         >
           {isLocalTime ? "Local" : "Vietnam"}

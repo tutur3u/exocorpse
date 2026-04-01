@@ -25,19 +25,19 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
   ];
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8 px-6 py-8">
+    <div className="flex h-full flex-col items-center justify-center gap-8 px-6 py-8 text-slate-100">
       {/* Logo */}
       <div className="relative h-48 w-full max-w-md">
         <Image
           src="/desktop-logo.webp"
           alt="FENRIS & MORIS"
           fill
-          className="object-contain"
+          className="object-contain drop-shadow-[0_14px_30px_rgba(2,6,23,0.9)]"
         />
       </div>
 
       {/* Subtitle */}
-      <p className="text-center font-serif text-lg text-white">
+      <p className="rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-center font-serif text-lg text-slate-100 shadow-[0_12px_28px_rgba(2,6,23,0.44)] backdrop-blur-md">
         the duo of artist & writer in one vessel.
       </p>
 
@@ -52,7 +52,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
               onClick={() => onNavigate(app.id)}
               onMouseEnter={() => setHoveredButton(app.id)}
               onMouseLeave={() => setHoveredButton(null)}
-              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-lg bg-black/60 p-4 transition-all hover:bg-black/80"
+              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:border-cyan-300/50 hover:bg-slate-950/72"
             >
               <Icon
                 name={app.icon}
@@ -61,7 +61,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
                 className="h-12 w-12"
                 isHovered={hoveredButton === app.id}
               />
-              <span className="text-center text-xs text-white">
+              <span className="text-center text-xs text-slate-100">
                 {app.label}
               </span>
             </button>
@@ -76,7 +76,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
               onClick={() => onNavigate(app.id)}
               onMouseEnter={() => setHoveredButton(app.id)}
               onMouseLeave={() => setHoveredButton(null)}
-              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-lg bg-black/60 p-4 transition-all hover:bg-black/80"
+              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:border-cyan-300/50 hover:bg-slate-950/72"
             >
               <Icon
                 name={app.icon}
@@ -85,7 +85,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
                 className="h-12 w-12"
                 isHovered={hoveredButton === app.id}
               />
-              <span className="text-center text-xs text-white">
+              <span className="text-center text-xs text-slate-100">
                 {app.label}
               </span>
             </button>

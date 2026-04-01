@@ -8,18 +8,16 @@ export default function DniTab({ data }: { data: AboutPageData }) {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6 rounded-xl bg-linear-to-br from-red-50 to-orange-50 p-6 dark:from-red-950 dark:to-orange-950">
-        <h2 className="bg-linear-to-r from-red-600 to-orange-600 bg-clip-text text-3xl font-bold text-transparent dark:from-red-400 dark:to-orange-400">
+      <div className="mb-6 rounded-xl border border-red-400/20 bg-linear-to-br from-red-950/70 to-orange-950/60 p-6">
+        <h2 className="bg-linear-to-r from-red-300 to-orange-200 bg-clip-text text-3xl font-bold text-transparent">
           {data.settings.dni_title}
         </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {data.settings.dni_intro}
-        </p>
+        <p className="mt-2 text-sm text-slate-300">{data.settings.dni_intro}</p>
       </div>
 
       {/* Soft DNIs */}
-      <section className="rounded-xl border-2 border-yellow-300 bg-linear-to-br from-yellow-50 to-orange-50 p-6 shadow-lg dark:border-yellow-700 dark:from-yellow-950 dark:to-orange-950">
-        <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-yellow-900 dark:text-yellow-100">
+      <section className="rounded-xl border border-yellow-400/35 bg-linear-to-br from-yellow-950/65 to-orange-950/55 p-6 shadow-lg">
+        <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-yellow-100">
           <FaInfoCircle className="h-5 w-5" />
           Soft DNIs (Preference)
         </h3>
@@ -27,22 +25,18 @@ export default function DniTab({ data }: { data: AboutPageData }) {
           {dniSoft.map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-3 rounded-lg bg-yellow-100 p-3 dark:bg-yellow-900"
+              className="flex items-start gap-3 rounded-lg border border-yellow-300/12 bg-yellow-950/60 p-3"
             >
-              <span className="mt-0.5 text-yellow-600 dark:text-yellow-400">
-                •
-              </span>
-              <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                {item.body}
-              </span>
+              <span className="mt-0.5 text-yellow-300">•</span>
+              <span className="text-sm text-yellow-100/88">{item.body}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* Hard DNIs */}
-      <section className="rounded-xl border-2 border-red-300 bg-linear-to-br from-red-50 to-pink-50 p-6 shadow-lg dark:border-red-700 dark:from-red-950 dark:to-pink-950">
-        <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-red-900 dark:text-red-100">
+      <section className="rounded-xl border border-red-400/35 bg-linear-to-br from-red-950/68 to-pink-950/58 p-6 shadow-lg">
+        <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold text-red-100">
           <FaTimesCircle className="h-5 w-5" />
           Hard DNIs (Hardblock)
         </h3>
@@ -50,12 +44,10 @@ export default function DniTab({ data }: { data: AboutPageData }) {
           {dniHard.map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-3 rounded-lg bg-red-100 p-3 dark:bg-red-900"
+              className="flex items-start gap-3 rounded-lg border border-red-300/12 bg-red-950/60 p-3"
             >
-              <FaTimesCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
-              <span className="text-sm text-red-800 dark:text-red-200">
-                {item.body}
-              </span>
+              <FaTimesCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-300" />
+              <span className="text-sm text-red-100/88">{item.body}</span>
             </div>
           ))}
         </div>

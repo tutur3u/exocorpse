@@ -1,4 +1,5 @@
 export type WindowState = "normal" | "minimized" | "maximized";
+export type RestorableWindowState = Exclude<WindowState, "minimized">;
 export type AppId =
   | "about"
   | "portfolio"
@@ -13,6 +14,7 @@ export interface WindowConfig {
   /** Icon name (for PNG/GIF icons) or emoji fallback */
   icon: string;
   component: React.ComponentType;
+  defaultState?: RestorableWindowState;
   defaultSize: { width: number; height: number };
   defaultPosition: { x: number; y: number };
 }
@@ -27,4 +29,5 @@ export interface WindowInstance {
     position: { x: number; y: number };
     size: { width: number; height: number };
   };
+  lastNonMinimizedState?: RestorableWindowState;
 }

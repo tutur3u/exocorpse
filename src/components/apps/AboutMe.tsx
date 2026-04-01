@@ -52,7 +52,7 @@ export default function AboutMe() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-auto bg-linear-to-br from-gray-900 to-gray-950">
+    <div className="flex h-full flex-col overflow-auto bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       {/* Header Section - scrolls off first */}
       <div className="mx-auto flex flex-col gap-6 p-6 md:flex-row md:gap-10">
         <div className="flex items-center justify-center">
@@ -66,14 +66,14 @@ export default function AboutMe() {
         </div>
         <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-center text-2xl font-bold md:text-left">
+            <h1 className="text-center text-2xl font-bold text-slate-50 md:text-left">
               {data.settings.hero_name}
             </h1>
-            <p className="text-center text-gray-600 md:ml-4 md:text-left dark:text-gray-400">
+            <p className="text-center text-slate-300 md:ml-4 md:text-left">
               {data.settings.hero_subtitle}
             </p>
           </div>
-          <div className="max-w-2xl whitespace-pre-line">
+          <div className="max-w-2xl whitespace-pre-line text-slate-200">
             {data.settings.hero_bio}
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AboutMe() {
 
       {/* Tab Navigation - sticky */}
       <div
-        className="sticky top-0 z-10 grid grid-cols-4 gap-2 border-t border-gray-700 bg-gray-900"
+        className="sticky top-0 z-10 grid grid-cols-4 gap-2 border-t border-cyan-400/18 bg-slate-950/92 px-2 py-2 shadow-[0_12px_32px_rgba(2,6,23,0.4)] backdrop-blur-md"
         role="tablist"
       >
         {tabs.map(({ id, label, icon: Icon }) => (
@@ -93,10 +93,10 @@ export default function AboutMe() {
             aria-selected={activeTab === id}
             aria-controls={`${id}-panel`}
             tabIndex={activeTab === id ? 0 : -1}
-            className={`flex items-center justify-center gap-2 font-medium transition-all md:px-4 md:py-3 ${
+            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 font-medium transition-all md:px-4 md:py-3 ${
               activeTab === id
-                ? "border-b-2 border-blue-500 text-blue-400 dark:bg-gray-800"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100"
+                ? "border border-cyan-300/50 bg-cyan-400/14 text-cyan-200 shadow-[0_10px_24px_rgba(8,145,178,0.18)]"
+                : "border border-transparent text-slate-300 hover:border-cyan-400/30 hover:bg-slate-800/75 hover:text-slate-100"
             }`}
             onClick={() => setActiveTab(id)}
           >
@@ -115,7 +115,7 @@ export default function AboutMe() {
       >
         {isLoading ? (
           <div className="flex min-h-48 items-center justify-center">
-            <div className="text-sm text-gray-400">Loading about page...</div>
+            <div className="text-sm text-slate-400">Loading about page...</div>
           </div>
         ) : (
           renderTabContent()
