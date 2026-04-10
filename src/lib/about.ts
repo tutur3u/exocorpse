@@ -36,6 +36,7 @@ export const ABOUT_SOCIAL_ICON_KEYS = [
   "bluesky",
   "discord",
   "twitter",
+  "email",
 ] as const;
 
 export const ABOUT_SOCIAL_COLOR_KEYS = [

@@ -12,6 +12,7 @@ import {
   FaTwitch,
   FaTwitter,
 } from "react-icons/fa";
+import { MdAlternateEmail } from "react-icons/md";
 import { SiBluesky } from "react-icons/si";
 
 const iconMap: Record<
@@ -24,6 +25,7 @@ const iconMap: Record<
   bluesky: SiBluesky,
   discord: FaDiscord,
   twitter: FaTwitter,
+  email: MdAlternateEmail,
 };
 
 const colorMap: Record<
@@ -87,12 +89,14 @@ interface Props {
 export default function SocialLink({ link }: Props) {
   const Icon = iconMap[(link.icon_key as AboutSocialIconKey) || "tumblr"];
   const colors = colorMap[(link.color_key as AboutSocialColorKey) || "blue"];
+  const href = link.url || "#";
+  const opensNewTab = /^https?:\/\//i.test(href);
 
   return (
     <a
-      href={link.url || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={href}
+      target={opensNewTab ? "_blank" : undefined}
+      rel={opensNewTab ? "noopener noreferrer" : undefined}
       className={`group relative overflow-hidden rounded-xl border border-slate-700/80 bg-slate-900/80 p-5 shadow-sm transition-all hover:shadow-lg ${colors.border} ${link.is_full_width ? "md:col-span-2" : ""}`}
     >
       <div

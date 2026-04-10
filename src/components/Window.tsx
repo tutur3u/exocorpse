@@ -286,6 +286,7 @@ export default function Window({ id, title, children }: WindowProps) {
       minHeight={200}
       bounds="parent"
       dragHandleClassName="window-drag-handle"
+      cancel=".window-control"
       disableDragging={isMaximized}
       enableResizing={!isMaximized}
       resizeHandleClasses={{
@@ -341,12 +342,14 @@ export default function Window({ id, title, children }: WindowProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handleMinimize}
-              className={`flex h-6 w-6 items-center justify-center rounded ${
+              className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "hover:bg-theme-primary text-theme-text"
                   : "hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
+              aria-label="Minimize"
               title="Minimize"
             >
               <svg
@@ -360,6 +363,7 @@ export default function Window({ id, title, children }: WindowProps) {
               </svg>
             </button>
             <button
+              type="button"
               onClick={() => {
                 if (isMaximized) {
                   restoreWindow(id);
@@ -367,11 +371,12 @@ export default function Window({ id, title, children }: WindowProps) {
                   maximizeWindow(id);
                 }
               }}
-              className={`flex h-6 w-6 items-center justify-center rounded ${
+              className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "hover:bg-theme-primary text-theme-text"
                   : "hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
+              aria-label={isMaximized ? "Restore" : "Maximize"}
               title={isMaximized ? "Restore" : "Maximize"}
             >
               <svg
@@ -393,12 +398,14 @@ export default function Window({ id, title, children }: WindowProps) {
               </svg>
             </button>
             <button
+              type="button"
               onClick={handleClose}
-              className={`flex h-6 w-6 items-center justify-center rounded ${
+              className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "text-theme-text hover:bg-red-500 hover:text-white"
                   : "hover:bg-red-500 hover:text-white"
               }`}
+              aria-label="Close"
               title="Close"
             >
               <svg
