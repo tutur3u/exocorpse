@@ -36,11 +36,9 @@ export default function Desktop() {
             className="object-contain drop-shadow-[0_14px_32px_rgba(2,6,23,0.9)]"
           />
         </div>
-        <div className="rounded-full border border-white/10 bg-slate-950/45 px-5 py-2 shadow-[0_18px_40px_rgba(2,6,23,0.42)] backdrop-blur-md">
-          <p className="text-center text-xl text-slate-100/92">
-            the duo of artist & writer in one vessel
-          </p>
-        </div>
+        <p className="max-w-2xl px-5 text-center text-xl text-slate-100/92 drop-shadow-[0_10px_24px_rgba(2,6,23,0.72)]">
+          the duo of artist & writer in one vessel
+        </p>
         {/* Icons - Just below logo */}
         <div className="pointer-events-auto flex flex-wrap items-start justify-center gap-8 px-8 py-7">
           {appConfigs.map((app) => (

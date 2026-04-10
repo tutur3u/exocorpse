@@ -37,7 +37,7 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
       </div>
 
       {/* Subtitle */}
-      <p className="rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-center font-serif text-lg text-slate-100 shadow-[0_12px_28px_rgba(2,6,23,0.44)] backdrop-blur-md">
+      <p className="max-w-sm px-4 text-center font-serif text-lg text-slate-100 drop-shadow-[0_10px_24px_rgba(2,6,23,0.72)]">
         the duo of artist & writer in one vessel.
       </p>
 
