@@ -1315,6 +1315,7 @@ export async function createCharacter(character: {
   nickname?: string;
   title?: string;
   age?: number;
+  birthday?: string;
   age_description?: string;
   species?: string;
   gender?: string;

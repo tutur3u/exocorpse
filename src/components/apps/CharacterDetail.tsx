@@ -33,6 +33,15 @@ export default function CharacterDetail({
   onFactionClick,
   onCharacterClick,
 }: CharacterDetailProps) {
+  const formattedBirthday = character.birthday
+    ? new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${character.birthday}T00:00:00Z`))
+    : null;
+
   const [activeTab, setActiveTab] = useQueryState(
     "character-tab",
     parseAsStringLiteral([
@@ -300,6 +309,7 @@ export default function CharacterDetail({
                       character.hair_color ||
                       character.eye_color ||
                       character.weight ||
+                      character.birthday ||
                       character.pronouns ||
                       character.gender ||
                       character.skin_tone ||
@@ -320,6 +330,16 @@ export default function CharacterDetail({
                                 {[character.height, character.weight]
                                   .filter(Boolean)
                                   .join(" / ")}
+                              </p>
+                            </div>
+                          )}
+                          {formattedBirthday && (
+                            <div className="text-theme-text bg-theme-primary rounded-lg p-2.5">
+                              <span className="text-theme-text text-xs font-medium tracking-wide uppercase">
+                                Birthday
+                              </span>
+                              <p className="text-theme-text mt-1 text-sm font-semibold">
+                                {formattedBirthday}
                               </p>
                             </div>
                           )}

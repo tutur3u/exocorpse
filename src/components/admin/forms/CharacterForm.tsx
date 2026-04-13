@@ -45,6 +45,7 @@ type CharacterFormData = {
   slug: string;
   nickname?: string;
   age?: number;
+  birthday?: string;
   age_description?: string;
   species?: string;
   gender?: string;
@@ -134,6 +135,7 @@ export default function CharacterForm({
     slug: character?.slug ?? "",
     nickname: character?.nickname ?? "",
     age: character?.age ?? undefined,
+    birthday: character?.birthday ?? "",
     species: character?.species ?? "",
     gender: character?.gender ?? "",
     pronouns: character?.pronouns ?? "",
@@ -338,6 +340,7 @@ export default function CharacterForm({
         data,
         [
           "nickname",
+          "birthday",
           "species",
           "gender",
           "pronouns",
@@ -979,6 +982,23 @@ export default function CharacterForm({
                     </div>
                     <div>
                       <label
+                        htmlFor="character-birthday"
+                        className="mb-1 block text-sm font-medium"
+                      >
+                        Birthday
+                      </label>
+                      <input
+                        type="date"
+                        id="character-birthday"
+                        {...register("birthday")}
+                        className="w-full rounded border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
                         htmlFor="character-species"
                         className="mb-1 block text-sm font-medium"
                       >
@@ -992,9 +1012,6 @@ export default function CharacterForm({
                         placeholder="Human, Elf, etc."
                       />
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
                         htmlFor="character-gender"

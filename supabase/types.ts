@@ -846,6 +846,7 @@ export type Database = {
           age: number | null;
           backstory: string | null;
           banner_image: string | null;
+          birthday: string | null;
           build: string | null;
           color_palette: string[] | null;
           created_at: string | null;
@@ -884,6 +885,7 @@ export type Database = {
           age?: number | null;
           backstory?: string | null;
           banner_image?: string | null;
+          birthday?: string | null;
           build?: string | null;
           color_palette?: string[] | null;
           created_at?: string | null;
@@ -922,6 +924,7 @@ export type Database = {
           age?: number | null;
           backstory?: string | null;
           banner_image?: string | null;
+          birthday?: string | null;
           build?: string | null;
           color_palette?: string[] | null;
           created_at?: string | null;
@@ -2398,6 +2401,7 @@ export type Database = {
           age: number | null;
           backstory: string | null;
           banner_image: string | null;
+          birthday: string | null;
           build: string | null;
           color_palette: string[] | null;
           created_at: string | null;
