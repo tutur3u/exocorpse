@@ -1127,7 +1127,7 @@ export default function CofiSamplesClient({ dataset }: Props) {
           : "border-white/10 bg-[#111a2b]/85 text-[#ddd5c4]";
   let searchSupportCopy =
     "Browse the full archive and open any sample fullscreen.";
-  let archiveSupportCopy =
+  const archiveSupportCopy =
     "Scroll through the archive vessel and open any sample fullscreen.";
 
   if (!hasQuery) {

@@ -72,6 +72,24 @@ export default function RotatingGallery({
     setActiveIndex(0);
   }, [imageKey]);
 
+  const mobileIndicatorIndices = useMemo(() => {
+    const maxVisibleIndicators = 4;
+
+    if (images.length <= maxVisibleIndicators) {
+      return images.map((_, index) => index);
+    }
+
+    const startIndex = Math.min(
+      Math.max(activeIndex - 1, 0),
+      images.length - maxVisibleIndicators,
+    );
+
+    return Array.from(
+      { length: maxVisibleIndicators },
+      (_, offset) => startIndex + offset,
+    );
+  }, [activeIndex, images]);
+
   useEffect(() => {
     if (images.length <= 1 || lightboxIndex !== null) {
       return;
@@ -102,23 +120,6 @@ export default function RotatingGallery({
           title: images[lightboxIndex].title || images[lightboxIndex].alt,
           description: images[lightboxIndex].subtitle,
         };
-  const mobileIndicatorIndices = useMemo(() => {
-    const maxVisibleIndicators = 4;
-
-    if (images.length <= maxVisibleIndicators) {
-      return images.map((_, index) => index);
-    }
-
-    const startIndex = Math.min(
-      Math.max(activeIndex - 1, 0),
-      images.length - maxVisibleIndicators,
-    );
-
-    return Array.from(
-      { length: maxVisibleIndicators },
-      (_, offset) => startIndex + offset,
-    );
-  }, [activeIndex, images]);
 
   const floatingChrome = !showCaptionPanel;
   const hasMultipleImages = images.length > 1;

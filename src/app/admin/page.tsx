@@ -1,11 +1,37 @@
 import StorageAnalytics from "@/components/admin/StorageAnalytics";
+import { ExocorpseTuturuuuSyncPanel } from "@/components/admin/tuturuuu/ExocorpseTuturuuuSyncPanel";
+import {
+  buildExocorpseAdminLinks,
+  getExocorpseAdminLoginPath,
+} from "@/lib/exocorpse-config";
+import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import Link from "next/link";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const tuturuuuSession = await getExocorpseSessionFromCookies();
+  let adminLinks: ReturnType<typeof buildExocorpseAdminLinks> = [];
+  let configError: string | null = null;
+
+  try {
+    adminLinks = buildExocorpseAdminLinks();
+  } catch (error) {
+    configError =
+      error instanceof Error
+        ? error.message
+        : "Tuturuuu external-project configuration is missing.";
+  }
+
   return (
     <div className="space-y-8">
       {/* Storage Analytics Section */}
       <StorageAnalytics />
+
+      <ExocorpseTuturuuuSyncPanel
+        adminLinks={adminLinks}
+        configError={configError}
+        connectedEmail={tuturuuuSession?.user.email ?? null}
+        connectHref={getExocorpseAdminLoginPath("library")}
+      />
 
       {/* Header Section */}
       <div className="rounded-xl border border-gray-200 bg-linear-to-r from-blue-50 to-purple-50 p-8 dark:border-gray-800 dark:from-blue-950/30 dark:to-purple-950/30">

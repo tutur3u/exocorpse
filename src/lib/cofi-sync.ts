@@ -15,7 +15,23 @@ const UPSERT_BATCH_SIZE = 100;
 const EMBEDDING_BATCH_SIZE = 24;
 
 type CofiSupabaseClient = {
-  from: (...args: any[]) => any;
+  from: (table: string) => unknown;
+};
+
+type CofiTableQuery = {
+  select: (columns: string) => {
+    in: (
+      column: string,
+      values: string[],
+    ) => Promise<{
+      data: Array<{ content_hash: string; sample_id: string }> | null;
+      error: unknown;
+    }>;
+  };
+  upsert: (
+    payload: unknown,
+    options?: Record<string, unknown>,
+  ) => Promise<{ error: unknown }>;
 };
 
 type SyncProgress = {
@@ -26,6 +42,10 @@ type SyncProgress = {
 
 function buildContentHash(sample: CofiSample) {
   return createHash("sha256").update(buildCofiSearchText(sample)).digest("hex");
+}
+
+function getCofiTable(supabase: CofiSupabaseClient, table: string) {
+  return supabase.from(table) as CofiTableQuery;
 }
 
 async function upsertSamples(
@@ -58,9 +78,12 @@ async function upsertSamples(
       search_text: buildCofiSearchText(sample),
     }));
 
-    const { error } = await supabase.from("cofi_samples").upsert(payload, {
-      onConflict: "id",
-    });
+    const { error } = await getCofiTable(supabase, "cofi_samples").upsert(
+      payload,
+      {
+        onConflict: "id",
+      },
+    );
 
     if (error) {
       throw error;
@@ -80,8 +103,10 @@ async function syncEmbeddings(
   }
 
   const sampleIds = samples.map((sample) => getCofiSampleRecordId(sample));
-  const { data: existingRows, error: existingError } = await supabase
-    .from("cofi_sample_embeddings")
+  const { data: existingRows, error: existingError } = await getCofiTable(
+    supabase,
+    "cofi_sample_embeddings",
+  )
     .select("sample_id, content_hash")
     .in("sample_id", sampleIds);
 
@@ -151,11 +176,12 @@ async function syncEmbeddings(
       embedding: toPgVector(embedding),
     }));
 
-    const { error } = await supabase
-      .from("cofi_sample_embeddings")
-      .upsert(payload, {
-        onConflict: "sample_id",
-      });
+    const { error } = await getCofiTable(
+      supabase,
+      "cofi_sample_embeddings",
+    ).upsert(payload, {
+      onConflict: "sample_id",
+    });
 
     if (error) {
       throw error;
