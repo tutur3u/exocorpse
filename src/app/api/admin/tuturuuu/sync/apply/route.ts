@@ -2,7 +2,10 @@ import {
   getExocorpseApiBaseUrl,
   getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
-import { buildExocorpseExternalProjectManifest } from "@/lib/exocorpse-external-project-manifest";
+import {
+  buildExocorpseMigrationSnapshot,
+  EXOCORPSE_MIGRATION_CONFIRMATION,
+} from "@/lib/exocorpse-migration-safety";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { syncPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
@@ -41,14 +44,51 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json().catch(() => null)) as {
+    confirmation?: unknown;
     force?: unknown;
+    manifestDigest?: unknown;
   } | null;
   const workspaceId = getExocorpseWorkspaceId();
   const apiBaseUrl = getExocorpseApiBaseUrl();
+  const { manifest, preflight } = await buildExocorpseMigrationSnapshot();
+
+  if (!preflight.readyToApply) {
+    return NextResponse.json(
+      {
+        error: "Exocorpse migration preflight failed.",
+        preflight,
+      },
+      { status: 400 },
+    );
+  }
+
+  if (body?.manifestDigest !== preflight.manifestDigest) {
+    return NextResponse.json(
+      {
+        error:
+          "Migration manifest changed since review. Run preflight again and review the new digest before applying.",
+        preflight,
+      },
+      { status: 409 },
+    );
+  }
+
+  if (body?.confirmation !== EXOCORPSE_MIGRATION_CONFIRMATION) {
+    return NextResponse.json(
+      {
+        confirmationPhrase: EXOCORPSE_MIGRATION_CONFIRMATION,
+        error:
+          "Explicit migration confirmation is required before applying to Tuturuuu.",
+        preflight,
+      },
+      { status: 400 },
+    );
+  }
+
   const publicAssetSync = await syncPublicFolderAssets({
     accessToken: session.accessToken,
     apiBaseUrl,
-    manifest: await buildExocorpseExternalProjectManifest(),
+    manifest,
     tokenType: session.tokenType,
     workspaceId,
   });
@@ -62,6 +102,7 @@ export async function POST(request: Request) {
           skipped: publicAssetSync.skipped,
           uploaded: publicAssetSync.uploaded,
         },
+        preflight,
       },
       { status: 400 },
     );
@@ -95,6 +136,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ...(await response.json()),
+    preflight,
     publicAssetSync: {
       skipped: publicAssetSync.skipped,
       uploaded: publicAssetSync.uploaded,

@@ -2,10 +2,9 @@ import {
   getExocorpseApiBaseUrl,
   getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
-import { buildExocorpseExternalProjectManifest } from "@/lib/exocorpse-external-project-manifest";
+import { buildExocorpseMigrationSnapshot } from "@/lib/exocorpse-migration-safety";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { getCurrentUser } from "@/lib/auth/utils";
-import { linkPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +40,18 @@ export async function POST() {
   }
 
   const workspaceId = getExocorpseWorkspaceId();
-  const manifest = linkPublicFolderAssets(
-    await buildExocorpseExternalProjectManifest(),
-  );
+  const { manifest, preflight } = await buildExocorpseMigrationSnapshot();
+
+  if (!preflight.readyToApply) {
+    return NextResponse.json(
+      {
+        error: "Exocorpse migration preflight failed.",
+        preflight,
+      },
+      { status: 400 },
+    );
+  }
+
   const response = await fetch(
     `${getExocorpseApiBaseUrl().replace(/\/+$/, "")}/workspaces/${encodeURIComponent(
       workspaceId,
@@ -67,5 +75,8 @@ export async function POST() {
     );
   }
 
-  return NextResponse.json(await response.json());
+  return NextResponse.json({
+    ...(await response.json()),
+    preflight,
+  });
 }
