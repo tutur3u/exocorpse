@@ -232,8 +232,8 @@ export function StorageImage({
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
   const imageElement = (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={imageSrc}
       alt={alt || "Image"}

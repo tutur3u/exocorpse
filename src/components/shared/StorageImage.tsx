@@ -106,7 +106,6 @@ export default function StorageImage({ ...props }: StorageImageProps) {
   return (
     // spread the final props and pass the resolved imageUrl
     // keep unoptimized for externally signed URLs
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <Image {...finalProps} src={imageUrl} alt={alt} unoptimized={true} />
   );
 }
