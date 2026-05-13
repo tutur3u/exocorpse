@@ -40,6 +40,7 @@ export async function POST() {
   }
 
   const workspaceId = getExocorpseWorkspaceId();
+  const apiBaseUrl = getExocorpseApiBaseUrl();
   const { manifest, preflight } = await buildExocorpseMigrationSnapshot();
 
   if (!preflight.readyToApply) {
@@ -52,8 +53,31 @@ export async function POST() {
     );
   }
 
+  const setupResponse = await fetch(
+    `${apiBaseUrl.replace(/\/+$/, "")}/workspaces/${encodeURIComponent(
+      workspaceId,
+    )}/external-projects/setup`,
+    {
+      body: JSON.stringify({ manifest }),
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        Authorization: `${session.tokenType} ${session.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    },
+  );
+
+  if (!setupResponse.ok) {
+    return NextResponse.json(
+      { error: await readApiError(setupResponse) },
+      { status: setupResponse.status },
+    );
+  }
+
   const response = await fetch(
-    `${getExocorpseApiBaseUrl().replace(/\/+$/, "")}/workspaces/${encodeURIComponent(
+    `${apiBaseUrl.replace(/\/+$/, "")}/workspaces/${encodeURIComponent(
       workspaceId,
     )}/external-projects/sync/diff`,
     {
