@@ -2,6 +2,7 @@ import {
   getExocorpseApiBaseUrl,
   getExocorpseAppId,
   getExocorpseAppSecret,
+  getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
 import {
   setExocorpseSessionCookie,
@@ -19,6 +20,7 @@ type AppTokenExchangeResponse = {
   error?: string;
   expiresAt?: string;
   tokenType?: string;
+  workspaceId?: string | null;
   user?: {
     email?: string | null;
     id?: string;
@@ -56,6 +58,7 @@ async function exchangeCrossAppToken(token: string) {
         appSecret: getExocorpseAppSecret(),
         requestedScopes: ["external-projects:*"],
         token,
+        workspaceId: getExocorpseWorkspaceId(),
       }),
       cache: "no-store",
       headers: {
@@ -79,7 +82,12 @@ async function exchangeCrossAppToken(token: string) {
 function toExocorpseSession(
   payload: AppTokenExchangeResponse,
 ): ExocorpseAdminSession {
-  if (!payload.accessToken || !payload.expiresAt || !payload.user?.id) {
+  if (
+    !payload.accessToken ||
+    !payload.expiresAt ||
+    !payload.user?.id ||
+    !payload.workspaceId
+  ) {
     throw new Error("Invalid Tuturuuu app token exchange response.");
   }
 
@@ -90,6 +98,7 @@ function toExocorpseSession(
     },
     expiresAt: payload.expiresAt,
     tokenType: "Bearer",
+    workspaceId: payload.workspaceId,
     user: {
       email: payload.user.email ?? null,
       id: payload.user.id,
