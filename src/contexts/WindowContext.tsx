@@ -226,6 +226,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     title: "Heaven Space",
     icon: "/media/heaven-space/epilogue.png",
     component: HeavenSpace,
+    showInShell: false,
     defaultState: "maximized",
     defaultSize: { width: 960, height: 700 },
     defaultPosition: { x: 80, y: 60 },

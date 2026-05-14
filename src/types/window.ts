@@ -14,6 +14,7 @@ export interface WindowConfig {
   /** Icon name (for PNG/GIF icons) or emoji fallback */
   icon: string;
   component: React.ComponentType;
+  showInShell?: boolean;
   defaultState?: RestorableWindowState;
   defaultSize: { width: number; height: number };
   defaultPosition: { x: number; y: number };

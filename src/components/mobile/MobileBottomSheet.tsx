@@ -57,6 +57,7 @@ export default function MobileBottomSheet() {
   // Get the selected app component
   const selectedAppConfig = apps.find((app) => app.id === selectedApp);
   const AppComponent = selectedAppConfig?.component;
+  const launcherApps = apps.filter((app) => app.showInLauncher !== false);
 
   // Calculate sheet height based on state
   const getSheetHeight = () => {
@@ -196,7 +197,7 @@ export default function MobileBottomSheet() {
             // App List
             <div className="p-6">
               <div className="grid grid-cols-2 gap-4">
-                {apps.map((app) => (
+                {launcherApps.map((app) => (
                   <AppButton
                     key={app.id}
                     appId={app.id}

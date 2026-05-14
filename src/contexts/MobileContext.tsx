@@ -21,6 +21,7 @@ interface MobileApp {
   title: string;
   icon: string;
   component: React.ComponentType;
+  showInLauncher?: boolean;
 }
 
 interface MobileContextType {
@@ -72,6 +73,7 @@ export const MOBILE_APPS: MobileApp[] = [
     title: "Heaven Space",
     icon: "/media/heaven-space/epilogue.png",
     component: HeavenSpace,
+    showInLauncher: false,
   },
 ];
 

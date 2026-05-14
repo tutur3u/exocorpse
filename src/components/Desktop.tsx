@@ -11,6 +11,7 @@ import Window from "./Window";
 export default function Desktop() {
   const { windows, appConfigs } = useWindows();
   const [selectedIconId, setSelectedIconId] = useState<AppId | null>(null);
+  const shellAppConfigs = appConfigs.filter((app) => app.showInShell !== false);
 
   return (
     <div
@@ -41,7 +42,7 @@ export default function Desktop() {
         </p>
         {/* Icons - Just below logo */}
         <div className="pointer-events-auto flex flex-wrap items-start justify-center gap-8 px-8 py-7">
-          {appConfigs.map((app) => (
+          {shellAppConfigs.map((app) => (
             <DesktopIcon
               key={app.id}
               id={app.id}

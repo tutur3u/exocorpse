@@ -61,6 +61,7 @@ export default function Taskbar() {
 
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isLocalTime, setIsLocalTime] = useState<boolean>(true);
+  const shellAppConfigs = appConfigs.filter((app) => app.showInShell !== false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -166,7 +167,7 @@ export default function Taskbar() {
       <div className="h-8 w-px bg-white/12" />
 
       {/* App Icons */}
-      {appConfigs.map((app) => {
+      {shellAppConfigs.map((app) => {
         const isOpen = isWindowOpen(app.id);
         const isMinimized = isWindowMinimized(app.id);
 

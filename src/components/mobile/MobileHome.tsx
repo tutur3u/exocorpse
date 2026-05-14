@@ -17,11 +17,6 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
     { id: "commission", label: "commissions", icon: "Commission" },
     { id: "wiki", label: "wiki", icon: "World_Wiki" },
     { id: "blog", label: "blog", icon: "Blog" },
-    {
-      id: "heaven-space",
-      label: "heaven space",
-      icon: "/media/heaven-space/epilogue.png",
-    },
   ];
 
   return (
