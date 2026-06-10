@@ -4,7 +4,10 @@ import {
   createHash,
   randomBytes,
 } from "node:crypto";
-import { getExocorpseWorkspaceId } from "@/lib/exocorpse-config";
+import {
+  getExocorpseApiBaseUrl,
+  getExocorpseWorkspaceId,
+} from "@/lib/exocorpse-config";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 
@@ -106,11 +109,36 @@ function unsealSession(value: string): ExocorpseAdminSession | null {
   }
 }
 
+function getExocorpseSessionValidationUrl(workspaceId: string) {
+  const apiBaseUrl = getExocorpseApiBaseUrl().replace(/\/+$/, "");
+  return `${apiBaseUrl}/workspaces/${encodeURIComponent(workspaceId)}/external-projects/summary`;
+}
+
+async function validateExocorpseSession(session: ExocorpseAdminSession) {
+  try {
+    const response = await fetch(
+      getExocorpseSessionValidationUrl(session.workspaceId),
+      {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          Authorization: `${session.tokenType} ${session.accessToken}`,
+        },
+      },
+    );
+
+    return response.ok ? session : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getExocorpseSessionFromCookies() {
   const cookieStore = await cookies();
   const value = cookieStore.get(EXOCORPSE_SESSION_COOKIE)?.value;
+  const session = value ? unsealSession(value) : null;
 
-  return value ? unsealSession(value) : null;
+  return session ? validateExocorpseSession(session) : null;
 }
 
 export function setExocorpseSessionCookie(
