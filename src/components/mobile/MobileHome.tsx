@@ -47,11 +47,11 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
               onClick={() => onNavigate(app.id)}
               onMouseEnter={() => setHoveredButton(app.id)}
               onMouseLeave={() => setHoveredButton(null)}
-              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:border-cyan-300/50 hover:bg-slate-950/72"
+              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:bg-slate-950/72 focus:outline-none focus-visible:bg-slate-950/72"
             >
               <Icon
                 name={app.icon}
-                size={32}
+                size={256}
                 alt={app.label}
                 className="h-12 w-12"
                 isHovered={hoveredButton === app.id}
@@ -71,11 +71,11 @@ export default function MobileHome({ onNavigate }: MobileHomeProps) {
               onClick={() => onNavigate(app.id)}
               onMouseEnter={() => setHoveredButton(app.id)}
               onMouseLeave={() => setHoveredButton(null)}
-              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:border-cyan-300/50 hover:bg-slate-950/72"
+              className="flex aspect-square w-20 flex-col items-center justify-center gap-2 rounded-xl bg-slate-950/55 p-4 shadow-[0_14px_32px_rgba(2,6,23,0.42)] backdrop-blur-md transition-all hover:bg-slate-950/72 focus:outline-none focus-visible:bg-slate-950/72"
             >
               <Icon
                 name={app.icon}
-                size={32}
+                size={256}
                 alt={app.label}
                 className="h-12 w-12"
                 isHovered={hoveredButton === app.id}

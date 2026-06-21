@@ -63,6 +63,13 @@ export default function Icon({
         width={size}
         height={size}
         className={`h-full w-full ${isDirectPath ? "object-contain" : "object-cover"}`}
+        style={
+          isDirectPath
+            ? undefined
+            : {
+                imageRendering: "pixelated",
+              }
+        }
         unoptimized={isDirectPath || (isHovered && hasGifVersion)} // Don't optimize GIFs or direct artwork icons
       />
     </div>
