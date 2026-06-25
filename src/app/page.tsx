@@ -349,7 +349,8 @@ export async function generateMetadata({
   if (!story) {
     return {
       title: "EXOCORPSE",
-      description: "Explore the EXOCORPSE universe, characters, and stories",
+      description:
+        "FENRYS & MORRIS - the duo of artist and writer in one vessel.",
     };
   }
 
