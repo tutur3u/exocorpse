@@ -2,6 +2,22 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import {
+  getCmsCharacterBySlug,
+  getCmsCharacterBySlugInStory,
+  getCmsCharactersByWorldSlug,
+  getCmsFactionBySlug,
+  getCmsFactionBySlugInStory,
+  getCmsFactionsByWorldSlug,
+  getCmsLocationBySlug,
+  getCmsLocationsByWorldSlug,
+  getCmsPublicStories,
+  getCmsPublishedStories,
+  getCmsStoryBySlug,
+  getCmsWorldBySlug,
+  getCmsWorldsByStorySlug,
+} from "@/lib/tuturuuu-cms-delivery";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import type { Tables } from "../../../supabase/types";
 
 export type Story = Tables<"stories">;
@@ -10,6 +26,10 @@ export type Character = Tables<"characters">;
 export type Faction = Tables<"factions">;
 export type CharacterDetail = Tables<"character_details">;
 export type CharacterFaction = Tables<"character_factions">;
+
+async function syncWikiMutation(reason: string) {
+  await syncTuturuuuCmsAfterMutation(`wiki:${reason}`);
+}
 
 /**
  * Fetch all stories (including unpublished, since RLS is disabled)
@@ -35,6 +55,11 @@ export async function getAllStories() {
  * (published + public visibility only)
  */
 export async function getPublicStories() {
+  const cmsStories = await getCmsPublicStories();
+  if (cmsStories) {
+    return cmsStories;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -53,6 +78,11 @@ export async function getPublicStories() {
 }
 
 export async function getPublishedStories() {
+  const cmsStories = await getCmsPublishedStories();
+  if (cmsStories) {
+    return cmsStories;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -100,6 +130,8 @@ export async function createStory(story: {
     throw error;
   }
 
+  await syncWikiMutation("story:create");
+
   return data;
 }
 
@@ -128,6 +160,8 @@ export async function updateStory(
   if (!data) {
     throw new Error("Story not found");
   }
+
+  await syncWikiMutation("story:update");
 
   return data;
 }
@@ -169,12 +203,19 @@ export async function deleteStory(id: string) {
       }
     })();
   }
+
+  await syncWikiMutation("story:delete");
 }
 
 /**
  * Fetch a story by slug with its worlds
  */
 export async function getStoryBySlug(slug: string) {
+  const cmsStory = await getCmsStoryBySlug(slug);
+  if (cmsStory) {
+    return cmsStory;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data: story, error: storyError } = await supabase
@@ -204,6 +245,11 @@ export async function getStoryBySlug(slug: string) {
  * Fetch all worlds for a story by story slug
  */
 export async function getWorldsByStorySlug(storySlug: string) {
+  const cmsWorlds = await getCmsWorldsByStorySlug(storySlug);
+  if (cmsWorlds) {
+    return cmsWorlds;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the story
@@ -272,6 +318,11 @@ export async function getWorldsByStoryId(storyId: string) {
  * Fetch a world by slug
  */
 export async function getWorldBySlug(storySlug: string, worldSlug: string) {
+  const cmsWorld = await getCmsWorldBySlug(storySlug, worldSlug);
+  if (cmsWorld) {
+    return cmsWorld;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the story
@@ -356,6 +407,11 @@ export async function getCharactersByWorldSlug(
   storySlug: string,
   worldSlug: string,
 ) {
+  const cmsCharacters = await getCmsCharactersByWorldSlug(storySlug, worldSlug);
+  if (cmsCharacters) {
+    return cmsCharacters;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world
@@ -463,6 +519,15 @@ export async function getCharacterBySlug(
   worldSlug: string,
   characterSlug: string,
 ) {
+  const cmsCharacter = await getCmsCharacterBySlug(
+    storySlug,
+    worldSlug,
+    characterSlug,
+  );
+  if (cmsCharacter) {
+    return cmsCharacter;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world to scope the character lookup
@@ -506,6 +571,14 @@ export async function getCharacterBySlugInStory(
   storySlug: string,
   characterSlug: string,
 ) {
+  const cmsCharacter = await getCmsCharacterBySlugInStory(
+    storySlug,
+    characterSlug,
+  );
+  if (cmsCharacter) {
+    return cmsCharacter;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the story
@@ -704,6 +777,8 @@ export async function createCharacterGalleryItem(data: {
     throw error;
   }
 
+  await syncWikiMutation("character-gallery:create");
+
   return result;
 }
 
@@ -743,6 +818,8 @@ export async function updateCharacterGalleryItem(
   if (!data) {
     throw new Error("Gallery item not found");
   }
+
+  await syncWikiMutation("character-gallery:update");
 
   return data;
 }
@@ -793,6 +870,8 @@ export async function deleteCharacterGalleryItem(id: string) {
       }
     })();
   }
+
+  await syncWikiMutation("character-gallery:delete");
 }
 
 /**
@@ -820,6 +899,8 @@ export async function reorderCharacterGallery(
     console.error("Error reordering character gallery:", errors);
     throw new Error("Failed to reorder gallery items");
   }
+
+  await syncWikiMutation("character-gallery:reorder");
 }
 
 /**
@@ -876,6 +957,8 @@ export async function createCharacterOutfit(data: {
     throw error;
   }
 
+  await syncWikiMutation("character-outfit:create");
+
   return result;
 }
 
@@ -911,6 +994,8 @@ export async function updateCharacterOutfit(
     throw error;
   }
 
+  await syncWikiMutation("character-outfit:update");
+
   return data;
 }
 
@@ -938,6 +1023,8 @@ export async function deleteCharacterOutfit(id: string) {
     console.error("Error deleting character outfit:", error);
     throw error;
   }
+
+  await syncWikiMutation("character-outfit:delete");
 
   // Return the deleted outfit data so caller can clean up images
   return outfit;
@@ -968,6 +1055,8 @@ export async function reorderCharacterOutfits(
     console.error("Error reordering character outfits:", errors);
     throw new Error("Failed to reorder outfit items");
   }
+
+  await syncWikiMutation("character-outfit:reorder");
 }
 
 /**
@@ -1018,6 +1107,11 @@ export async function getFactionsByWorldSlug(
   storySlug: string,
   worldSlug: string,
 ) {
+  const cmsFactions = await getCmsFactionsByWorldSlug(storySlug, worldSlug);
+  if (cmsFactions) {
+    return cmsFactions;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world
@@ -1129,6 +1223,11 @@ export async function getFactionBySlugInStory(
   storySlug: string,
   factionSlug: string,
 ) {
+  const cmsFaction = await getCmsFactionBySlugInStory(storySlug, factionSlug);
+  if (cmsFaction) {
+    return cmsFaction;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the story
@@ -1172,6 +1271,15 @@ export async function getFactionBySlug(
   worldSlug: string,
   factionSlug: string,
 ) {
+  const cmsFaction = await getCmsFactionBySlug(
+    storySlug,
+    worldSlug,
+    factionSlug,
+  );
+  if (cmsFaction) {
+    return cmsFaction;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world to scope the faction lookup
@@ -1229,6 +1337,8 @@ export async function createWorld(world: {
     throw error;
   }
 
+  await syncWikiMutation("world:create");
+
   return data;
 }
 
@@ -1257,6 +1367,8 @@ export async function updateWorld(
   if (!data) {
     throw new Error("World not found");
   }
+
+  await syncWikiMutation("world:update");
 
   return data;
 }
@@ -1299,6 +1411,8 @@ export async function deleteWorld(id: string) {
       }
     })();
   }
+
+  await syncWikiMutation("world:delete");
 }
 
 // ============================================================================
@@ -1380,6 +1494,8 @@ export async function createCharacter(character: {
 
     // Skip DB call if the resulting array is empty
     if (characterWorldsData.length === 0) {
+      await syncWikiMutation("character:create");
+
       return data;
     }
 
@@ -1405,6 +1521,8 @@ export async function createCharacter(character: {
       throw cwError;
     }
   }
+
+  await syncWikiMutation("character:create");
 
   return data;
 }
@@ -1484,6 +1602,8 @@ export async function updateCharacter(
     }
   }
 
+  await syncWikiMutation("character:update");
+
   return data;
 }
 
@@ -1543,6 +1663,8 @@ export async function deleteCharacter(id: string) {
       // Fire and forget - errors are logged but don't affect the response
     }
   })();
+
+  await syncWikiMutation("character:delete");
 }
 
 // ============================================================================
@@ -1585,6 +1707,8 @@ export async function createFaction(faction: {
     throw error;
   }
 
+  await syncWikiMutation("faction:create");
+
   return data;
 }
 
@@ -1613,6 +1737,8 @@ export async function updateFaction(
   if (!data) {
     throw new Error("Faction not found");
   }
+
+  await syncWikiMutation("faction:update");
 
   return data;
 }
@@ -1660,6 +1786,8 @@ export async function deleteFaction(id: string) {
       }
     })();
   }
+
+  await syncWikiMutation("faction:delete");
 }
 
 // ============================================================================
@@ -1743,6 +1871,8 @@ export async function addCharacterToFaction(data: {
     throw error;
   }
 
+  await syncWikiMutation("character-faction:create");
+
   return result;
 }
 
@@ -1774,6 +1904,8 @@ export async function updateCharacterFaction(
     throw new Error("Character faction not found");
   }
 
+  await syncWikiMutation("character-faction:update");
+
   return data;
 }
 
@@ -1793,6 +1925,8 @@ export async function removeCharacterFromFaction(id: string) {
     console.error("Error removing character from faction:", error);
     throw error;
   }
+
+  await syncWikiMutation("character-faction:delete");
 }
 
 // ============================================================================
@@ -1846,6 +1980,8 @@ export async function addCharacterToWorld(data: {
     throw error;
   }
 
+  await syncWikiMutation("character-world:create");
+
   return result;
 }
 
@@ -1865,6 +2001,8 @@ export async function removeCharacterFromWorld(id: string) {
     console.error("Error removing character from world:", error);
     throw error;
   }
+
+  await syncWikiMutation("character-world:delete");
 }
 
 // ============================================================================
@@ -1973,6 +2111,8 @@ export async function createCharacterRelationship(data: {
     throw error;
   }
 
+  await syncWikiMutation("character-relationship:create");
+
   return result;
 }
 
@@ -2004,6 +2144,8 @@ export async function updateCharacterRelationship(
     throw new Error("Character relationship not found");
   }
 
+  await syncWikiMutation("character-relationship:update");
+
   return data;
 }
 
@@ -2023,6 +2165,8 @@ export async function deleteCharacterRelationship(id: string) {
     console.error("Error deleting character relationship:", error);
     throw error;
   }
+
+  await syncWikiMutation("character-relationship:delete");
 }
 
 /**
@@ -2090,6 +2234,8 @@ export async function createRelationshipType(data: {
     throw error;
   }
 
+  await syncWikiMutation("relationship-type:create");
+
   return result;
 }
 
@@ -2119,6 +2265,8 @@ export async function updateRelationshipType(
     throw error;
   }
 
+  await syncWikiMutation("relationship-type:update");
+
   return result;
 }
 
@@ -2137,6 +2285,8 @@ export async function deleteRelationshipType(id: string) {
     console.error("Error deleting relationship type:", error);
     throw error;
   }
+
+  await syncWikiMutation("relationship-type:delete");
 }
 
 /**
@@ -2256,6 +2406,8 @@ export async function createLocation(location: {
     throw error;
   }
 
+  await syncWikiMutation("location:create");
+
   return data;
 }
 
@@ -2284,6 +2436,8 @@ export async function updateLocation(
   if (!data) {
     throw new Error("Location not found");
   }
+
+  await syncWikiMutation("location:update");
 
   return data;
 }
@@ -2357,6 +2511,8 @@ export async function deleteLocation(id: string) {
       // Fire and forget - errors are logged but don't affect the response
     }
   })();
+
+  await syncWikiMutation("location:delete");
 }
 
 // ============================================================================
@@ -2416,6 +2572,8 @@ export async function createLocationGalleryItem(data: {
     throw error;
   }
 
+  await syncWikiMutation("location-gallery:create");
+
   return result;
 }
 
@@ -2455,6 +2613,8 @@ export async function updateLocationGalleryItem(
   if (!data) {
     throw new Error("Gallery item not found");
   }
+
+  await syncWikiMutation("location-gallery:update");
 
   return data;
 }
@@ -2504,6 +2664,8 @@ export async function deleteLocationGalleryItem(id: string) {
       }
     })();
   }
+
+  await syncWikiMutation("location-gallery:delete");
 }
 
 /**
@@ -2531,6 +2693,8 @@ export async function reorderLocationGallery(
     console.error("Error reordering location gallery:", errors);
     throw new Error("Failed to reorder gallery items");
   }
+
+  await syncWikiMutation("location-gallery:reorder");
 }
 
 /**
@@ -2540,6 +2704,11 @@ export async function getLocationsByWorldSlug(
   storySlug: string,
   worldSlug: string,
 ) {
+  const cmsLocations = await getCmsLocationsByWorldSlug(storySlug, worldSlug);
+  if (cmsLocations) {
+    return cmsLocations;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world
@@ -2569,6 +2738,15 @@ export async function getLocationBySlug(
   worldSlug: string,
   locationSlug: string,
 ) {
+  const cmsLocation = await getCmsLocationBySlug(
+    storySlug,
+    worldSlug,
+    locationSlug,
+  );
+  if (cmsLocation) {
+    return cmsLocation;
+  }
+
   const supabase = await getSupabaseServer();
 
   // First get the world

@@ -2,6 +2,7 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import type { Tables } from "../../../supabase/types";
 
 export type BlacklistedUser = Tables<"blacklisted_users">;
@@ -74,10 +75,7 @@ export async function addBlacklistedUser(data: {
   username: string;
   reasoning?: string;
 }) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  const { supabase } = await verifyAuth();
 
   const { data: result, error } = await supabase
     .from("blacklisted_users")
@@ -90,6 +88,7 @@ export async function addBlacklistedUser(data: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("blacklist:create");
   return result;
 }
 
@@ -100,10 +99,7 @@ export async function updateBlacklistedUser(
   id: string,
   updates: Partial<Pick<BlacklistedUser, "username" | "reasoning">>,
 ) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  const { supabase } = await verifyAuth();
 
   const { data, error } = await supabase
     .from("blacklisted_users")
@@ -117,6 +113,7 @@ export async function updateBlacklistedUser(
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("blacklist:update");
   return data;
 }
 
@@ -124,10 +121,7 @@ export async function updateBlacklistedUser(
  * Delete a blacklist entry
  */
 export async function removeBlacklistedUser(id: string) {
-  // Verify authentication
-  await verifyAuth();
-
-  const supabase = await getSupabaseServer();
+  const { supabase } = await verifyAuth();
 
   const { error } = await supabase
     .from("blacklisted_users")
@@ -139,5 +133,6 @@ export async function removeBlacklistedUser(id: string) {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("blacklist:delete");
   return { success: true };
 }

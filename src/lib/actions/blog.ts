@@ -2,6 +2,12 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import {
+  getCmsBlogPostBySlug,
+  getCmsPublishedBlogPosts,
+  getCmsPublishedBlogPostsPaginated,
+} from "@/lib/tuturuuu-cms-delivery";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import type { Tables } from "../../../supabase/types";
 
 export type BlogPost = Tables<"blog_posts">;
@@ -10,6 +16,11 @@ export type BlogPost = Tables<"blog_posts">;
  * Fetch all published blog posts (posts with published_at in the past or present)
  */
 export async function getPublishedBlogPosts() {
+  const cmsPosts = await getCmsPublishedBlogPosts();
+  if (cmsPosts) {
+    return cmsPosts;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -42,6 +53,13 @@ export async function getPublishedBlogPostsPaginated(
     1,
     Math.min(100, Math.floor(Number(pageSize) || 10)),
   );
+  const cmsPosts = await getCmsPublishedBlogPostsPaginated(
+    validatedPage,
+    validatedPageSize,
+  );
+  if (cmsPosts) {
+    return cmsPosts;
+  }
 
   // Capture current timestamp once for consistent snapshot across queries
   const now = new Date().toISOString();
@@ -175,6 +193,11 @@ export async function getAllBlogPostsPaginated(
  * Fetch a blog post by slug
  */
 export async function getBlogPostBySlug(slug: string) {
+  const cmsPost = await getCmsBlogPostBySlug(slug);
+  if (cmsPost) {
+    return cmsPost;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -238,6 +261,8 @@ export async function createBlogPost(post: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("blog-post:create");
+
   return data;
 }
 
@@ -263,6 +288,8 @@ export async function updateBlogPost(
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("blog-post:update");
+
   return data;
 }
 
@@ -279,4 +306,6 @@ export async function deleteBlogPost(id: string) {
     console.error("Error deleting blog post:", error);
     throw error;
   }
+
+  await syncTuturuuuCmsAfterMutation("blog-post:delete");
 }

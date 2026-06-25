@@ -1,21 +1,27 @@
 "use client";
 
-import { logout } from "@/lib/actions/auth";
 import toastWithSound from "@/lib/toast";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LogoutButton() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
     setIsLoading(true);
     try {
-      const result = await logout();
-      if (result?.error) {
-        toastWithSound.error(result.error);
-        setIsLoading(false);
+      const response = await fetch("/api/auth/tuturuuu-logout", {
+        cache: "no-store",
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to logout");
       }
-      // If successful, logout will redirect to login page
+
+      router.push("/login");
+      router.refresh();
     } catch (error) {
       toastWithSound.error("Failed to logout");
       console.error(error);

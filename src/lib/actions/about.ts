@@ -3,6 +3,8 @@
 import { verifyAuth } from "@/lib/auth/utils";
 import { DEFAULT_ABOUT_SETTINGS, type AboutPageData } from "@/lib/about";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getCmsAboutPageData } from "@/lib/tuturuuu-cms-delivery";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import { revalidatePath } from "next/cache";
 import type { TablesInsert, TablesUpdate } from "../../../supabase/types";
 
@@ -54,7 +56,7 @@ function revalidateAboutPaths() {
 }
 
 export async function getAboutPageData(): Promise<AboutPageData> {
-  return fetchAboutData(false);
+  return (await getCmsAboutPageData()) ?? fetchAboutData(false);
 }
 
 export async function getAboutAdminData(): Promise<AboutPageData> {
@@ -85,6 +87,7 @@ export async function updateAboutPageSettings(
   }
 
   revalidateAboutPaths();
+  await syncTuturuuuCmsAfterMutation("about-settings:update");
   return data;
 }
 
@@ -107,6 +110,7 @@ export async function updateAboutFaq(
   }
 
   revalidateAboutPaths();
+  await syncTuturuuuCmsAfterMutation("about-faq:update");
   return data;
 }
 
@@ -127,6 +131,7 @@ export async function createAboutContentItem(
   }
 
   revalidateAboutPaths();
+  await syncTuturuuuCmsAfterMutation("about-content:create");
   return data;
 }
 
@@ -149,6 +154,7 @@ export async function updateAboutContentItem(
   }
 
   revalidateAboutPaths();
+  await syncTuturuuuCmsAfterMutation("about-content:update");
   return data;
 }
 
@@ -166,5 +172,6 @@ export async function deleteAboutContentItem(id: string) {
   }
 
   revalidateAboutPaths();
+  await syncTuturuuuCmsAfterMutation("about-content:delete");
   return { success: true };
 }

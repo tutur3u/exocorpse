@@ -2,6 +2,11 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import {
+  getCmsActiveServices,
+  getCmsServiceBySlug,
+} from "@/lib/tuturuuu-cms-delivery";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import { revalidatePath } from "next/cache";
 import type {
   Tables,
@@ -149,6 +154,11 @@ export async function getServiceById(serviceId: string) {
 export async function getServiceBySlug(
   slug: string,
 ): Promise<ServiceWithDetails | null> {
+  const cmsService = await getCmsServiceBySlug(slug);
+  if (cmsService) {
+    return cmsService;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -189,6 +199,11 @@ export async function getServiceBySlug(
  * Get active services (for public display)
  */
 export async function getActiveServices(): Promise<ServiceWithDetails[]> {
+  const cmsServices = await getCmsActiveServices();
+  if (cmsServices) {
+    return cmsServices;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -260,6 +275,7 @@ export async function createService(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service:create");
   return data;
 }
 
@@ -285,6 +301,7 @@ export async function updateService(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service:update");
   return data;
 }
 
@@ -332,6 +349,7 @@ export async function deleteService(serviceId: string) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service:delete");
 }
 
 // ============================================================================
@@ -463,6 +481,7 @@ export async function createAddon(
   }
 
   revalidatePath("/admin/addons");
+  await syncTuturuuuCmsAfterMutation("commission-addon:create");
   return data;
 }
 
@@ -488,6 +507,7 @@ export async function updateAddon(
   }
 
   revalidatePath("/admin/addons");
+  await syncTuturuuuCmsAfterMutation("commission-addon:update");
   return data;
 }
 
@@ -508,6 +528,7 @@ export async function deleteAddon(addonId: string) {
   }
 
   revalidatePath("/admin/addons");
+  await syncTuturuuuCmsAfterMutation("commission-addon:delete");
 }
 
 // ============================================================================
@@ -537,6 +558,7 @@ export async function linkAddonToService(serviceId: string, addonId: string) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service-addon:link");
   return data;
 }
 
@@ -561,6 +583,7 @@ export async function unlinkAddonFromService(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service-addon:unlink");
 }
 
 /**
@@ -594,6 +617,7 @@ export async function setServiceAddons(serviceId: string, addonIds: string[]) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-service-addon:set");
   return result;
 }
 
@@ -678,6 +702,7 @@ export async function createStyle(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-style:create");
   return data;
 }
 
@@ -703,6 +728,7 @@ export async function updateStyle(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-style:update");
   return data;
 }
 
@@ -749,6 +775,7 @@ export async function deleteStyle(styleId: string) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-style:delete");
 }
 
 // ============================================================================
@@ -878,6 +905,7 @@ export async function createPicture(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-picture:create");
   return data;
 }
 
@@ -934,6 +962,7 @@ export async function updatePicture(
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-picture:update");
   return data;
 }
 
@@ -979,6 +1008,7 @@ export async function deletePicture(pictureId: string) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-picture:delete");
 }
 
 /**
@@ -1012,6 +1042,7 @@ export async function setPrimaryPicture(styleId: string, pictureId: string) {
   }
 
   revalidatePath("/admin/services");
+  await syncTuturuuuCmsAfterMutation("commission-picture:set-primary");
   return result;
 }
 

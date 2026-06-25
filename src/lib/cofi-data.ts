@@ -3,6 +3,7 @@ import "server-only";
 import type { CofiDataset, CofiSample } from "@/data/cofi/types";
 import { mapCofiRowToSample } from "@/lib/cofi";
 import { getSupabaseAdminServer } from "@/lib/supabase/server";
+import { getCmsCofiSampleRows } from "@/lib/tuturuuu-cms-delivery";
 import type { Tables } from "../../supabase/types";
 
 const PAGE_SIZE = 1000;
@@ -95,6 +96,11 @@ function buildCofiDataset(rows: Tables<"cofi_samples">[]): CofiDataset {
 }
 
 export async function getCofiSamplesFromDb(): Promise<CofiSample[]> {
+  const cmsRows = await getCmsCofiSampleRows();
+  if (cmsRows) {
+    return cmsRows.map((row) => mapCofiRowToSample(row));
+  }
+
   const supabase = await getSupabaseAdminServer();
   const rows: Tables<"cofi_samples">[] = [];
   let from = 0;
@@ -128,6 +134,11 @@ export async function getCofiSamplesFromDb(): Promise<CofiSample[]> {
 }
 
 export async function getCofiDatasetFromDb(): Promise<CofiDataset> {
+  const cmsRows = await getCmsCofiSampleRows();
+  if (cmsRows) {
+    return buildCofiDataset(cmsRows);
+  }
+
   const supabase = await getSupabaseAdminServer();
   const rows: Tables<"cofi_samples">[] = [];
   let from = 0;

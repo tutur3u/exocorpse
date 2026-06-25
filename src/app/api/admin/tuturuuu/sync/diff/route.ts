@@ -27,7 +27,7 @@ export async function POST() {
 
   if (!localUser) {
     return NextResponse.json(
-      { error: "Local admin login required" },
+      { error: "Tuturuuu admin connection required" },
       { status: 401 },
     );
   }

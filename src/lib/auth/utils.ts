@@ -1,4 +1,6 @@
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getExocorpseAdminLoginPath } from "@/lib/exocorpse-config";
+import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
+import { getSupabaseAdminServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 /**
@@ -6,18 +8,8 @@ import { redirect } from "next/navigation";
  * Returns null if not authenticated
  */
 export async function getCurrentUser() {
-  const supabase = await getSupabaseServer();
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return null;
-  }
-
-  return user;
+  const session = await getExocorpseSessionFromCookies();
+  return session?.user ?? null;
 }
 
 /**
@@ -25,20 +17,19 @@ export async function getCurrentUser() {
  * Throws an error if not authenticated
  */
 export async function verifyAuth() {
-  const supabase = await getSupabaseServer();
+  const session = await getExocorpseSessionFromCookies();
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  if (!session) {
     throw new Error(
-      "Unauthorized: You must be logged in to perform this action",
+      "Unauthorized: You must connect through Tuturuuu Auth to perform this action",
     );
   }
 
-  return { user, supabase };
+  return {
+    session,
+    supabase: await getSupabaseAdminServer(),
+    user: session.user,
+  };
 }
 
 /**
@@ -49,7 +40,7 @@ export async function requireAuth() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/login");
+    redirect(getExocorpseAdminLoginPath("dashboard"));
   }
 
   return user;

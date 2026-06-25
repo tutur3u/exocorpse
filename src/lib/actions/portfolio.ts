@@ -2,6 +2,18 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import {
+  getCmsArtPieceBySlug,
+  getCmsArtPieces,
+  getCmsFeaturedArtPieces,
+  getCmsFeaturedWritingPieces,
+  getCmsGamePieceById,
+  getCmsGamePieceBySlug,
+  getCmsGamePieces,
+  getCmsWritingPieceBySlug,
+  getCmsWritingPieces,
+} from "@/lib/tuturuuu-cms-delivery";
+import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import sanitizeHtml from "sanitize-html";
 import type { Tables } from "../../../supabase/types";
 
@@ -18,6 +30,11 @@ export type GamePieceGalleryImage = Tables<"game_piece_gallery_images">;
  * Fetch all art pieces (public - non-deleted only)
  */
 export async function getArtPieces() {
+  const cmsPieces = await getCmsArtPieces();
+  if (cmsPieces) {
+    return cmsPieces;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -59,6 +76,11 @@ export async function getAllArtPiecesAdmin() {
  * Fetch a single art piece by slug
  */
 export async function getArtPieceBySlug(slug: string) {
+  const cmsPiece = await getCmsArtPieceBySlug(slug);
+  if (cmsPiece) {
+    return cmsPiece;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -80,6 +102,11 @@ export async function getArtPieceBySlug(slug: string) {
  * Fetch featured art pieces for rotating gallery
  */
 export async function getFeaturedArtPieces() {
+  const cmsPieces = await getCmsFeaturedArtPieces();
+  if (cmsPieces) {
+    return cmsPieces;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -131,6 +158,7 @@ export async function createArtPiece(artPiece: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("portfolio-art:create");
   return data;
 }
 
@@ -154,6 +182,8 @@ export async function updateArtPiece(
     console.error("Error updating art piece:", error);
     throw error;
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-art:update");
 
   return data;
 }
@@ -202,6 +232,8 @@ export async function deleteArtPiece(id: string) {
       }
     })();
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-art:delete");
 }
 
 // ============================================================================
@@ -212,6 +244,11 @@ export async function deleteArtPiece(id: string) {
  * Fetch all writing pieces (public - non-deleted only)
  */
 export async function getWritingPieces() {
+  const cmsPieces = await getCmsWritingPieces();
+  if (cmsPieces) {
+    return cmsPieces;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -253,6 +290,11 @@ export async function getAllWritingPiecesAdmin() {
  * Fetch a single writing piece by slug
  */
 export async function getWritingPieceBySlug(slug: string) {
+  const cmsPiece = await getCmsWritingPieceBySlug(slug);
+  if (cmsPiece) {
+    return cmsPiece;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -274,6 +316,11 @@ export async function getWritingPieceBySlug(slug: string) {
  * Fetch featured writing pieces for rotating gallery
  */
 export async function getFeaturedWritingPieces() {
+  const cmsPieces = await getCmsFeaturedWritingPieces();
+  if (cmsPieces) {
+    return cmsPieces;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -334,6 +381,7 @@ export async function createWritingPiece(writingPiece: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("portfolio-writing:create");
   return data;
 }
 
@@ -371,6 +419,8 @@ export async function updateWritingPiece(
     console.error("Error updating writing piece:", error);
     throw error;
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-writing:update");
 
   return data;
 }
@@ -422,6 +472,8 @@ export async function deleteWritingPiece(id: string) {
       }
     })();
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-writing:delete");
 }
 
 // ============================================================================
@@ -432,6 +484,11 @@ export async function deleteWritingPiece(id: string) {
  * Fetch all game pieces (public)
  */
 export async function getGamePieces() {
+  const cmsPieces = await getCmsGamePieces();
+  if (cmsPieces) {
+    return cmsPieces;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -470,6 +527,11 @@ export async function getAllGamePiecesAdmin() {
  * Fetch a single game piece by ID with gallery images
  */
 export async function getGamePieceById(id: string) {
+  const cmsPiece = await getCmsGamePieceById(id);
+  if (cmsPiece) {
+    return cmsPiece;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -497,6 +559,11 @@ export async function getGamePieceById(id: string) {
  * Fetch a single game piece by slug with gallery images
  */
 export async function getGamePieceBySlug(slug: string) {
+  const cmsPiece = await getCmsGamePieceBySlug(slug);
+  if (cmsPiece) {
+    return cmsPiece;
+  }
+
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
@@ -547,6 +614,8 @@ export async function createGamePiece(gamePiece: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("portfolio-game:create");
+
   return data;
 }
 
@@ -570,6 +639,8 @@ export async function updateGamePiece(
     console.error("Error updating game piece:", error);
     throw error;
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-game:update");
 
   return data;
 }
@@ -630,6 +701,8 @@ export async function deleteGamePiece(id: string) {
       }
     })();
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-game:delete");
 }
 
 // ============================================================================
@@ -678,6 +751,7 @@ export async function addGamePieceGalleryImage(galleryImage: {
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("portfolio-game-gallery:create");
   return data;
 }
 
@@ -702,6 +776,7 @@ export async function updateGamePieceGalleryImage(
     throw error;
   }
 
+  await syncTuturuuuCmsAfterMutation("portfolio-game-gallery:update");
   return data;
 }
 
@@ -742,4 +817,6 @@ export async function deleteGamePieceGalleryImage(id: string) {
       }
     })();
   }
+
+  await syncTuturuuuCmsAfterMutation("portfolio-game-gallery:delete");
 }
