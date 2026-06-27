@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Exocorpse ArtFight Profile Preview</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23020617'/%3E%3Cpath d='M12 32h40M32 12v40' stroke='%23fb7185' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='12' fill='none' stroke='%2322d3ee' stroke-width='4'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="supporter-profile.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        background:
+          radial-gradient(
+            circle at 18% 8%,
+            rgba(251, 113, 133, 0.18),
+            transparent 28%
+          ),
+          radial-gradient(
+            circle at 78% 4%,
+            rgba(34, 211, 238, 0.12),
+            transparent 28%
+          ),
+          #020617;
+      }
+
+      .preview-note {
+        max-width: 1180px;
+        margin: 0 auto 16px;
+        padding: 12px 14px;
+        border: 1px solid rgba(34, 211, 238, 0.32);
+        background: rgba(2, 6, 23, 0.86);
+        color: #cbd5e1;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 700px) {
+        body {
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p class="preview-note">
+      Local preview only. This file uses repo images from public/. For ArtFight,
+      use inline-html.html or supporter-css.html and replace image placeholders
+      with public HTTPS URLs.
+    </p>
+
+    <div class="exo-af">
+      <section
+        class="exo-hero"
+        style="
+          --exo-hero-image: url(&quot;../public/background-image.webp&quot;);
+        "
+      >
+        <div class="exo-file-label">File: AF-EXO-0001 / Access: Public</div>
+        <h1>Confidential<br />Biology Record</h1>
+        <p>
+          Exocorpse ArtFight dossier for Fenrys &amp; Morris, an illustrator and
+          writer duo in one vessel. Attacks are processed through the
+          corporation's Pulse and Neuro intake desk.
+        </p>
+      </section>
+
+      <main class="exo-grid">
+        <aside class="exo-card exo-id-card">
+          <div
+            class="exo-portrait"
+            style="--exo-image: url(&quot;../public/LykoTwins.webp&quot;)"
+            aria-label="Fenrys and Morris portrait"
+          ></div>
+          <h2>Fenrys &amp; Morris</h2>
+          <p class="exo-mono">AKA exocorpse / exocorpsehq</p>
+          <dl class="exo-facts">
+            <div>
+              <dt>Role</dt>
+              <dd>Illustrator, writer, game developer</dd>
+            </div>
+            <div>
+              <dt>Zone</dt>
+              <dd>Vietnam / GMT+7</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>Open for attacks, revenges when possible</dd>
+            </div>
+          </dl>
+        </aside>
+
+        <section class="exo-stack">
+          <article class="exo-card exo-notes">
+            <span class="exo-kicker">Specimen Notes</span>
+            <p>
+              I specialize in illustrative works, story and dialogue writing,
+              and sprite work for game development. Exocorpse is an underground
+              corporation fascinated by human anatomy, psychology, sin, and
+              salvation. This profile follows the same anatomy-terminal
+              language: heart, mind, dossier, target, mission.
+            </p>
+          </article>
+
+          <div class="exo-split">
+            <article class="exo-card exo-prototype exo-pulse">
+              <h3>Prototype: Pulse</h3>
+              <p>
+                For direct action attacks: striking poses, dramatic lighting,
+                combat silhouettes, body language, movement, teeth, bloodless
+                body horror, weapons, tactical outfits.
+              </p>
+              <span>Heart rate: high / frontline ready</span>
+            </article>
+            <article class="exo-card exo-prototype exo-neuro">
+              <h3>Prototype: Neuro</h3>
+              <p>
+                For psychological attacks: eerie portraits, symbolism, written
+                details, character relationships, memory motifs, coded imagery,
+                soft horror, narrative-driven scenes.
+              </p>
+              <span>Signal: clear / backline online</span>
+            </article>
+          </div>
+
+          <div class="exo-split">
+            <article class="exo-card">
+              <h3>Attack Intake</h3>
+              <p>
+                <strong class="exo-yes">Yes:</strong> humanoids, monsters,
+                original characters, dramatic lighting, expressive scenes, lore
+                details, outfit experiments.
+              </p>
+              <p>
+                <strong class="exo-no">Avoid:</strong> hateful content, explicit
+                NSFW, heavy gore, AI-generated references.
+              </p>
+            </article>
+            <article class="exo-card">
+              <h3>Priorities</h3>
+              <p>
+                Friends &gt; bookmarks &gt; revenges &gt; characters with fresh
+                lore. Friendly fire is welcome unless ArtFight team rules say
+                otherwise. Chains are welcome, but not required.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <section class="exo-operatives">
+        <article class="exo-card exo-operative exo-operative-pulse">
+          <div
+            class="exo-operative-image"
+            style="--exo-image: url(&quot;../public/boot/Fenrys.webp&quot;)"
+          ></div>
+          <h3>Fenrys</h3>
+          <p>Artist representative. Pulse-facing visual operator.</p>
+        </article>
+        <article class="exo-card exo-operative exo-operative-neuro">
+          <div
+            class="exo-operative-image"
+            style="--exo-image: url(&quot;../public/boot/Morris.webp&quot;)"
+          ></div>
+          <h3>Morris</h3>
+          <p>Writer representative. Neuro-facing narrative operator.</p>
+        </article>
+        <article class="exo-card exo-links">
+          <h3>Links</h3>
+          <a href="https://artfight.net/~REPLACE_WITH_ARTFIGHT_USERNAME"
+            >ArtFight</a
+          >
+          <a href="https://vgen.co/exocorpse">VGen: exocorpse</a>
+          <a href="https://bsky.app/profile/exocorpse.bsky.social"
+            >Bluesky: exocorpse</a
+          >
+          <a href="https://exocorpsehq.tumblr.com/">Tumblr: exocorpsehq</a>
+          <a href="https://x.com/exocorpsehq">Twitter/X: exocorpsehq</a>
+        </article>
+      </section>
+    </div>
+  </body>
+</html>
