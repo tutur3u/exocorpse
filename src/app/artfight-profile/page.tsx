@@ -6,9 +6,9 @@ import path from "node:path";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "ArtFight Profile Preview - EXOCORPSE",
+  title: "Artfight Profile - EXOCORPSE",
   description:
-    "Customer preview and copy center for the EXOCORPSE ArtFight profile HTML and CSS.",
+    "Preview and copy the official EXOCORPSE ArtFight profile HTML and CSS.",
 };
 
 const PROFILE_DIR = path.join(process.cwd(), "artfight-profile");

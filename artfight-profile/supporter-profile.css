@@ -114,30 +114,17 @@
   opacity: 0.44;
 }
 
-.exo-file-label,
 .exo-hero h1,
 .exo-hero p {
   position: relative;
   z-index: 1;
 }
 
-.exo-file-label {
-  display: inline-block;
-  padding: 6px 10px;
-  border: 1px solid rgba(251, 113, 133, 0.7);
-  background: rgba(2, 6, 23, 0.72);
-  color: var(--exo-pulse-soft);
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
 .exo-hero h1 {
-  margin: 16px 0 10px;
+  margin: 0 0 10px;
   color: var(--exo-white);
   font-size: clamp(36px, 7vw, 78px);
-  line-height: 0.9;
+  line-height: 0.95;
   letter-spacing: 0.04em;
   text-shadow: 0 0 24px rgba(251, 113, 133, 0.46);
   text-transform: uppercase;

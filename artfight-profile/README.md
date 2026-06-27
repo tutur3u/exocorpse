@@ -1,6 +1,6 @@
 # Exocorpse ArtFight Profile Pack
 
-This folder contains multiple versions of the Exocorpse ArtFight profile design using the selected **CONFIDENTIAL BIOLOGY RECORD** direction.
+This folder contains multiple versions of the official Exocorpse ArtFight profile design.
 
 ## Files
 
