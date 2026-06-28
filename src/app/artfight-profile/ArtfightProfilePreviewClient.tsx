@@ -37,24 +37,28 @@ const codeTabs: Array<{
   label: string;
   fileName: string;
   description: string;
+  language: "css" | "html";
 }> = [
   {
     id: "inlineHtml",
     label: "Inline HTML",
     fileName: "inline-html.html",
     description: "Single paste field for non-Supporter ArtFight profiles.",
+    language: "html",
   },
   {
     id: "supporterHtml",
     label: "Supporter HTML",
     fileName: "supporter-css.html",
     description: "Profile HTML to pair with the Supporter CSS payload.",
+    language: "html",
   },
   {
     id: "supporterCss",
     label: "Supporter CSS",
     fileName: "supporter-profile.css",
     description: "Custom CSS for ArtFight Supporter profile styling.",
+    language: "css",
   },
 ];
 
@@ -67,11 +71,20 @@ const placeholders = [
 ];
 
 const Streamdown = dynamic<StreamdownProps>(
-  () => import("streamdown").then((module) => module.Streamdown),
+  async () => {
+    const [{ Streamdown }, { code }] = await Promise.all([
+      import("streamdown"),
+      import("@streamdown/code"),
+    ]);
+
+    return function HighlightedStreamdown(props: StreamdownProps) {
+      return <Streamdown plugins={{ code }} {...props} />;
+    };
+  },
   {
     ssr: false,
     loading: () => (
-      <div className="text-sm leading-6 text-slate-400">Loading notes...</div>
+      <div className="text-sm leading-6 text-slate-400">Loading preview...</div>
     ),
   },
 );
@@ -174,6 +187,16 @@ function buildSrcDoc(body: string, css: string) {
   </head>
   <body>${body}</body>
 </html>`;
+}
+
+function buildCodeMarkdown(language: string, code: string) {
+  const longestBacktickRun = Math.max(
+    0,
+    ...Array.from(code.matchAll(/`+/g), (match) => match[0].length),
+  );
+  const fence = "`".repeat(Math.max(3, longestBacktickRun + 1));
+
+  return `${fence}${language}\n${code}\n${fence}`;
 }
 
 async function writeClipboard(text: string) {
@@ -303,6 +326,10 @@ export default function ArtfightProfilePreviewClient({
 
   const activeCodeTab = codeTabs.find((tab) => tab.id === codeMode);
   const activeCode = source[codeMode];
+  const activeCodeMarkdown = useMemo(
+    () => buildCodeMarkdown(activeCodeTab?.language ?? "html", activeCode),
+    [activeCode, activeCodeTab?.language],
+  );
   const previewTitle =
     previewMode === "supporter"
       ? "Fenrys & Morris supporter preview"
@@ -503,7 +530,7 @@ export default function ArtfightProfilePreviewClient({
       {activeDialog === "code" ? (
         <DialogFrame
           title="Code"
-          description="Inspect source files, copy, or download the active payload."
+          description="Inspect highlighted source files, copy, or download the active payload."
           onClose={() => setActiveDialog(null)}
         >
           <div className="grid grid-cols-3 border border-slate-700/70">
@@ -563,13 +590,21 @@ export default function ArtfightProfilePreviewClient({
             </div>
           </div>
 
-          <textarea
-            readOnly
-            value={activeCode}
-            className="mt-4 h-96 w-full resize-none border border-slate-700 bg-[#020617] p-3 font-mono text-xs leading-5 text-slate-200 outline-none focus:border-cyan-300/60"
-            spellCheck={false}
-            aria-label={`${activeCodeTab?.label} source code`}
-          />
+          <div
+            role="region"
+            aria-label={`${activeCodeTab?.label} highlighted source code`}
+            className="mt-4 h-96 overflow-auto border border-slate-700 bg-[#020617]"
+          >
+            <Streamdown
+              mode="static"
+              controls={false}
+              lineNumbers
+              shikiTheme={["github-light", "github-dark"]}
+              className="h-full text-xs leading-5 text-slate-200 [&_[data-streamdown='code-block']]:my-0 [&_[data-streamdown='code-block']]:h-full [&_[data-streamdown='code-block']]:rounded-none [&_[data-streamdown='code-block']]:border-0 [&_[data-streamdown='code-block']]:bg-[#020617] [&_[data-streamdown='code-block']]:p-0 [&_[data-streamdown='code-block-body']]:h-full [&_[data-streamdown='code-block-body']]:overflow-auto [&_[data-streamdown='code-block-body']]:rounded-none [&_[data-streamdown='code-block-body']]:border-0 [&_[data-streamdown='code-block-body']]:bg-[#020617] [&_[data-streamdown='code-block-body']]:p-3 [&_code]:font-mono [&_pre]:min-w-max [&_pre]:bg-transparent"
+            >
+              {activeCodeMarkdown}
+            </Streamdown>
+          </div>
         </DialogFrame>
       ) : null}
 
