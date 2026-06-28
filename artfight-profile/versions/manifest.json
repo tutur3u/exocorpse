@@ -1,0 +1,28 @@
+[
+  {
+    "id": "2026-06-28-shrine-board",
+    "label": "Shrine Board",
+    "date": "2026-06-28",
+    "status": "current",
+    "summary": "Personalized Exocorpse shrine-board design with collage layers, mood strips, and softer profile framing.",
+    "files": {
+      "inlineHtml": "versions/2026-06-28-shrine-board/inline-html.html",
+      "supporterHtml": "versions/2026-06-28-shrine-board/supporter-css.html",
+      "supporterCss": "versions/2026-06-28-shrine-board/supporter-profile.css",
+      "readme": "versions/2026-06-28-shrine-board/README.md"
+    }
+  },
+  {
+    "id": "2026-06-28-gallery-wall",
+    "label": "Gallery Wall",
+    "date": "2026-06-28",
+    "status": "archived",
+    "summary": "Previous compact ArtFight profile with a gallery wall, Pulse and Neuro panels, and denser sections.",
+    "files": {
+      "inlineHtml": "versions/2026-06-28-gallery-wall/inline-html.html",
+      "supporterHtml": "versions/2026-06-28-gallery-wall/supporter-css.html",
+      "supporterCss": "versions/2026-06-28-gallery-wall/supporter-profile.css",
+      "readme": "versions/2026-06-28-gallery-wall/README.md"
+    }
+  }
+]

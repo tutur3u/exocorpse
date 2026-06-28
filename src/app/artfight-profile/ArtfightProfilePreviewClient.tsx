@@ -6,7 +6,9 @@ import {
   Clipboard,
   Download,
   FileCode2,
+  GitCompareArrows,
   ImageIcon,
+  Menu,
   Monitor,
   NotebookText,
   Palette,
@@ -17,7 +19,14 @@ import type { ComponentType, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { StreamdownProps } from "streamdown";
 
-type ProfileSource = {
+type ProfileVersionStatus = "current" | "archived";
+
+type ProfileVersion = {
+  id: string;
+  label: string;
+  date: string;
+  status: ProfileVersionStatus;
+  summary: string;
   inlineHtml: string;
   supporterHtml: string;
   supporterCss: string;
@@ -25,12 +34,24 @@ type ProfileSource = {
 };
 
 type ArtfightProfilePreviewClientProps = {
-  source: ProfileSource;
+  versions: ProfileVersion[];
 };
 
 type PreviewMode = "supporter" | "inline";
 type CodeMode = "inlineHtml" | "supporterHtml" | "supporterCss";
-type DialogMode = "preview" | "placeholders" | "code" | "notes";
+type DialogMode = "preview" | "compare" | "placeholders" | "code" | "notes";
+
+const emptyVersion: ProfileVersion = {
+  id: "empty",
+  label: "No version",
+  date: "",
+  status: "archived",
+  summary: "No profile versions are available.",
+  inlineHtml: "",
+  supporterHtml: "",
+  supporterCss: "",
+  readme: "# No profile versions available",
+};
 
 const codeTabs: Array<{
   id: CodeMode;
@@ -50,7 +71,7 @@ const codeTabs: Array<{
     id: "supporterHtml",
     label: "Supporter HTML",
     fileName: "supporter-css.html",
-    description: "Profile HTML to pair with the Supporter CSS payload.",
+    description: "Profile HTML to pair with the Supporter CSS file.",
     language: "html",
   },
   {
@@ -65,6 +86,14 @@ const codeTabs: Array<{
 const placeholders = [
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_PAGEDOLL",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_01",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_02",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_03",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_01",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_02",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_03",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_04",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01",
@@ -100,6 +129,14 @@ const Streamdown = dynamic<StreamdownProps>(
 const previewImageReplacements: Record<string, string> = {
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER: "/background-image.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT: "/LykoTwins.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_PAGEDOLL: "/boot/Fenrys.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_01: "/desktop-logo.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_02: "/exocorpse.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_03: "/desktop-logo.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_01: "/boot/Fenrys.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_02: "/boot/Morris.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_03: "/exocorpse.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MOOD_04: "/LykoTwins.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS: "/boot/Fenrys.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS: "/boot/Morris.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01:
@@ -167,10 +204,11 @@ const inlinePreviewCss = `
     padding: 1rem;
   }
 
+  .col-lg-3,
   .col-lg-4,
+  .col-lg-5,
   .col-lg-6,
   .col-lg-8,
-  .col-lg-3,
   .col-md-4,
   .col-md-6 {
     position: relative;
@@ -198,6 +236,11 @@ const inlinePreviewCss = `
     .col-lg-4 {
       flex: 0 0 33.333333%;
       max-width: 33.333333%;
+    }
+
+    .col-lg-5 {
+      flex: 0 0 41.666667%;
+      max-width: 41.666667%;
     }
 
     .col-lg-6 {
@@ -275,11 +318,13 @@ function DialogFrame({
   description,
   children,
   onClose,
+  size = "default",
 }: {
   title: string;
   description?: string;
   children: ReactNode;
   onClose: () => void;
+  size?: "default" | "wide";
 }) {
   return (
     <div
@@ -290,7 +335,9 @@ function DialogFrame({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="max-h-[min(760px,calc(100vh-32px))] w-full max-w-3xl overflow-hidden border border-rose-300/35 bg-[#060912] text-slate-100 shadow-[0_28px_90px_rgba(2,6,23,0.8)]"
+        className={`max-h-[min(800px,calc(100vh-32px))] w-full overflow-hidden border border-rose-300/35 bg-[#060912] text-slate-100 shadow-[0_28px_90px_rgba(2,6,23,0.8)] ${
+          size === "wide" ? "max-w-6xl" : "max-w-3xl"
+        }`}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-700/80 bg-slate-950/88 px-4 py-3">
@@ -313,7 +360,7 @@ function DialogFrame({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[calc(min(760px,100vh-32px)-76px)] overflow-auto p-4">
+        <div className="max-h-[calc(min(800px,100vh-32px)-76px)] overflow-auto p-4">
           {children}
         </div>
       </section>
@@ -342,54 +389,188 @@ function ActionButton({
   );
 }
 
+function MobileMenuButton({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 border-b border-slate-800 px-3 py-3 text-left text-sm font-semibold text-slate-100 transition last:border-b-0 hover:bg-cyan-300/10 hover:text-cyan-100"
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
+
+function VersionSelect({
+  versions,
+  selectedVersionId,
+  onChange,
+}: {
+  versions: ProfileVersion[];
+  selectedVersionId: string;
+  onChange: (versionId: string) => void;
+}) {
+  return (
+    <label className="inline-flex min-w-0 items-center gap-2 border border-rose-300/35 bg-rose-300/10 px-3 py-2 text-sm font-semibold text-rose-50">
+      <span className="sr-only">Select profile version</span>
+      <span className="hidden text-rose-100/75 @lg:inline">Version</span>
+      <select
+        value={selectedVersionId}
+        onChange={(event) => onChange(event.target.value)}
+        className="max-w-[12rem] min-w-0 bg-transparent text-sm font-semibold text-rose-50 outline-none @lg:max-w-[16rem]"
+        aria-label="Select profile version"
+      >
+        {versions.map((version) => (
+          <option key={version.id} value={version.id} className="bg-slate-950">
+            {version.label}
+            {version.status === "current" ? " (current)" : " (archived)"}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="h-4 w-4 shrink-0 text-rose-100/70" />
+    </label>
+  );
+}
+
+function CodePreview({ label, markdown }: { label: string; markdown: string }) {
+  return (
+    <div className="min-w-0">
+      <h3 className="mb-2 text-sm font-bold text-slate-100">{label}</h3>
+      <div
+        role="region"
+        aria-label={`${label} highlighted source code`}
+        className="h-80 overflow-auto border border-slate-700 bg-[#020617]"
+      >
+        <Streamdown
+          mode="static"
+          controls={false}
+          lineNumbers
+          shikiTheme={["github-light", "github-dark"]}
+          className="h-full text-xs leading-5 text-slate-200 [&_[data-streamdown='code-block']]:my-0 [&_[data-streamdown='code-block']]:h-full [&_[data-streamdown='code-block']]:rounded-none [&_[data-streamdown='code-block']]:border-0 [&_[data-streamdown='code-block']]:bg-[#020617] [&_[data-streamdown='code-block']]:p-0 [&_[data-streamdown='code-block-body']]:h-full [&_[data-streamdown='code-block-body']]:overflow-auto [&_[data-streamdown='code-block-body']]:rounded-none [&_[data-streamdown='code-block-body']]:border-0 [&_[data-streamdown='code-block-body']]:bg-[#020617] [&_[data-streamdown='code-block-body']]:p-3 [&_code]:font-mono [&_pre]:min-w-max [&_pre]:bg-transparent"
+        >
+          {markdown}
+        </Streamdown>
+      </div>
+    </div>
+  );
+}
+
 export default function ArtfightProfilePreviewClient({
-  source,
+  versions,
 }: ArtfightProfilePreviewClientProps) {
+  const initialVersion =
+    versions.find((version) => version.status === "current") ??
+    versions[0] ??
+    emptyVersion;
+  const [selectedVersionId, setSelectedVersionId] = useState(initialVersion.id);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("supporter");
   const [codeMode, setCodeMode] = useState<CodeMode>("inlineHtml");
+  const [compareCodeMode, setCompareCodeMode] =
+    useState<CodeMode>("supporterHtml");
+  const [compareLeftId, setCompareLeftId] = useState(
+    versions.find((version) => version.status === "archived")?.id ??
+      initialVersion.id,
+  );
+  const [compareRightId, setCompareRightId] = useState(initialVersion.id);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeDialog, setActiveDialog] = useState<DialogMode | null>(null);
   const [copyMenuOpen, setCopyMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const copyMenuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+
+  const currentVersion =
+    versions.find((version) => version.status === "current") ?? initialVersion;
+  const selectedVersion =
+    versions.find((version) => version.id === selectedVersionId) ??
+    currentVersion;
+  const compareLeftVersion =
+    versions.find((version) => version.id === compareLeftId) ?? selectedVersion;
+  const compareRightVersion =
+    versions.find((version) => version.id === compareRightId) ?? currentVersion;
+  const activeCodeTab = codeTabs.find((tab) => tab.id === codeMode);
+  const activeCompareCodeTab = codeTabs.find(
+    (tab) => tab.id === compareCodeMode,
+  );
+  const activeCode = selectedVersion[codeMode];
+  const compareLeftCode = compareLeftVersion[compareCodeMode];
+  const compareRightCode = compareRightVersion[compareCodeMode];
 
   const previewDocuments = useMemo(
     () => ({
       inline: buildSrcDoc(
-        applyPreviewReplacements(source.inlineHtml),
+        applyPreviewReplacements(selectedVersion.inlineHtml),
         inlinePreviewCss,
       ),
       supporter: buildSrcDoc(
-        applyPreviewReplacements(source.supporterHtml),
-        `${previewShellCss}\n${source.supporterCss}`,
+        applyPreviewReplacements(selectedVersion.supporterHtml),
+        `${previewShellCss}\n${selectedVersion.supporterCss}`,
       ),
     }),
-    [source.inlineHtml, source.supporterCss, source.supporterHtml],
+    [
+      selectedVersion.inlineHtml,
+      selectedVersion.supporterCss,
+      selectedVersion.supporterHtml,
+    ],
   );
 
-  const activeCodeTab = codeTabs.find((tab) => tab.id === codeMode);
-  const activeCode = source[codeMode];
   const activeCodeMarkdown = useMemo(
     () => buildCodeMarkdown(activeCodeTab?.language ?? "html", activeCode),
     [activeCode, activeCodeTab?.language],
   );
+  const compareLeftMarkdown = useMemo(
+    () =>
+      buildCodeMarkdown(
+        activeCompareCodeTab?.language ?? "html",
+        compareLeftCode,
+      ),
+    [activeCompareCodeTab?.language, compareLeftCode],
+  );
+  const compareRightMarkdown = useMemo(
+    () =>
+      buildCodeMarkdown(
+        activeCompareCodeTab?.language ?? "html",
+        compareRightCode,
+      ),
+    [activeCompareCodeTab?.language, compareRightCode],
+  );
   const previewTitle =
     previewMode === "supporter"
-      ? "Fenrys & Morris supporter preview"
-      : "Fenrys & Morris inline preview";
+      ? `${selectedVersion.label} supporter preview`
+      : `${selectedVersion.label} inline preview`;
 
   useEffect(() => {
-    if (!activeDialog && !copyMenuOpen) return;
+    if (
+      versions.length > 0 &&
+      !versions.some((version) => version.id === selectedVersionId)
+    ) {
+      setSelectedVersionId(currentVersion.id);
+    }
+  }, [currentVersion.id, selectedVersionId, versions]);
+
+  useEffect(() => {
+    if (!activeDialog && !copyMenuOpen && !mobileMenuOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveDialog(null);
         setCopyMenuOpen(false);
+        setMobileMenuOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeDialog, copyMenuOpen]);
+  }, [activeDialog, copyMenuOpen, mobileMenuOpen]);
 
   useEffect(() => {
     if (!copyMenuOpen) return;
@@ -404,6 +585,25 @@ export default function ArtfightProfilePreviewClient({
     return () => window.removeEventListener("pointerdown", handlePointerDown);
   }, [copyMenuOpen]);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!mobileNavRef.current?.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [mobileMenuOpen]);
+
+  const openDialog = (dialog: DialogMode) => {
+    setActiveDialog(dialog);
+    setCopyMenuOpen(false);
+    setMobileMenuOpen(false);
+  };
+
   const handleCopy = async (id: string, text: string) => {
     await writeClipboard(text);
     setCopiedId(id);
@@ -414,13 +614,27 @@ export default function ArtfightProfilePreviewClient({
   return (
     <main className="h-screen overflow-hidden bg-[#020617] text-slate-100">
       <div className="@container flex h-full flex-col">
-        <header className="shrink-0 border-b border-rose-300/25 bg-slate-950/95 px-4 py-3 shadow-[0_18px_48px_rgba(2,6,23,0.44)]">
-          <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-            <h1 className="text-3xl leading-none font-bold tracking-[0.03em] text-rose-50 uppercase @lg:text-4xl">
-              Artfight Profile
-            </h1>
+        <header className="shrink-0 border-b border-rose-300/25 bg-slate-950/95 px-3 py-3 shadow-[0_18px_48px_rgba(2,6,23,0.44)] @lg:px-4">
+          <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center @xl:justify-between">
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl leading-none font-bold tracking-[0.03em] text-rose-50 uppercase @lg:text-4xl">
+                Fenrys & Morris
+              </h1>
+              <p className="mt-1 text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                ArtFight profile lab
+              </p>
+            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <VersionSelect
+                versions={versions.length > 0 ? versions : [emptyVersion]}
+                selectedVersionId={selectedVersion.id}
+                onChange={(versionId) => {
+                  setSelectedVersionId(versionId);
+                  setCopyMenuOpen(false);
+                }}
+              />
+
               <div className="relative" ref={copyMenuRef}>
                 <button
                   type="button"
@@ -429,12 +643,12 @@ export default function ArtfightProfilePreviewClient({
                   aria-haspopup="menu"
                   aria-expanded={copyMenuOpen}
                 >
-                  {copiedId ? (
+                  {copiedId && codeTabs.some((tab) => tab.id === copiedId) ? (
                     <Check className="h-4 w-4" />
                   ) : (
                     <Clipboard className="h-4 w-4" />
                   )}
-                  {copiedId
+                  {copiedId && codeTabs.some((tab) => tab.id === copiedId)
                     ? `Copied ${
                         codeTabs.find((tab) => tab.id === copiedId)?.label ??
                         "Code"
@@ -446,14 +660,16 @@ export default function ArtfightProfilePreviewClient({
                 {copyMenuOpen ? (
                   <div
                     role="menu"
-                    className="absolute right-0 z-30 mt-2 w-56 border border-cyan-300/30 bg-[#07101b] p-1 shadow-[0_18px_48px_rgba(2,6,23,0.72)]"
+                    className="absolute right-0 z-40 mt-2 w-56 border border-cyan-300/30 bg-[#07101b] p-1 shadow-[0_18px_48px_rgba(2,6,23,0.72)]"
                   >
                     {codeTabs.map((tab) => (
                       <button
                         key={tab.id}
                         type="button"
                         role="menuitem"
-                        onClick={() => handleCopy(tab.id, source[tab.id])}
+                        onClick={() =>
+                          handleCopy(tab.id, selectedVersion[tab.id])
+                        }
                         className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-slate-100 transition hover:bg-cyan-300/12 hover:text-cyan-100"
                       >
                         <span>{tab.label}</span>
@@ -466,34 +682,104 @@ export default function ArtfightProfilePreviewClient({
                 ) : null}
               </div>
 
-              <ActionButton
-                icon={Palette}
-                label="Preview Mode"
-                onClick={() => setActiveDialog("preview")}
-              />
-              <ActionButton
-                icon={ImageIcon}
-                label="Placeholders"
-                onClick={() => setActiveDialog("placeholders")}
-              />
-              <ActionButton
-                icon={FileCode2}
-                label="Code"
-                onClick={() => setActiveDialog("code")}
-              />
-              <ActionButton
-                icon={NotebookText}
-                label="Notes"
-                onClick={() => setActiveDialog("notes")}
-              />
+              <div className="hidden flex-wrap items-center gap-2 @xl:flex">
+                <ActionButton
+                  icon={Palette}
+                  label="Preview Mode"
+                  onClick={() => openDialog("preview")}
+                />
+                <ActionButton
+                  icon={GitCompareArrows}
+                  label="Compare"
+                  onClick={() => openDialog("compare")}
+                />
+                <ActionButton
+                  icon={ImageIcon}
+                  label="Placeholders"
+                  onClick={() => openDialog("placeholders")}
+                />
+                <ActionButton
+                  icon={FileCode2}
+                  label="Code"
+                  onClick={() => openDialog("code")}
+                />
+                <ActionButton
+                  icon={NotebookText}
+                  label="Notes"
+                  onClick={() => openDialog("notes")}
+                />
+              </div>
+
+              <div className="relative @xl:hidden" ref={mobileNavRef}>
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((current) => !current)}
+                  className="inline-flex h-10 w-10 items-center justify-center border border-slate-600/70 bg-slate-900/85 text-slate-100 transition hover:border-cyan-200/70 hover:text-cyan-100"
+                  aria-label="Open profile actions"
+                  aria-controls="artfight-mobile-menu"
+                  aria-expanded={mobileMenuOpen}
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+
+                {mobileMenuOpen ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Close profile actions"
+                      className="fixed inset-0 z-20 cursor-default bg-transparent"
+                      onClick={() => setMobileMenuOpen(false)}
+                    />
+                    <div
+                      id="artfight-mobile-menu"
+                      role="menu"
+                      className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-cyan-300/30 bg-[#07101b] shadow-[0_18px_48px_rgba(2,6,23,0.72)]"
+                    >
+                      <MobileMenuButton
+                        icon={Palette}
+                        label="Preview Mode"
+                        onClick={() => openDialog("preview")}
+                      />
+                      <MobileMenuButton
+                        icon={GitCompareArrows}
+                        label="Compare"
+                        onClick={() => openDialog("compare")}
+                      />
+                      <MobileMenuButton
+                        icon={ImageIcon}
+                        label="Placeholders"
+                        onClick={() => openDialog("placeholders")}
+                      />
+                      <MobileMenuButton
+                        icon={FileCode2}
+                        label="Code"
+                        onClick={() => openDialog("code")}
+                      />
+                      <MobileMenuButton
+                        icon={NotebookText}
+                        label="Notes"
+                        onClick={() => openDialog("notes")}
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
             </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span className="border border-slate-700/70 bg-slate-900/70 px-2 py-1 font-semibold text-slate-200">
+              {selectedVersion.status === "current" ? "Current" : "Archived"}
+            </span>
+            <span>{selectedVersion.date}</span>
+            <span className="min-w-0 flex-1">{selectedVersion.summary}</span>
           </div>
         </header>
 
         <section className="flex min-h-0 flex-1 flex-col bg-[#030712]">
           <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_20%_10%,rgba(251,113,133,0.13),transparent_28%),radial-gradient(circle_at_78%_0%,rgba(34,211,238,0.11),transparent_24%),#020617] p-3 @lg:p-5">
             <iframe
-              key={previewMode}
+              key={`${selectedVersion.id}-${previewMode}`}
               title={previewTitle}
               srcDoc={previewDocuments[previewMode]}
               className="h-full w-full border border-rose-300/35 bg-slate-950 shadow-[0_26px_70px_rgba(2,6,23,0.65)]"
@@ -550,6 +836,128 @@ export default function ArtfightProfilePreviewClient({
         </DialogFrame>
       ) : null}
 
+      {activeDialog === "compare" ? (
+        <DialogFrame
+          title="Compare"
+          description="Compare two saved profile versions, then select a version from the top bar to preview, copy, or download it."
+          onClose={() => setActiveDialog(null)}
+          size="wide"
+        >
+          <div className="grid gap-3 border border-slate-700/70 bg-slate-950/60 p-3 @lg:grid-cols-[1fr_auto_1fr] @lg:items-end">
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Left version
+              <select
+                value={compareLeftVersion.id}
+                onChange={(event) => setCompareLeftId(event.target.value)}
+                className="border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+              >
+                {versions.map((version) => (
+                  <option key={version.id} value={version.id}>
+                    {version.label}
+                    {version.status === "current" ? " (current)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="grid grid-cols-3 border border-slate-700/70 @lg:w-96">
+              {codeTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setCompareCodeMode(tab.id)}
+                  className={`px-2 py-3 text-xs font-semibold transition @lg:text-sm ${
+                    compareCodeMode === tab.id
+                      ? "bg-cyan-300/14 text-cyan-100"
+                      : "text-slate-300 hover:bg-slate-800"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-200">
+              Right version
+              <select
+                value={compareRightVersion.id}
+                onChange={(event) => setCompareRightId(event.target.value)}
+                className="border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+              >
+                {versions.map((version) => (
+                  <option key={version.id} value={version.id}>
+                    {version.label}
+                    {version.status === "current" ? " (current)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-4 grid gap-4 @lg:grid-cols-2">
+            <div className="min-w-0">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-rose-100">
+                    {compareLeftVersion.label}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {compareLeftVersion.status}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(compareCodeMode, compareLeftCode)}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-cyan-300/40 bg-cyan-300/10 text-cyan-100 transition hover:border-cyan-200 hover:bg-cyan-300/18"
+                  title="Copy left code"
+                  aria-label="Copy left code"
+                >
+                  {copiedId === compareCodeMode ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Clipboard className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <CodePreview
+                label={`${compareLeftVersion.label} ${activeCompareCodeTab?.label ?? "Code"}`}
+                markdown={compareLeftMarkdown}
+              />
+            </div>
+
+            <div className="min-w-0">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-cyan-100">
+                    {compareRightVersion.label}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {compareRightVersion.status}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(compareCodeMode, compareRightCode)}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-cyan-300/40 bg-cyan-300/10 text-cyan-100 transition hover:border-cyan-200 hover:bg-cyan-300/18"
+                  title="Copy right code"
+                  aria-label="Copy right code"
+                >
+                  {copiedId === compareCodeMode ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Clipboard className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <CodePreview
+                label={`${compareRightVersion.label} ${activeCompareCodeTab?.label ?? "Code"}`}
+                markdown={compareRightMarkdown}
+              />
+            </div>
+          </div>
+        </DialogFrame>
+      ) : null}
+
       {activeDialog === "placeholders" ? (
         <DialogFrame
           title="Placeholders"
@@ -572,7 +980,7 @@ export default function ArtfightProfilePreviewClient({
       {activeDialog === "code" ? (
         <DialogFrame
           title="Code"
-          description="Inspect highlighted source files, copy, or download the active payload."
+          description="Inspect highlighted source files, copy, or download the active file."
           onClose={() => setActiveDialog(null)}
         >
           <div className="grid grid-cols-3 border border-slate-700/70">
@@ -594,6 +1002,9 @@ export default function ArtfightProfilePreviewClient({
 
           <div className="mt-4 flex items-start justify-between gap-3">
             <div>
+              <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-cyan-100 uppercase">
+                {selectedVersion.label}
+              </p>
               <h3 className="font-bold text-slate-50">
                 {activeCodeTab?.fileName}
               </h3>
@@ -619,7 +1030,7 @@ export default function ArtfightProfilePreviewClient({
                 type="button"
                 onClick={() =>
                   downloadTextFile(
-                    activeCodeTab?.fileName ?? "artfight-profile.txt",
+                    `${selectedVersion.id}-${activeCodeTab?.fileName ?? "artfight-profile.txt"}`,
                     activeCode,
                   )
                 }
@@ -631,6 +1042,13 @@ export default function ArtfightProfilePreviewClient({
               </button>
             </div>
           </div>
+
+          {selectedVersion.status === "archived" ? (
+            <p className="mt-3 border border-rose-300/30 bg-rose-300/10 p-3 text-sm leading-5 text-rose-50">
+              This saved version is available for comparison and reuse. Select
+              it here, then copy or download the files you want.
+            </p>
+          ) : null}
 
           <div
             role="region"
@@ -653,7 +1071,7 @@ export default function ArtfightProfilePreviewClient({
       {activeDialog === "notes" ? (
         <DialogFrame
           title="Notes"
-          description="Usage notes for the local profile pack."
+          description={`${selectedVersion.label} usage notes.`}
           onClose={() => setActiveDialog(null)}
         >
           <Streamdown
@@ -661,7 +1079,7 @@ export default function ArtfightProfilePreviewClient({
             controls={false}
             className="max-h-[54vh] overflow-auto text-sm leading-6 text-slate-300 [&_a]:text-cyan-200 [&_a]:underline [&_code]:border [&_code]:border-slate-700 [&_code]:bg-slate-950 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-rose-100 [&_h1]:mb-4 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-rose-50 [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-cyan-100 [&_li]:my-1 [&_ol]:ml-5 [&_ol]:list-decimal [&_p]:my-3 [&_strong]:text-slate-100 [&_ul]:ml-5 [&_ul]:list-disc"
           >
-            {source.readme}
+            {selectedVersion.readme}
           </Streamdown>
         </DialogFrame>
       ) : null}

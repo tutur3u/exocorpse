@@ -4,10 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Exocorpse ArtFight Profile Preview</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23020617'/%3E%3Cpath d='M12 32h40M32 12v40' stroke='%23fb7185' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='12' fill='none' stroke='%2322d3ee' stroke-width='4'/%3E%3C/svg%3E"
-    />
     <link rel="stylesheet" href="supporter-profile.css" />
     <style>
       body {
@@ -48,9 +44,8 @@
   </head>
   <body>
     <p class="preview-note">
-      Local preview only. This file uses repo images from public/. For ArtFight,
-      use inline-html.html or supporter-css.html and replace image placeholders
-      with public HTTPS URLs.
+      Local preview only. The profile fields use replaceable public image URLs
+      in the ArtFight-ready files.
     </p>
 
     <div class="exo-af">
@@ -60,205 +55,156 @@
           --exo-hero-image: url(&quot;../public/background-image.webp&quot;);
         "
       >
-        <h1>Fenrys &amp; Morris</h1>
-        <p>
-          Hey, I'm Fenrys &amp; Morris, the artist and writer behind Exocorpse.
-          I draw, write, make character work, and build story-heavy worlds.
-        </p>
+        <img
+          class="exo-decor exo-decor-a"
+          src="../public/desktop-logo.webp"
+          alt=""
+        />
+        <img
+          class="exo-decor exo-decor-b"
+          src="../public/exocorpse.webp"
+          alt=""
+        />
+        <div class="exo-hero-copy">
+          <span class="exo-stamp">Official ArtFight profile</span>
+          <h1>Fenrys &amp; Morris</h1>
+          <p class="exo-mood-line">haunted. devoted. cinematic.</p>
+          <p>
+            Hey, I'm Fenrys &amp; Morris, the artist and writer behind
+            Exocorpse. I draw, write, make character work, and build story-heavy
+            worlds with anatomy, psychology, terminal glow, and dramatic
+            feelings at the center.
+          </p>
+        </div>
+        <figure class="exo-polaroid">
+          <img src="../public/LykoTwins.webp" alt="Fenrys and Morris" />
+          <figcaption>exocorpse / exocorpsehq</figcaption>
+        </figure>
       </section>
 
-      <main class="exo-grid">
-        <aside class="exo-card exo-id-card">
+      <section class="exo-scrapbook">
+        <aside class="exo-profile-label">
           <div
             class="exo-portrait"
-            style="--exo-image: url(&quot;../public/LykoTwins.webp&quot;)"
-            aria-label="Fenrys and Morris portrait"
+            style="--exo-image: url(&quot;../public/boot/Fenrys.webp&quot;)"
+            aria-label="Fenrys and Morris pagedoll"
           ></div>
           <h2>Fenrys &amp; Morris</h2>
-          <p class="exo-mono">AKA exocorpse / exocorpsehq</p>
-          <dl class="exo-facts">
-            <div>
-              <dt>Role</dt>
-              <dd>Illustrator, writer, game developer</dd>
-            </div>
-            <div>
-              <dt>Zone</dt>
-              <dd>Vietnam / GMT+7</dd>
-            </div>
-            <div>
-              <dt>Status</dt>
-              <dd>Open for attacks, revenges when possible</dd>
-            </div>
-          </dl>
-          <div class="exo-meter-list">
-            <div class="exo-meter">
-              <span>Pulse</span>
-              <b style="--exo-meter: 92%"></b>
-            </div>
-            <div class="exo-meter">
-              <span>Neuro</span>
-              <b style="--exo-meter: 88%"></b>
-            </div>
-            <div class="exo-meter">
-              <span>Lore</span>
-              <b style="--exo-meter: 96%"></b>
-            </div>
+          <p>Vietnam / GMT+7. Illustrator, writer, game developer.</p>
+          <div class="exo-badge-row">
+            <span>Pulse 92</span>
+            <span>Neuro 88</span>
+            <span>Lore 96</span>
           </div>
         </aside>
 
-        <section class="exo-stack">
-          <article class="exo-card exo-notes">
-            <span class="exo-kicker">About Exocorpse</span>
-            <p>
-              I love illustrative pieces, story and dialogue writing, sprite
-              work, expressive characters, and atmospheric worldbuilding.
-              Exocorpse mixes anatomy, psychology, terminal interfaces, and
-              dramatic character storytelling into one dark creative space.
-            </p>
-          </article>
+        <article class="exo-paper exo-paper-main">
+          <span class="exo-kicker">About Exocorpse</span>
+          <p>
+            Exocorpse is where I put the intense parts of my character work:
+            loyalty, survival, devotion, performance, body language, soft
+            horror, and people trying to become something sharper than their
+            pain.
+          </p>
+        </article>
 
-          <div class="exo-split">
-            <article class="exo-card exo-prototype exo-pulse">
-              <h3>Prototype: Pulse</h3>
-              <p>
-                Action, combat, confident poses, dramatic lighting, body
-                language, movement, teeth, bloodless body horror, weapons, and
-                tactical outfits.
-              </p>
-              <span>Great for bold visual attacks</span>
-            </article>
-            <article class="exo-card exo-prototype exo-neuro">
-              <h3>Prototype: Neuro</h3>
-              <p>
-                Eerie portraits, symbolism, written details, character
-                relationships, memory motifs, coded imagery, soft horror, and
-                narrative-driven scenes.
-              </p>
-              <span>Great for story-heavy attacks</span>
-            </article>
-          </div>
+        <article class="exo-paper exo-vibe-card">
+          <span class="exo-kicker">Current Vibe</span>
+          <a href="https://exocorpse.net">Official Website</a>
+          <a href="https://artfight.net/~exocorpse">ArtFight</a>
+          <a href="https://vgen.co/exocorpse">VGen</a>
+          <a href="https://bsky.app/profile/exocorpse.bsky.social">Bluesky</a>
+        </article>
+      </section>
 
-          <div class="exo-split">
-            <article class="exo-card">
-              <h3>Attack Intake</h3>
-              <p>
-                <strong class="exo-yes">Yes:</strong> humanoids, monsters,
-                original characters, dramatic lighting, expressive scenes, lore
-                details, outfit experiments.
-              </p>
-              <p>
-                <strong class="exo-no">Avoid:</strong> hateful content, explicit
-                NSFW, heavy gore, AI-generated references.
-              </p>
-            </article>
-            <article class="exo-card">
-              <h3>Priorities</h3>
-              <p>
-                Friends &gt; bookmarks &gt; revenges &gt; characters with fresh
-                lore. Friendly fire is welcome unless ArtFight team rules say
-                otherwise. Chains are welcome, but not required.
-              </p>
-            </article>
-          </div>
-        </section>
-      </main>
-
-      <section class="exo-wide exo-lab">
-        <div class="exo-section-heading">
-          <span>Attack Menu</span>
-          <h2>What I would love to receive</h2>
+      <section class="exo-ribbon-board">
+        <div class="exo-ribbon exo-ribbon-pulse">
+          <h3>Prototype: Pulse</h3>
+          <p>
+            Action, combat, bold poses, teeth, hands, weapons, tactical outfits,
+            stage lighting, and movement that says exactly what the character
+            feels.
+          </p>
         </div>
-        <div class="exo-menu-grid">
-          <article class="exo-card exo-menu-card">
-            <span>01 / Scene</span>
-            <h3>Cinematic Moments</h3>
+        <div class="exo-ribbon exo-ribbon-neuro">
+          <h3>Prototype: Neuro</h3>
+          <p>
+            Symbols, coded imagery, memory motifs, dialogue fragments, eerie
+            portraits, quiet dread, and character psychology.
+          </p>
+        </div>
+      </section>
+
+      <section class="exo-sticker-board">
+        <div class="exo-section-heading">
+          <span>Attack Me With</span>
+          <h2>Anything with a pulse or a secret</h2>
+        </div>
+        <div class="exo-sticker-grid">
+          <article>
+            <b>Scene</b>
             <p>
-              Character interaction, dramatic entrances, quiet aftermath, chase
-              frames, or a single frame that feels pulled from a larger story.
+              dramatic entrances, aftermath, chase frames, or character tension
             </p>
           </article>
-          <article class="exo-card exo-menu-card">
-            <span>02 / Shape</span>
-            <h3>Design Studies</h3>
+          <article>
+            <b>Shape</b>
             <p>
-              Outfit experiments, silhouette notes, anatomy-inspired motifs,
-              surgical details, weapon shapes, and symbolic accessory choices.
+              outfit experiments, silhouettes, surgical details, weapon motifs
             </p>
           </article>
-          <article class="exo-card exo-menu-card">
-            <span>03 / Emotion</span>
-            <h3>Expression Work</h3>
-            <p>
-              Teeth, hands, eye contact, tension, pride, devotion, exhaustion,
-              and body language that says more than a neutral pose.
-            </p>
+          <article>
+            <b>Emotion</b>
+            <p>hands, teeth, eye contact, pride, devotion, exhaustion</p>
           </article>
-          <article class="exo-card exo-menu-card">
-            <span>04 / Text</span>
-            <h3>Story Additions</h3>
+          <article>
+            <b>Text</b>
             <p>
-              Short dialogue, faux interface notes, poem fragments, field logs,
-              or any written detail that makes the art feel like a world
-              artifact.
+              dialogue, poem fragments, faux interface notes, written
+              annotations
             </p>
           </article>
         </div>
       </section>
 
-      <section class="exo-wide exo-feature-board">
-        <div class="exo-section-heading">
-          <span>Character Queue</span>
-          <h2>Easy picks if you want a direction</h2>
+      <section class="exo-design-notes">
+        <div class="exo-note-tape">
+          <span>Design Notes</span>
+          <h2>Little things that make attacks feel personal</h2>
         </div>
-        <div class="exo-queue">
-          <article class="exo-card">
-            <strong>Lyko Twins</strong>
-            <p>
-              Best for mirrored composition, twin symbolism, red/cyan contrast.
-            </p>
-          </article>
-          <article class="exo-card">
-            <strong>Fenrys</strong>
-            <p>
-              Best for Pulse energy, bold posing, sharp expressions, motion.
-            </p>
-          </article>
-          <article class="exo-card">
-            <strong>Morris</strong>
-            <p>
-              Best for Neuro energy, soft dread, symbols, memory, written
-              motifs.
-            </p>
-          </article>
-          <article class="exo-card">
-            <strong>Any Exocorpse OC</strong>
-            <p>Best for story-heavy choices and experiments with atmosphere.</p>
-          </article>
-        </div>
+        <ul>
+          <li>
+            Lean into asymmetry, expressive hands, and posture with intent.
+          </li>
+          <li>Pulse can be sharp, theatrical, forward, and physically loud.</li>
+          <li>
+            Neuro can be quiet, symbolic, coded, intimate, and unsettling.
+          </li>
+          <li>
+            Outfit changes, AU details, and prop symbolism are very welcome.
+          </li>
+          <li>Written captions, UI labels, and fake notes are loved.</li>
+        </ul>
       </section>
 
-      <section class="exo-wide exo-prompt-bank">
-        <div class="exo-section-heading">
-          <span>Prompt Bank</span>
-          <h2>Details that fit the Exocorpse mood</h2>
-        </div>
-        <div class="exo-chip-grid">
-          <span>Anatomy charts</span>
-          <span>Terminal windows</span>
-          <span>Rose surgical light</span>
-          <span>Cyan monitor glow</span>
-          <span>Hands and teeth</span>
-          <span>Mirror poses</span>
-          <span>Soft horror</span>
-          <span>Uniform redesigns</span>
-          <span>Devotion motifs</span>
-          <span>Memory glitches</span>
-          <span>Red string</span>
-          <span>Written annotations</span>
-        </div>
+      <section class="exo-mood-strip">
+        <img src="../public/boot/Fenrys.webp" alt="" />
+        <img src="../public/boot/Morris.webp" alt="" />
+        <img src="../public/exocorpse.webp" alt="" />
+        <img src="../public/LykoTwins.webp" alt="" />
       </section>
 
-      <section class="exo-wide exo-gallery-wall">
+      <section class="exo-love-list">
+        <span>Little Things I Love</span>
+        <p>
+          anatomy charts / terminal windows / rose surgical light / cyan monitor
+          glow / hands and teeth / mirror poses / soft horror / uniform
+          redesigns / devotion motifs / memory glitches / red string / written
+          annotations
+        </p>
+      </section>
+
+      <section class="exo-gallery-wall">
         <div class="exo-section-heading">
           <span>Gallery Wall</span>
           <h2>Art directions I love making</h2>
@@ -347,66 +293,40 @@
         </div>
       </section>
 
-      <section class="exo-wide exo-rhythm">
-        <article class="exo-card">
-          <span class="exo-kicker">How I usually play</span>
-          <div class="exo-rhythm-steps">
-            <div>
-              <b>01</b>
-              <p>I bookmark characters that spark a scene or story idea.</p>
-            </div>
-            <div>
-              <b>02</b>
-              <p>
-                I mix friendly attacks, revenges, and surprise pieces as I can.
-              </p>
-            </div>
-            <div>
-              <b>03</b>
-              <p>I love attacks that feel personal, even if they are simple.</p>
-            </div>
-          </div>
+      <section class="exo-character-queue">
+        <article>
+          <span>Easy pick</span>
+          <strong>Lyko Twins</strong>
+          <p>mirrored composition, twin symbolism, red/cyan contrast</p>
         </article>
-        <article class="exo-card exo-cta">
-          <span>Need a safe bet?</span>
-          <p>
-            Pick one bold pose or one symbolic close-up, add a little lore, and
-            lean into Pulse or Neuro. I will be happy to see your
-            interpretation.
-          </p>
+        <article>
+          <span>Pulse pick</span>
+          <strong>Fenrys</strong>
+          <p>sharp expressions, motion, bright threat, confident posing</p>
+        </article>
+        <article>
+          <span>Neuro pick</span>
+          <strong>Morris</strong>
+          <p>soft dread, symbols, memory, handwritten motifs</p>
+        </article>
+        <article>
+          <span>Wildcard</span>
+          <strong>Any Exocorpse OC</strong>
+          <p>story-heavy choices and atmospheric experiments</p>
         </article>
       </section>
 
-      <section class="exo-operatives">
-        <article class="exo-card exo-operative exo-operative-pulse">
-          <div
-            class="exo-operative-image"
-            style="--exo-image: url(&quot;../public/boot/Fenrys.webp&quot;)"
-          ></div>
-          <h3>Fenrys</h3>
-          <p>Artist representative. Pulse-facing visual operator.</p>
-        </article>
-        <article class="exo-card exo-operative exo-operative-neuro">
-          <div
-            class="exo-operative-image"
-            style="--exo-image: url(&quot;../public/boot/Morris.webp&quot;)"
-          ></div>
-          <h3>Morris</h3>
-          <p>Writer representative. Neuro-facing narrative operator.</p>
-        </article>
-        <article class="exo-card exo-links">
-          <h3>Links</h3>
-          <a href="https://artfight.net/~REPLACE_WITH_ARTFIGHT_USERNAME"
-            >ArtFight</a
-          >
-          <a href="https://exocorpse.net">Official Website</a>
-          <a href="https://vgen.co/exocorpse">VGen: exocorpse</a>
-          <a href="https://bsky.app/profile/exocorpse.bsky.social"
-            >Bluesky: exocorpse</a
-          >
-          <a href="https://exocorpsehq.tumblr.com/">Tumblr: exocorpsehq</a>
-          <a href="https://x.com/exocorpsehq">Twitter/X: exocorpsehq</a>
-        </article>
+      <section class="exo-links">
+        <img src="../public/desktop-logo.webp" alt="" class="exo-links-decor" />
+        <h2>Find me elsewhere</h2>
+        <a href="https://exocorpse.net">Official Website</a>
+        <a href="https://artfight.net/~exocorpse">ArtFight</a>
+        <a href="https://vgen.co/exocorpse">VGen: exocorpse</a>
+        <a href="https://bsky.app/profile/exocorpse.bsky.social"
+          >Bluesky: exocorpse</a
+        >
+        <a href="https://exocorpsehq.tumblr.com/">Tumblr: exocorpsehq</a>
+        <a href="https://x.com/exocorpsehq">Twitter/X: exocorpsehq</a>
       </section>
     </div>
   </body>
