@@ -145,12 +145,19 @@ const inlinePreviewCss = `
 
   .col-lg-4,
   .col-lg-8,
+  .col-lg-3,
+  .col-md-4,
   .col-md-6 {
     position: relative;
     width: 100%;
   }
 
   @media (min-width: 768px) {
+    .col-md-4 {
+      flex: 0 0 33.333333%;
+      max-width: 33.333333%;
+    }
+
     .col-md-6 {
       flex: 0 0 50%;
       max-width: 50%;
@@ -158,6 +165,11 @@ const inlinePreviewCss = `
   }
 
   @media (min-width: 992px) {
+    .col-lg-3 {
+      flex: 0 0 25%;
+      max-width: 25%;
+    }
+
     .col-lg-4 {
       flex: 0 0 33.333333%;
       max-width: 33.333333%;
