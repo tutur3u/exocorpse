@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   Clipboard,
-  Code2,
   Download,
   FileCode2,
   ImageIcon,
@@ -13,8 +12,10 @@ import {
   Palette,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import type { ComponentType, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { StreamdownProps } from "streamdown";
 
 type ProfileSource = {
   inlineHtml: string;
@@ -64,6 +65,16 @@ const placeholders = [
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS",
   "REPLACE_WITH_ARTFIGHT_USERNAME",
 ];
+
+const Streamdown = dynamic<StreamdownProps>(
+  () => import("streamdown").then((module) => module.Streamdown),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="text-sm leading-6 text-slate-400">Loading notes...</div>
+    ),
+  },
+);
 
 const previewImageReplacements: Record<string, string> = {
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER: "/background-image.webp",
@@ -294,8 +305,8 @@ export default function ArtfightProfilePreviewClient({
   const activeCode = source[codeMode];
   const previewTitle =
     previewMode === "supporter"
-      ? "Supporter CSS profile preview"
-      : "Inline HTML profile preview";
+      ? "Fenrys & Morris supporter preview"
+      : "Fenrys & Morris inline preview";
 
   useEffect(() => {
     if (!activeDialog && !copyMenuOpen) return;
@@ -411,19 +422,6 @@ export default function ArtfightProfilePreviewClient({
         </header>
 
         <section className="flex min-h-0 flex-1 flex-col bg-[#030712]">
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-700/70 bg-slate-950/85 px-4 py-3">
-            <div>
-              <p className="font-mono text-xs tracking-[0.2em] text-slate-400 uppercase">
-                Preview
-              </p>
-              <h2 className="text-lg font-bold text-slate-50">
-                {previewTitle}
-              </h2>
-            </div>
-            <span className="border border-slate-600/70 px-2 py-1 font-mono text-xs text-slate-300">
-              {previewMode === "supporter" ? "HTML + CSS" : "Inline HTML"}
-            </span>
-          </div>
           <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_20%_10%,rgba(251,113,133,0.13),transparent_28%),radial-gradient(circle_at_78%_0%,rgba(34,211,238,0.11),transparent_24%),#020617] p-3 @lg:p-5">
             <iframe
               key={previewMode}
@@ -581,15 +579,13 @@ export default function ArtfightProfilePreviewClient({
           description="Usage notes for the local profile pack."
           onClose={() => setActiveDialog(null)}
         >
-          <div className="flex items-center gap-2 text-slate-100">
-            <Code2 className="h-4 w-4" />
-            <h3 className="text-sm font-bold tracking-[0.08em] uppercase">
-              Profile Pack
-            </h3>
-          </div>
-          <pre className="mt-3 max-h-[54vh] overflow-auto font-mono text-xs leading-5 whitespace-pre-wrap text-slate-400">
+          <Streamdown
+            mode="static"
+            controls={false}
+            className="max-h-[54vh] overflow-auto text-sm leading-6 text-slate-300 [&_a]:text-cyan-200 [&_a]:underline [&_code]:border [&_code]:border-slate-700 [&_code]:bg-slate-950 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-rose-100 [&_h1]:mb-4 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-rose-50 [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-cyan-100 [&_li]:my-1 [&_ol]:ml-5 [&_ol]:list-decimal [&_p]:my-3 [&_strong]:text-slate-100 [&_ul]:ml-5 [&_ul]:list-disc"
+          >
             {source.readme}
-          </pre>
+          </Streamdown>
         </DialogFrame>
       ) : null}
     </main>
