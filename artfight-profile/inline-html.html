@@ -16,6 +16,8 @@
         transparent 26%
       ),
       linear-gradient(135deg, #07060c, #101827 44%, #020617);
+    background-color: #06101f;
+    border: 1px solid rgba(251, 113, 133, 0.44);
     color: #e2e8f0;
     font-family: Georgia, &quot;Times New Roman&quot;, serif;
   "
@@ -24,21 +26,20 @@
     class="row no-gutters"
     style="
       margin: 0;
-      min-height: 420px;
-      padding: 26px;
-      background:
-        linear-gradient(90deg, rgba(251, 113, 133, 0.13) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
-        linear-gradient(135deg, rgba(10, 7, 13, 0.92), rgba(2, 6, 23, 0.98)),
-        url(&quot;REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER&quot;) center/cover;
-      background-size:
-        34px 34px,
-        34px 34px,
-        auto,
-        cover;
+      min-height: 360px;
+      padding: 22px 26px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(251, 113, 133, 0.44);
+      background-color: #020617;
+      background-image: url(&quot;REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER&quot;);
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      box-shadow: inset 0 0 0 9999px rgba(2, 6, 23, 0.34);
     "
   >
-    <div class="col-lg-8 p-2">
+    <div class="col-lg-8 p-2" style="position: relative; z-index: 2">
       <img
         src="REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_01"
         alt=""
@@ -79,10 +80,11 @@
           display: inline-block;
           margin: 16px 0 14px;
           transform: rotate(1.4deg);
-          border: 1px solid rgba(34, 211, 238, 0.85);
-          background: linear-gradient(90deg, #a5f3fc, #fff7f8 48%, #fecdd3);
-          padding: 10px 16px 9px;
-          color: #02111a;
+          border: 2px solid #22d3ee;
+          background-color: #fff7f8;
+          background: linear-gradient(90deg, #fff7f8, #a5f3fc 52%, #fecdd3);
+          padding: 11px 17px 10px;
+          color: #020617;
           font-family: &quot;Courier New&quot;, monospace;
           font-size: 14px;
           font-weight: bold;
@@ -96,7 +98,18 @@
       >
         haunted. devoted. cinematic.
       </p>
-      <p style="max-width: 760px; margin: 0; color: #e2e8f0; line-height: 1.66">
+      <p
+        style="
+          max-width: 760px;
+          margin: 0;
+          border-left: 3px solid #22d3ee;
+          background-color: rgba(2, 6, 23, 0.7);
+          padding: 12px 14px;
+          color: #f8fafc;
+          line-height: 1.66;
+          text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
+        "
+      >
         Hey, I'm Fenrys &amp; Morris, the artist and writer behind Exocorpse. I
         draw, write, make character work, and build story-heavy worlds with
         anatomy, psychology, terminal glow, and dramatic feelings at the center.
@@ -104,6 +117,8 @@
       <p style="margin: 18px 0 0; line-height: 2.4">
         <span
           style="
+            display: inline-block;
+            margin: 0 8px 8px 0;
             border: 1px solid rgba(34, 211, 238, 0.44);
             border-radius: 999px;
             background: rgba(2, 6, 23, 0.78);
@@ -119,6 +134,8 @@
         >
         <span
           style="
+            display: inline-block;
+            margin: 0 8px 8px 0;
             border: 1px solid rgba(34, 211, 238, 0.44);
             border-radius: 999px;
             background: rgba(2, 6, 23, 0.78);
@@ -134,6 +151,8 @@
         >
         <span
           style="
+            display: inline-block;
+            margin: 0 8px 8px 0;
             border: 1px solid rgba(34, 211, 238, 0.44);
             border-radius: 999px;
             background: rgba(2, 6, 23, 0.78);
@@ -149,7 +168,7 @@
         >
       </p>
     </div>
-    <div class="col-lg-4 p-2">
+    <div class="col-lg-4 p-2" style="position: relative; z-index: 2">
       <div
         style="
           transform: rotate(4deg);
@@ -186,8 +205,10 @@
       <div
         style="
           transform: rotate(-1.6deg);
+          height: 100%;
           border-radius: 28px 10px 28px 10px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 18px;
         "
       >
@@ -220,6 +241,8 @@
         <p style="margin: 14px 0 0; line-height: 2.2">
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(34, 211, 238, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -232,6 +255,8 @@
           >
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(34, 211, 238, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -244,6 +269,8 @@
           >
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(34, 211, 238, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -261,9 +288,11 @@
       <div
         style="
           transform: rotate(1deg);
+          height: 100%;
           min-height: 390px;
           border-radius: 10px 32px 10px 32px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 22px;
         "
       >
@@ -304,6 +333,8 @@
         <p style="margin: 16px 0 0; line-height: 2.2">
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(251, 113, 133, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -316,6 +347,8 @@
           >
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(34, 211, 238, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -328,6 +361,8 @@
           >
           <span
             style="
+              display: inline-block;
+              margin: 0 8px 8px 0;
               border: 1px solid rgba(251, 113, 133, 0.38);
               border-radius: 999px;
               padding: 6px 9px;
@@ -345,9 +380,11 @@
       <div
         style="
           transform: rotate(-2.2deg);
+          height: 100%;
           min-height: 390px;
           border-radius: 36px 14px 36px 14px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 20px;
         "
       >
@@ -414,9 +451,11 @@
       <div
         style="
           min-height: 210px;
+          height: 100%;
           transform: rotate(-1.4deg);
           border-radius: 42px 10px 30px 10px;
           background: rgba(15, 23, 42, 0.9);
+          box-sizing: border-box;
           padding: 22px;
         "
       >
@@ -445,9 +484,11 @@
       <div
         style="
           min-height: 210px;
+          height: 100%;
           transform: rotate(1deg);
           border-radius: 10px 42px 10px 30px;
           background: rgba(15, 23, 42, 0.9);
+          box-sizing: border-box;
           padding: 22px;
         "
       >
@@ -476,9 +517,11 @@
       <div
         style="
           min-height: 210px;
+          height: 100%;
           transform: rotate(-0.4deg);
           border-radius: 30px 10px 42px 10px;
           background: rgba(15, 23, 42, 0.9);
+          box-sizing: border-box;
           padding: 22px;
         "
       >
@@ -510,12 +553,14 @@
       <div
         style="
           min-height: 190px;
+          height: 100%;
           clip-path: polygon(0 8%, 94% 0, 100% 50%, 94% 100%, 0 92%, 4% 50%);
           background: linear-gradient(
             135deg,
             rgba(127, 29, 29, 0.58),
             rgba(15, 23, 42, 0.9)
           );
+          box-sizing: border-box;
           padding: 24px 32px;
         "
       >
@@ -531,12 +576,14 @@
       <div
         style="
           min-height: 190px;
+          height: 100%;
           clip-path: polygon(0 8%, 94% 0, 100% 50%, 94% 100%, 0 92%, 4% 50%);
           background: linear-gradient(
             135deg,
             rgba(8, 47, 73, 0.62),
             rgba(15, 23, 42, 0.9)
           );
+          box-sizing: border-box;
           padding: 24px 32px;
         "
       >
@@ -579,11 +626,13 @@
         <div
           style="
             min-height: 132px;
+            height: 100%;
             transform: rotate(-1.4deg);
             border: 1px solid rgba(251, 113, 133, 0.36);
             border-left: 8px solid #fb7185;
             border-radius: 999px 22px 22px 999px;
             background-color: #0f172a;
+            box-sizing: border-box;
             padding: 18px 18px 18px 24px;
             box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
           "
@@ -604,11 +653,13 @@
         <div
           style="
             min-height: 132px;
+            height: 100%;
             transform: rotate(1.4deg);
             border: 1px solid rgba(34, 211, 238, 0.34);
             border-left: 8px solid #22d3ee;
             border-radius: 999px 22px 22px 999px;
             background-color: #0b1220;
+            box-sizing: border-box;
             padding: 18px 18px 18px 24px;
             box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
           "
@@ -629,11 +680,13 @@
         <div
           style="
             min-height: 132px;
+            height: 100%;
             transform: rotate(-1.4deg);
             border: 1px solid rgba(251, 113, 133, 0.36);
             border-left: 8px solid #fb7185;
             border-radius: 999px 22px 22px 999px;
             background-color: #0f172a;
+            box-sizing: border-box;
             padding: 18px 18px 18px 24px;
             box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
           "
@@ -654,11 +707,13 @@
         <div
           style="
             min-height: 132px;
+            height: 100%;
             transform: rotate(1.4deg);
             border: 1px solid rgba(34, 211, 238, 0.34);
             border-left: 8px solid #22d3ee;
             border-radius: 999px 22px 22px 999px;
             background-color: #0b1220;
+            box-sizing: border-box;
             padding: 18px 18px 18px 24px;
             box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
           "
@@ -802,27 +857,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(251, 113, 133, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0f172a;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(251, 113, 133, 0.55);
-              border-radius: 999px;
               color: #fecdd3;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >01</b
+            >01&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >red string between characters</span
@@ -833,27 +883,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(34, 211, 238, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0b1220;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(34, 211, 238, 0.55);
-              border-radius: 999px;
               color: #a5f3fc;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >02</b
+            >02&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >hands doing emotional damage</span
@@ -864,27 +909,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(251, 113, 133, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0f172a;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(251, 113, 133, 0.55);
-              border-radius: 999px;
               color: #fecdd3;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >03</b
+            >03&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >terminal windows and fake UI</span
@@ -895,27 +935,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(34, 211, 238, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0b1220;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(34, 211, 238, 0.55);
-              border-radius: 999px;
               color: #a5f3fc;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >04</b
+            >04&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >mirror poses, twin echoes, split faces</span
@@ -926,27 +961,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(251, 113, 133, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0f172a;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(251, 113, 133, 0.55);
-              border-radius: 999px;
               color: #fecdd3;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >05</b
+            >05&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >uniform redesigns with symbolic details</span
@@ -957,27 +987,22 @@
         <div
           style="
             min-height: 78px;
+            height: 100%;
             border: 1px solid rgba(34, 211, 238, 0.3);
             border-radius: 999px 22px 22px 999px;
             background-color: #0b1220;
+            box-sizing: border-box;
             padding: 12px 14px;
             text-align: left;
           "
         >
           <b
             style="
-              display: inline-block;
-              width: 38px;
-              height: 38px;
-              margin-right: 10px;
-              border: 1px solid rgba(34, 211, 238, 0.55);
-              border-radius: 999px;
               color: #a5f3fc;
               font-family: &quot;Courier New&quot;;
-              line-height: 38px;
-              text-align: center;
+              letter-spacing: 0.08em;
             "
-            >06</b
+            >06&nbsp;/&nbsp;</b
           >
           <span style="color: #e2e8f0; font-family: &quot;Courier New&quot;"
             >bloodless horror, halos, teeth, devotion</span
@@ -1213,8 +1238,10 @@
       <div
         style="
           min-height: 145px;
+          height: 100%;
           border-radius: 18px 32px 18px 32px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 18px;
         "
       >
@@ -1237,8 +1264,10 @@
       <div
         style="
           min-height: 145px;
+          height: 100%;
           border-radius: 18px 32px 18px 32px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 18px;
         "
       >
@@ -1259,8 +1288,10 @@
       <div
         style="
           min-height: 145px;
+          height: 100%;
           border-radius: 18px 32px 18px 32px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 18px;
         "
       >
@@ -1281,8 +1312,10 @@
       <div
         style="
           min-height: 145px;
+          height: 100%;
           border-radius: 18px 32px 18px 32px;
           background: rgba(15, 23, 42, 0.88);
+          box-sizing: border-box;
           padding: 18px;
         "
       >
