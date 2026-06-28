@@ -67,6 +67,14 @@ const placeholders = [
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS",
   "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_02",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_03",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_04",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_05",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_06",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_07",
+  "REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08",
   "REPLACE_WITH_ARTFIGHT_USERNAME",
 ];
 
@@ -94,6 +102,22 @@ const previewImageReplacements: Record<string, string> = {
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT: "/LykoTwins.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS: "/boot/Fenrys.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS: "/boot/Morris.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01:
+    "/artfight-profile/gallery-preview/technoblade-26.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_02:
+    "/artfight-profile/gallery-preview/drowning-love.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_03:
+    "/artfight-profile/gallery-preview/musicvayle.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_04:
+    "/artfight-profile/gallery-preview/psyncronize.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_05:
+    "/artfight-profile/gallery-preview/successor-thrones.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_06:
+    "/artfight-profile/gallery-preview/stasis-chamber.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_07:
+    "/artfight-profile/gallery-preview/at-all-costs.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08:
+    "/artfight-profile/gallery-preview/undertale-10th.webp",
   REPLACE_WITH_ARTFIGHT_USERNAME: "exocorpse",
 };
 
@@ -144,6 +168,7 @@ const inlinePreviewCss = `
   }
 
   .col-lg-4,
+  .col-lg-6,
   .col-lg-8,
   .col-lg-3,
   .col-md-4,
@@ -173,6 +198,11 @@ const inlinePreviewCss = `
     .col-lg-4 {
       flex: 0 0 33.333333%;
       max-width: 33.333333%;
+    }
+
+    .col-lg-6 {
+      flex: 0 0 50%;
+      max-width: 50%;
     }
 
     .col-lg-8 {

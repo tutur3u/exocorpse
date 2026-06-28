@@ -17,6 +17,14 @@ ArtFight profile images must use public HTTPS URLs. Upload the images you want t
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_02`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_03`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_04`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_05`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_06`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_07`
+- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08`
 
 The local preview uses these repo images:
 
@@ -24,6 +32,7 @@ The local preview uses these repo images:
 - `../public/LykoTwins.webp`
 - `../public/boot/Fenrys.webp`
 - `../public/boot/Morris.webp`
+- `../public/artfight-profile/gallery-preview/*.webp`
 
 ## ArtFight Usage
 
