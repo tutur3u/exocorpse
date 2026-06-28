@@ -8,7 +8,9 @@ import {
   FileCode2,
   GitCompareArrows,
   ImageIcon,
+  Maximize2,
   Menu,
+  Minimize2,
   Monitor,
   NotebookText,
   Palette,
@@ -485,6 +487,7 @@ export default function ArtfightProfilePreviewClient({
   const [activeDialog, setActiveDialog] = useState<DialogMode | null>(null);
   const [copyMenuOpen, setCopyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const copyMenuRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
 
@@ -558,19 +561,27 @@ export default function ArtfightProfilePreviewClient({
   }, [currentVersion.id, selectedVersionId, versions]);
 
   useEffect(() => {
-    if (!activeDialog && !copyMenuOpen && !mobileMenuOpen) return;
+    if (
+      !activeDialog &&
+      !copyMenuOpen &&
+      !mobileMenuOpen &&
+      !isPreviewFullscreen
+    ) {
+      return;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveDialog(null);
         setCopyMenuOpen(false);
         setMobileMenuOpen(false);
+        setIsPreviewFullscreen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeDialog, copyMenuOpen, mobileMenuOpen]);
+  }, [activeDialog, copyMenuOpen, isPreviewFullscreen, mobileMenuOpen]);
 
   useEffect(() => {
     if (!copyMenuOpen) return;
@@ -776,8 +787,14 @@ export default function ArtfightProfilePreviewClient({
           </div>
         </header>
 
-        <section className="flex min-h-0 flex-1 flex-col bg-[#030712]">
-          <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_20%_10%,rgba(251,113,133,0.13),transparent_28%),radial-gradient(circle_at_78%_0%,rgba(34,211,238,0.11),transparent_24%),#020617] p-3 @lg:p-5">
+        <section
+          className={
+            isPreviewFullscreen
+              ? "fixed inset-0 z-40 flex flex-col bg-[#030712]"
+              : "flex min-h-0 flex-1 flex-col bg-[#030712]"
+          }
+        >
+          <div className="relative min-h-0 flex-1 bg-[radial-gradient(circle_at_20%_10%,rgba(251,113,133,0.13),transparent_28%),radial-gradient(circle_at_78%_0%,rgba(34,211,238,0.11),transparent_24%),#020617] p-3 @lg:p-5">
             <iframe
               key={`${selectedVersion.id}-${previewMode}`}
               title={previewTitle}
@@ -785,6 +802,33 @@ export default function ArtfightProfilePreviewClient({
               className="h-full w-full border border-rose-300/35 bg-slate-950 shadow-[0_26px_70px_rgba(2,6,23,0.65)]"
               sandbox=""
             />
+            <button
+              type="button"
+              onClick={() =>
+                setIsPreviewFullscreen((currentValue) => !currentValue)
+              }
+              className="absolute right-6 bottom-6 z-10 inline-flex items-center gap-2 border border-cyan-200/50 bg-slate-950/88 px-3 py-2 text-sm font-bold text-cyan-100 shadow-[0_18px_48px_rgba(2,6,23,0.56)] backdrop-blur transition hover:border-cyan-100 hover:bg-cyan-300/14"
+              aria-label={
+                isPreviewFullscreen
+                  ? "Exit fullscreen preview"
+                  : "Open fullscreen preview"
+              }
+              aria-pressed={isPreviewFullscreen}
+              title={
+                isPreviewFullscreen
+                  ? "Exit fullscreen preview"
+                  : "Open fullscreen preview"
+              }
+            >
+              {isPreviewFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+              <span className="hidden @lg:inline">
+                {isPreviewFullscreen ? "Exit Preview" : "Fullscreen Preview"}
+              </span>
+            </button>
           </div>
         </section>
       </div>

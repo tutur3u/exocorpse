@@ -1,10 +1,23 @@
 [
   {
+    "id": "2026-06-28-personality-shrine",
+    "label": "Personality Shrine",
+    "date": "2026-06-28",
+    "status": "current",
+    "summary": "Richer Exocorpse shrine-board profile with clearer mood text, personal motif charms, split Fenrys/Morris notes, and a handwritten-style message.",
+    "files": {
+      "inlineHtml": "versions/2026-06-28-personality-shrine/inline-html.html",
+      "supporterHtml": "versions/2026-06-28-personality-shrine/supporter-css.html",
+      "supporterCss": "versions/2026-06-28-personality-shrine/supporter-profile.css",
+      "readme": "versions/2026-06-28-personality-shrine/README.md"
+    }
+  },
+  {
     "id": "2026-06-28-shrine-board",
     "label": "Shrine Board",
     "date": "2026-06-28",
-    "status": "current",
-    "summary": "Personalized Exocorpse shrine-board design with collage layers, mood strips, and softer profile framing.",
+    "status": "archived",
+    "summary": "Previous personalized Exocorpse shrine-board design with collage layers, mood strips, and softer profile framing.",
     "files": {
       "inlineHtml": "versions/2026-06-28-shrine-board/inline-html.html",
       "supporterHtml": "versions/2026-06-28-shrine-board/supporter-css.html",
