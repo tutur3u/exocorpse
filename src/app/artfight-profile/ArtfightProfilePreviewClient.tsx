@@ -370,7 +370,7 @@ function DialogFrame({
   );
 }
 
-function ActionButton({
+function ActionMenuButton({
   icon: Icon,
   label,
   onClick,
@@ -383,27 +383,7 @@ function ActionButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 border border-slate-600/70 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-200/70 hover:bg-cyan-300/10 hover:text-cyan-100"
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </button>
-  );
-}
-
-function MobileMenuButton({
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
+      role="menuitem"
       className="flex w-full items-center gap-3 border-b border-slate-800 px-3 py-3 text-left text-sm font-semibold text-slate-100 transition last:border-b-0 hover:bg-cyan-300/10 hover:text-cyan-100"
     >
       <Icon className="h-4 w-4" />
@@ -486,10 +466,11 @@ export default function ArtfightProfilePreviewClient({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeDialog, setActiveDialog] = useState<DialogMode | null>(null);
   const [copyMenuOpen, setCopyMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
+  const [versionDetailsOpen, setVersionDetailsOpen] = useState(false);
   const copyMenuRef = useRef<HTMLDivElement>(null);
-  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const currentVersion =
     versions.find((version) => version.status === "current") ?? initialVersion;
@@ -564,8 +545,9 @@ export default function ArtfightProfilePreviewClient({
     if (
       !activeDialog &&
       !copyMenuOpen &&
-      !mobileMenuOpen &&
-      !isPreviewFullscreen
+      !actionMenuOpen &&
+      !isPreviewFullscreen &&
+      !versionDetailsOpen
     ) {
       return;
     }
@@ -574,14 +556,21 @@ export default function ArtfightProfilePreviewClient({
       if (event.key === "Escape") {
         setActiveDialog(null);
         setCopyMenuOpen(false);
-        setMobileMenuOpen(false);
+        setActionMenuOpen(false);
         setIsPreviewFullscreen(false);
+        setVersionDetailsOpen(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeDialog, copyMenuOpen, isPreviewFullscreen, mobileMenuOpen]);
+  }, [
+    activeDialog,
+    actionMenuOpen,
+    copyMenuOpen,
+    isPreviewFullscreen,
+    versionDetailsOpen,
+  ]);
 
   useEffect(() => {
     if (!copyMenuOpen) return;
@@ -597,22 +586,22 @@ export default function ArtfightProfilePreviewClient({
   }, [copyMenuOpen]);
 
   useEffect(() => {
-    if (!mobileMenuOpen) return;
+    if (!actionMenuOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (!mobileNavRef.current?.contains(event.target as Node)) {
-        setMobileMenuOpen(false);
+      if (!actionMenuRef.current?.contains(event.target as Node)) {
+        setActionMenuOpen(false);
       }
     };
 
     window.addEventListener("pointerdown", handlePointerDown);
     return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, [mobileMenuOpen]);
+  }, [actionMenuOpen]);
 
   const openDialog = (dialog: DialogMode) => {
     setActiveDialog(dialog);
     setCopyMenuOpen(false);
-    setMobileMenuOpen(false);
+    setActionMenuOpen(false);
   };
 
   const handleCopy = async (id: string, text: string) => {
@@ -628,12 +617,22 @@ export default function ArtfightProfilePreviewClient({
         <header className="shrink-0 border-b border-rose-300/25 bg-slate-950/95 px-3 py-3 shadow-[0_18px_48px_rgba(2,6,23,0.44)] @lg:px-4">
           <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center @xl:justify-between">
             <div className="min-w-0">
-              <h1 className="truncate text-2xl leading-none font-bold tracking-[0.03em] text-rose-50 uppercase @lg:text-4xl">
-                Fenrys & Morris
-              </h1>
-              <p className="mt-1 text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
-                ArtFight profile lab
-              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  setVersionDetailsOpen((currentValue) => !currentValue)
+                }
+                className="inline-flex items-center gap-2 text-left text-lg leading-none font-bold tracking-[0.08em] text-rose-50 uppercase transition hover:text-cyan-100 @lg:text-xl"
+                aria-expanded={versionDetailsOpen}
+                aria-controls="artfight-version-details"
+              >
+                <span>ArtFight Profile</span>
+                <ChevronDown
+                  className={`h-4 w-4 text-cyan-100/80 transition ${
+                    versionDetailsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
             </div>
 
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -693,80 +692,55 @@ export default function ArtfightProfilePreviewClient({
                 ) : null}
               </div>
 
-              <div className="hidden flex-wrap items-center gap-2 @xl:flex">
-                <ActionButton
-                  icon={Palette}
-                  label="Preview Mode"
-                  onClick={() => openDialog("preview")}
-                />
-                <ActionButton
-                  icon={GitCompareArrows}
-                  label="Compare"
-                  onClick={() => openDialog("compare")}
-                />
-                <ActionButton
-                  icon={ImageIcon}
-                  label="Placeholders"
-                  onClick={() => openDialog("placeholders")}
-                />
-                <ActionButton
-                  icon={FileCode2}
-                  label="Code"
-                  onClick={() => openDialog("code")}
-                />
-                <ActionButton
-                  icon={NotebookText}
-                  label="Notes"
-                  onClick={() => openDialog("notes")}
-                />
-              </div>
-
-              <div className="relative @xl:hidden" ref={mobileNavRef}>
+              <div className="relative" ref={actionMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setMobileMenuOpen((current) => !current)}
-                  className="inline-flex h-10 w-10 items-center justify-center border border-slate-600/70 bg-slate-900/85 text-slate-100 transition hover:border-cyan-200/70 hover:text-cyan-100"
-                  aria-label="Open profile actions"
-                  aria-controls="artfight-mobile-menu"
-                  aria-expanded={mobileMenuOpen}
+                  onClick={() => setActionMenuOpen((current) => !current)}
+                  className="inline-flex items-center gap-2 border border-slate-600/70 bg-slate-900/85 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-200/70 hover:text-cyan-100"
+                  aria-label="Open actions menu"
+                  aria-controls="artfight-actions-menu"
+                  aria-haspopup="menu"
+                  aria-expanded={actionMenuOpen}
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-4 w-4" />
+                  <span>Actions</span>
+                  <ChevronDown className="h-4 w-4" />
                 </button>
 
-                {mobileMenuOpen ? (
+                {actionMenuOpen ? (
                   <>
                     <button
                       type="button"
-                      aria-label="Close profile actions"
+                      aria-label="Close actions menu"
                       className="fixed inset-0 z-20 cursor-default bg-transparent"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() => setActionMenuOpen(false)}
                     />
                     <div
-                      id="artfight-mobile-menu"
+                      id="artfight-actions-menu"
                       role="menu"
                       className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-cyan-300/30 bg-[#07101b] shadow-[0_18px_48px_rgba(2,6,23,0.72)]"
                     >
-                      <MobileMenuButton
+                      <ActionMenuButton
                         icon={Palette}
                         label="Preview Mode"
                         onClick={() => openDialog("preview")}
                       />
-                      <MobileMenuButton
+                      <ActionMenuButton
                         icon={GitCompareArrows}
                         label="Compare"
                         onClick={() => openDialog("compare")}
                       />
-                      <MobileMenuButton
+                      <ActionMenuButton
                         icon={ImageIcon}
                         label="Placeholders"
                         onClick={() => openDialog("placeholders")}
                       />
-                      <MobileMenuButton
+                      <ActionMenuButton
                         icon={FileCode2}
                         label="Code"
                         onClick={() => openDialog("code")}
                       />
-                      <MobileMenuButton
+                      <ActionMenuButton
                         icon={NotebookText}
                         label="Notes"
                         onClick={() => openDialog("notes")}
@@ -778,13 +752,18 @@ export default function ArtfightProfilePreviewClient({
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <span className="border border-slate-700/70 bg-slate-900/70 px-2 py-1 font-semibold text-slate-200">
-              {selectedVersion.status === "current" ? "Current" : "Archived"}
-            </span>
-            <span>{selectedVersion.date}</span>
-            <span className="min-w-0 flex-1">{selectedVersion.summary}</span>
-          </div>
+          {versionDetailsOpen ? (
+            <div
+              id="artfight-version-details"
+              className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-800/80 pt-3 text-xs text-slate-400"
+            >
+              <span className="border border-slate-700/70 bg-slate-900/70 px-2 py-1 font-semibold text-slate-200">
+                {selectedVersion.status === "current" ? "Current" : "Archived"}
+              </span>
+              <span>{selectedVersion.date}</span>
+              <span className="min-w-0 flex-1">{selectedVersion.summary}</span>
+            </div>
+          ) : null}
         </header>
 
         <section
@@ -807,7 +786,7 @@ export default function ArtfightProfilePreviewClient({
               onClick={() =>
                 setIsPreviewFullscreen((currentValue) => !currentValue)
               }
-              className="absolute right-6 bottom-6 z-10 inline-flex items-center gap-2 border border-cyan-200/50 bg-slate-950/88 px-3 py-2 text-sm font-bold text-cyan-100 shadow-[0_18px_48px_rgba(2,6,23,0.56)] backdrop-blur transition hover:border-cyan-100 hover:bg-cyan-300/14"
+              className="absolute top-6 right-6 z-10 inline-flex items-center gap-2 border border-cyan-200/50 bg-slate-950/88 px-3 py-2 text-sm font-bold text-cyan-100 shadow-[0_18px_48px_rgba(2,6,23,0.56)] backdrop-blur transition hover:border-cyan-100 hover:bg-cyan-300/14"
               aria-label={
                 isPreviewFullscreen
                   ? "Exit fullscreen preview"

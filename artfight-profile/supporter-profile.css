@@ -11,6 +11,7 @@
   --exo-neuro: #22d3ee;
   --exo-neuro-soft: #a5f3fc;
   --exo-thread: rgba(251, 113, 133, 0.72);
+  --exo-glow: rgba(34, 211, 238, 0.28);
   max-width: 1180px;
   margin: 0 auto;
   overflow: hidden;
@@ -52,8 +53,10 @@
 .exo-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(230px, 0.65fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-rows: auto auto auto;
+  gap: 16px 30px;
+  align-items: center;
   min-height: 430px;
   padding: clamp(24px, 5vw, 54px);
   overflow: hidden;
@@ -116,6 +119,7 @@
 }
 
 .exo-hero-copy {
+  grid-row: 1;
   align-self: end;
   max-width: 760px;
 }
@@ -146,11 +150,12 @@
 .exo-hero h1 {
   margin: 0;
   color: var(--exo-white);
-  font-size: clamp(42px, 8vw, 92px);
-  line-height: 0.86;
+  font-size: clamp(42px, 7vw, 88px);
+  line-height: 0.9;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: 0 0 28px rgba(251, 113, 133, 0.46);
+  overflow-wrap: anywhere;
 }
 
 .exo-af .exo-mood-line {
@@ -185,20 +190,22 @@
 }
 
 .exo-hero-tags {
-  position: absolute;
-  right: clamp(18px, 3vw, 42px);
-  bottom: 32px;
-  display: grid;
-  gap: 7px;
-  max-width: 210px;
-  transform: rotate(-2deg);
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 720px;
+  transform: rotate(-1.2deg);
 }
 
 .exo-hero-tags span {
   border: 1px solid rgba(34, 211, 238, 0.44);
-  border-radius: 999px;
-  background: rgba(2, 6, 23, 0.78);
-  padding: 7px 10px;
+  border-radius: 20px 2px 20px 2px;
+  background:
+    linear-gradient(90deg, rgba(34, 211, 238, 0.18), transparent 70%),
+    rgba(2, 6, 23, 0.82);
+  padding: 8px 12px;
   color: var(--exo-neuro-soft);
   font-family: "Courier New", monospace;
   font-size: 10px;
@@ -206,29 +213,45 @@
   letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
+  box-shadow: 5px 5px 0 rgba(2, 6, 23, 0.52);
 }
 
 .exo-orbit-note {
-  position: absolute;
-  top: 104px;
-  right: 26%;
-  max-width: 180px;
-  transform: rotate(8deg);
-  border: 1px dashed rgba(251, 113, 133, 0.52);
-  border-radius: 18px 6px 18px 6px;
-  background: rgba(15, 23, 42, 0.7);
-  padding: 10px 12px;
+  grid-column: 1;
+  grid-row: 3;
+  width: fit-content;
+  max-width: min(100%, 520px);
+  transform: rotate(1.4deg);
+  border: 1px solid rgba(251, 113, 133, 0.52);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(251, 113, 133, 0.22), transparent 56%),
+    rgba(15, 23, 42, 0.82);
+  padding: 10px 14px;
   color: var(--exo-pulse-soft);
   font-family: "Courier New", monospace;
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   line-height: 1.35;
   text-transform: uppercase;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 16px) 0,
+    100% 50%,
+    calc(100% - 16px) 100%,
+    0 100%,
+    12px 50%
+  );
+  box-shadow: -8px 8px 0 rgba(34, 211, 238, 0.14);
 }
 
 .exo-polaroid {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  justify-self: end;
   align-self: center;
   transform: rotate(4deg);
+  width: min(100%, 330px);
   border-radius: 28px 28px 12px 12px;
   background: var(--exo-paper);
   padding: 12px 12px 38px;
@@ -265,6 +288,7 @@
 .exo-polaroid img {
   display: block;
   width: 100%;
+  max-height: 360px;
   aspect-ratio: 4 / 5;
   border-radius: 22px;
   object-fit: cover;
@@ -430,16 +454,16 @@
 
 .exo-split-journal {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1.05fr 0.95fr 1.1fr;
+  gap: 20px;
   padding: 0 22px 24px;
 }
 
 .exo-journal-card {
   position: relative;
-  min-height: 220px;
+  min-height: 238px;
   padding: 22px;
-  overflow: hidden;
+  overflow: visible;
   background:
     linear-gradient(135deg, rgba(255, 247, 248, 0.06), transparent 42%),
     rgba(15, 23, 42, 0.9);
@@ -457,6 +481,17 @@
   content: "";
   border: 1px solid rgba(34, 211, 238, 0.32);
   border-radius: 50%;
+}
+
+.exo-journal-card::after {
+  position: absolute;
+  top: -10px;
+  left: 22px;
+  width: 88px;
+  height: 18px;
+  content: "";
+  background: rgba(255, 247, 248, 0.18);
+  transform: rotate(-5deg);
 }
 
 .exo-journal-fenrys {
@@ -487,10 +522,11 @@
 .exo-journal-card h2 {
   margin: 0 0 12px;
   color: var(--exo-white);
-  font-size: 23px;
-  line-height: 1.05;
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.12;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .exo-journal-fenrys h2 {
@@ -510,8 +546,8 @@
 
 .exo-ribbon {
   min-height: 190px;
-  padding: 22px;
-  clip-path: polygon(0 8%, 94% 0, 100% 50%, 94% 100%, 0 92%, 4% 50%);
+  padding: 24px 30px;
+  clip-path: polygon(0 8%, 92% 0, 100% 50%, 92% 100%, 0 92%, 5% 50%);
 }
 
 .exo-ribbon-pulse {
@@ -583,7 +619,7 @@
 
 .exo-sticker-grid article {
   min-height: 176px;
-  border-radius: 24px 8px 24px 8px;
+  border-radius: 36px 8px 36px 8px;
   padding: 18px;
 }
 
@@ -648,25 +684,29 @@
 
 .exo-charm-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .exo-charm-grid article {
   position: relative;
-  min-height: 132px;
-  padding: 16px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 106px;
+  padding: 16px;
   border: 1px solid rgba(251, 113, 133, 0.22);
-  border-radius: 999px 999px 30px 30px;
+  border-radius: 999px 18px 18px 999px;
   background:
     radial-gradient(
-      circle at 50% 12px,
+      circle at 18px 50%,
       rgba(34, 211, 238, 0.42) 0 4px,
       transparent 5px
     ),
     rgba(15, 23, 42, 0.9);
   box-shadow: 0 14px 32px rgba(2, 6, 23, 0.32);
-  text-align: center;
+  text-align: left;
 }
 
 .exo-charm-grid article:nth-child(odd) {
@@ -678,19 +718,27 @@
 }
 
 .exo-charm-grid b {
-  display: block;
-  margin-bottom: 10px;
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  border: 1px solid rgba(251, 113, 133, 0.42);
+  border-radius: 50%;
   color: var(--exo-pulse-soft);
   font-family: "Courier New", monospace;
   font-size: 18px;
+  line-height: 1;
 }
 
 .exo-charm-grid span {
   color: var(--exo-text);
   font-family: "Courier New", monospace;
   font-size: 11px;
-  line-height: 1.38;
+  line-height: 1.46;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .exo-love-list {
@@ -890,6 +938,14 @@
     min-height: 0;
   }
 
+  .exo-hero-copy,
+  .exo-polaroid,
+  .exo-hero-tags,
+  .exo-orbit-note {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .exo-polaroid,
   .exo-profile-label,
   .exo-paper-main,
@@ -913,7 +969,7 @@
   }
 
   .exo-hero-tags {
-    grid-column: 1 / -1;
+    display: grid;
     grid-template-columns: 1fr;
   }
 
