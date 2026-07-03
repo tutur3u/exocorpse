@@ -12,6 +12,7 @@
   --exo-neuro-soft: #a5f3fc;
   --exo-thread: rgba(251, 113, 133, 0.72);
   --exo-glow: rgba(34, 211, 238, 0.28);
+  --exo-border: 4px;
   max-width: 1180px;
   margin: 0 auto;
   overflow: hidden;
@@ -28,7 +29,7 @@
     ),
     linear-gradient(135deg, #07060c, #101827 44%, #020617);
   box-shadow:
-    0 0 0 1px rgba(251, 113, 133, 0.46),
+    0 0 0 var(--exo-border) rgba(251, 113, 133, 0.46),
     0 26px 80px rgba(2, 6, 23, 0.72);
   color: var(--exo-text);
   font-family: Georgia, "Times New Roman", serif;
@@ -60,7 +61,7 @@
   min-height: 430px;
   padding: clamp(24px, 5vw, 54px);
   overflow: hidden;
-  border-bottom: 1px solid rgba(251, 113, 133, 0.45);
+  border-bottom: var(--exo-border) solid rgba(251, 113, 133, 0.45);
   background:
     linear-gradient(90deg, rgba(251, 113, 133, 0.13) 1px, transparent 1px),
     linear-gradient(0deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
@@ -127,9 +128,7 @@
 .exo-stamp,
 .exo-kicker,
 .exo-section-heading span,
-.exo-note-tape span,
-.exo-love-list span,
-.exo-character-queue span {
+.exo-character-heading span {
   font-family: "Courier New", monospace;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -139,7 +138,7 @@
   display: inline-block;
   margin-bottom: 16px;
   transform: rotate(-3deg);
-  border: 1px dashed rgba(251, 113, 133, 0.8);
+  border: var(--exo-border) dashed rgba(251, 113, 133, 0.8);
   border-radius: 999px;
   background: rgba(2, 6, 23, 0.78);
   padding: 8px 12px;
@@ -162,7 +161,7 @@
   display: inline-block;
   margin: 16px 0 14px;
   transform: rotate(1.4deg);
-  border: 2px solid var(--exo-neuro);
+  border: var(--exo-border) solid var(--exo-neuro);
   background-color: var(--exo-white);
   background:
     linear-gradient(90deg, #a5f3fc, #fff7f8 48%, #fecdd3), var(--exo-paper);
@@ -182,7 +181,7 @@
 
 .exo-hero-copy > p:not(.exo-mood-line) {
   max-width: 760px;
-  border-left: 3px solid var(--exo-neuro);
+  border-left: var(--exo-border) solid var(--exo-neuro);
   background-color: rgba(2, 6, 23, 0.72);
   padding: 12px 14px;
   color: #f8fafc;
@@ -210,7 +209,7 @@
 }
 
 .exo-hero-tags span {
-  border: 1px solid rgba(34, 211, 238, 0.44);
+  border: var(--exo-border) solid rgba(34, 211, 238, 0.44);
   border-radius: 20px 2px 20px 2px;
   background:
     linear-gradient(90deg, rgba(34, 211, 238, 0.18), transparent 70%),
@@ -232,7 +231,7 @@
   width: fit-content;
   max-width: min(100%, 520px);
   transform: rotate(1.4deg);
-  border: 1px solid rgba(251, 113, 133, 0.52);
+  border: var(--exo-border) solid rgba(251, 113, 133, 0.52);
   border-radius: 0;
   background:
     linear-gradient(90deg, rgba(251, 113, 133, 0.22), transparent 56%),
@@ -268,7 +267,7 @@
   color: var(--exo-ink);
   box-shadow:
     0 22px 60px rgba(2, 6, 23, 0.6),
-    0 0 0 1px rgba(251, 113, 133, 0.24);
+    0 0 0 var(--exo-border) rgba(251, 113, 133, 0.24);
 }
 
 .exo-polaroid::before,
@@ -347,7 +346,7 @@
     );
   gap: 18px;
   padding: 22px;
-  border-top: 1px solid rgba(251, 113, 133, 0.32);
+  border-top: var(--exo-border) solid rgba(251, 113, 133, 0.32);
 }
 
 .exo-scrapbook::before {
@@ -369,18 +368,13 @@
 .exo-profile-label,
 .exo-paper,
 .exo-vibe-card,
-.exo-ribbon,
-.exo-sticker-grid article,
-.exo-design-notes,
-.exo-love-list,
-.exo-character-queue article,
 .exo-links {
   position: relative;
   height: 100%;
   background: rgba(15, 23, 42, 0.88);
   box-shadow:
     0 18px 44px rgba(2, 6, 23, 0.34),
-    inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+    inset 0 0 0 var(--exo-border) rgba(148, 163, 184, 0.22);
 }
 
 .exo-profile-label {
@@ -398,7 +392,7 @@
   background-size: cover;
   box-shadow:
     inset 0 0 45px rgba(2, 6, 23, 0.66),
-    0 0 0 1px rgba(251, 113, 133, 0.5);
+    0 0 0 var(--exo-border) rgba(251, 113, 133, 0.5);
 }
 
 .exo-profile-label h2 {
@@ -420,7 +414,7 @@
 .exo-badge-row span {
   display: inline-block;
   margin: 0 8px 8px 0;
-  border: 1px solid rgba(34, 211, 238, 0.38);
+  border: var(--exo-border) solid rgba(34, 211, 238, 0.38);
   border-radius: 999px;
   background: rgba(2, 6, 23, 0.74);
   padding: 6px 9px;
@@ -458,132 +452,14 @@
 .exo-links a {
   display: block;
   margin-top: 8px;
-  border-bottom: 1px dashed rgba(34, 211, 238, 0.28);
+  border-bottom: var(--exo-border) dashed rgba(34, 211, 238, 0.28);
   padding-bottom: 6px;
   font-family: "Courier New", monospace;
   font-size: 13px;
   text-transform: uppercase;
 }
 
-.exo-split-journal {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr 1.1fr;
-  gap: 20px;
-  padding: 0 22px 24px;
-}
-
-.exo-journal-card {
-  position: relative;
-  min-height: 238px;
-  padding: 22px;
-  overflow: visible;
-  background:
-    linear-gradient(135deg, rgba(255, 247, 248, 0.06), transparent 42%),
-    rgba(15, 23, 42, 0.9);
-  box-shadow:
-    0 18px 44px rgba(2, 6, 23, 0.34),
-    inset 0 0 0 1px rgba(148, 163, 184, 0.22);
-}
-
-.exo-journal-card::before {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  width: 48px;
-  height: 48px;
-  content: "";
-  border: 1px solid rgba(34, 211, 238, 0.32);
-  border-radius: 50%;
-}
-
-.exo-journal-card::after {
-  position: absolute;
-  top: -10px;
-  left: 22px;
-  width: 88px;
-  height: 18px;
-  content: "";
-  background: rgba(255, 247, 248, 0.18);
-  transform: rotate(-5deg);
-}
-
-.exo-journal-fenrys {
-  transform: rotate(-1.4deg);
-  border-radius: 42px 10px 30px 10px;
-}
-
-.exo-journal-morris {
-  transform: rotate(1deg);
-  border-radius: 10px 42px 10px 30px;
-}
-
-.exo-journal-play {
-  transform: rotate(-0.4deg);
-  border-radius: 30px 10px 42px 10px;
-}
-
-.exo-journal-card span {
-  display: block;
-  margin-bottom: 12px;
-  color: var(--exo-neuro);
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.exo-journal-card h2 {
-  margin: 0 0 12px;
-  color: var(--exo-white);
-  font-size: clamp(19px, 2vw, 24px);
-  line-height: 1.12;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-
-.exo-journal-fenrys h2 {
-  color: var(--exo-pulse-soft);
-}
-
-.exo-journal-morris h2 {
-  color: var(--exo-neuro-soft);
-}
-
-.exo-ribbon-board {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  padding: 8px 22px 24px;
-}
-
-.exo-ribbon {
-  min-height: 190px;
-  padding: 24px 30px;
-  clip-path: polygon(0 8%, 92% 0, 100% 50%, 92% 100%, 0 92%, 5% 50%);
-}
-
-.exo-ribbon-pulse {
-  transform: rotate(-1.4deg);
-  background: linear-gradient(
-    135deg,
-    rgba(127, 29, 29, 0.58),
-    rgba(15, 23, 42, 0.9)
-  );
-}
-
-.exo-ribbon-neuro {
-  transform: rotate(1.4deg);
-  background: linear-gradient(
-    135deg,
-    rgba(8, 47, 73, 0.62),
-    rgba(15, 23, 42, 0.9)
-  );
-}
-
-.exo-ribbon h3,
 .exo-section-heading h2,
-.exo-note-tape h2,
 .exo-links h2 {
   margin: 0 0 10px;
   color: var(--exo-white);
@@ -592,15 +468,6 @@
   text-transform: uppercase;
 }
 
-.exo-ribbon-pulse h3 {
-  color: var(--exo-pulse-soft);
-}
-
-.exo-ribbon-neuro h3 {
-  color: var(--exo-neuro-soft);
-}
-
-.exo-sticker-board,
 .exo-gallery-wall {
   padding: 22px;
 }
@@ -612,66 +479,13 @@
 }
 
 .exo-section-heading span,
-.exo-note-tape span,
-.exo-love-list span,
-.exo-character-queue span {
+.exo-character-heading span {
   color: var(--exo-neuro);
   font-size: 11px;
 }
 
-.exo-section-heading h2,
-.exo-note-tape h2 {
+.exo-section-heading h2 {
   font-size: clamp(24px, 4vw, 42px);
-}
-
-.exo-sticker-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.exo-sticker-grid article {
-  min-height: 176px;
-  border-radius: 36px 8px 36px 8px;
-  padding: 18px;
-}
-
-.exo-sticker-grid article:nth-child(odd) {
-  transform: rotate(-1.4deg);
-}
-
-.exo-sticker-grid article:nth-child(even) {
-  transform: rotate(1.4deg);
-}
-
-.exo-sticker-grid b {
-  color: var(--exo-pulse-soft);
-  font-family: "Courier New", monospace;
-  font-size: 18px;
-  text-transform: uppercase;
-}
-
-.exo-design-notes {
-  margin: 4px 22px 22px;
-  border-radius: 34px 12px 34px 12px;
-  padding: 22px;
-  background:
-    linear-gradient(90deg, rgba(251, 113, 133, 0.13), transparent 48%),
-    rgba(2, 6, 23, 0.74);
-}
-
-.exo-note-tape {
-  display: inline-block;
-  margin-bottom: 14px;
-  transform: rotate(-1.2deg);
-}
-
-.exo-design-notes ul {
-  margin: 0;
-  padding-left: 20px;
-  columns: 2;
-  color: var(--exo-text);
-  line-height: 1.7;
 }
 
 .exo-mood-strip {
@@ -687,75 +501,8 @@
   border-radius: 999px;
   object-fit: cover;
   box-shadow:
-    0 0 0 1px rgba(34, 211, 238, 0.3),
+    0 0 0 var(--exo-border) rgba(34, 211, 238, 0.3),
     0 16px 34px rgba(2, 6, 23, 0.42);
-}
-
-.exo-shrine-bits {
-  padding: 0 22px 22px;
-}
-
-.exo-charm-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.exo-charm-grid article {
-  position: relative;
-  height: 100%;
-  min-height: 106px;
-  padding: 16px;
-  border: 1px solid rgba(251, 113, 133, 0.22);
-  border-radius: 999px 18px 18px 999px;
-  background:
-    radial-gradient(
-      circle at 18px 50%,
-      rgba(34, 211, 238, 0.42) 0 4px,
-      transparent 5px
-    ),
-    rgba(15, 23, 42, 0.9);
-  box-shadow: 0 14px 32px rgba(2, 6, 23, 0.32);
-  text-align: left;
-}
-
-.exo-charm-grid article:nth-child(odd) {
-  transform: rotate(-1.8deg);
-}
-
-.exo-charm-grid article:nth-child(even) {
-  transform: rotate(1.8deg);
-}
-
-.exo-charm-grid b {
-  color: var(--exo-pulse-soft);
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  line-height: 1;
-}
-
-.exo-charm-grid span {
-  color: var(--exo-text);
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  line-height: 1.46;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-
-.exo-love-list {
-  margin: 0 22px 22px;
-  transform: rotate(0.7deg);
-  border-radius: 999px;
-  padding: 18px 24px;
-}
-
-.exo-love-list p {
-  font-family: "Courier New", monospace;
-  font-size: 13px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .exo-gallery-wall {
@@ -785,9 +532,10 @@
   min-height: 178px;
   align-items: flex-end;
   overflow: hidden;
+  border: var(--exo-border) solid rgba(148, 163, 184, 0.28);
   border-radius: 20px 6px 22px 8px;
   background: rgba(15, 23, 42, 0.82);
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.28);
+  box-shadow: 0 18px 44px rgba(2, 6, 23, 0.34);
 }
 
 .exo-art-tile:nth-child(3n + 1) {
@@ -817,73 +565,98 @@
   filter: saturate(0.9) contrast(1.08);
 }
 
-.exo-art-tile::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background:
-    linear-gradient(180deg, transparent 24%, rgba(2, 6, 23, 0.92)),
-    linear-gradient(90deg, rgba(251, 113, 133, 0.22), transparent 45%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.04) 0,
-      rgba(255, 255, 255, 0.04) 1px,
-      transparent 1px,
-      transparent 5px
-    );
-}
-
-.exo-art-tile div {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 5px;
-  width: 100%;
-  padding: 12px;
-}
-
-.exo-art-tile span {
-  color: var(--exo-neuro-soft);
-  font-family: "Courier New", monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.exo-art-tile strong {
-  color: var(--exo-white);
-  font-size: 16px;
-  letter-spacing: 0.04em;
-  line-height: 1.12;
-  text-transform: uppercase;
-}
-
-.exo-character-queue {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+.exo-character-list {
   padding: 0 22px 22px;
 }
 
-.exo-character-queue article {
-  min-height: 150px;
-  border-radius: 18px 32px 18px 32px;
-  padding: 18px;
+.exo-character-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: var(--exo-border) solid rgba(255, 247, 248, 0.34);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 14px 18px;
+  box-shadow: 0 16px 38px rgba(2, 6, 23, 0.3);
 }
 
-.exo-character-queue strong {
+.exo-character-heading span {
+  color: var(--exo-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 4vw, 42px);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.exo-character-heading a {
+  color: #e879f9;
+  font-family: "Courier New", monospace;
+  font-size: clamp(16px, 3vw, 28px);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.exo-character-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.exo-character-card {
   display: block;
-  margin: 8px 0;
-  color: var(--exo-pulse-soft);
-  font-size: 17px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+}
+
+.exo-character-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border: var(--exo-border) solid rgba(251, 113, 133, 0.62);
+  background: rgba(15, 23, 42, 0.88);
+  object-fit: cover;
+  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.42);
+}
+
+.exo-character-name {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.exo-character-name em {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--exo-border) solid rgba(255, 247, 248, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 7px 10px;
+  color: #ff6b6b;
+  font-family: "Courier New", monospace;
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exo-bookmark {
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  min-height: 36px;
+  border: var(--exo-border) solid rgba(255, 247, 248, 0.78);
+  background: rgba(15, 23, 42, 0.7);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
 }
 
 .exo-letter {
   margin: 0 22px 22px;
   transform: rotate(-0.8deg);
-  border: 1px solid rgba(251, 113, 133, 0.42);
+  border: var(--exo-border) solid rgba(251, 113, 133, 0.42);
   border-radius: 12px 46px 18px 38px;
   background:
     linear-gradient(90deg, rgba(34, 211, 238, 0.1), transparent 42%), #0b1220;
@@ -926,13 +699,9 @@
 @media (max-width: 820px) {
   .exo-hero,
   .exo-scrapbook,
-  .exo-split-journal,
-  .exo-ribbon-board,
-  .exo-sticker-grid,
   .exo-art-grid,
-  .exo-character-queue,
-  .exo-mood-strip,
-  .exo-charm-grid {
+  .exo-character-grid,
+  .exo-mood-strip {
     grid-template-columns: 1fr;
   }
 
@@ -952,12 +721,7 @@
   .exo-profile-label,
   .exo-paper-main,
   .exo-vibe-card,
-  .exo-ribbon,
-  .exo-sticker-grid article,
-  .exo-love-list,
   .exo-art-tile,
-  .exo-journal-card,
-  .exo-charm-grid article,
   .exo-letter {
     transform: none;
   }
@@ -979,13 +743,5 @@
   .exo-art-tall {
     grid-column: span 1;
     grid-row: span 1;
-  }
-
-  .exo-design-notes ul {
-    columns: 1;
-  }
-
-  .exo-love-list {
-    border-radius: 28px;
   }
 }

@@ -15,8 +15,10 @@ version snapshots for previewing, comparing, and copying older packs.
 
 ## Versions
 
-- `versions/2026-06-28-personality-shrine` - current personality-forward shrine
-  board design.
+- Current root files - character-list design with heavier borders, captionless
+  gallery tiles, and ArtFight-style character cards.
+- `versions/2026-06-28-personality-shrine` - archived personality-forward
+  shrine board design.
 - `versions/2026-06-28-shrine-board` - archived shrine-board design.
 - `versions/2026-06-28-gallery-wall` - archived gallery-wall design.
 - `versions/manifest.json` - version metadata used by `/artfight-profile`.
@@ -52,6 +54,8 @@ replace these placeholders:
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08`
 
 Also replace `REPLACE_WITH_ARTFIGHT_USERNAME` with the real ArtFight username.
+The character list currently uses the main portrait, Fenrys, Morris, and decor
+image placeholders.
 
 ## ArtFight Usage
 

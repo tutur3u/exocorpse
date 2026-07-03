@@ -1,9 +1,22 @@
 [
   {
+    "id": "current-character-list",
+    "label": "Character List",
+    "date": "2026-07-03",
+    "status": "current",
+    "summary": "Current Exocorpse ArtFight profile with heavier borders, captionless gallery tiles, and an ArtFight-style character list.",
+    "files": {
+      "inlineHtml": "inline-html.html",
+      "supporterHtml": "supporter-css.html",
+      "supporterCss": "supporter-profile.css",
+      "readme": "README.md"
+    }
+  },
+  {
     "id": "2026-06-28-personality-shrine",
     "label": "Personality Shrine",
     "date": "2026-06-28",
-    "status": "current",
+    "status": "archived",
     "summary": "Richer Exocorpse shrine-board profile with clearer mood text, personal motif charms, split Fenrys/Morris notes, and a handwritten-style message.",
     "files": {
       "inlineHtml": "versions/2026-06-28-personality-shrine/inline-html.html",
