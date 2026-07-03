@@ -74,6 +74,26 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+### Tuturuuu Data Fetch
+
+For one-off operator pulls from the linked Tuturuuu external-project workspace,
+use the Tuturuuu CLI. The Exocorpse admin UI keeps the CS35-style
+`/verify-token` exchange, refreshable admin session, and scope approval flow;
+operator reads and syncs should go through `ttr external projects`.
+
+```bash
+ttr login
+
+ttr external projects delivery --workspace "$TUTURUUU_EXOCORPSE_WORKSPACE_ID" --preview --out tmp/exocorpse-delivery.json
+ttr external projects snapshot --workspace "$TUTURUUU_EXOCORPSE_WORKSPACE_ID" --out tmp/exocorpse-snapshot.json
+ttr external projects entries --workspace "$TUTURUUU_EXOCORPSE_WORKSPACE_ID" --collection characters --json
+ttr external projects diff --workspace "$TUTURUUU_EXOCORPSE_WORKSPACE_ID" --manifest external-project.json --json
+ttr external projects apply --workspace "$TUTURUUU_EXOCORPSE_WORKSPACE_ID" --manifest external-project.json --confirm APPLY_EXTERNAL_PROJECT_SYNC
+```
+
+Use `--force` with `apply` only when intentionally allowing destructive
+changes supported by the Tuturuuu sync API.
+
 ### Supabase Setup
 
 For local development:
