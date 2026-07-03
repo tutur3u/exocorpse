@@ -32,6 +32,27 @@ type MigrationIssue = {
   severity: "error" | "warning";
 };
 
+type PublicAssetFile = {
+  assetType: string | null;
+  collectionSlug: string;
+  entrySlug: string;
+  entryStableSourceId: string | null;
+  entryTitle: string | null;
+  expectedFilePath: string;
+  filename: string;
+  mtimeMs?: number;
+  publicPath: string;
+  size?: number;
+  sourceMetadata: {
+    asset: Record<string, unknown>;
+    entry: Record<string, unknown>;
+    sourceId: string | number | null;
+    sourceTable: string | null;
+  };
+  stableSourceId: string | null;
+  storagePath: string | null;
+};
+
 type MigrationPreflight = {
   collectionCounts: Record<string, number>;
   issueCounts: {
@@ -42,8 +63,8 @@ type MigrationPreflight = {
   issues: MigrationIssue[];
   manifestDigest: string;
   publicAssets: {
-    missing: unknown[];
-    present: unknown[];
+    missing: PublicAssetFile[];
+    present: PublicAssetFile[];
     totalBytes: number;
   };
   readyToApply: boolean;
@@ -174,6 +195,7 @@ export function ExocorpseTuturuuuSyncPanel({
     (summary?.update ?? 0);
   const isConnected = Boolean(connectedEmail);
   const canRunPreflight = pendingAction === null && !configError;
+  const missingPublicAssets = preflight?.publicAssets.missing.length ?? 0;
   const canRunDiff =
     pendingAction === null &&
     isConnected &&
@@ -359,12 +381,13 @@ export function ExocorpseTuturuuuSyncPanel({
             </code>
           </div>
 
-          <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2 xl:grid-cols-6">
             {[
               ["Entries", preflight.totals.entries],
               ["Collections", preflight.totals.schemaCollections],
               ["Assets", preflight.totals.assets],
               ["Public files", preflight.totals.publicAssets],
+              ["Missing files", missingPublicAssets],
               ["Upload size", formatBytes(preflight.publicAssets.totalBytes)],
             ].map(([label, value]) => (
               <div
@@ -380,6 +403,28 @@ export function ExocorpseTuturuuuSyncPanel({
               </div>
             ))}
           </div>
+
+          {missingPublicAssets > 0 ? (
+            <div className="mt-4 flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-200">
+              <div>
+                <strong className="block">
+                  {missingPublicAssets} local public asset
+                  {missingPublicAssets === 1 ? "" : "s"} missing
+                </strong>
+                <span className="mt-1 block text-xs text-red-600 dark:text-red-300">
+                  Apply remains blocked until every expected file exists.
+                </span>
+              </div>
+              <a
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-400 hover:text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-100 dark:hover:border-red-700"
+                download
+                href="/api/admin/tuturuuu/migration/missing-assets?format=csv"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download missing asset report
+              </a>
+            </div>
+          ) : null}
 
           {preflight.issues.length > 0 ? (
             <div className="mt-4 space-y-2">
