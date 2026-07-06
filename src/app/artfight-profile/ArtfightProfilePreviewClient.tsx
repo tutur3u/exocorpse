@@ -133,7 +133,8 @@ const Streamdown = dynamic<StreamdownProps>(
 
 const previewImageReplacements: Record<string, string> = {
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_HEADER: "/background-image.webp",
-  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT: "/LykoTwins.webp",
+  REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MAIN_PORTRAIT:
+    "/artfight-profile/hero-preview/lyko-twins-polaroid.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_PAGEDOLL: "/boot/Fenrys.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_01: "/desktop-logo.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_02: "/exocorpse.webp",
