@@ -138,41 +138,41 @@ const previewImageReplacements: Record<string, string> = {
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_01: "/desktop-logo.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_DECOR_02: "/exocorpse.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_FENRYS_LYKOMEDES:
-    "/artfight-profile/characters-preview/fenrys-lykomedes.webp",
+    "/artfight-profile/characters-preview/crops/fenrys-lykomedes.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MORRIS_LYKOMEDES:
-    "/artfight-profile/characters-preview/morris-lykomedes.webp",
+    "/artfight-profile/characters-preview/crops/morris-lykomedes.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MINOS_ANATOLIOS:
-    "/artfight-profile/characters-preview/minos-anatolios.png",
+    "/artfight-profile/characters-preview/crops/minos-anatolios.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_VERDAN_GOOSE_LOXWOOD:
-    "/artfight-profile/characters-preview/verdan-goose-loxwood.webp",
+    "/artfight-profile/characters-preview/crops/verdan-goose-loxwood.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_SYLVIS_AEVEILITH:
-    "/artfight-profile/characters-preview/sylvis-aeveilith.webp",
+    "/artfight-profile/characters-preview/crops/sylvis-aeveilith.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_ENDOSSEUS:
-    "/artfight-profile/characters-preview/endosseus.webp",
+    "/artfight-profile/characters-preview/crops/endosseus.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_UNA_RUKAWA:
-    "/artfight-profile/characters-preview/una-rukawa.webp",
+    "/artfight-profile/characters-preview/crops/una-rukawa.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_LUCILLE_YANG:
-    "/artfight-profile/characters-preview/lucille-yang.webp",
+    "/artfight-profile/characters-preview/crops/lucille-yang.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_YVAINE_LEWIS:
-    "/artfight-profile/characters-preview/yvaine-lewis.webp",
+    "/artfight-profile/characters-preview/crops/yvaine-lewis.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_PERSEUS_LYNDHURST:
-    "/artfight-profile/characters-preview/perseus-lyndhurst.webp",
+    "/artfight-profile/characters-preview/crops/perseus-lyndhurst.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_01:
-    "/artfight-profile/gallery-preview/technoblade-26.webp",
+    "/artfight-profile/gallery-preview/crops/technoblade-26.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_02:
-    "/artfight-profile/gallery-preview/drowning-love.webp",
+    "/artfight-profile/gallery-preview/crops/drowning-love.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_03:
-    "/artfight-profile/gallery-preview/musicvayle.webp",
+    "/artfight-profile/gallery-preview/crops/musicvayle.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_04:
-    "/artfight-profile/gallery-preview/psyncronize.webp",
+    "/artfight-profile/gallery-preview/crops/psyncronize.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_05:
-    "/artfight-profile/gallery-preview/successor-thrones.webp",
+    "/artfight-profile/gallery-preview/crops/successor-thrones.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_06:
-    "/artfight-profile/gallery-preview/stasis-chamber.webp",
+    "/artfight-profile/gallery-preview/crops/stasis-chamber.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_07:
-    "/artfight-profile/gallery-preview/at-all-costs.webp",
+    "/artfight-profile/gallery-preview/crops/at-all-costs.webp",
   REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08:
-    "/artfight-profile/gallery-preview/undertale-10th.webp",
+    "/artfight-profile/gallery-preview/crops/undertale-10th.webp",
   REPLACE_WITH_ARTFIGHT_USERNAME: "exocorpse",
 };
 
