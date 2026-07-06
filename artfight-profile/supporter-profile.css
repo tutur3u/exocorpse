@@ -127,7 +127,7 @@
 
 .exo-stamp,
 .exo-kicker,
-.exo-character-heading span {
+.exo-section-heading span {
   font-family: "Courier New", monospace;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -448,11 +448,6 @@
   padding: 22px;
 }
 
-.exo-character-heading span {
-  color: var(--exo-neuro);
-  font-size: 11px;
-}
-
 .exo-mood-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -534,19 +529,32 @@
   padding: 0 22px 22px;
 }
 
-.exo-character-heading {
+.exo-section-heading {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   margin-bottom: 16px;
   border: var(--exo-border) solid rgba(255, 247, 248, 0.34);
-  background: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(90deg, rgba(34, 211, 238, 0.16), transparent 46%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 62%),
+    rgba(255, 255, 255, 0.08);
   padding: 14px 18px;
   box-shadow: 0 16px 38px rgba(2, 6, 23, 0.3);
 }
 
-.exo-character-heading span {
+.exo-section-heading::before {
+  width: 54px;
+  height: 6px;
+  content: "";
+  background: var(--exo-neuro);
+  box-shadow: 10px 0 0 rgba(251, 113, 133, 0.82);
+}
+
+.exo-section-heading span {
+  margin-right: auto;
   color: var(--exo-white);
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(26px, 4vw, 42px);
@@ -554,46 +562,116 @@
   text-transform: none;
 }
 
-.exo-character-heading a {
-  color: #e879f9;
+.exo-section-heading a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: var(--exo-border) solid rgba(34, 211, 238, 0.76);
+  background:
+    linear-gradient(90deg, var(--exo-neuro-soft), var(--exo-white) 48%),
+    var(--exo-neuro-soft);
+  padding: 10px 20px 10px 24px;
+  color: #020617;
   font-family: "Courier New", monospace;
-  font-size: clamp(16px, 3vw, 28px);
+  font-size: clamp(12px, 1.8vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
   line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
   white-space: nowrap;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 50%,
+    calc(100% - 12px) 100%,
+    0 100%,
+    10px 50%
+  );
+  box-shadow: 7px 7px 0 rgba(251, 113, 133, 0.42);
+}
+
+.exo-section-heading a::after {
+  margin-left: 8px;
+  color: #9f1239;
+  content: ">>";
+}
+
+.exo-section-heading a:hover {
+  color: #020617;
+  text-decoration: none;
 }
 
 .exo-character-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
 }
 
 .exo-character-card {
+  position: relative;
   display: block;
+  overflow: hidden;
+  border: var(--exo-border) solid rgba(251, 113, 133, 0.58);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 34%),
+    rgba(15, 23, 42, 0.88);
+  padding: 8px;
   color: inherit;
   text-decoration: none;
+  box-shadow: 0 18px 42px rgba(2, 6, 23, 0.42);
+}
+
+.exo-character-card::before,
+.exo-character-card::after {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  border: 2px solid rgba(255, 247, 248, 0.62);
+  background: rgba(2, 6, 23, 0.78);
+  padding: 4px 7px;
+  color: #d8fbff;
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.exo-character-card::before {
+  left: 14px;
+  content: attr(data-story);
+}
+
+.exo-character-card::after {
+  right: 14px;
+  color: #ff9aa6;
+  content: attr(data-kind);
 }
 
 .exo-character-card img {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border: var(--exo-border) solid rgba(251, 113, 133, 0.62);
-  background: rgba(15, 23, 42, 0.88);
+  border: var(--exo-border) solid rgba(255, 247, 248, 0.2);
+  background: rgba(2, 6, 23, 0.72);
   object-fit: cover;
-  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 248, 0.1);
 }
 
 .exo-character-name {
-  display: flex;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
   gap: 8px;
   margin-top: 10px;
 }
 
 .exo-character-name em {
   display: block;
-  flex: 1 1 auto;
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
   overflow: hidden;
   border: var(--exo-border) solid rgba(255, 247, 248, 0.5);
@@ -608,11 +686,31 @@
   white-space: nowrap;
 }
 
+.exo-character-name::after {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  overflow: hidden;
+  border: 2px solid rgba(216, 251, 255, 0.26);
+  background: rgba(2, 6, 23, 0.52);
+  padding: 4px 8px;
+  color: rgba(255, 247, 248, 0.74);
+  content: attr(data-role);
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .exo-bookmark {
   display: block;
-  flex: 0 0 32px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
   width: 32px;
-  min-height: 36px;
+  min-height: 100%;
   border: var(--exo-border) solid rgba(255, 247, 248, 0.78);
   background: rgba(15, 23, 42, 0.7);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
@@ -622,9 +720,12 @@
   .exo-hero,
   .exo-scrapbook,
   .exo-art-grid,
-  .exo-character-grid,
   .exo-mood-strip {
     grid-template-columns: 1fr;
+  }
+
+  .exo-character-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .exo-hero {
@@ -658,6 +759,15 @@
   .exo-hero-tags {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .exo-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .exo-section-heading a {
+    width: 100%;
   }
 
   .exo-art-large,

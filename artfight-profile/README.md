@@ -16,7 +16,7 @@ version snapshots for previewing, comparing, and copying older packs.
 ## Versions
 
 - Current root files - character-list design with heavier borders, captionless
-  gallery tiles, and ArtFight-style character cards.
+  Artworks/Characters sections, and ArtFight-style character cards.
 - `versions/2026-06-28-personality-shrine` - archived personality-forward
   shrine board design.
 - `versions/2026-06-28-shrine-board` - archived shrine-board design.
@@ -40,10 +40,8 @@ replace these placeholders:
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MINOS_ANATOLIOS`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_VERDAN_GOOSE_LOXWOOD`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_SYLVIS_AEVEILITH`
-- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_AURELIUS_LYKOMEDES`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_ENDOSSEUS`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_UNA_RUKAWA`
-- `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_MARKUS_WICKE`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_LUCILLE_YANG`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_YVAINE_LEWIS`
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_PERSEUS_LYNDHURST`
@@ -63,10 +61,10 @@ replace these placeholders:
 - `REPLACE_WITH_PUBLIC_HTTPS_IMAGE_URL_GALLERY_08`
 
 Also replace `REPLACE_WITH_ARTFIGHT_USERNAME` with the real ArtFight username.
-The character list mirrors the public Exocorpse wiki character cards as of
-2026-07-06: Fenrys Lykomedes, Morris Lykomedes, Minos Anatolios, Verdan
-`Goose` Loxwood, Sylvis Aeveilith, Aurelius Lykomedes, Endosseus, Una Rukawa,
-Markus Wicke, Lucille Yang, Yvaine Lewis, and Perseus Lyndhurst.
+The character list uses public wiki character cards that currently expose
+avatar images as of 2026-07-06: Fenrys Lykomedes, Morris Lykomedes, Minos
+Anatolios, Verdan `Goose` Loxwood, Sylvis Aeveilith, Endosseus, Una Rukawa,
+Lucille Yang, Yvaine Lewis, and Perseus Lyndhurst.
 
 ## ArtFight Usage
 

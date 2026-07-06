@@ -4,7 +4,7 @@
     "label": "Character List",
     "date": "2026-07-03",
     "status": "current",
-    "summary": "Current Exocorpse ArtFight profile with heavier borders, captionless gallery tiles, and a 12-card public-wiki-sourced character list.",
+    "summary": "Current Exocorpse ArtFight profile with heavier borders, matched Artworks/Characters section headers, and a 10-card avatar-backed public-wiki character list.",
     "files": {
       "inlineHtml": "inline-html.html",
       "supporterHtml": "supporter-css.html",
