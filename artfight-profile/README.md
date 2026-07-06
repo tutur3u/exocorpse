@@ -15,8 +15,8 @@ version snapshots for previewing, comparing, and copying older packs.
 
 ## Versions
 
-- Current root files - character-list design with heavier borders, captionless
-  Artworks/Characters sections, and ArtFight-style character cards.
+- Current root files - personalized archive/cast design with heavier borders,
+  captionless Artworks tiles, and ArtFight-style character dossier cards.
 - `versions/2026-06-28-personality-shrine` - archived personality-forward
   shrine board design.
 - `versions/2026-06-28-shrine-board` - archived shrine-board design.
