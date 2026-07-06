@@ -729,16 +729,18 @@
   grid-row: 1;
   min-width: 0;
   overflow: hidden;
-  border: var(--exo-border) solid rgba(255, 247, 248, 0.54);
+  border-left: var(--exo-border) solid rgba(251, 113, 133, 0.62);
+  border-bottom: 1px solid rgba(255, 247, 248, 0.18);
   background:
-    linear-gradient(90deg, rgba(251, 113, 133, 0.14), transparent 62%),
-    rgba(255, 255, 255, 0.08);
-  padding: 6px 8px;
-  color: #ff6b6b;
-  font-family: "Courier New", monospace;
+    linear-gradient(90deg, rgba(251, 113, 133, 0.12), transparent 72%),
+    rgba(2, 6, 23, 0.3);
+  padding: 5px 8px 5px 10px;
+  color: rgba(255, 202, 210, 0.9);
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 14px;
   font-style: italic;
   line-height: 1.1;
+  text-shadow: 0 1px 10px rgba(2, 6, 23, 0.72);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -748,14 +750,14 @@
   grid-column: 1;
   grid-row: 2;
   overflow: hidden;
-  border: 2px solid rgba(216, 251, 255, 0.26);
-  background: rgba(2, 6, 23, 0.52);
-  padding: 3px 7px;
-  color: rgba(255, 247, 248, 0.74);
+  border-left: var(--exo-border) solid rgba(34, 211, 238, 0.4);
+  background: rgba(2, 6, 23, 0.24);
+  padding: 3px 7px 3px 10px;
+  color: rgba(216, 251, 255, 0.62);
   content: attr(data-role);
   font-family: "Courier New", monospace;
-  font-size: 9px;
-  letter-spacing: 0.04em;
+  font-size: 8px;
+  letter-spacing: 0.06em;
   line-height: 1.15;
   text-overflow: ellipsis;
   text-transform: uppercase;
