@@ -448,23 +448,6 @@
   padding: 22px;
 }
 
-.exo-mood-strip {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 0 22px 22px;
-}
-
-.exo-mood-strip img {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  object-fit: cover;
-  box-shadow:
-    0 0 0 var(--exo-border) rgba(34, 211, 238, 0.3),
-    0 16px 34px rgba(2, 6, 23, 0.42);
-}
-
 .exo-gallery-wall {
   background:
     radial-gradient(
@@ -767,8 +750,7 @@
 @media (max-width: 820px) {
   .exo-hero,
   .exo-scrapbook,
-  .exo-art-grid,
-  .exo-mood-strip {
+  .exo-art-grid {
     grid-template-columns: 1fr;
   }
 
