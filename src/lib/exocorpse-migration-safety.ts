@@ -76,19 +76,21 @@ export async function buildExocorpseMigrationSnapshot() {
     entry.collectionSlug =
       fitIdentifier(entry.collectionSlug, 80) ?? entry.collectionSlug;
     entry.slug = fitIdentifier(entry.slug, 80) ?? entry.slug;
-    entry.stableSourceId = fitIdentifier(entry.stableSourceId, 128);
+    entry.stableSourceId =
+      fitIdentifier(entry.stableSourceId, 128) ?? entry.stableSourceId;
     entry.title = fitText(entry.title, 128) ?? entry.title;
     entry.summary = fitText(entry.summary, 512);
     entry.subtitle = fitText(entry.subtitle, 512);
     for (const block of entry.blocks ?? []) {
       block.blockType = fitIdentifier(block.blockType, 64) ?? block.blockType;
-      block.stableSourceId = fitIdentifier(block.stableSourceId, 128);
+      block.stableSourceId =
+        fitIdentifier(block.stableSourceId, 128) ?? block.stableSourceId;
       block.title = fitText(block.title, 128);
     }
     for (const asset of entry.assets ?? []) {
       asset.assetType = fitIdentifier(asset.assetType, 64) ?? asset.assetType;
-      asset.blockStableSourceId = fitIdentifier(asset.blockStableSourceId, 128);
-      asset.stableSourceId = fitIdentifier(asset.stableSourceId, 128);
+      asset.stableSourceId =
+        fitIdentifier(asset.stableSourceId, 128) ?? asset.stableSourceId;
       asset.altText = fitText(asset.altText, 512);
     }
   }
