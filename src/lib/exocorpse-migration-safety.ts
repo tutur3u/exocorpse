@@ -6,7 +6,10 @@ import {
   analyzeExocorpseMigrationManifest,
   inspectPublicAssets,
 } from "@/lib/exocorpse-migration-report";
-import { linkPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
+import {
+  linkPublicFolderAssets,
+  linkPublicFolderAssetsToRemoteSource,
+} from "@/lib/tuturuuu-public-folder-sync";
 
 export const EXOCORPSE_MIGRATION_CONFIRMATION = "MIGRATE_EXOCORPSE_TO_TUTURUUU";
 
@@ -32,10 +35,26 @@ function digest(value: unknown) {
     .digest("hex");
 }
 
+function shouldUseRemotePublicAssetSources() {
+  const mode =
+    process.env.EXOCORPSE_MIGRATION_PUBLIC_ASSET_MODE?.trim().toLowerCase();
+
+  if (mode === "remote") return true;
+  if (mode === "storage") return false;
+
+  return process.env.VERCEL === "1";
+}
+
 export async function buildExocorpseMigrationSnapshot() {
   const { manifest: rawManifest, sourceCounts } =
     await buildExocorpseExternalProjectManifestWithSource();
-  const manifest = linkPublicFolderAssets(rawManifest);
+  const remotePublicAssets = shouldUseRemotePublicAssetSources();
+  const manifest = remotePublicAssets
+    ? linkPublicFolderAssetsToRemoteSource(
+        rawManifest,
+        process.env.EXOCORPSE_PUBLIC_ASSET_BASE_URL ?? "https://exocorpse.net",
+      )
+    : linkPublicFolderAssets(rawManifest);
   const publicAssets = await inspectPublicAssets(manifest);
   const manifestDigest = digest({
     manifest,

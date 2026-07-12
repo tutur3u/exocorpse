@@ -218,6 +218,35 @@ export function linkPublicFolderAssets<Manifest extends PublicManifest>(
   return manifest;
 }
 
+export function linkPublicFolderAssetsToRemoteSource<
+  Manifest extends PublicManifest,
+>(manifestInput: Manifest, baseUrl: string) {
+  const manifest = cloneManifest(manifestInput);
+  const normalizedBaseUrl = `${baseUrl.replace(/\/+$/, "")}/`;
+
+  for (const { asset, publicPath } of getPublicAssetUploads(manifest)) {
+    const metadata = { ...(asset.metadata ?? {}) } as PublicAssetMetadata & {
+      legacyPublicPath?: string;
+    };
+    delete metadata.localAssetPath;
+    delete metadata.publicPath;
+    delete metadata.sourcePublicPath;
+
+    asset.metadata = {
+      ...metadata,
+      legacyPublicPath: publicPath,
+    };
+    asset.publicPath = null;
+    asset.sourceUrl = new URL(
+      publicPath.slice(1),
+      normalizedBaseUrl,
+    ).toString();
+    asset.storagePath = null;
+  }
+
+  return manifest;
+}
+
 export async function syncPublicFolderAssets<Manifest extends PublicManifest>({
   accessToken,
   apiBaseUrl,
