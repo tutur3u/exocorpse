@@ -7,18 +7,10 @@ import {
 import { buildExocorpseMigrationSnapshot } from "@/lib/exocorpse-migration-safety";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { syncPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
-
-type DualWriteResult =
-  | {
-      applied: true;
-      manifestDigest: string;
-      reason: string;
-    }
-  | {
-      applied: false;
-      reason: string;
-      skipped: string;
-    };
+import {
+  runDualWriteSafely,
+  type DualWriteResult,
+} from "@/lib/tuturuuu-dual-write-result";
 
 let pendingDualWrite: Promise<DualWriteResult> | null = null;
 
@@ -62,7 +54,10 @@ async function applyDualWrite(reason: string): Promise<DualWriteResult> {
   const { manifest, preflight } = await buildExocorpseMigrationSnapshot();
 
   if (!preflight.readyToApply) {
-    throw new Error("Exocorpse CMS dual-write preflight failed.");
+    const issueCodes = preflight.issues.map((issue) => issue.code).join(", ");
+    throw new Error(
+      `Exocorpse CMS dual-write preflight failed${issueCodes ? ` (${issueCodes})` : ""}.`,
+    );
   }
 
   const authHeaders = {
@@ -128,7 +123,7 @@ async function applyDualWrite(reason: string): Promise<DualWriteResult> {
 
 export async function syncTuturuuuCmsAfterMutation(reason: string) {
   pendingDualWrite = (pendingDualWrite ?? Promise.resolve(null)).then(() =>
-    applyDualWrite(reason),
+    runDualWriteSafely(reason, applyDualWrite),
   );
 
   try {
