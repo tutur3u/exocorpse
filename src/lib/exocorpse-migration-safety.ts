@@ -45,6 +45,76 @@ function fitText(value: string | null | undefined, maxLength: number) {
   return value && value.length > maxLength ? value.slice(0, maxLength) : value;
 }
 
+function fitUniqueEntrySlug({
+  collectionSlug,
+  slug,
+  stableSourceId,
+  usedSlugs,
+}: {
+  collectionSlug: string;
+  slug: string;
+  stableSourceId: string;
+  usedSlugs: Set<string>;
+}) {
+  const baseSlug = fitIdentifier(slug, 80) ?? slug;
+  let candidate = baseSlug;
+  let attempt = 0;
+
+  while (usedSlugs.has(`${collectionSlug}:${candidate}`)) {
+    const suffix = digest(`${stableSourceId}:${attempt}`).slice(0, 16);
+    candidate = `${baseSlug.slice(0, 80 - suffix.length - 1)}-${suffix}`;
+    attempt += 1;
+  }
+
+  usedSlugs.add(`${collectionSlug}:${candidate}`);
+  return candidate;
+}
+
+export function normalizeExocorpseMigrationManifest(
+  manifest: Awaited<
+    ReturnType<typeof buildExocorpseExternalProjectManifestWithSource>
+  >["manifest"],
+) {
+  const usedEntrySlugs = new Set<string>();
+
+  for (const collection of manifest.schema.collections) {
+    collection.slug = fitIdentifier(collection.slug, 80) ?? collection.slug;
+    collection.collection_type =
+      fitIdentifier(collection.collection_type, 64) ??
+      collection.collection_type;
+    collection.title = fitText(collection.title, 128) ?? collection.title;
+  }
+  for (const entry of manifest.content.entries) {
+    entry.collectionSlug =
+      fitIdentifier(entry.collectionSlug, 80) ?? entry.collectionSlug;
+    entry.slug = fitUniqueEntrySlug({
+      collectionSlug: entry.collectionSlug,
+      slug: entry.slug,
+      stableSourceId: entry.stableSourceId,
+      usedSlugs: usedEntrySlugs,
+    });
+    entry.stableSourceId =
+      fitIdentifier(entry.stableSourceId, 128) ?? entry.stableSourceId;
+    entry.title = fitText(entry.title, 128) ?? entry.title;
+    entry.summary = fitText(entry.summary, 512);
+    entry.subtitle = fitText(entry.subtitle, 512);
+    for (const block of entry.blocks ?? []) {
+      block.blockType = fitIdentifier(block.blockType, 64) ?? block.blockType;
+      block.stableSourceId =
+        fitIdentifier(block.stableSourceId, 128) ?? block.stableSourceId;
+      block.title = fitText(block.title, 128);
+    }
+    for (const asset of entry.assets ?? []) {
+      asset.assetType = fitIdentifier(asset.assetType, 64) ?? asset.assetType;
+      asset.stableSourceId =
+        fitIdentifier(asset.stableSourceId, 128) ?? asset.stableSourceId;
+      asset.altText = fitText(asset.altText, 512);
+    }
+  }
+
+  return manifest;
+}
+
 function shouldUseRemotePublicAssetSources() {
   const mode =
     process.env.EXOCORPSE_MIGRATION_PUBLIC_ASSET_MODE?.trim().toLowerCase();
@@ -65,35 +135,7 @@ export async function buildExocorpseMigrationSnapshot() {
         process.env.EXOCORPSE_PUBLIC_ASSET_BASE_URL ?? "https://exocorpse.net",
       )
     : linkPublicFolderAssets(rawManifest);
-  for (const collection of manifest.schema.collections) {
-    collection.slug = fitIdentifier(collection.slug, 80) ?? collection.slug;
-    collection.collection_type =
-      fitIdentifier(collection.collection_type, 64) ??
-      collection.collection_type;
-    collection.title = fitText(collection.title, 128) ?? collection.title;
-  }
-  for (const entry of manifest.content.entries) {
-    entry.collectionSlug =
-      fitIdentifier(entry.collectionSlug, 80) ?? entry.collectionSlug;
-    entry.slug = fitIdentifier(entry.slug, 80) ?? entry.slug;
-    entry.stableSourceId =
-      fitIdentifier(entry.stableSourceId, 128) ?? entry.stableSourceId;
-    entry.title = fitText(entry.title, 128) ?? entry.title;
-    entry.summary = fitText(entry.summary, 512);
-    entry.subtitle = fitText(entry.subtitle, 512);
-    for (const block of entry.blocks ?? []) {
-      block.blockType = fitIdentifier(block.blockType, 64) ?? block.blockType;
-      block.stableSourceId =
-        fitIdentifier(block.stableSourceId, 128) ?? block.stableSourceId;
-      block.title = fitText(block.title, 128);
-    }
-    for (const asset of entry.assets ?? []) {
-      asset.assetType = fitIdentifier(asset.assetType, 64) ?? asset.assetType;
-      asset.stableSourceId =
-        fitIdentifier(asset.stableSourceId, 128) ?? asset.stableSourceId;
-      asset.altText = fitText(asset.altText, 512);
-    }
-  }
+  normalizeExocorpseMigrationManifest(manifest);
   const publicAssets = await inspectPublicAssets(manifest);
   const manifestDigest = digest({
     manifest,
