@@ -56,8 +56,8 @@ export async function buildExocorpseMigrationSnapshot() {
       )
     : linkPublicFolderAssets(rawManifest);
   for (const entry of manifest.content.entries) {
-    if (entry.summary && entry.summary.length > 1000) {
-      entry.summary = entry.summary.slice(0, 1000);
+    if (entry.summary && entry.summary.length > 512) {
+      entry.summary = entry.summary.slice(0, 512);
     }
   }
   const publicAssets = await inspectPublicAssets(manifest);
