@@ -5,6 +5,7 @@ import {
 import { buildExocorpseMigrationSnapshot } from "@/lib/exocorpse-migration-safety";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { getCurrentUser } from "@/lib/auth/utils";
+import { createCompressedSyncPayload } from "@/lib/tuturuuu-sync-payload";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,7 @@ export async function POST() {
   const workspaceId = getExocorpseWorkspaceId();
   const apiBaseUrl = getExocorpseApiBaseUrl();
   const { manifest, preflight } = await buildExocorpseMigrationSnapshot();
+  const compressedManifest = createCompressedSyncPayload({ manifest });
 
   if (!preflight.readyToApply) {
     return NextResponse.json(
@@ -58,7 +60,10 @@ export async function POST() {
       workspaceId,
     )}/external-projects/setup`,
     {
-      body: JSON.stringify({ manifest }),
+      body: JSON.stringify({
+        adapter: manifest.adapter,
+        schema: manifest.schema,
+      }),
       cache: "no-store",
       headers: {
         Accept: "application/json",
@@ -81,12 +86,12 @@ export async function POST() {
       workspaceId,
     )}/external-projects/sync/diff`,
     {
-      body: JSON.stringify({ manifest }),
+      body: compressedManifest.body,
       cache: "no-store",
       headers: {
         Accept: "application/json",
         Authorization: `${session.tokenType} ${session.accessToken}`,
-        "Content-Type": "application/json",
+        ...compressedManifest.headers,
       },
       method: "POST",
     },

@@ -9,6 +9,7 @@ import {
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { syncPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
+import { createCompressedSyncPayload } from "@/lib/tuturuuu-sync-payload";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -90,7 +91,10 @@ export async function POST(request: Request) {
       workspaceId,
     )}/external-projects/setup`,
     {
-      body: JSON.stringify({ manifest }),
+      body: JSON.stringify({
+        adapter: manifest.adapter,
+        schema: manifest.schema,
+      }),
       cache: "no-store",
       headers: {
         Accept: "application/json",
@@ -115,6 +119,10 @@ export async function POST(request: Request) {
     tokenType: session.tokenType,
     workspaceId,
   });
+  const compressedApply = createCompressedSyncPayload({
+    force: body?.force === true,
+    manifest: publicAssetSync.manifest,
+  });
 
   if (publicAssetSync.skipped.length > 0) {
     return NextResponse.json(
@@ -136,15 +144,12 @@ export async function POST(request: Request) {
       workspaceId,
     )}/external-projects/sync/apply`,
     {
-      body: JSON.stringify({
-        force: body?.force === true,
-        manifest: publicAssetSync.manifest,
-      }),
+      body: compressedApply.body,
       cache: "no-store",
       headers: {
         Accept: "application/json",
         Authorization: `${session.tokenType} ${session.accessToken}`,
-        "Content-Type": "application/json",
+        ...compressedApply.headers,
       },
       method: "POST",
     },
