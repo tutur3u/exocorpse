@@ -244,6 +244,25 @@ export function linkPublicFolderAssetsToRemoteSource<
     asset.storagePath = null;
   }
 
+  for (const entry of manifest.content.entries) {
+    for (const asset of entry.assets ?? []) {
+      const storagePath = asset.storagePath?.trim();
+      if (!storagePath || storagePath.startsWith("external-projects/")) {
+        continue;
+      }
+
+      asset.metadata = {
+        ...(asset.metadata ?? {}),
+        legacyStoragePath: storagePath,
+      };
+      asset.sourceUrl = new URL(
+        `/api/storage/legacy-asset?path=${encodeURIComponent(storagePath)}`,
+        normalizedBaseUrl,
+      ).toString();
+      asset.storagePath = null;
+    }
+  }
+
   return manifest;
 }
 

@@ -55,6 +55,11 @@ export async function buildExocorpseMigrationSnapshot() {
         process.env.EXOCORPSE_PUBLIC_ASSET_BASE_URL ?? "https://exocorpse.net",
       )
     : linkPublicFolderAssets(rawManifest);
+  for (const entry of manifest.content.entries) {
+    if (entry.summary && entry.summary.length > 1000) {
+      entry.summary = entry.summary.slice(0, 1000);
+    }
+  }
   const publicAssets = await inspectPublicAssets(manifest);
   const manifestDigest = digest({
     manifest,
