@@ -5,6 +5,10 @@ import {
   getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
 import { DEFAULT_ABOUT_SETTINGS, type AboutPageData } from "@/lib/about";
+import {
+  type DeliverySourceCollection,
+  restoreLoadingEntryStableSourceIds,
+} from "@/lib/tuturuuu-cms-delivery-normalization";
 import { cache } from "react";
 import type { Json, Tables } from "../../supabase/types";
 
@@ -64,6 +68,7 @@ type CmsServiceWithDetails = Tables<"services"> & {
 
 type DeliveryPayload = {
   adapter: string;
+  collections?: DeliverySourceCollection[];
   loadingData?: ExocorpseLoadingData | null;
 };
 
@@ -212,7 +217,10 @@ export const getExocorpseCmsDelivery = cache(async () => {
       return null;
     }
 
-    return payload.loadingData;
+    return restoreLoadingEntryStableSourceIds(
+      payload.loadingData,
+      payload.collections ?? [],
+    );
   } catch {
     return null;
   }
