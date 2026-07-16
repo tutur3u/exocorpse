@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import {
   getCmsActiveServices,
   getCmsServiceBySlug,
@@ -44,7 +44,7 @@ export type StyleWithPictures = Style & {
  * Get all services
  */
 export async function getAllServices() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("services")
@@ -65,7 +65,7 @@ export async function getAllServices() {
  * Note: Service-level pictures (not tied to styles) can be fetched separately using getPicturesForService()
  */
 export async function getAllServicesWithDetails() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("services")
@@ -112,7 +112,7 @@ export async function getAllServicesWithDetails() {
  * Get a single service by ID with all related data
  */
 export async function getServiceById(serviceId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("services")
@@ -159,7 +159,7 @@ export async function getServiceBySlug(
     return cmsService;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("services")
@@ -204,7 +204,7 @@ export async function getActiveServices(): Promise<ServiceWithDetails[]> {
     return cmsServices;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("services")
@@ -360,7 +360,7 @@ export async function deleteService(serviceId: string) {
  * Get all addons
  */
 export async function getAllAddons() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("addons")
@@ -379,7 +379,7 @@ export async function getAllAddons() {
  * Get addon by ID
  */
 export async function getAddonById(addonId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("addons")
@@ -399,7 +399,7 @@ export async function getAddonById(addonId: string) {
  * Get addons for a specific service
  */
 export async function getAddonsForService(serviceId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("service_addons")
@@ -424,7 +424,7 @@ export async function getAddonsForService(serviceId: string) {
  * Get exclusive addons and which services they're linked to
  */
 export async function getExclusiveAddonServices() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // Get all exclusive addons and their service links
   const { data, error } = await supabase
@@ -629,7 +629,7 @@ export async function setServiceAddons(serviceId: string, addonIds: string[]) {
  * Get all styles for a service
  */
 export async function getStylesForService(serviceId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("styles")
@@ -654,7 +654,7 @@ export async function getStylesForService(serviceId: string) {
  * Get a single style by ID
  */
 export async function getStyleById(styleId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("styles")
@@ -786,7 +786,7 @@ export async function deleteStyle(styleId: string) {
  * Get all pictures for a style
  */
 export async function getPicturesForStyle(styleId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("pictures")
@@ -806,7 +806,7 @@ export async function getPicturesForStyle(styleId: string) {
  * Get all pictures for a service (not tied to a specific style)
  */
 export async function getPicturesForService(serviceId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("pictures")
@@ -832,7 +832,7 @@ export async function getPicturesForServices(serviceIds: string[]) {
     return {};
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("pictures")
@@ -862,7 +862,7 @@ export async function getPicturesForServices(serviceIds: string[]) {
  * Get a single picture by ID
  */
 export async function getPictureById(pictureId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("pictures")
@@ -1051,7 +1051,7 @@ export async function setPrimaryPicture(styleId: string, pictureId: string) {
  * Used to display which services each addon is linked to
  */
 export async function getLinkedServicesMap() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const linkedMap: Record<string, Set<string>> = {};
 

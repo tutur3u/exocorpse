@@ -564,7 +564,6 @@ export default function PortfolioClient({
                         alt={selectedWriting.title}
                         fill
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                   )}
@@ -727,7 +726,6 @@ export default function PortfolioClient({
                         fill
                         alt={selectedGame.title}
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                   )}

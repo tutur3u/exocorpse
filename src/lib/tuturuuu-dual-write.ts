@@ -6,11 +6,13 @@ import {
 } from "@/lib/exocorpse-config";
 import { buildExocorpseMigrationSnapshot } from "@/lib/exocorpse-migration-safety";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
+import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import { syncPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
 import {
   runDualWriteSafely,
   type DualWriteResult,
 } from "@/lib/tuturuuu-dual-write-result";
+import { revalidateTag } from "next/cache";
 
 let pendingDualWrite: Promise<DualWriteResult> | null = null;
 
@@ -113,6 +115,8 @@ async function applyDualWrite(reason: string): Promise<DualWriteResult> {
   if (!applyResponse.ok) {
     throw new Error(await readApiError(applyResponse));
   }
+
+  revalidateTag(EXOCORPSE_CMS_CACHE_TAG, { expire: 0 });
 
   return {
     applied: true,

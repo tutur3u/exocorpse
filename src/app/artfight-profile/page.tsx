@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-export const runtime = "nodejs";
-
 export const metadata: Metadata = {
   title: "Artfight Profile - EXOCORPSE",
   description:

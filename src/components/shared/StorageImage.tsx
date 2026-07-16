@@ -103,9 +103,21 @@ export default function StorageImage({ ...props }: StorageImageProps) {
     }
   }
 
+  const isExternallySignedUrl =
+    imageUrl.startsWith("http://") || imageUrl.startsWith("https://");
+  const isNonOptimizableSource =
+    imageUrl.startsWith("data:") || /\\.gif(?:$|\\?)/i.test(imageUrl);
+
   return (
-    // spread the final props and pass the resolved imageUrl
-    // keep unoptimized for externally signed URLs
-    <Image {...finalProps} src={imageUrl} alt={alt} unoptimized={true} />
+    <Image
+      {...finalProps}
+      src={imageUrl}
+      alt={alt}
+      unoptimized={
+        Boolean(finalProps.unoptimized) ||
+        isExternallySignedUrl ||
+        isNonOptimizableSource
+      }
+    />
   );
 }

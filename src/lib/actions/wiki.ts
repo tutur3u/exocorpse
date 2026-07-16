@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import {
   getCmsCharacterBySlug,
   getCmsCharacterBySlugInStory,
@@ -35,7 +35,7 @@ async function syncWikiMutation(reason: string) {
  * Fetch all stories (including unpublished, since RLS is disabled)
  */
 export async function getAllStories() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("stories")
@@ -60,7 +60,7 @@ export async function getPublicStories() {
     return cmsStories;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("stories")
@@ -83,7 +83,7 @@ export async function getPublishedStories() {
     return cmsStories;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("stories")
@@ -216,7 +216,7 @@ export async function getStoryBySlug(slug: string) {
     return cmsStory;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data: story, error: storyError } = await supabase
     .from("stories")
@@ -250,7 +250,7 @@ export async function getWorldsByStorySlug(storySlug: string) {
     return cmsWorlds;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -282,7 +282,7 @@ export async function getWorldsByStorySlug(storySlug: string) {
  * Fetch all worlds (without story filter)
  */
 export async function getAllWorlds() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("worlds")
@@ -298,7 +298,7 @@ export async function getAllWorlds() {
 }
 
 export async function getWorldsByStoryId(storyId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("worlds")
@@ -323,7 +323,7 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
     return cmsWorld;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -353,7 +353,7 @@ export async function getWorldBySlug(storySlug: string, worldSlug: string) {
  * Fetch all characters for a story by story slug (across all worlds)
  */
 export async function getCharactersByStorySlug(storySlug: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -412,7 +412,7 @@ export async function getCharactersByWorldSlug(
     return cmsCharacters;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world
   const world = await getWorldBySlug(storySlug, worldSlug);
@@ -443,7 +443,7 @@ export async function getCharactersByWorldSlug(
  * Fetch all characters (without story/world filter)
  */
 export async function getAllCharacters() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("characters")
@@ -459,7 +459,7 @@ export async function getAllCharacters() {
 }
 
 export async function getCharactersByStoryId(storyId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_worlds")
@@ -489,7 +489,7 @@ export async function getCharactersByStoryId(storyId: string) {
  * Fetch all characters for a world
  */
 export async function getCharactersByWorldId(worldId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_worlds")
@@ -528,7 +528,7 @@ export async function getCharacterBySlug(
     return cmsCharacter;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world to scope the character lookup
   const world = await getWorldBySlug(storySlug, worldSlug);
@@ -579,7 +579,7 @@ export async function getCharacterBySlugInStory(
     return cmsCharacter;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -635,7 +635,7 @@ export async function getCharacterBySlugInStory(
  * Fetch character gallery images
  */
 export async function getCharacterGallery(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_gallery")
@@ -662,7 +662,7 @@ export async function getCharacterDetailData(characterId: string): Promise<{
   worlds: Awaited<ReturnType<typeof getCharacterWorlds>>;
   relationships: CharacterRelationshipEnhanced[];
 }> {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // Fetch the character with all related data in a single query
   const { data: character, error: characterError } = await supabase
@@ -907,7 +907,7 @@ export async function reorderCharacterGallery(
  * Fetch character outfits
  */
 export async function getCharacterOutfits(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_outfits")
@@ -1063,7 +1063,7 @@ export async function reorderCharacterOutfits(
  * Fetch all factions for a story by story slug (across all worlds)
  */
 export async function getFactionsByStorySlug(storySlug: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -1112,7 +1112,7 @@ export async function getFactionsByWorldSlug(
     return cmsFactions;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world
   const world = await getWorldBySlug(storySlug, worldSlug);
@@ -1136,7 +1136,7 @@ export async function getFactionsByWorldSlug(
  * Fetch all factions for a world
  */
 export async function getFactionsByWorldId(worldId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("factions")
@@ -1157,7 +1157,7 @@ export async function getFactionsByWorldId(worldId: string) {
  * This replaces the N+1 pattern of fetching factions for each world individually
  */
 export async function getFactionsByStoryId(storyId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("factions")
@@ -1178,7 +1178,7 @@ export async function getFactionsByStoryId(storyId: string) {
  * This ensures characters can only be assigned to factions in compatible worlds
  */
 export async function getFactionsByCharacterWorldIds(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First, get the world IDs that this character belongs to
   const { data: characterWorldsData, error: cwError } = await supabase
@@ -1228,7 +1228,7 @@ export async function getFactionBySlugInStory(
     return cmsFaction;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the story
   const { data: story } = await supabase
@@ -1280,7 +1280,7 @@ export async function getFactionBySlug(
     return cmsFaction;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world to scope the faction lookup
   const world = await getWorldBySlug(storySlug, worldSlug);
@@ -1798,7 +1798,7 @@ export async function deleteFaction(id: string) {
  * Get all faction memberships for a character
  */
 export async function getCharacterFactions(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_factions")
@@ -1823,7 +1823,7 @@ export async function getCharacterFactions(characterId: string) {
  * Get all characters in a faction
  */
 export async function getFactionMembers(factionId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_factions")
@@ -1937,7 +1937,7 @@ export async function removeCharacterFromFaction(id: string) {
  * Get all worlds a character belongs to
  */
 export async function getCharacterWorlds(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_worlds")
@@ -2047,7 +2047,7 @@ export type CharacterRelationshipEnhanced = {
 export async function getCharacterRelationships(
   characterId: string,
 ): Promise<CharacterRelationshipEnhanced[]> {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase.rpc("get_character_relationships", {
     character_uuid: characterId,
@@ -2065,7 +2065,7 @@ export async function getCharacterRelationships(
  * Get raw relationship records for a character (for editing)
  */
 export async function getCharacterRelationshipRecords(characterId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("character_relationships")
@@ -2176,7 +2176,7 @@ export async function getAvailableCharactersForRelationship(
   characterId: string,
   worldIds?: string[],
 ) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   let query = supabase
     .from("characters")
@@ -2293,7 +2293,7 @@ export async function deleteRelationshipType(id: string) {
  * Get all relationship types for a story (including global types)
  */
 export async function getAllRelationshipTypes(_storyId?: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("relationship_types")
@@ -2318,7 +2318,7 @@ export type Location = Tables<"locations">;
  * Get all locations
  */
 export async function getAllLocations() {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("locations")
@@ -2338,7 +2338,7 @@ export async function getAllLocations() {
  * Get locations by world ID
  */
 export async function getLocationsByWorldId(worldId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("locations")
@@ -2359,7 +2359,7 @@ export async function getLocationsByWorldId(worldId: string) {
  * Get location by ID
  */
 export async function getLocationById(locationId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("locations")
@@ -2525,7 +2525,7 @@ export type LocationGalleryImage = Tables<"locations_gallery_images">;
  * Get location gallery images
  */
 export async function getLocationGallery(locationId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("locations_gallery_images")
@@ -2709,7 +2709,7 @@ export async function getLocationsByWorldSlug(
     return cmsLocations;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world
   const world = await getWorldBySlug(storySlug, worldSlug);
@@ -2747,7 +2747,7 @@ export async function getLocationBySlug(
     return cmsLocation;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // First get the world
   const world = await getWorldBySlug(storySlug, worldSlug);

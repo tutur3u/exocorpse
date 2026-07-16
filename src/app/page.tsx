@@ -54,8 +54,11 @@ import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
+import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import { toAbsoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
+import { Suspense } from "react";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -597,13 +600,22 @@ async function HomeContent({
   portfolioParamsData: Awaited<ReturnType<typeof loadPortfolioSearchParams>>;
   gameParamsData: Awaited<ReturnType<typeof loadGameSearchParams>>;
 }) {
+  "use cache";
+
+  cacheLife({
+    stale: 300,
+    revalidate: 60,
+    expire: 86400,
+  });
+  cacheTag(EXOCORPSE_CMS_CACHE_TAG);
+
   const DEFAULT_PAGE_SIZE = 10;
 
-  const wikiParams = wikiParamsData;
-  const blogParams = blogParamsData;
-  const commissionParams = commissionParamsData;
-  const portfolioParams = portfolioParamsData;
-  const gameParams = gameParamsData;
+  const wikiParams = { ...wikiParamsData };
+  const blogParams = { ...blogParamsData };
+  const commissionParams = { ...commissionParamsData };
+  const portfolioParams = { ...portfolioParamsData };
+  const gameParams = { ...gameParamsData };
   const initialAboutDataPromise = getAboutPageData();
 
   // Fetch initial wiki data based on params
@@ -908,7 +920,19 @@ async function HomeContent({
 }
 
 export default async function Home({ searchParams }: Props) {
-  return <HomeContentWrapper searchParams={searchParams} />;
+  return (
+    <Suspense
+      fallback={
+        <main
+          aria-busy="true"
+          aria-label="Loading EXOCORPSE"
+          className="min-h-dvh bg-[#020817]"
+        />
+      }
+    >
+      <HomeContentWrapper searchParams={searchParams} />
+    </Suspense>
+  );
 }
 
 async function HomeContentWrapper({

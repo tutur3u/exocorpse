@@ -6,10 +6,7 @@ import {
   STORAGE_URL_STALE_TIME,
 } from "@/constants";
 import { verifyAuth } from "@/lib/auth/utils";
-import {
-  getSupabaseAdminServer,
-  getSupabaseServer,
-} from "@/lib/supabase/server";
+import { getSupabaseAdminServer } from "@/lib/supabase/server";
 import { TuturuuuClient } from "tuturuuu";
 
 type StorageImageTransform = {
@@ -246,7 +243,7 @@ export async function getCachedSignedUrl(
   try {
     const cacheKey = createResourceCacheKey(path, options);
     const shareOptions = normalizeShareOptions(options);
-    const supabase = await getSupabaseServer();
+    const supabase = await getSupabaseAdminServer();
 
     // Check if we have a cached URL that hasn't expired yet
     const { data: cachedUrl } = await supabase
@@ -275,10 +272,8 @@ export async function getCachedSignedUrl(
     // Calculate the expiration timestamp
     const expiresAt = getExpirationTime(now);
 
-    const sbAdmin = await getSupabaseAdminServer();
-
     // Upsert the new URL into the cache
-    await sbAdmin.from("resource_urls").upsert(
+    await supabase.from("resource_urls").upsert(
       {
         resource_path: cacheKey,
         url: result.data.signedUrl,
@@ -315,7 +310,7 @@ export async function batchGetCachedSignedUrls(
     const cacheKeys = paths.map((path) =>
       createResourceCacheKey(path, shareOptions),
     );
-    const supabase = await getSupabaseServer();
+    const supabase = await getSupabaseAdminServer();
     const now = new Date();
 
     // Fetch all cached URLs in one query
@@ -425,7 +420,7 @@ export async function cleanupExpiredCacheEntries(): Promise<{
   error?: string;
 }> {
   try {
-    const supabase = await getSupabaseServer();
+    const supabase = await getSupabaseAdminServer();
 
     // Delete all entries where expired_at is in the past
     const { error, count } = await supabase

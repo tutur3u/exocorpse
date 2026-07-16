@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import type { Tables } from "../../../supabase/types";
 
@@ -14,7 +14,7 @@ export async function getBlacklistedUsersPaginated(
   page: number = 1,
   pageSize: number = 10,
 ) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   // Validate and clamp inputs
   const validatedPage = Math.max(1, Math.floor(Number(page) || 1));

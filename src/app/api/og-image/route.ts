@@ -1,8 +1,6 @@
 import { getCachedSignedUrl } from "@/lib/actions/storage";
 import { NextRequest } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 const OG_TRANSFORM = {
@@ -62,8 +60,9 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "image/jpeg",
-        "Cache-Control":
-          "public, s-maxage=86400, stale-while-revalidate=604800",
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+        "Vercel-CDN-Cache-Control":
+          "public, max-age=86400, stale-while-revalidate=604800",
       },
     });
   } catch (error) {

@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import {
   getCmsBlogPostBySlug,
   getCmsPublishedBlogPosts,
@@ -21,7 +21,7 @@ export async function getPublishedBlogPosts() {
     return cmsPosts;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("blog_posts")
@@ -45,8 +45,6 @@ export async function getPublishedBlogPostsPaginated(
   page: number = 1,
   pageSize: number = 10,
 ) {
-  const supabase = await getSupabaseServer();
-
   // Validate and clamp inputs
   const validatedPage = Math.max(1, Math.floor(Number(page) || 1));
   const validatedPageSize = Math.max(
@@ -60,6 +58,8 @@ export async function getPublishedBlogPostsPaginated(
   if (cmsPosts) {
     return cmsPosts;
   }
+
+  const supabase = await getSupabaseAnonServer();
 
   // Capture current timestamp once for consistent snapshot across queries
   const now = new Date().toISOString();
@@ -198,7 +198,7 @@ export async function getBlogPostBySlug(slug: string) {
     return cmsPost;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("blog_posts")
