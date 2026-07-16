@@ -4,9 +4,8 @@ mock.module("server-only", () => ({}));
 
 describe("Exocorpse migration manifest normalization", () => {
   test("assigns deterministic unique slugs within each collection", async () => {
-    const { normalizeExocorpseMigrationManifest } = await import(
-      "./exocorpse-migration-safety"
-    );
+    const { normalizeExocorpseMigrationManifest } =
+      await import("./exocorpse-migration-safety");
     const manifest = {
       adapter: "exocorpse" as const,
       content: {
