@@ -12,8 +12,6 @@ import { syncPublicFolderAssets } from "@/lib/tuturuuu-public-folder-sync";
 import { createCompressedSyncPayload } from "@/lib/tuturuuu-sync-payload";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 async function readApiError(response: Response) {
   const fallback = `Tuturuuu sync apply failed with status ${response.status}`;
   const data = (await response.json().catch(() => null)) as {

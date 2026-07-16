@@ -3,8 +3,6 @@ import { buildExocorpseMigrationSnapshot } from "@/lib/exocorpse-migration-safet
 import { formatMissingPublicAssetsCsv } from "@/lib/exocorpse-migration-report";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 function wantsCsv(request: Request) {
   const url = new URL(request.url);
   const format = url.searchParams.get("format")?.trim().toLowerCase();

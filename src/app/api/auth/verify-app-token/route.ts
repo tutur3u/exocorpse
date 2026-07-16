@@ -10,8 +10,6 @@ import {
 } from "@/lib/exocorpse-session";
 import { type NextRequest, NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 type AppTokenExchangeResponse = {
   accessToken?: string;
   app?: {

@@ -1,9 +1,8 @@
 import ArtfightProfilePreviewClient from "./ArtfightProfilePreviewClient";
 import type { Metadata } from "next";
+import { cacheLife } from "next/cache";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-
-export const runtime = "nodejs";
 
 export const metadata: Metadata = {
   title: "Artfight Profile - EXOCORPSE",
@@ -54,6 +53,10 @@ async function readVersionManifest() {
 }
 
 export default async function ArtfightProfilePage() {
+  "use cache";
+
+  cacheLife("max");
+
   const manifest = await readVersionManifest();
   const versions = await Promise.all(
     manifest.map(async (version) => {

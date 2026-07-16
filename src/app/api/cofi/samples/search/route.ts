@@ -1,7 +1,9 @@
 import { searchCofiSamplesHybrid } from "@/lib/cofi-search";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  await connection();
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q")?.trim() ?? "";

@@ -25,7 +25,11 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.redirect(signedUrl, {
-    headers: { "Cache-Control": "private, no-store" },
+    headers: {
+      "Cache-Control": "public, max-age=3600, stale-while-revalidate=43200",
+      "Vercel-CDN-Cache-Control":
+        "public, max-age=43200, stale-while-revalidate=43200",
+    },
     status: 307,
   });
 }

@@ -3,8 +3,6 @@ import { getAllBlogPostsPaginated } from "@/lib/actions/blog";
 import BlogPostsClient from "./BlogPostsClient";
 
 const DEFAULT_PAGE_SIZE = 9;
-export const dynamic = "force-dynamic";
-
 type SearchParams = Promise<{
   page?: string;
   pageSize?: string;

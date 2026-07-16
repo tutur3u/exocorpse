@@ -9,7 +9,7 @@ import {
   type DeliverySourceCollection,
   restoreLoadingEntryStableSourceIds,
 } from "@/lib/tuturuuu-cms-delivery-normalization";
-import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Json, Tables } from "../../supabase/types";
 
 type CmsAsset = {
@@ -73,6 +73,7 @@ type DeliveryPayload = {
 };
 
 const EPOCH = "1970-01-01T00:00:00.000Z";
+export const EXOCORPSE_CMS_CACHE_TAG = "exocorpse-cms-delivery";
 
 function isCmsDeliveryDisabled() {
   const value = process.env.TUTURUUU_EXOCORPSE_CMS_DELIVERY;
@@ -185,7 +186,16 @@ function extensionFromFilename(filename: string) {
   return filename.includes(".") ? (filename.split(".").pop() ?? "") : "";
 }
 
-export const getExocorpseCmsDelivery = cache(async () => {
+export async function getExocorpseCmsDelivery() {
+  "use cache";
+
+  cacheLife({
+    stale: 300,
+    revalidate: 60,
+    expire: 86400,
+  });
+  cacheTag(EXOCORPSE_CMS_CACHE_TAG);
+
   if (isCmsDeliveryDisabled()) {
     return null;
   }
@@ -224,7 +234,7 @@ export const getExocorpseCmsDelivery = cache(async () => {
   } catch {
     return null;
   }
-});
+}
 
 export async function getExocorpseCmsCollection(slug: string) {
   const delivery = await getExocorpseCmsDelivery();

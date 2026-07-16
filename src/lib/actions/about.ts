@@ -2,7 +2,7 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import { DEFAULT_ABOUT_SETTINGS, type AboutPageData } from "@/lib/about";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import { getCmsAboutPageData } from "@/lib/tuturuuu-cms-delivery";
 import { syncTuturuuuCmsAfterMutation } from "@/lib/tuturuuu-dual-write";
 import { revalidatePath } from "next/cache";
@@ -11,7 +11,7 @@ import type { TablesInsert, TablesUpdate } from "../../../supabase/types";
 async function fetchAboutData(authenticated: boolean): Promise<AboutPageData> {
   const supabase = authenticated
     ? (await verifyAuth()).supabase
-    : await getSupabaseServer();
+    : await getSupabaseAnonServer();
 
   const [settingsResult, faqsResult, itemsResult] = await Promise.all([
     supabase.from("about_page_settings").select("*").eq("id", 1).maybeSingle(),

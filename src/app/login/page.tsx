@@ -1,6 +1,8 @@
 import { buildExocorpseCentralizedLoginUrl } from "@/lib/exocorpse-config";
 import { redirect } from "next/navigation";
 
+export const instant = false;
+
 export default async function LoginPage(props: {
   searchParams: Promise<{ redirect?: string }>;
 }) {

@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyAuth } from "@/lib/auth/utils";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAnonServer } from "@/lib/supabase/server";
 import {
   getCmsArtPieceBySlug,
   getCmsArtPieces,
@@ -35,7 +35,7 @@ export async function getArtPieces() {
     return cmsPieces;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("art_pieces")
@@ -81,7 +81,7 @@ export async function getArtPieceBySlug(slug: string) {
     return cmsPiece;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("art_pieces")
@@ -107,7 +107,7 @@ export async function getFeaturedArtPieces() {
     return cmsPieces;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("art_pieces")
@@ -249,7 +249,7 @@ export async function getWritingPieces() {
     return cmsPieces;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("writing_pieces")
@@ -295,7 +295,7 @@ export async function getWritingPieceBySlug(slug: string) {
     return cmsPiece;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("writing_pieces")
@@ -321,7 +321,7 @@ export async function getFeaturedWritingPieces() {
     return cmsPieces;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("writing_pieces")
@@ -489,7 +489,7 @@ export async function getGamePieces() {
     return cmsPieces;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("game_pieces")
@@ -532,7 +532,7 @@ export async function getGamePieceById(id: string) {
     return cmsPiece;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("game_pieces")
@@ -564,7 +564,7 @@ export async function getGamePieceBySlug(slug: string) {
     return cmsPiece;
   }
 
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("game_pieces")
@@ -713,7 +713,7 @@ export async function deleteGamePiece(id: string) {
  * Get all gallery images for a game piece
  */
 export async function getGamePieceGalleryImages(gamePieceId: string) {
-  const supabase = await getSupabaseServer();
+  const supabase = await getSupabaseAnonServer();
 
   const { data, error } = await supabase
     .from("game_piece_gallery_images")
