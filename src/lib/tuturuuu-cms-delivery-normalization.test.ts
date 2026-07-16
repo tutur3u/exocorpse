@@ -87,4 +87,40 @@ describe("Tuturuuu CMS delivery normalization", () => {
       { entryId: "unknown", stableSourceId: null },
     ]);
   });
+
+  test("normalizes mixed-case loading-data assets for CMS readers", () => {
+    const normalized = restoreLoadingEntryStableSourceIds(
+      {
+        collections: {
+          "portfolio-art": {
+            entries: [
+              {
+                assets: [
+                  {
+                    alt_text: "Portfolio artwork",
+                    assetUrl: "https://exocorpse.net/artwork.webp",
+                    asset_type: "image",
+                    id: "cms-asset-id",
+                    sort_order: 4,
+                  },
+                ],
+                entryId: "cms-art-id",
+              },
+            ],
+          },
+        },
+      },
+      [],
+    );
+
+    expect(
+      normalized.collections["portfolio-art"]?.entries[0]?.assets?.[0],
+    ).toMatchObject({
+      altText: "Portfolio artwork",
+      assetId: "cms-asset-id",
+      assetType: "image",
+      assetUrl: "https://exocorpse.net/artwork.webp",
+      sortOrder: 4,
+    });
+  });
 });

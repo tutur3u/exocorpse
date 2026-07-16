@@ -1,4 +1,16 @@
+type LoadingAsset = {
+  altText?: string | null;
+  alt_text?: string | null;
+  assetId?: string | null;
+  assetType?: string | null;
+  asset_type?: string | null;
+  id?: string | null;
+  sortOrder?: number | null;
+  sort_order?: number | null;
+};
+
 type LoadingEntry = {
+  assets?: LoadingAsset[];
   entryId: string;
   stableSourceId?: string | null;
 };
@@ -13,6 +25,16 @@ export type DeliverySourceCollection = {
     stable_source_id?: string | null;
   }>;
 };
+
+function normalizeLoadingAsset<TAsset extends LoadingAsset>(asset: TAsset) {
+  return {
+    ...asset,
+    altText: asset.altText ?? asset.alt_text ?? null,
+    assetId: asset.assetId ?? asset.id ?? "",
+    assetType: asset.assetType ?? asset.asset_type ?? "",
+    sortOrder: asset.sortOrder ?? asset.sort_order ?? 0,
+  };
+}
 
 export function restoreLoadingEntryStableSourceIds<
   TEntry extends LoadingEntry,
@@ -37,6 +59,7 @@ export function restoreLoadingEntryStableSourceIds<
           ...collection,
           entries: collection.entries.map((entry) => ({
             ...entry,
+            assets: entry.assets?.map(normalizeLoadingAsset),
             stableSourceId:
               entry.stableSourceId ??
               stableSourceIdByEntryId.get(entry.entryId) ??
