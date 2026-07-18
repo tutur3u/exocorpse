@@ -4,6 +4,7 @@ import {
   getExocorpseApiBaseUrl,
   getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
+import { withAdminCmsAssetPreview } from "@/lib/admin-cms-assets";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import type {
@@ -53,13 +54,13 @@ async function readApiError(response: Response) {
     : `Tuturuuu CMS request failed with status ${response.status}`;
 }
 
-async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
+async function authenticatedCmsFetch(path: string, init?: RequestInit) {
   const session = await getExocorpseSessionFromCookies();
   if (!session) {
     throw new Error("A valid Tuturuuu CMS session is required.");
   }
 
-  const response = await fetch(apiUrl(path), {
+  return fetch(apiUrl(path), {
     ...init,
     cache: "no-store",
     headers: {
@@ -71,6 +72,10 @@ async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
+}
+
+async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await authenticatedCmsFetch(path, init);
 
   if (!response.ok) throw new Error(await readApiError(response));
   return (await response.json()) as T;
@@ -87,7 +92,22 @@ async function invalidateDelivery() {
 }
 
 export async function getExocorpseCmsStudio() {
-  return cmsRequest<ExocorpseCmsStudio>(workspacePath());
+  const studio = await cmsRequest<ExocorpseCmsStudio>(workspacePath());
+  return {
+    ...studio,
+    assets: studio.assets.map(withAdminCmsAssetPreview),
+  };
+}
+
+export async function getExocorpseCmsAssetPreviewResponse(
+  assetId: string,
+  searchParams: URLSearchParams,
+) {
+  const query = searchParams.toString();
+  return authenticatedCmsFetch(
+    `${workspacePath(`/assets/${encodeURIComponent(assetId)}`)}${query ? `?${query}` : ""}`,
+    { method: "GET", redirect: "manual" },
+  );
 }
 
 export async function getExocorpseCmsCollectionEntries(collectionSlug: string) {
@@ -154,7 +174,7 @@ export async function createExocorpseCmsAsset(payload: {
     method: "POST",
   });
   await invalidateDelivery();
-  return result;
+  return withAdminCmsAssetPreview(result);
 }
 
 export async function deleteExocorpseCmsAsset(assetId: string) {

@@ -15,6 +15,8 @@ import type {
 } from "@/types/exocorpse-cms";
 
 export function shouldBypassImageOptimization(asset: ExocorpseCmsAsset) {
+  if (asset.preview_url?.startsWith("/api/admin/cms/assets/")) return true;
+
   return [
     asset.alt_text,
     asset.asset_url,

@@ -80,4 +80,22 @@ describe("CMS management editor helpers", () => {
       }),
     ).toBe(true);
   });
+
+  test("does not send authenticated CMS previews through Next Image", () => {
+    expect(
+      shouldBypassImageOptimization({
+        alt_text: "cms-preview.png",
+        asset_type: "image",
+        asset_url: null,
+        entry_id: "entry-id",
+        id: "asset-id",
+        metadata: {},
+        preview_url: "/api/admin/cms/assets/asset-id?v=1",
+        sort_order: 0,
+        source_url: null,
+        storage_path: "external-projects/exocorpse/cms-preview.png",
+        updated_at: "2026-07-18T00:00:00.000Z",
+      }),
+    ).toBe(true);
+  });
 });
