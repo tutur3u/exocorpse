@@ -96,15 +96,24 @@ async function invalidateDelivery() {
   updateTag(EXOCORPSE_CMS_STUDIO_CACHE_TAG);
 }
 
-async function getPrivateExocorpseCmsStudio() {
+async function getPrivateExocorpseCmsStudio(collectionSlugs: string[]) {
   "use cache: private";
   cacheLife({ stale: 30 });
   cacheTag(EXOCORPSE_CMS_STUDIO_CACHE_TAG);
-  return cmsRequest<ExocorpseCmsStudio>(workspacePath());
+  const searchParams = new URLSearchParams();
+  if (collectionSlugs.length) {
+    searchParams.set("collectionSlugs", collectionSlugs.join(","));
+  }
+  const query = searchParams.toString();
+  return cmsRequest<ExocorpseCmsStudio>(
+    `${workspacePath()}${query ? `?${query}` : ""}`,
+  );
 }
 
 export async function getExocorpseCmsStudio(section?: AdminCmsSection) {
-  const studio = await getPrivateExocorpseCmsStudio();
+  const studio = await getPrivateExocorpseCmsStudio(
+    section?.collectionSlugs ?? [],
+  );
   const selectedStudio = section
     ? selectAdminCmsStudio(studio, section)
     : studio;
