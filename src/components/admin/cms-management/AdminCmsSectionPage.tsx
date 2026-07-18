@@ -13,12 +13,13 @@ export default async function AdminCmsSectionPage({
   sectionKey: AdminCmsSectionKey;
 }) {
   await connection();
-  const studio = await getExocorpseCmsStudio();
+  const section = ADMIN_CMS_SECTIONS[sectionKey];
+  const studio = await getExocorpseCmsStudio(section);
   return (
     <CmsManagementWorkspace
       cmsHref={buildExocorpseCmsUrl({ targetKey: "library" })}
       initialStudio={studio}
-      section={ADMIN_CMS_SECTIONS[sectionKey]}
+      section={section}
     />
   );
 }

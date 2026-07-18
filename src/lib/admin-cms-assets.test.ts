@@ -18,7 +18,7 @@ describe("authenticated CMS asset previews", () => {
     });
 
     expect(asset.preview_url).toBe(
-      "/api/admin/cms/assets/asset-id?v=20260718044123609784&width=1600&height=1600&resize=cover&quality=82",
+      "/api/admin/cms/assets/asset-id?v=20260718044123609784&width=900&height=900&resize=cover&quality=76",
     );
   });
 });

@@ -32,6 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <link href="https://tuturuuu.com" rel="preconnect" />
+      </head>
       <body
         className={`${baskervvile.variable} bg-background text-foreground antialiased`}
       >

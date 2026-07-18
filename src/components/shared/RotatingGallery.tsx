@@ -231,25 +231,17 @@ export default function RotatingGallery({
                   : "inset-x-0"
               }`}
             >
-              {images.map((image, index) => (
-                <div
-                  key={image.id}
-                  className={`absolute inset-0 transition-opacity duration-700 ${
-                    index === activeIndex
-                      ? "opacity-100"
-                      : "pointer-events-none opacity-0"
-                  }`}
-                  aria-hidden={index !== activeIndex}
-                >
-                  <StorageImage
-                    src={image.src}
-                    signedUrl={image.signedUrl ?? undefined}
-                    alt={image.alt}
-                    fill
-                    className={imageClassName}
-                  />
-                </div>
-              ))}
+              <div className="absolute inset-0" key={activeImage.id}>
+                <StorageImage
+                  src={activeImage.src}
+                  signedUrl={activeImage.signedUrl ?? undefined}
+                  alt={activeImage.alt}
+                  fill
+                  fetchPriority={activeIndex === 0 ? "high" : "auto"}
+                  loading="eager"
+                  className={imageClassName}
+                />
+              </div>
             </div>
 
             {overlayContent}

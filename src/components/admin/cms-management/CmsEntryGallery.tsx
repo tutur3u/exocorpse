@@ -120,10 +120,11 @@ export default function CmsEntryGallery({
 
       {filteredEntries.length ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredEntries.map((entry) => (
+          {filteredEntries.map((entry, index) => (
             <CmsEntryCard
               asset={firstAssetByEntry.get(entry.id)}
               collection={collection}
+              eager={index < 3}
               entry={entry}
               key={entry.id}
               onDelete={() => onDelete(entry)}

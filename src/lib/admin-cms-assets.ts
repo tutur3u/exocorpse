@@ -10,10 +10,10 @@ export function withAdminCmsAssetPreview(asset: ExocorpseCmsAsset) {
   });
 
   if (asset.asset_type === "image") {
-    searchParams.set("width", "1600");
-    searchParams.set("height", "1600");
+    searchParams.set("width", "900");
+    searchParams.set("height", "900");
     searchParams.set("resize", "cover");
-    searchParams.set("quality", "82");
+    searchParams.set("quality", "76");
   }
 
   return {

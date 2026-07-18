@@ -5,6 +5,8 @@ import {
   getExocorpseWorkspaceId,
 } from "@/lib/exocorpse-config";
 import { withAdminCmsAssetPreview } from "@/lib/admin-cms-assets";
+import type { AdminCmsSection } from "@/lib/admin-cms-sections";
+import { selectAdminCmsStudio } from "@/lib/admin-cms-studio";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import type {
@@ -15,7 +17,9 @@ import type {
   ExocorpseCmsStudio,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
-import { updateTag } from "next/cache";
+import { cacheLife, cacheTag, updateTag } from "next/cache";
+
+const EXOCORPSE_CMS_STUDIO_CACHE_TAG = "exocorpse-cms-admin-studio";
 
 type EntryBundleInput = {
   blocks: Array<{
@@ -89,13 +93,24 @@ function workspacePath(suffix = "") {
 
 async function invalidateDelivery() {
   updateTag(EXOCORPSE_CMS_CACHE_TAG);
+  updateTag(EXOCORPSE_CMS_STUDIO_CACHE_TAG);
 }
 
-export async function getExocorpseCmsStudio() {
-  const studio = await cmsRequest<ExocorpseCmsStudio>(workspacePath());
+async function getPrivateExocorpseCmsStudio() {
+  "use cache: private";
+  cacheLife({ stale: 30 });
+  cacheTag(EXOCORPSE_CMS_STUDIO_CACHE_TAG);
+  return cmsRequest<ExocorpseCmsStudio>(workspacePath());
+}
+
+export async function getExocorpseCmsStudio(section?: AdminCmsSection) {
+  const studio = await getPrivateExocorpseCmsStudio();
+  const selectedStudio = section
+    ? selectAdminCmsStudio(studio, section)
+    : studio;
   return {
-    ...studio,
-    assets: studio.assets.map(withAdminCmsAssetPreview),
+    ...selectedStudio,
+    assets: selectedStudio.assets.map(withAdminCmsAssetPreview),
   };
 }
 

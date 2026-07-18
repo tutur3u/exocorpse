@@ -1,6 +1,10 @@
 "use client";
 
 import { useMediaUrl } from "@/hooks/useMediaUrl";
+import {
+  DEFAULT_IMAGE_BLUR_DATA_URL,
+  isTuturuuuCmsAssetUrl,
+} from "@/lib/storage-image";
 import Image, { type ImageProps } from "next/image";
 
 type StorageImageProps = Omit<ImageProps, "src"> & {
@@ -107,6 +111,14 @@ export default function StorageImage({ ...props }: StorageImageProps) {
     imageUrl.startsWith("http://") || imageUrl.startsWith("https://");
   const isNonOptimizableSource =
     imageUrl.startsWith("data:") || /\\.gif(?:$|\\?)/i.test(imageUrl);
+  const useDefaultBlur =
+    !isNonOptimizableSource &&
+    (!finalProps.placeholder || finalProps.placeholder === "empty");
+
+  if (useDefaultBlur) {
+    finalProps.placeholder = "blur";
+    finalProps.blurDataURL = DEFAULT_IMAGE_BLUR_DATA_URL;
+  }
 
   return (
     <Image
@@ -115,7 +127,7 @@ export default function StorageImage({ ...props }: StorageImageProps) {
       alt={alt}
       unoptimized={
         Boolean(finalProps.unoptimized) ||
-        isExternallySignedUrl ||
+        (isExternallySignedUrl && !isTuturuuuCmsAssetUrl(imageUrl)) ||
         isNonOptimizableSource
       }
     />

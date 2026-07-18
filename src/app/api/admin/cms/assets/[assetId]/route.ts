@@ -1,7 +1,14 @@
 import { getExocorpseCmsAssetPreviewResponse } from "@/lib/tuturuuu-cms-repository";
 
-const PRIVATE_HEADERS = {
-  "Cache-Control": "private, no-store",
+const PRIVATE_NO_STORE_HEADERS = {
+  "Cache-Control": "private, no-store, max-age=0",
+  "CDN-Cache-Control": "private, no-store",
+  "Vercel-CDN-Cache-Control": "no-store",
+};
+
+const PRIVATE_REVISIONED_REDIRECT_HEADERS = {
+  "Cache-Control": "private, max-age=3600, stale-while-revalidate=21600",
+  "CDN-Cache-Control": "private, no-store",
   "Vercel-CDN-Cache-Control": "no-store",
 };
 
@@ -37,14 +44,17 @@ export async function GET(
 
     if (response.status >= 300 && response.status < 400 && location) {
       return new Response(null, {
-        headers: { ...PRIVATE_HEADERS, Location: location },
+        headers: {
+          ...PRIVATE_REVISIONED_REDIRECT_HEADERS,
+          Location: location,
+        },
         status: 307,
       });
     }
 
     return Response.json(
       { error: "CMS asset preview is unavailable." },
-      { headers: PRIVATE_HEADERS, status: response.status },
+      { headers: PRIVATE_NO_STORE_HEADERS, status: response.status },
     );
   } catch (error) {
     return Response.json(
@@ -54,7 +64,7 @@ export async function GET(
             ? error.message
             : "CMS asset preview is unavailable.",
       },
-      { headers: PRIVATE_HEADERS, status: 401 },
+      { headers: PRIVATE_NO_STORE_HEADERS, status: 401 },
     );
   }
 }

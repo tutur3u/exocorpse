@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import PortfolioLoadingSkeleton from "./PortfolioLoadingSkeleton";
 
 function AppLoadingFallback() {
   return (
@@ -27,7 +28,7 @@ export const LazyHeavenSpace = dynamic(() => import("./HeavenSpace"), {
   loading: AppLoadingFallback,
 });
 export const LazyPortfolio = dynamic(() => import("./Portfolio"), {
-  loading: AppLoadingFallback,
+  loading: PortfolioLoadingSkeleton,
 });
 export const LazyWiki = dynamic(() => import("./Wiki"), {
   loading: AppLoadingFallback,

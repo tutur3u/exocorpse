@@ -9,6 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import PortfolioClient from "./PortfolioClient";
+import PortfolioLoadingSkeleton from "./PortfolioLoadingSkeleton";
 
 export default function Portfolio() {
   const initialData = useInitialPortfolioData();
@@ -58,16 +59,7 @@ export default function Portfolio() {
     viewingGallery && (isLoadingArt || isLoadingWriting || isLoadingGames);
 
   if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600 dark:border-gray-700 dark:border-t-blue-400"></div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Loading portfolio...
-          </p>
-        </div>
-      </div>
-    );
+    return <PortfolioLoadingSkeleton />;
   }
 
   return (

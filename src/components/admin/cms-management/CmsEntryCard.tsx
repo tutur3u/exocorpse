@@ -27,12 +27,14 @@ const statusLabels: Record<ExocorpseCmsEntry["status"], string> = {
 export default function CmsEntryCard({
   asset,
   collection,
+  eager = false,
   entry,
   onDelete,
   onEdit,
 }: {
   asset?: ExocorpseCmsAsset;
   collection: ExocorpseCmsCollection;
+  eager?: boolean;
   entry: ExocorpseCmsEntry;
   onDelete: () => void;
   onEdit: () => void;
@@ -42,7 +44,7 @@ export default function CmsEntryCard({
     collection.slug === "portfolio-art" ? "aspect-square" : "aspect-[16/10]";
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-cyan-700">
+    <article className="group overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm transition [contain-intrinsic-size:auto_390px] [content-visibility:auto] hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-cyan-700">
       <div
         className={`relative overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${previewAspect}`}
       >
@@ -58,6 +60,10 @@ export default function CmsEntryCard({
               alt={asset.alt_text ?? entry.title}
               className="object-cover transition duration-500 group-hover:scale-[1.03]"
               fill
+              fetchPriority={eager ? "high" : "auto"}
+              loading={eager ? "eager" : "lazy"}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Crect width='12' height='8' fill='%23181a20'/%3E%3C/svg%3E"
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               src={imageUrl}
               unoptimized={shouldBypassImageOptimization(asset)}
