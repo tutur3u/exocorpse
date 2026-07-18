@@ -80,7 +80,7 @@ export default function CmsEntryEditor({
 
   return (
     <div className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.08),transparent_34%)]">
-      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/92">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 py-3 pr-16 pl-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/92">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold tracking-[0.22em] text-cyan-700 uppercase dark:text-cyan-300">
             {selectedEntryId ? "Editing" : "Creating a new item"}

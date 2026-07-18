@@ -34,12 +34,12 @@ export default function CmsEditorTabs({
             count: connectionCount,
             icon: Link2,
             id: "connections" as const,
-            label: "Connections",
+            label: "Related content",
           },
         ]
       : []),
     { count: assetCount, icon: Images, id: "media", label: "Media" },
-    { icon: Settings2, id: "settings", label: "Settings" },
+    { icon: Settings2, id: "settings", label: "Publish" },
   ];
 
   return (

@@ -268,9 +268,9 @@ export function useCmsManagementWorkspace({
     );
   }
 
-  function deleteEntry() {
-    if (!selectedEntry || !collection) return;
-    const deletedId = selectedEntry.id;
+  function deleteEntry(targetEntryId = selectedEntry?.id) {
+    if (!targetEntryId || !collection) return;
+    const deletedId = targetEntryId;
     run(
       () => deleteAdminCmsEntry(deletedId),
       "Item deleted.",
