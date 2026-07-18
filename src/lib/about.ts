@@ -1,4 +1,10 @@
-import type { Tables } from "../../supabase/types";
+import type {
+  AboutContentItem,
+  AboutFaq,
+  AboutPageSettings,
+} from "@/types/exocorpse-content";
+
+export type { AboutContentItem, AboutFaq, AboutPageSettings };
 
 export const ABOUT_FAQ_TYPES = [
   "programs",
@@ -55,10 +61,6 @@ export type AboutContentSection = (typeof ABOUT_CONTENT_SECTIONS)[number];
 export type AboutSocialIconKey = (typeof ABOUT_SOCIAL_ICON_KEYS)[number];
 export type AboutSocialColorKey = (typeof ABOUT_SOCIAL_COLOR_KEYS)[number];
 export type AboutUseIconKey = (typeof ABOUT_USE_ICON_KEYS)[number];
-
-export type AboutPageSettings = Tables<"about_page_settings">;
-export type AboutFaq = Tables<"about_faqs">;
-export type AboutContentItem = Tables<"about_content_items">;
 
 export type AboutPageData = {
   settings: AboutPageSettings;

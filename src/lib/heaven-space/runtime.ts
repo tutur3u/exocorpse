@@ -1,7 +1,8 @@
-import {
-  HEAVEN_SPACE_PASSAGES,
-  type HeavenSpacePassage,
-} from "@/lib/heaven-space/passages";
+export type HeavenSpacePassage = {
+  content: string;
+  name: string;
+  tags: string[];
+};
 
 export const HEAVEN_SPACE_STORAGE_KEY = "heaven-space-save-v1";
 
@@ -53,15 +54,17 @@ export type HeavenSpaceResolvedPassage = {
 
 const IMAGE_FILENAME_PATTERN = /\/([^/?#]+\.(?:png|jpg|jpeg|webp))/i;
 
-const PASSAGE_MAP = new Map(
-  HEAVEN_SPACE_PASSAGES.map((passage) => [
-    normalizePassageName(passage.name),
-    {
-      ...passage,
-      name: normalizePassageName(passage.name),
-    },
-  ]),
-);
+function passageMap(passages: HeavenSpacePassage[]) {
+  return new Map(
+    passages.map((passage) => [
+      normalizePassageName(passage.name),
+      {
+        ...passage,
+        name: normalizePassageName(passage.name),
+      },
+    ]),
+  );
+}
 
 export function createDefaultHeavenSpaceState(): HeavenSpaceState {
   return {
@@ -83,6 +86,7 @@ export function createInitialHeavenSpaceSnapshot(): HeavenSpaceSnapshot {
 
 export function isHeavenSpaceSnapshot(
   value: unknown,
+  passages: HeavenSpacePassage[],
 ): value is HeavenSpaceSnapshot {
   if (!value || typeof value !== "object") return false;
 
@@ -90,7 +94,7 @@ export function isHeavenSpaceSnapshot(
 
   return (
     typeof snapshot.currentPassage === "string" &&
-    !!getPassage(snapshot.currentPassage) &&
+    !!getPassage(snapshot.currentPassage, passages) &&
     typeof snapshot.state?.memory === "number" &&
     typeof snapshot.state?.sleep === "number" &&
     typeof snapshot.state?.annoyed === "number" &&
@@ -102,19 +106,27 @@ export function isHeavenSpaceSnapshot(
 
 export function resolveCurrentHeavenSpacePassage(
   snapshot: HeavenSpaceSnapshot,
+  passages: HeavenSpacePassage[],
 ): HeavenSpaceResolvedPassage {
-  return resolveHeavenSpacePassage(snapshot.currentPassage, snapshot.state, {
-    applyEntryEffects: false,
-  });
+  return resolveHeavenSpacePassage(
+    snapshot.currentPassage,
+    snapshot.state,
+    passages,
+    { applyEntryEffects: false },
+  );
 }
 
 export function advanceHeavenSpaceSnapshot(
   snapshot: HeavenSpaceSnapshot,
   targetPassage: string,
+  passages: HeavenSpacePassage[],
 ): HeavenSpaceSnapshot {
-  const resolved = resolveHeavenSpacePassage(targetPassage, snapshot.state, {
-    applyEntryEffects: true,
-  });
+  const resolved = resolveHeavenSpacePassage(
+    targetPassage,
+    snapshot.state,
+    passages,
+    { applyEntryEffects: true },
+  );
 
   return {
     currentPassage: resolved.passage,
@@ -125,11 +137,12 @@ export function advanceHeavenSpaceSnapshot(
 function resolveHeavenSpacePassage(
   targetPassage: string,
   previousState: HeavenSpaceState,
+  passages: HeavenSpacePassage[],
   options: {
     applyEntryEffects: boolean;
   },
 ): HeavenSpaceResolvedPassage {
-  const passage = getPassage(targetPassage);
+  const passage = getPassage(targetPassage, passages);
 
   if (!passage) {
     throw new Error(`Unknown Heaven Space passage: ${targetPassage}`);
@@ -161,8 +174,11 @@ function resolveHeavenSpacePassage(
   };
 }
 
-function getPassage(name: string): HeavenSpacePassage | undefined {
-  return PASSAGE_MAP.get(normalizePassageName(name));
+function getPassage(
+  name: string,
+  passages: HeavenSpacePassage[],
+): HeavenSpacePassage | undefined {
+  return passageMap(passages).get(normalizePassageName(name));
 }
 
 function normalizePassageName(name: string) {

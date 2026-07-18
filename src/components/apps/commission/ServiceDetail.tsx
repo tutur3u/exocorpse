@@ -2,7 +2,7 @@
 
 import { MasonryGallery } from "@/components/apps/Gallery";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { ServiceWithDetails } from "@/lib/actions/commissions";
 import { parseAsString, useQueryStates } from "nuqs";
 
@@ -42,7 +42,7 @@ export default function ServiceDetail({
       (style) => style.pictures?.map((pic) => pic.image_url) || [],
     ),
   ];
-  const { signedUrls, loading } = useBatchStorageUrls(allPicturePaths);
+  const { signedUrls, loading } = useBatchMediaUrls(allPicturePaths);
 
   // Convert pictures to gallery format with signed URLs and metadata
   const galleryImages = displayPictures.map((picture, idx) => ({

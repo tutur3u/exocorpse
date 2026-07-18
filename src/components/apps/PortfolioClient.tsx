@@ -7,7 +7,7 @@ import {
   type GamePieceWithGallery,
   useInitialPortfolioData,
 } from "@/contexts/InitialPortfolioDataContext";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type {
   ArtPiece,
   GamePiece,
@@ -166,7 +166,7 @@ export default function PortfolioClient({
     return uniquePaths;
   }, [activeTab, artPieces, selectedArt]);
 
-  const { signedUrls: artImageUrls } = useBatchStorageUrls(artImagePaths);
+  const { signedUrls: artImageUrls } = useBatchMediaUrls(artImagePaths);
 
   // Batch fetch signed URLs for writing cover images - only for the active tab
   // Include both gallery pieces and the selected writing piece (if it belongs to this tab)
@@ -193,8 +193,7 @@ export default function PortfolioClient({
     return uniquePaths;
   }, [activeTab, writingPieces, selectedWriting]);
 
-  const { signedUrls: writingImageUrls } =
-    useBatchStorageUrls(writingImagePaths);
+  const { signedUrls: writingImageUrls } = useBatchMediaUrls(writingImagePaths);
 
   // Batch fetch signed URLs for game cover images and gallery images - only for the active tab
   const gameImagePaths = useMemo(() => {
@@ -223,7 +222,7 @@ export default function PortfolioClient({
     return uniquePaths;
   }, [activeTab, gamePieces, selectedGame]);
 
-  const { signedUrls: gameImageUrls } = useBatchStorageUrls(gameImagePaths);
+  const { signedUrls: gameImageUrls } = useBatchMediaUrls(gameImagePaths);
 
   // Convert art pieces to gallery format with signed URLs
   const galleryImages = filteredArtPieces.map((art) => ({

@@ -84,6 +84,7 @@ export default function ContentView({
                           className="h-full w-full object-cover"
                           width={128}
                           height={128}
+                          unoptimized
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400">

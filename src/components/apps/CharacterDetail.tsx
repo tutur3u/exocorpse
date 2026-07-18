@@ -7,7 +7,7 @@ import StorageImage from "@/components/shared/StorageImage";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useWindows } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { Character } from "@/lib/actions/wiki";
 import {
   getCharacterFactions,
@@ -125,7 +125,7 @@ export default function CharacterDetail({
       .filter((url): url is string => !!url),
   ].filter((p): p is string => !!p && !p.startsWith("http"));
 
-  const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
+  const { signedUrls: imageUrls } = useBatchMediaUrls(imagePaths);
 
   // Only show loading if we're fetching AND don't have any data yet
   const loading =

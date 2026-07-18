@@ -2,7 +2,7 @@
 
 import RotatingGallery from "@/components/shared/RotatingGallery";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { ServiceWithDetails } from "@/lib/actions/commissions";
 import { parseAsString, useQueryStates } from "nuqs";
 
@@ -35,7 +35,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
       ]),
     ),
   ).filter((path): path is string => !!path);
-  const { signedUrls } = useBatchStorageUrls(imagePaths);
+  const { signedUrls } = useBatchMediaUrls(imagePaths);
 
   const handleServiceClick = (slug: string) => {
     setParams({

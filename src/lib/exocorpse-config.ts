@@ -25,8 +25,7 @@ export const EXOCORPSE_ADMIN_TARGETS: ExocorpseAdminTarget[] = [
   },
   {
     actionLabel: "Manage Library",
-    description:
-      "Edit migrated wiki, portfolio, blog, commission, and COFI content.",
+    description: "Edit migrated wiki, portfolio, blog, and commission content.",
     key: "library",
     label: "Library",
     pathSuffix: "/library",

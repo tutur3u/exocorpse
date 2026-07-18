@@ -3,7 +3,7 @@
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   addBlacklistedUser,
-  getBlacklistedUsersPaginated,
+  getAdminBlacklistedUsersPaginated,
   removeBlacklistedUser,
   updateBlacklistedUser,
   type BlacklistedUser,
@@ -14,6 +14,13 @@ import { useCallback, useState } from "react";
 import BlacklistForm from "./BlacklistForm";
 
 const PAGE_SIZE = 10;
+
+type BlacklistPage = {
+  data: BlacklistedUser[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
 
 type BlacklistClientProps = {
   initialUsers: BlacklistedUser[];
@@ -35,7 +42,7 @@ export default function BlacklistClient({
   // Fetch blacklisted users with react-query
   const { data, isLoading } = useQuery({
     queryKey: ["blacklistedUsers", page],
-    queryFn: () => getBlacklistedUsersPaginated(page, PAGE_SIZE),
+    queryFn: () => getAdminBlacklistedUsersPaginated(page, PAGE_SIZE),
     // Use initial data for first page
     initialData:
       page === 1
@@ -53,14 +60,29 @@ export default function BlacklistClient({
   const total = data?.total || 0;
 
   const handleAddUser = useCallback(
-    async (formData: { username: string; reasoning?: string }) => {
+    async (formData: { username: string; reasoning: string }) => {
       try {
-        await addBlacklistedUser(formData);
+        const addedUser = await addBlacklistedUser(formData);
+        queryClient.setQueryData<BlacklistPage>(
+          ["blacklistedUsers", 1],
+          (current) => ({
+            data: [
+              addedUser,
+              ...(current?.data.filter((user) => user.id !== addedUser.id) ??
+                []),
+            ].slice(0, PAGE_SIZE),
+            page: 1,
+            pageSize: PAGE_SIZE,
+            total: (current?.total ?? 0) + 1,
+          }),
+        );
         toastWithSound.success(`Added "${formData.username}" to blacklist`);
         setShowForm(false);
         setPage(1);
-        // Invalidate and refetch the first page
-        await queryClient.invalidateQueries({ queryKey: ["blacklistedUsers"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["blacklistedUsers"],
+          refetchType: "none",
+        });
       } catch (error) {
         console.error("Error adding user:", error);
         toastWithSound.error("Failed to add user to blacklist");
@@ -70,15 +92,25 @@ export default function BlacklistClient({
   );
 
   const handleUpdateUser = useCallback(
-    async (id: string, formData: { username: string; reasoning?: string }) => {
+    async (id: string, formData: { username: string; reasoning: string }) => {
       try {
-        await updateBlacklistedUser(id, formData);
+        const updatedUser = await updateBlacklistedUser(id, formData);
+        queryClient.setQueryData<BlacklistPage>(
+          ["blacklistedUsers", page],
+          (current) =>
+            current && {
+              ...current,
+              data: current.data.map((user) =>
+                user.id === id ? updatedUser : user,
+              ),
+            },
+        );
         toastWithSound.success("Blacklist entry updated");
         setEditingUser(null);
         setShowForm(false);
-        // Invalidate current page data
         await queryClient.invalidateQueries({
           queryKey: ["blacklistedUsers", page],
+          refetchType: "none",
         });
       } catch (error) {
         console.error("Error updating user:", error);
@@ -97,9 +129,20 @@ export default function BlacklistClient({
     async (id: string) => {
       try {
         await removeBlacklistedUser(id);
+        queryClient.setQueriesData<BlacklistPage>(
+          { queryKey: ["blacklistedUsers"] },
+          (current) =>
+            current && {
+              ...current,
+              data: current.data.filter((user) => user.id !== id),
+              total: Math.max(0, current.total - 1),
+            },
+        );
         toastWithSound.success("User removed from blacklist");
-        // Invalidate all pages
-        await queryClient.invalidateQueries({ queryKey: ["blacklistedUsers"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["blacklistedUsers"],
+          refetchType: "none",
+        });
       } catch (error) {
         console.error("Error removing user:", error);
         toastWithSound.error("Failed to remove user from blacklist");
@@ -193,7 +236,9 @@ export default function BlacklistClient({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {user.timestamp
-                      ? new Date(user.timestamp).toLocaleDateString()
+                      ? new Date(user.timestamp).toLocaleDateString("en-US", {
+                          timeZone: "UTC",
+                        })
                       : "—"}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -255,7 +300,7 @@ export default function BlacklistClient({
       {showForm && (
         <BlacklistForm
           user={editingUser}
-          onSubmit={async (data: { username: string; reasoning?: string }) =>
+          onSubmit={async (data: { username: string; reasoning: string }) =>
             editingUser
               ? await handleUpdateUser(editingUser.id, data)
               : await handleAddUser(data)

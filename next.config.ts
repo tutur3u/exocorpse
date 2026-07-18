@@ -8,6 +8,11 @@ const cachedAssetHeaders = [
   { key: "Cache-Control", value: browserAssetCache },
   { key: "Vercel-CDN-Cache-Control", value: vercelAssetCache },
 ];
+const privateNoStoreHeaders = [
+  { key: "Cache-Control", value: "private, no-store, max-age=0" },
+  { key: "CDN-Cache-Control", value: "private, no-store" },
+  { key: "Vercel-CDN-Cache-Control", value: "private, no-store" },
+];
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -19,12 +24,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "picsum.photos",
+        hostname: "tuturuuu.com",
         port: "",
+        pathname: "/api/v1/workspaces/*/external-projects/assets/**",
       },
       {
         protocol: "https",
-        hostname: "**.supabase.co",
+        hostname: "picsum.photos",
+        port: "",
       },
       { protocol: "https", hostname: "help.vgen.co" },
     ],
@@ -37,6 +44,14 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/admin",
+        headers: privateNoStoreHeaders,
+      },
+      {
+        source: "/admin/:path*",
+        headers: privateNoStoreHeaders,
+      },
       ...[
         "/LykoTwins.webp",
         "/background-image.webp",
@@ -45,7 +60,6 @@ const nextConfig: NextConfig = {
         "/artfight-profile/:path*",
         "/audio/:path*",
         "/boot/:path*",
-        "/cofi/:path*",
         "/cursor/:path*",
         "/icons/:path*",
         "/media/:path*",

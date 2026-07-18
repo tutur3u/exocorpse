@@ -54,11 +54,12 @@ export default function BlacklistTab({
   const {
     data: paginatedData = {
       data: [],
-      total: 0,
-      page: 1,
+      total: initialTotal,
+      page: currentPage,
       pageSize: pageSize,
     },
     isLoading,
+    isFetching,
   } = useQuery({
     queryKey: ["blacklisted-users", currentPage, pageSize],
     queryFn: () => getBlacklistedUsersPaginated(currentPage, pageSize),
@@ -73,19 +74,19 @@ export default function BlacklistTab({
   });
 
   const blacklistedUsers = paginatedData.data || [];
-  const total = paginatedData.total || 0;
+  const total = paginatedData.total ?? initialTotal;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const clampedCurrentPage = Math.min(currentPage, totalPages);
 
   // Sync router if currentPage was out of bounds
   useEffect(() => {
-    if (clampedCurrentPage !== currentPage) {
+    if (!isFetching && clampedCurrentPage !== currentPage) {
       setParams({
         "blacklist-page": clampedCurrentPage,
         "blacklist-page-size": pageSize,
       });
     }
-  }, [clampedCurrentPage, currentPage, pageSize, setParams]);
+  }, [clampedCurrentPage, currentPage, isFetching, pageSize, setParams]);
 
   const handlePageChange = (page: number) => {
     setParams({

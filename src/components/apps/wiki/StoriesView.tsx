@@ -1,7 +1,7 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { Story } from "@/lib/actions/wiki";
 
 type StoriesViewProps = {
@@ -20,7 +20,7 @@ export default function StoriesView({
   const storyImagePaths = stories
     .map((s) => s.theme_background_image)
     .filter((p): p is string => !!p && !p.startsWith("http"));
-  const { signedUrls: storyImageUrls } = useBatchStorageUrls(storyImagePaths);
+  const { signedUrls: storyImageUrls } = useBatchMediaUrls(storyImagePaths);
 
   const storyItems: Array<ListDetailItem<string, Story>> = stories.map(
     (story) => ({

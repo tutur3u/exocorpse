@@ -1,4 +1,4 @@
-import { useStorageUrl } from "@/hooks/useStorageUrl";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
 import { getWebpFilename } from "@/lib/fileUtils";
 import {
   compressImage,
@@ -67,7 +67,7 @@ export default function ImageUploader({
     !isPending;
 
   // Use the hook to get the signed URL if it's a storage path
-  const { signedUrl: displayUrl, loading: urlLoading } = useStorageUrl(
+  const { signedUrl: displayUrl, loading: urlLoading } = useMediaUrl(
     isStoragePath ? value : null,
   );
 
@@ -383,6 +383,7 @@ export default function ImageUploader({
                 src={imagePreviewUrl}
                 alt="Preview"
                 fill
+                unoptimized
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-contain"
                 onError={() => {

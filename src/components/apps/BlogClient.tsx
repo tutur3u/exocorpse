@@ -4,7 +4,7 @@ import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import ZoomableImageDialog from "@/components/shared/ZoomableImageDialog";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import {
   type BlogPost,
   getBlogPostBySlug,
@@ -116,7 +116,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
     ...posts.map((post) => post.cover_url),
   ].filter((p): p is string => !!p && !p.startsWith("http"));
 
-  const { signedUrls: coverImageUrls } = useBatchStorageUrls(coverImagePaths);
+  const { signedUrls: coverImageUrls } = useBatchMediaUrls(coverImagePaths);
 
   // Sync router if currentPage was out of bounds
   useEffect(() => {
