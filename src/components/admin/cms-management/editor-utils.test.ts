@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { buildSavePayload, slugify } from "./editor-utils";
+import {
+  buildSavePayload,
+  shouldBypassImageOptimization,
+  slugify,
+} from "./editor-utils";
 import type { CmsEntryDraft } from "./editor-types";
 
 const draft: CmsEntryDraft = {
@@ -57,5 +61,23 @@ describe("CMS management editor helpers", () => {
     expect(slugify("Áster's World — Volume II")).toBe(
       "aster-s-world-volume-ii",
     );
+  });
+
+  test("serves SVG media directly instead of sending it to Next Image", () => {
+    expect(
+      shouldBypassImageOptimization({
+        alt_text: "cms-preview.svg",
+        asset_type: "image",
+        asset_url: "/api/v1/workspaces/ws/external-projects/assets/asset?v=1",
+        entry_id: "entry-id",
+        id: "asset-id",
+        metadata: {},
+        preview_url: null,
+        sort_order: 0,
+        source_url: null,
+        storage_path: "external-projects/exocorpse/about/cms-preview.svg",
+        updated_at: "2026-07-18T00:00:00.000Z",
+      }),
+    ).toBe(true);
   });
 });

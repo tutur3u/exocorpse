@@ -1,6 +1,7 @@
 "use client";
 
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
+import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
 import { FileImage, Trash2, UploadCloud } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
@@ -78,6 +79,7 @@ export default function CmsAssetManager({
                     fill
                     sizes="(max-width: 768px) 100vw, 360px"
                     src={imageUrl}
+                    unoptimized={shouldBypassImageOptimization(asset)}
                   />
                 </div>
               ) : (

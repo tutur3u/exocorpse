@@ -6,12 +6,23 @@ import type {
   CmsSavePayload,
 } from "@/components/admin/cms-management/editor-types";
 import type {
+  ExocorpseCmsAsset,
   ExocorpseCmsCollection,
   ExocorpseCmsEntry,
   ExocorpseCmsRelationDefinition,
   ExocorpseCmsStudio,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
+
+export function shouldBypassImageOptimization(asset: ExocorpseCmsAsset) {
+  return [
+    asset.alt_text,
+    asset.asset_url,
+    asset.preview_url,
+    asset.source_url,
+    asset.storage_path,
+  ].some((value) => value && /\.svg(?:$|[?#])/i.test(value));
+}
 
 export function isJsonRecord(
   value: ExocorpseJson | undefined,
