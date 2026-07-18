@@ -7,10 +7,37 @@ export type ExocorpseJson =
   | ExocorpseJson[];
 
 export type ExocorpseCmsCollection = {
+  config?: ExocorpseJson;
+  description?: string | null;
   id: string;
+  is_enabled?: boolean;
   slug: string;
   title: string;
   collection_type: string;
+};
+
+export type ExocorpseCmsFieldDefinition = {
+  collection_id: string | null;
+  default_value: ExocorpseJson;
+  description: string | null;
+  field_scope: "profile_data" | "metadata";
+  field_type:
+    | "string"
+    | "markdown"
+    | "number"
+    | "boolean"
+    | "date"
+    | "datetime"
+    | "json"
+    | "string-array";
+  id: string;
+  is_enabled: boolean;
+  is_required: boolean;
+  key: string;
+  label: string | null;
+  options: string[];
+  sort_order: number;
+  source: string;
 };
 
 export type ExocorpseCmsEntry = {
@@ -58,6 +85,7 @@ export type ExocorpseCmsAsset = {
   entry_id: string | null;
   id: string;
   metadata: ExocorpseJson;
+  preview_url?: string | null;
   sort_order: number;
   source_url: string | null;
   storage_path: string | null;
@@ -83,6 +111,7 @@ export type ExocorpseCmsStudio = {
   blocks: ExocorpseCmsBlock[];
   collections: ExocorpseCmsCollection[];
   entries: ExocorpseCmsEntry[];
+  fieldDefinitions?: ExocorpseCmsFieldDefinition[];
   relations?: ExocorpseCmsRelation[];
   relationDefinitions?: ExocorpseCmsRelationDefinition[];
   relationDefinitionTargets?: ExocorpseCmsRelationDefinitionTarget[];

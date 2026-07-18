@@ -18,11 +18,29 @@ type NavSection = {
 
 const navSections: NavSection[] = [
   {
-    label: "Manage",
+    label: "Wiki",
     items: [
-      { href: "/admin/cms", label: "Tuturuuu CMS Editor" },
+      { href: "/admin/stories", label: "Stories" },
+      { href: "/admin/worlds", label: "Worlds" },
+      { href: "/admin/characters", label: "Characters" },
+      { href: "/admin/factions", label: "Factions" },
+      { href: "/admin/locations", label: "Locations" },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { href: "/admin/about", label: "About Me" },
+      { href: "/admin/portfolio", label: "Portfolio" },
+      { href: "/admin/blog-posts", label: "Blog Posts" },
+      { href: "/admin/services", label: "Commission Services" },
+      { href: "/admin/addons", label: "Add-ons" },
       { href: "/admin/blacklist", label: "Blacklist" },
     ],
+  },
+  {
+    label: "CMS",
+    items: [{ href: "/admin/cms", label: "Complete Library" }],
   },
 ];
 

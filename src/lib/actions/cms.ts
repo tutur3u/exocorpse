@@ -44,14 +44,14 @@ export async function saveAdminCmsEntry(payload: {
         payload,
       )
     : await createExocorpseCmsEntryBundle(payload);
-  revalidatePath("/admin/cms");
+  revalidatePath("/admin", "layout");
   return result;
 }
 
 export async function deleteAdminCmsEntry(entryId: string) {
   await verifyAuth();
   await deleteExocorpseCmsEntry(entryId);
-  revalidatePath("/admin/cms");
+  revalidatePath("/admin", "layout");
 }
 
 export async function uploadAdminCmsAsset(input: {
@@ -63,12 +63,13 @@ export async function uploadAdminCmsAsset(input: {
   await verifyAuth();
   const file = input.formData.get("file");
   if (!(file instanceof File)) throw new Error("Select a media file.");
-  await uploadExocorpseCmsAssetFile({ ...input, file });
-  revalidatePath("/admin/cms");
+  const asset = await uploadExocorpseCmsAssetFile({ ...input, file });
+  revalidatePath("/admin", "layout");
+  return asset;
 }
 
 export async function deleteAdminCmsAsset(assetId: string) {
   await verifyAuth();
   await deleteExocorpseCmsAsset(assetId);
-  revalidatePath("/admin/cms");
+  revalidatePath("/admin", "layout");
 }

@@ -8,6 +8,7 @@ import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import type {
   ExocorpseCmsBlock,
+  ExocorpseCmsAsset,
   ExocorpseCmsEntry,
   ExocorpseCmsRelation,
   ExocorpseCmsStudio,
@@ -33,7 +34,7 @@ type EntryBundleInput = {
   }>;
 };
 
-type EntryBundle = {
+export type EntryBundle = {
   blocks: ExocorpseCmsBlock[];
   entry: ExocorpseCmsEntry;
   relations: ExocorpseCmsRelation[];
@@ -148,10 +149,10 @@ export async function createExocorpseCmsAsset(payload: {
   source_url?: string | null;
   storage_path?: string | null;
 }) {
-  const result = await cmsRequest<Record<string, unknown>>(
-    workspacePath("/assets"),
-    { body: JSON.stringify(payload), method: "POST" },
-  );
+  const result = await cmsRequest<ExocorpseCmsAsset>(workspacePath("/assets"), {
+    body: JSON.stringify(payload),
+    method: "POST",
+  });
   await invalidateDelivery();
   return result;
 }
