@@ -10,6 +10,7 @@ import {
   restoreLoadingEntryStableSourceIds,
 } from "@/lib/tuturuuu-cms-delivery-normalization";
 import { cacheLife, cacheTag } from "next/cache";
+import { cache } from "react";
 import type { BlacklistedUser } from "@/types/exocorpse-cms";
 import type {
   ExocorpseJson as Json,
@@ -367,11 +368,11 @@ function extensionFromFilename(filename: string) {
 }
 
 export async function getExocorpseCmsDelivery() {
-  "use cache";
+  "use cache: remote";
 
   cacheLife({
     stale: 300,
-    revalidate: 60,
+    revalidate: 300,
     expire: 86400,
   });
   cacheTag(EXOCORPSE_CMS_CACHE_TAG);
@@ -418,15 +419,15 @@ export async function getExocorpseCmsDelivery() {
   }
 }
 
-export async function getExocorpseCmsCollection(slug: string) {
+export const getExocorpseCmsCollection = cache(async function (slug: string) {
   const delivery = await getExocorpseCmsDelivery();
   return delivery?.collections[slug] ?? null;
-}
+});
 
-export async function getExocorpseCmsEntries(slug: string) {
+export const getExocorpseCmsEntries = cache(async function (slug: string) {
   const collection = await getExocorpseCmsCollection(slug);
   return collection?.entries.filter(isPublished) ?? null;
-}
+});
 
 export async function getCmsBlacklistedUsers(): Promise<
   BlacklistedUser[] | null

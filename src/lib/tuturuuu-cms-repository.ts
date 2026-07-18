@@ -15,7 +15,7 @@ import type {
   ExocorpseCmsStudio,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 
 type EntryBundleInput = {
   blocks: Array<{
@@ -88,7 +88,7 @@ function workspacePath(suffix = "") {
 }
 
 async function invalidateDelivery() {
-  revalidateTag(EXOCORPSE_CMS_CACHE_TAG, { expire: 0 });
+  updateTag(EXOCORPSE_CMS_CACHE_TAG);
 }
 
 export async function getExocorpseCmsStudio() {

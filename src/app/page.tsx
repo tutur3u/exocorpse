@@ -1,41 +1,16 @@
 import HomeClient from "@/components/HomeClient";
-import { getAboutPageData } from "@/lib/actions/about";
-import type { InitialAboutData } from "@/lib/about";
-import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
-import type { InitialCommissionData } from "@/contexts/InitialCommissionDataContext";
-import type { InitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
-import type { InitialWikiData } from "@/contexts/InitialWikiDataContext";
-import { getBlacklistedUsersPaginated } from "@/lib/actions/blacklist";
-import {
-  getBlogPostBySlug,
-  getPublishedBlogPostsPaginated,
-} from "@/lib/actions/blog";
-import { getActiveServices, getServiceBySlug } from "@/lib/actions/commissions";
-import {
-  getArtPieceBySlug,
-  getArtPieces,
-  getGamePieceBySlug,
-  getGamePieces,
-  getWritingPieceBySlug,
-  getWritingPieces,
-} from "@/lib/actions/portfolio";
-import type { Character, Story } from "@/lib/actions/wiki";
+import { getBlogPostBySlug } from "@/lib/actions/blog";
+import { getWritingPieceBySlug } from "@/lib/actions/portfolio";
 import {
   getCharacterBySlug,
   getCharacterBySlugInStory,
-  getCharacterDetailData,
   getCharacterGallery,
-  getCharactersByWorldSlug,
   getFactionBySlug,
   getFactionBySlugInStory,
-  getFactionsByWorldSlug,
   getLocationGallery,
   getLocationBySlug,
-  getLocationsByWorldSlug,
-  getPublicStories,
   getStoryBySlug,
   getWorldBySlug,
-  getWorldsByStorySlug,
 } from "@/lib/actions/wiki";
 import {
   loadBlogSearchParams,
@@ -54,6 +29,7 @@ import {
   loadWikiSearchParams,
   serializeWikiSearchParams,
 } from "@/lib/wiki-search-params";
+import { loadHomeInitialData } from "@/lib/home-initial-data";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import { toAbsoluteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
@@ -203,7 +179,12 @@ function getFactionWorldSlug(
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
-  const gameParams = await loadGameSearchParams(searchParams);
+  const [gameParams, blogParams, portfolioParams, params] = await Promise.all([
+    loadGameSearchParams(searchParams),
+    loadBlogSearchParams(searchParams),
+    loadPortfolioSearchParams(searchParams),
+    loadWikiSearchParams(searchParams),
+  ]);
 
   if (gameParams.game === "heaven-space") {
     return {
@@ -218,7 +199,6 @@ export async function generateMetadata({
   }
 
   // Check for blog params first
-  const blogParams = await loadBlogSearchParams(searchParams);
   const { "blog-post": blogPostSlug } = blogParams;
   // Blog post view
   if (blogPostSlug) {
@@ -288,7 +268,6 @@ export async function generateMetadata({
     };
   }
 
-  const portfolioParams = await loadPortfolioSearchParams(searchParams);
   const portfolioPieceSlug = portfolioParams["portfolio-piece"];
 
   if (portfolioPieceSlug) {
@@ -345,7 +324,6 @@ export async function generateMetadata({
   }
 
   // Check for wiki params
-  const params = await loadWikiSearchParams(searchParams);
   const { story, world, character, faction, location } = params;
 
   // No wiki params, return default metadata
@@ -609,299 +587,24 @@ async function HomeContent({
   });
   cacheTag(EXOCORPSE_CMS_CACHE_TAG);
 
-  const DEFAULT_PAGE_SIZE = 10;
-
-  const wikiParams = { ...wikiParamsData };
-  const blogParams = { ...blogParamsData };
-  const commissionParams = { ...commissionParamsData };
-  const portfolioParams = { ...portfolioParamsData };
-  const gameParams = { ...gameParamsData };
-  const initialAboutDataPromise = getAboutPageData();
-
-  // Fetch initial wiki data based on params
-  const initialWikiData: InitialWikiData = {
-    params: {
-      story: wikiParams.story,
-      world: wikiParams.world,
-    },
-    stories: [],
-    currentStory: null,
-    worlds: [],
-    characters: [],
-    factions: [],
-    locations: [],
-    characterDetail: null,
-  };
-
-  // Fetch initial blog data based on params
-  const rawPageSize = blogParams["blog-page-size"] ?? DEFAULT_PAGE_SIZE;
-  const pageSize = Math.max(1, Math.min(rawPageSize, 50)); // cap at 50
-  const initialBlogData: InitialBlogData = {
-    posts: [],
-    total: 0,
-    page: 1,
-    pageSize: pageSize,
-    selectedPost: null,
-  };
-
-  // Fetch initial commission data based on params
-  const commissionTab = commissionParams["commission-tab"] ?? "info";
-  const blacklistPage = commissionParams["blacklist-page"] ?? 1;
-  const blacklistPageSize =
-    commissionParams["blacklist-page-size"] ?? DEFAULT_PAGE_SIZE;
-  const serviceSlug = commissionParams.service;
-  const styleSlug = commissionParams.style;
-
-  // Fetch commission data based on tab and params
-  let blacklistData: Awaited<ReturnType<typeof getBlacklistedUsersPaginated>> =
-    {
-      data: [],
-      total: 0,
-      page: 1,
-      pageSize: DEFAULT_PAGE_SIZE,
-    };
-  let commissionServices: Awaited<ReturnType<typeof getActiveServices>> = [];
-  let selectedCommissionService: Awaited<ReturnType<typeof getServiceBySlug>> =
-    null;
-
-  if (commissionTab === "blacklist") {
-    blacklistData = await getBlacklistedUsersPaginated(
-      blacklistPage,
-      blacklistPageSize,
-    );
-  }
-
-  // Always fetch services if on services tab or if a service slug is present
-  if (commissionTab === "services") {
-    if (serviceSlug) {
-      // Fetch specific service with all details
-      selectedCommissionService = await getServiceBySlug(serviceSlug);
-    } else {
-      // Fetch all active services for the services list
-      commissionServices = await getActiveServices();
-    }
-  } else if (serviceSlug) {
-    // Service slug present but not on services tab - still fetch the service
-    selectedCommissionService = await getServiceBySlug(serviceSlug);
-  }
-
-  const initialCommissionData: InitialCommissionData = {
-    blacklistedUsers: blacklistData.data,
-    blacklistTotal: blacklistData.total,
-    blacklistPage: blacklistData.page,
-    blacklistPageSize: blacklistData.pageSize,
-    services: commissionServices,
-    selectedService: selectedCommissionService,
-    selectedStyleSlug: styleSlug,
-  };
-
-  // Fetch initial portfolio data based on params
-  let artPieces: Awaited<ReturnType<typeof getArtPieces>> = [];
-  let writingPieces: Awaited<ReturnType<typeof getWritingPieces>> = [];
-  let gamePieces: Awaited<ReturnType<typeof getGamePieces>> = [];
-  let selectedArtPiece: Awaited<ReturnType<typeof getArtPieceBySlug>> = null;
-  let selectedWritingPiece: Awaited<ReturnType<typeof getWritingPieceBySlug>> =
-    null;
-  let selectedGamePiece: Awaited<ReturnType<typeof getGamePieceBySlug>> = null;
-
-  if (portfolioParams["portfolio-piece"]) {
-    // If we have a specific piece slug, fetch only that piece and infer tab if needed
-    if (portfolioParams["portfolio-tab"] === "art") {
-      selectedArtPiece = await getArtPieceBySlug(
-        portfolioParams["portfolio-piece"],
-      );
-    } else if (portfolioParams["portfolio-tab"] === "writing") {
-      selectedWritingPiece = await getWritingPieceBySlug(
-        portfolioParams["portfolio-piece"],
-      );
-    } else if (portfolioParams["portfolio-tab"] === "games") {
-      selectedGamePiece = await getGamePieceBySlug(
-        portfolioParams["portfolio-piece"],
-      );
-    } else if (!portfolioParams["portfolio-tab"]) {
-      // Tab is missing, need to infer - try art first, then writing, then games
-      const artPiece = await getArtPieceBySlug(
-        portfolioParams["portfolio-piece"],
-      );
-      if (artPiece) {
-        selectedArtPiece = artPiece;
-        portfolioParams["portfolio-tab"] = "art";
-      } else {
-        selectedWritingPiece = await getWritingPieceBySlug(
-          portfolioParams["portfolio-piece"],
-        );
-        if (selectedWritingPiece) {
-          portfolioParams["portfolio-tab"] = "writing";
-        } else {
-          selectedGamePiece = await getGamePieceBySlug(
-            portfolioParams["portfolio-piece"],
-          );
-          if (selectedGamePiece) {
-            portfolioParams["portfolio-tab"] = "games";
-          }
-        }
-      }
-    }
-  } else {
-    // No specific piece requested, fetch all pieces for the portfolio list
-    [artPieces, writingPieces, gamePieces] = await Promise.all([
-      getArtPieces(),
-      getWritingPieces(),
-      getGamePieces(),
-    ]);
-  }
-
-  const initialPortfolioData: InitialPortfolioData = {
-    artPieces,
-    writingPieces,
-    gamePieces,
-    selectedArtPiece,
-    selectedWritingPiece,
-    selectedGamePiece,
-    params: portfolioParams,
-  };
-  const hasWikiParams = !!(
-    wikiParams.story ||
-    wikiParams.world ||
-    wikiParams.character ||
-    wikiParams.faction
-  );
-  const hasBlogParams = !!(
-    blogParams["blog-post"] ||
-    blogParams["blog-page"] ||
-    blogParams["blog-page-size"]
-  );
-
-  // Only fetch stories if visiting wiki (not blog-only)
-  if (hasWikiParams) {
-    // Always fetch only public stories for the stories list
-    // Unlisted stories are accessible via URL but won't appear in the list
-    const storiesPromise = getPublicStories();
-
-    // Determine which blog fetch to start and await both in parallel
-    let stories: Story[];
-    let blogPost: typeof initialBlogData.selectedPost = null;
-    let paginatedBlogData: Awaited<
-      ReturnType<typeof getPublishedBlogPostsPaginated>
-    > | null = null;
-
-    if (hasBlogParams && blogParams["blog-post"]) {
-      [stories, blogPost] = await Promise.all([
-        storiesPromise,
-        getBlogPostBySlug(blogParams["blog-post"]),
-      ]);
-    } else if (hasBlogParams) {
-      const page = Math.max(1, blogParams["blog-page"] ?? 1);
-      [stories, paginatedBlogData] = await Promise.all([
-        storiesPromise,
-        getPublishedBlogPostsPaginated(page, pageSize),
-      ]);
-    } else {
-      // Wiki only, no blog params
-      stories = await storiesPromise;
-    }
-
-    // Assign results after both promises resolve
-    initialWikiData.stories = stories;
-
-    // Handle blog data based on which fetch was performed
-    if (hasBlogParams) {
-      if (blogParams["blog-post"]) {
-        if (blogPost) {
-          initialBlogData.selectedPost = blogPost;
-        }
-      } else {
-        if (paginatedBlogData) {
-          initialBlogData.posts = paginatedBlogData.data;
-          initialBlogData.total = paginatedBlogData.total;
-          initialBlogData.page = paginatedBlogData.page;
-          initialBlogData.pageSize = paginatedBlogData.pageSize;
-        }
-      }
-    }
-  } else if (hasBlogParams) {
-    // Blog only, no wiki params - fetch blog data without stories
-    if (blogParams["blog-post"]) {
-      const blogPost = await getBlogPostBySlug(blogParams["blog-post"]);
-      if (blogPost) {
-        initialBlogData.selectedPost = blogPost;
-      }
-    } else {
-      const page = Math.max(1, blogParams["blog-page"] ?? 1);
-      const paginatedData = await getPublishedBlogPostsPaginated(
-        page,
-        pageSize,
-      );
-      initialBlogData.posts = paginatedData.data;
-      initialBlogData.total = paginatedData.total;
-      initialBlogData.page = paginatedData.page;
-      initialBlogData.pageSize = paginatedData.pageSize;
-    }
-  }
-
-  // Fetch worlds if story is selected
-  if (wikiParams.story) {
-    // Fetch the current story being viewed (can be unlisted)
-    initialWikiData.currentStory = await getStoryBySlug(wikiParams.story);
-    initialWikiData.worlds = await getWorldsByStorySlug(wikiParams.story);
-
-    // Fetch characters, factions, and locations if world is selected
-    if (wikiParams.world) {
-      const [characters, factions, locations] = await Promise.all([
-        getCharactersByWorldSlug(wikiParams.story, wikiParams.world),
-        getFactionsByWorldSlug(wikiParams.story, wikiParams.world),
-        getLocationsByWorldSlug(wikiParams.story, wikiParams.world),
-      ]);
-      initialWikiData.characters = characters;
-      initialWikiData.factions = factions;
-      initialWikiData.locations = locations;
-
-      // If a specific character is selected, fetch only that character
-      if (wikiParams.character) {
-        const selectedCharacter = await getCharacterBySlug(
-          wikiParams.story,
-          wikiParams.world,
-          wikiParams.character,
-        );
-        if (selectedCharacter && selectedCharacter.id) {
-          const detailData = await getCharacterDetailData(selectedCharacter.id);
-          initialWikiData.characterDetail = {
-            characterId: selectedCharacter.id,
-            ...detailData,
-          };
-        }
-      }
-
-      // If a specific location is selected, fetch only that location
-      if (wikiParams.location) {
-        const selectedLocation = await getLocationBySlug(
-          wikiParams.story,
-          wikiParams.world,
-          wikiParams.location,
-        );
-        if (selectedLocation) {
-          initialWikiData.locations = [selectedLocation];
-        }
-      }
-    } else if (wikiParams.character) {
-      // Fetch specific character directly without fetching all characters
-      const selectedCharacter = await getCharacterBySlugInStory(
-        wikiParams.story,
-        wikiParams.character,
-      );
-      if (selectedCharacter && selectedCharacter.id) {
-        initialWikiData.characters = [selectedCharacter as Character];
-
-        const detailData = await getCharacterDetailData(selectedCharacter.id);
-        initialWikiData.characterDetail = {
-          characterId: selectedCharacter.id,
-          ...detailData,
-        };
-      }
-    }
-  }
-
-  const initialAboutData: InitialAboutData = await initialAboutDataPromise;
+  const {
+    wikiParams,
+    blogParams,
+    commissionParams,
+    portfolioParams,
+    gameParams,
+    initialWikiData,
+    initialBlogData,
+    initialCommissionData,
+    initialPortfolioData,
+    initialAboutData,
+  } = await loadHomeInitialData({
+    wikiParamsData,
+    blogParamsData,
+    commissionParamsData,
+    portfolioParamsData,
+    gameParamsData,
+  });
 
   return (
     <HomeClient
@@ -941,11 +644,19 @@ async function HomeContentWrapper({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   // Await searchParams inside Suspense boundary
-  const wikiParamsData = await loadWikiSearchParams(searchParams);
-  const blogParamsData = await loadBlogSearchParams(searchParams);
-  const commissionParamsData = await loadCommissionSearchParams(searchParams);
-  const portfolioParamsData = await loadPortfolioSearchParams(searchParams);
-  const gameParamsData = await loadGameSearchParams(searchParams);
+  const [
+    wikiParamsData,
+    blogParamsData,
+    commissionParamsData,
+    portfolioParamsData,
+    gameParamsData,
+  ] = await Promise.all([
+    loadWikiSearchParams(searchParams),
+    loadBlogSearchParams(searchParams),
+    loadCommissionSearchParams(searchParams),
+    loadPortfolioSearchParams(searchParams),
+    loadGameSearchParams(searchParams),
+  ]);
 
   // Pass resolved params to cached component
   return (

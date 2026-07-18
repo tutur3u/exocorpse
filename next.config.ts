@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    instantInsights: {
+      validationLevel: "warning",
+    },
     serverActions: {
       bodySizeLimit: "50mb",
     },

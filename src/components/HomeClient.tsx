@@ -1,8 +1,6 @@
 "use client";
 
 import BootScreen from "@/components/BootScreen";
-import Desktop from "@/components/Desktop";
-import MobileLayout from "@/components/mobile/MobileLayout";
 import { InitialAboutDataProvider } from "@/contexts/InitialAboutDataContext";
 import type { InitialAboutData } from "@/lib/about";
 import type { InitialBlogData } from "@/contexts/InitialBlogDataContext";
@@ -21,6 +19,10 @@ import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { GameSearchParams } from "@/lib/game-search-params";
 import type { PortfolioSearchParams } from "@/lib/portfolio-search-params";
 import type { WikiSearchParams } from "@/lib/wiki-search-params";
+import dynamic from "next/dynamic";
+
+const Desktop = dynamic(() => import("@/components/Desktop"));
+const MobileLayout = dynamic(() => import("@/components/mobile/MobileLayout"));
 
 type HomeClientProps = {
   wikiParams: WikiSearchParams;

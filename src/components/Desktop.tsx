@@ -22,6 +22,7 @@ export default function Desktop() {
         src="/background-image.webp"
         alt="Background image"
         fill
+        sizes="100vw"
         className="object-cover object-center"
         loading="eager"
         priority
@@ -34,7 +35,9 @@ export default function Desktop() {
             src="/desktop-logo.webp"
             alt="EXOCORPSE & MORS Logo"
             fill
+            sizes="384px"
             className="object-contain drop-shadow-[0_14px_32px_rgba(2,6,23,0.9)]"
+            loading="eager"
           />
         </div>
         <p className="max-w-2xl px-5 text-center text-xl text-slate-100/92 drop-shadow-[0_10px_24px_rgba(2,6,23,0.72)]">

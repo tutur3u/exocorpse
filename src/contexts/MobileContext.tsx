@@ -1,11 +1,13 @@
 "use client";
 
-import AboutMe from "@/components/apps/AboutMe";
-import Blog from "@/components/apps/Blog";
-import Commission from "@/components/apps/Commission";
-import HeavenSpace from "@/components/apps/HeavenSpace";
-import Portfolio from "@/components/apps/Portfolio";
-import Wiki from "@/components/apps/Wiki";
+import {
+  LazyAboutMe,
+  LazyBlog,
+  LazyCommission,
+  LazyHeavenSpace,
+  LazyPortfolio,
+  LazyWiki,
+} from "@/components/apps/lazy-apps";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
 import type { GameSearchParams } from "@/lib/game-search-params";
@@ -42,37 +44,37 @@ export const MOBILE_APPS: MobileApp[] = [
     id: "about",
     title: "About Me",
     icon: "Butterflies",
-    component: AboutMe,
+    component: LazyAboutMe,
   },
   {
     id: "portfolio",
     title: "Portfolio",
     icon: "Portfolio",
-    component: Portfolio,
+    component: LazyPortfolio,
   },
   {
     id: "commission",
     title: "Commission",
     icon: "Commission",
-    component: Commission,
+    component: LazyCommission,
   },
   {
     id: "blog",
     title: "Blog",
     icon: "Blog",
-    component: Blog,
+    component: LazyBlog,
   },
   {
     id: "wiki",
     title: "Wiki",
     icon: "World_Wiki",
-    component: Wiki,
+    component: LazyWiki,
   },
   {
     id: "heaven-space",
     title: "Heaven Space",
     icon: "/media/heaven-space/epilogue.png",
-    component: HeavenSpace,
+    component: LazyHeavenSpace,
     showInLauncher: false,
   },
 ];

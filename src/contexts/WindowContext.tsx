@@ -1,11 +1,13 @@
 "use client";
 
-import AboutMe from "@/components/apps/AboutMe";
-import Blog from "@/components/apps/Blog";
-import Commission from "@/components/apps/Commission";
-import HeavenSpace from "@/components/apps/HeavenSpace";
-import Portfolio from "@/components/apps/Portfolio";
-import Wiki from "@/components/apps/Wiki";
+import {
+  LazyAboutMe,
+  LazyBlog,
+  LazyCommission,
+  LazyHeavenSpace,
+  LazyPortfolio,
+  LazyWiki,
+} from "@/components/apps/lazy-apps";
 import { TASKBAR_HEIGHT } from "@/constants";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
 import type { CommissionSearchParams } from "@/lib/commission-search-params";
@@ -183,7 +185,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "about",
     title: "About Me",
     icon: "Butterflies", // Using the Butterflies icon for About Me
-    component: AboutMe,
+    component: LazyAboutMe,
     defaultSize: { width: 600, height: 400 },
     defaultPosition: { x: 100, y: 100 },
   },
@@ -191,7 +193,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "portfolio",
     title: "Portfolio",
     icon: "Portfolio",
-    component: Portfolio,
+    component: LazyPortfolio,
     defaultState: "maximized",
     defaultSize: { width: 700, height: 500 },
     defaultPosition: { x: 150, y: 150 },
@@ -200,7 +202,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "commission",
     title: "Commission",
     icon: "Commission",
-    component: Commission,
+    component: LazyCommission,
     defaultSize: { width: 650, height: 450 },
     defaultPosition: { x: 200, y: 200 },
   },
@@ -208,7 +210,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "wiki",
     title: "Wiki",
     icon: "World_Wiki",
-    component: Wiki,
+    component: LazyWiki,
     defaultSize: { width: 600, height: 500 },
     defaultPosition: { x: 250, y: 150 },
   },
@@ -216,7 +218,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "blog",
     title: "Blog",
     icon: "Blog",
-    component: Blog,
+    component: LazyBlog,
     defaultState: "maximized",
     defaultSize: { width: 700, height: 600 },
     defaultPosition: { x: 150, y: 100 },
@@ -225,7 +227,7 @@ export const APP_CONFIGS: WindowConfig[] = [
     id: "heaven-space",
     title: "Heaven Space",
     icon: "/media/heaven-space/epilogue.png",
-    component: HeavenSpace,
+    component: LazyHeavenSpace,
     showInShell: false,
     defaultState: "maximized",
     defaultSize: { width: 960, height: 700 },

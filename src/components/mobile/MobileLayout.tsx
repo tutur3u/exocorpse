@@ -1,11 +1,13 @@
 "use client";
 
-import AboutMe from "@/components/apps/AboutMe";
-import Blog from "@/components/apps/Blog";
-import Commission from "@/components/apps/Commission";
-import HeavenSpace from "@/components/apps/HeavenSpace";
-import Portfolio from "@/components/apps/Portfolio";
-import Wiki from "@/components/apps/Wiki";
+import {
+  LazyAboutMe,
+  LazyBlog,
+  LazyCommission,
+  LazyHeavenSpace,
+  LazyPortfolio,
+  LazyWiki,
+} from "@/components/apps/lazy-apps";
 import { MobileProvider } from "@/contexts/MobileContext";
 import { WindowProvider } from "@/contexts/WindowContext";
 import type { BlogSearchParams } from "@/lib/blog-search-params";
@@ -66,32 +68,32 @@ const MOBILE_APPS = [
   {
     id: "about" as AppId,
     title: "About Me",
-    component: AboutMe,
+    component: LazyAboutMe,
   },
   {
     id: "portfolio" as AppId,
     title: "Portfolio",
-    component: Portfolio,
+    component: LazyPortfolio,
   },
   {
     id: "commission" as AppId,
     title: "Commissions",
-    component: Commission,
+    component: LazyCommission,
   },
   {
     id: "blog" as AppId,
     title: "Blog",
-    component: Blog,
+    component: LazyBlog,
   },
   {
     id: "wiki" as AppId,
     title: "Wiki",
-    component: Wiki,
+    component: LazyWiki,
   },
   {
     id: "heaven-space" as AppId,
     title: "Heaven Space",
-    component: HeavenSpace,
+    component: LazyHeavenSpace,
   },
 ];
 
@@ -187,6 +189,7 @@ export default function MobileLayout({
               src="/background-image.webp"
               alt="Background image"
               fill
+              sizes="100vw"
               className="object-cover object-center"
               loading="eager"
               priority

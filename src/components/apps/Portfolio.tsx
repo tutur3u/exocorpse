@@ -12,9 +12,15 @@ import PortfolioClient from "./PortfolioClient";
 
 export default function Portfolio() {
   const initialData = useInitialPortfolioData();
+  const hasSelectedPiece = Boolean(
+    initialData.selectedArtPiece ||
+    initialData.selectedWritingPiece ||
+    initialData.selectedGamePiece,
+  );
   // Track if user has navigated to gallery view (back from detail)
   const [viewingGallery, setViewingGallery] = useState(
-    initialData.artPieces.length > 0 ||
+    !hasSelectedPiece ||
+      initialData.artPieces.length > 0 ||
       initialData.writingPieces.length > 0 ||
       initialData.gamePieces.length > 0,
   );
