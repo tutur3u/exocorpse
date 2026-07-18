@@ -1,7 +1,7 @@
 import ListDetail, { type ListDetailItem } from "@/components/ListDetail";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { World } from "@/lib/actions/wiki";
 
 type WorldsViewProps = {
@@ -15,7 +15,7 @@ export default function WorldsView({ worlds, onWorldSelect }: WorldsViewProps) {
   const worldImagePaths = worlds
     .map((w) => w.theme_background_image)
     .filter((p): p is string => !!p && !p.startsWith("http"));
-  const { signedUrls: worldImageUrls } = useBatchStorageUrls(worldImagePaths);
+  const { signedUrls: worldImageUrls } = useBatchMediaUrls(worldImagePaths);
 
   const worldItems: Array<ListDetailItem<string, World>> = worlds.map(
     (world) => ({

@@ -1,6 +1,5 @@
 import { getExocorpseAdminLoginPath } from "@/lib/exocorpse-config";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
-import { getSupabaseAdminServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 /**
@@ -13,7 +12,7 @@ export async function getCurrentUser() {
 }
 
 /**
- * Verify that the user is authenticated and return the user with a Supabase client
+ * Verify that the user is authenticated through Tuturuuu CMS.
  * Throws an error if not authenticated
  */
 export async function verifyAuth() {
@@ -25,11 +24,7 @@ export async function verifyAuth() {
     );
   }
 
-  return {
-    session,
-    supabase: await getSupabaseAdminServer(),
-    user: session.user,
-  };
+  return { session, user: session.user };
 }
 
 /**

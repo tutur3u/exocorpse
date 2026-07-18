@@ -2,7 +2,7 @@
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { Character, Faction, Location, World } from "@/lib/actions/wiki";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
@@ -43,7 +43,7 @@ export default function WorldView({
     .map((c) => c.profile_image)
     .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: characterImageUrls, loading: characterImagesLoading } =
-    useBatchStorageUrls(characterImagePaths);
+    useBatchMediaUrls(characterImagePaths);
 
   // Batch fetch all faction logos
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
@@ -51,7 +51,7 @@ export default function WorldView({
     .map((f) => f.logo_url)
     .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: factionLogoUrls, loading: factionLogosLoading } =
-    useBatchStorageUrls(factionLogoPaths);
+    useBatchMediaUrls(factionLogoPaths);
 
   // Batch fetch all location images
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
@@ -59,7 +59,7 @@ export default function WorldView({
     .map((l) => l.image_url)
     .filter((p): p is string => !!p && !p.startsWith("http"));
   const { signedUrls: locationImageUrls, loading: locationImagesLoading } =
-    useBatchStorageUrls(locationImagePaths);
+    useBatchMediaUrls(locationImagePaths);
 
   return (
     <div className="bg-theme-primary flex min-h-full flex-col">

@@ -20,10 +20,12 @@ type LoadingCollection<TEntry extends LoadingEntry> = {
 };
 
 export type DeliverySourceCollection = {
-  entries: Array<{
-    id: string;
-    stable_source_id?: string | null;
-  }>;
+  entries: Array<
+    {
+      id: string;
+      stable_source_id?: string | null;
+    } & Record<string, unknown>
+  >;
 };
 
 function normalizeLoadingAsset<TAsset extends LoadingAsset>(asset: TAsset) {

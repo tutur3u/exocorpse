@@ -79,7 +79,12 @@ describe("Tuturuuu CMS delivery normalization", () => {
       ],
     );
 
-    expect(normalized.collections.stories.entries).toEqual([
+    expect(
+      normalized.collections.stories.entries as Array<{
+        entryId: string;
+        stableSourceId: string | null;
+      }>,
+    ).toEqual([
       {
         entryId: "existing",
         stableSourceId: "exocorpse:story:existing",

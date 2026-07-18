@@ -2,7 +2,7 @@
 
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import {
   type Character,
   type Faction,
@@ -59,7 +59,7 @@ export default function StoryView({
     .map((c) => c.profile_image)
     .filter((path): path is string => !!path && !path.startsWith("http"));
   const { signedUrls: characterImageUrls, loading: imageUrlsLoading } =
-    useBatchStorageUrls(characterImagePaths);
+    useBatchMediaUrls(characterImagePaths);
 
   // Batch fetch all faction logos at once
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
@@ -67,7 +67,7 @@ export default function StoryView({
     .map((f) => f.logo_url)
     .filter((path): path is string => !!path && !path.startsWith("http"));
   const { signedUrls: factionLogoUrls, loading: logoUrlsLoading } =
-    useBatchStorageUrls(factionLogoPaths);
+    useBatchMediaUrls(factionLogoPaths);
 
   return (
     <div className="bg-theme-primary flex min-h-full flex-col">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useStorageUrl } from "@/hooks/useStorageUrl";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
 import Image, { type ImageProps } from "next/image";
 
 type StorageImageProps = Omit<ImageProps, "src"> & {
@@ -62,7 +62,7 @@ export default function StorageImage({ ...props }: StorageImageProps) {
     signedUrl: fetchedSignedUrl,
     loading,
     error,
-  } = useStorageUrl(shouldFetchUrl ? src : null, !!src);
+  } = useMediaUrl(shouldFetchUrl ? src : null);
 
   // Use pre-fetched URL first, then fetched URL, then src directly
   const imageUrl =

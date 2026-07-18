@@ -3,7 +3,7 @@
 import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
-import { useBatchStorageUrls } from "@/hooks/useStorageUrl";
+import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { Location } from "@/lib/actions/wiki";
 import { getLocationById, getLocationGallery } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ export default function LocationView({
     ...gallery.map((item) => item.thumbnail_url),
   ].filter((p): p is string => !!p && !p.startsWith("http"));
 
-  const { signedUrls: imageUrls } = useBatchStorageUrls(imagePaths);
+  const { signedUrls: imageUrls } = useBatchMediaUrls(imagePaths);
 
   const tabs = [
     { id: "information", label: "Information" },

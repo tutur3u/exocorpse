@@ -10,7 +10,11 @@ import {
   restoreLoadingEntryStableSourceIds,
 } from "@/lib/tuturuuu-cms-delivery-normalization";
 import { cacheLife, cacheTag } from "next/cache";
-import type { Json, Tables } from "../../supabase/types";
+import type { BlacklistedUser } from "@/types/exocorpse-cms";
+import type {
+  ExocorpseJson as Json,
+  ExocorpseTable as Tables,
+} from "@/types/exocorpse-content";
 
 type CmsAsset = {
   assetId: string;
@@ -21,7 +25,15 @@ type CmsAsset = {
   sortOrder: number;
 };
 
-type CmsEntry = {
+type CmsRelation = {
+  definitionId: string;
+  id: string;
+  key: string;
+  metadata: Record<string, unknown>;
+  targetEntryId: string;
+};
+
+export type CmsEntry = {
   entryId: string;
   collectionSlug: string;
   stableSourceId: string | null;
@@ -41,6 +53,7 @@ type CmsEntry = {
   assets: CmsAsset[];
   profileData: Record<string, unknown>;
   metadata: Record<string, unknown>;
+  relations: CmsRelation[];
 };
 
 type CmsCollection = {
@@ -68,7 +81,7 @@ type CmsServiceWithDetails = Tables<"services"> & {
 
 type DeliveryPayload = {
   adapter: string;
-  collections?: DeliverySourceCollection[];
+  collections?: Array<DeliverySourceCollection & Record<string, unknown>>;
   loadingData?: ExocorpseLoadingData | null;
 };
 
@@ -87,6 +100,124 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+}
+
+const MARKDOWN_IMAGE_DESTINATION_PATTERN =
+  /(!\[[^\]]*\]\()([^)\s]+)((?:\s+["'][^"']*["'])?\))/g;
+
+function rewriteMarkdownAssetUrls(markdown: string, assets: CmsAsset[]) {
+  const urlByLegacySource = new Map<string, string>();
+  for (const asset of assets) {
+    if (!asset.assetUrl || asset.assetType !== "inline-image") continue;
+    for (const key of ["legacyMarkdownSource", "legacyStoragePath"]) {
+      const legacySource = asString(asset.metadata[key]);
+      if (legacySource) urlByLegacySource.set(legacySource, asset.assetUrl);
+    }
+  }
+
+  return markdown.replace(
+    MARKDOWN_IMAGE_DESTINATION_PATTERN,
+    (match, prefix: string, source: string, suffix: string) => {
+      const assetUrl = urlByLegacySource.get(source);
+      return assetUrl ? `${prefix}${assetUrl}${suffix}` : match;
+    },
+  );
+}
+
+export function normalizeDeliveryCollections(
+  collections: Array<DeliverySourceCollection & Record<string, unknown>>,
+  apiBaseUrl: string,
+): ExocorpseLoadingData {
+  const normalized = collections.map((collection) => {
+    const slug = asString(collection.slug) ?? "";
+    const entries: CmsEntry[] = Array.isArray(collection.entries)
+      ? collection.entries.map((rawEntry) => {
+          const entry = asRecord(rawEntry);
+          const rawBlocks = Array.isArray(entry.blocks) ? entry.blocks : [];
+          const rawAssets = Array.isArray(entry.assets) ? entry.assets : [];
+          const rawRelations = Array.isArray(entry.relations)
+            ? entry.relations
+            : [];
+
+          return {
+            assets: rawAssets.map((rawAsset) => {
+              const asset = asRecord(rawAsset);
+              return {
+                altText: asString(asset.alt_text),
+                assetId: asString(asset.id) ?? "",
+                assetType: asString(asset.asset_type) ?? "",
+                assetUrl: (() => {
+                  const value = asString(asset.assetUrl);
+                  return value ? new URL(value, apiBaseUrl).toString() : null;
+                })(),
+                metadata: asRecord(asset.metadata),
+                sortOrder:
+                  typeof asset.sort_order === "number" ? asset.sort_order : 0,
+              };
+            }),
+            blocks: rawBlocks.map((rawBlock) => {
+              const block = asRecord(rawBlock);
+              return {
+                blockType: asString(block.block_type) ?? "",
+                content: asRecord(block.content),
+                sortOrder:
+                  typeof block.sort_order === "number" ? block.sort_order : 0,
+                title: asString(block.title),
+              };
+            }),
+            bodyMarkdown: null,
+            collectionSlug: slug,
+            entryId: asString(entry.id) ?? "",
+            metadata: asRecord(entry.metadata),
+            profileData: asRecord(entry.profile_data),
+            publishedAt: asString(entry.published_at),
+            relations: rawRelations.map((rawRelation) => {
+              const relation = asRecord(rawRelation);
+              return {
+                definitionId: asString(relation.definitionId) ?? "",
+                id: asString(relation.id) ?? "",
+                key: asString(relation.key) ?? "",
+                metadata: asRecord(relation.metadata),
+                targetEntryId: asString(relation.to_entry_id) ?? "",
+              };
+            }),
+            slug: asString(entry.slug) ?? "",
+            stableSourceId: asString(entry.stable_source_id),
+            status: (asString(entry.status) ?? "draft") as CmsEntry["status"],
+            subtitle: asString(entry.subtitle),
+            summary: asString(entry.summary),
+            title: asString(entry.title) ?? "",
+          } satisfies CmsEntry;
+        })
+      : [];
+
+    for (const entry of entries) {
+      const bodyMarkdown =
+        entry.blocks
+          .filter((block) => block.blockType === "markdown")
+          .map((block) => asString(block.content.markdown))
+          .find(Boolean) ?? null;
+      entry.bodyMarkdown = bodyMarkdown
+        ? rewriteMarkdownAssetUrls(bodyMarkdown, entry.assets)
+        : null;
+    }
+
+    return {
+      collectionId: asString(collection.id) ?? "",
+      collectionType: asString(collection.collection_type) ?? "content",
+      description: asString(collection.description),
+      entries,
+      slug,
+      title: asString(collection.title) ?? slug,
+    } satisfies CmsCollection;
+  });
+
+  return {
+    adapter: "exocorpse",
+    collections: Object.fromEntries(
+      normalized.map((collection) => [collection.slug, collection]),
+    ),
+  };
 }
 
 function asString(value: unknown): string | null {
@@ -121,6 +252,55 @@ function legacyId(entry: CmsEntry) {
 
   const parts = entry.stableSourceId?.split(":") ?? [];
   return parts.length > 2 ? parts.slice(2).join(":") : entry.entryId;
+}
+
+function relationTarget(entry: CmsEntry, ...keys: string[]) {
+  return (
+    entry.relations.find((relation) => keys.includes(relation.key))
+      ?.targetEntryId ?? null
+  );
+}
+
+function relationTargets(entry: CmsEntry, ...keys: string[]) {
+  return entry.relations
+    .filter((relation) => keys.includes(relation.key))
+    .map((relation) => relation.targetEntryId);
+}
+
+async function resolveTargetId(
+  entry: CmsEntry,
+  targetCollectionSlug: string,
+  metadataKey: string,
+  relationKeys: string[],
+) {
+  const relationId = relationTarget(entry, ...relationKeys);
+  if (relationId) return relationId;
+
+  const legacyTargetId = stringValue(entry.metadata, metadataKey);
+  if (!legacyTargetId) return null;
+  const targets = await getExocorpseCmsEntries(targetCollectionSlug);
+  return (
+    targets?.find((target) => legacyId(target) === legacyTargetId)?.entryId ??
+    null
+  );
+}
+
+async function resolveTargetLegacyId(
+  entry: CmsEntry,
+  targetCollectionSlug: string,
+  metadataKey: string,
+  relationKeys: string[],
+) {
+  const targetId = await resolveTargetId(
+    entry,
+    targetCollectionSlug,
+    metadataKey,
+    relationKeys,
+  );
+  if (!targetId) return stringValue(entry.metadata, metadataKey);
+  const targets = await getExocorpseCmsEntries(targetCollectionSlug);
+  const target = targets?.find((candidate) => candidate.entryId === targetId);
+  return target ? legacyId(target) : targetId;
 }
 
 function firstAssetUrl(entry: CmsEntry, assetType = "image") {
@@ -220,15 +400,17 @@ export async function getExocorpseCmsDelivery() {
     }
 
     const payload = (await response.json()) as DeliveryPayload;
-    if (
-      payload.adapter !== "exocorpse" ||
-      payload.loadingData?.adapter !== "exocorpse"
-    ) {
+    if (payload.adapter !== "exocorpse") {
       return null;
     }
 
+    const loadingData = payload.collections?.length
+      ? normalizeDeliveryCollections(payload.collections, apiBaseUrl)
+      : payload.loadingData;
+    if (loadingData?.adapter !== "exocorpse") return null;
+
     return restoreLoadingEntryStableSourceIds(
-      payload.loadingData,
+      loadingData,
       payload.collections ?? [],
     );
   } catch {
@@ -244,6 +426,25 @@ export async function getExocorpseCmsCollection(slug: string) {
 export async function getExocorpseCmsEntries(slug: string) {
   const collection = await getExocorpseCmsCollection(slug);
   return collection?.entries.filter(isPublished) ?? null;
+}
+
+export async function getCmsBlacklistedUsers(): Promise<
+  BlacklistedUser[] | null
+> {
+  const entries = await getExocorpseCmsEntries("commission-blacklist");
+  if (!entries) return null;
+
+  return entries
+    .map((entry) => ({
+      id: entry.entryId,
+      reasoning: stringValue(entry.profileData, "reasoning") ?? entry.summary,
+      timestamp:
+        stringValue(entry.profileData, "timestamp") ??
+        entry.publishedAt ??
+        EPOCH,
+      username: stringValue(entry.profileData, "username") ?? entry.title,
+    }))
+    .sort((left, right) => right.timestamp.localeCompare(left.timestamp));
 }
 
 export async function getCmsAboutPageData(): Promise<AboutPageData | null> {
@@ -554,7 +755,16 @@ export async function getCmsStoryBySlug(slug: string) {
 }
 
 async function getCmsWorlds() {
-  return cmsEntriesAs("worlds", mapCmsWorld);
+  const entries = await getExocorpseCmsEntries("worlds");
+  if (!entries) return null;
+  return Promise.all(
+    entries.map(async (entry) => ({
+      ...mapCmsWorld(entry),
+      story_id:
+        (await resolveTargetLegacyId(entry, "stories", "storyId", ["story"])) ??
+        "",
+    })),
+  );
 }
 
 export async function getCmsWorldsByStorySlug(storySlug: string) {
@@ -575,12 +785,19 @@ async function getCmsCharacters() {
 }
 
 async function getCmsCharacterWorldLinks() {
-  const entries = await getExocorpseCmsEntries("character-worlds");
-  return (
-    entries?.map((entry) => ({
-      characterId: stringValue(entry.metadata, "characterId"),
-      worldId: stringValue(entry.metadata, "worldId"),
-    })) ?? null
+  const [characters, worlds] = await Promise.all([
+    getExocorpseCmsEntries("characters"),
+    getExocorpseCmsEntries("worlds"),
+  ]);
+  if (!characters || !worlds) return null;
+  const worldByEntryId = new Map(
+    worlds.map((world) => [world.entryId, legacyId(world)]),
+  );
+  return characters.flatMap((character) =>
+    relationTargets(character, "worlds", "world")
+      .map((targetEntryId) => worldByEntryId.get(targetEntryId))
+      .filter((worldId): worldId is string => Boolean(worldId))
+      .map((worldId) => ({ characterId: legacyId(character), worldId })),
   );
 }
 
@@ -672,7 +889,22 @@ export async function getCmsCharacterBySlugInStory(
 }
 
 async function getCmsFactions() {
-  return cmsEntriesAs("factions", mapCmsFaction);
+  const entries = await getExocorpseCmsEntries("factions");
+  if (!entries) return null;
+  return Promise.all(
+    entries.map(async (entry) => ({
+      ...mapCmsFaction(entry),
+      parent_faction_id: await resolveTargetLegacyId(
+        entry,
+        "factions",
+        "parentFactionId",
+        ["parent"],
+      ),
+      world_id: await resolveTargetLegacyId(entry, "worlds", "worldId", [
+        "world",
+      ]),
+    })),
+  );
 }
 
 export async function getCmsFactionsByWorldSlug(
@@ -729,7 +961,22 @@ export async function getCmsFactionBySlugInStory(
 }
 
 async function getCmsLocations() {
-  return cmsEntriesAs("locations", mapCmsLocation);
+  const entries = await getExocorpseCmsEntries("locations");
+  if (!entries) return null;
+  return Promise.all(
+    entries.map(async (entry) => ({
+      ...mapCmsLocation(entry),
+      parent_location_id: await resolveTargetLegacyId(
+        entry,
+        "locations",
+        "parentLocationId",
+        ["parent"],
+      ),
+      world_id:
+        (await resolveTargetLegacyId(entry, "worlds", "worldId", ["world"])) ??
+        "",
+    })),
+  );
 }
 
 export async function getCmsLocationsByWorldSlug(
@@ -884,27 +1131,6 @@ function mapCmsStyle(entry: CmsEntry): Tables<"styles"> & {
   };
 }
 
-function mapCmsServiceAddon(
-  entry: CmsEntry,
-  addonById: Map<string, Tables<"addons">>,
-): Tables<"service_addons"> & { addons?: Tables<"addons"> } {
-  const addonId =
-    stringValue(entry.metadata, "addonId") ??
-    legacyId(entry).split(":")[1] ??
-    "";
-
-  return {
-    addon_id: addonId,
-    addon_is_exclusive:
-      booleanValue(entry.profileData, "addonIsExclusive") ?? false,
-    addons: addonById.get(addonId),
-    service_id:
-      stringValue(entry.metadata, "serviceId") ??
-      legacyId(entry).split(":")[0] ??
-      "",
-  };
-}
-
 function mapCmsService(entry: CmsEntry): CmsServiceWithDetails {
   const profile = entry.profileData;
 
@@ -1008,27 +1234,40 @@ export async function getCmsBlogPostBySlug(slug: string) {
 export async function getCmsActiveServices(): Promise<
   CmsServiceWithDetails[] | null
 > {
-  const [
-    serviceEntries,
-    addonEntries,
-    styleEntries,
-    pictureEntries,
-    serviceAddonEntries,
-  ] = await Promise.all([
-    getExocorpseCmsEntries("commission-services"),
-    getExocorpseCmsEntries("commission-addons"),
-    getExocorpseCmsEntries("commission-styles"),
-    getExocorpseCmsEntries("commission-pictures"),
-    getExocorpseCmsEntries("commission-service-addons"),
-  ]);
+  const [serviceEntries, addonEntries, styleEntries, pictureEntries] =
+    await Promise.all([
+      getExocorpseCmsEntries("commission-services"),
+      getExocorpseCmsEntries("commission-addons"),
+      getExocorpseCmsEntries("commission-styles"),
+      getExocorpseCmsEntries("commission-pictures"),
+    ]);
 
   if (!serviceEntries) {
     return null;
   }
 
   const addons = (addonEntries ?? []).map(mapCmsAddon);
-  const addonById = new Map(addons.map((addon) => [addon.addon_id, addon]));
-  const pictures = (pictureEntries ?? []).map(mapCmsPicture);
+  const addonEntryById = new Map(
+    (addonEntries ?? []).map((entry) => [entry.entryId, entry]),
+  );
+  const pictures = await Promise.all(
+    (pictureEntries ?? []).map(async (entry) => ({
+      ...mapCmsPicture(entry),
+      service_id:
+        (await resolveTargetLegacyId(
+          entry,
+          "commission-services",
+          "serviceId",
+          ["service"],
+        )) ?? "",
+      style_id: await resolveTargetLegacyId(
+        entry,
+        "commission-styles",
+        "styleId",
+        ["style"],
+      ),
+    })),
+  );
   const picturesByService = new Map<string, Tables<"pictures">[]>();
   const picturesByStyle = new Map<string, Tables<"pictures">[]>();
 
@@ -1049,7 +1288,16 @@ export async function getCmsActiveServices(): Promise<
     Array<Tables<"styles"> & { pictures?: Tables<"pictures">[] }>
   >();
   for (const styleEntry of styleEntries ?? []) {
-    const style = mapCmsStyle(styleEntry);
+    const style = {
+      ...mapCmsStyle(styleEntry),
+      service_id:
+        (await resolveTargetLegacyId(
+          styleEntry,
+          "commission-services",
+          "serviceId",
+          ["service"],
+        )) ?? "",
+    };
     style.pictures = picturesByStyle.get(style.style_id) ?? [];
     const styles = stylesByService.get(style.service_id) ?? [];
     styles.push(style);
@@ -1060,11 +1308,25 @@ export async function getCmsActiveServices(): Promise<
     string,
     Array<Tables<"service_addons"> & { addons?: Tables<"addons"> }>
   >();
-  for (const linkEntry of serviceAddonEntries ?? []) {
-    const link = mapCmsServiceAddon(linkEntry, addonById);
-    const links = serviceAddonsByService.get(link.service_id) ?? [];
-    links.push(link);
-    serviceAddonsByService.set(link.service_id, links);
+  for (const serviceEntry of serviceEntries) {
+    const serviceId = legacyId(serviceEntry);
+    for (const relation of serviceEntry.relations.filter((item) =>
+      ["addon", "addons"].includes(item.key),
+    )) {
+      const addonEntry = addonEntryById.get(relation.targetEntryId);
+      if (!addonEntry) continue;
+      const addon = mapCmsAddon(addonEntry);
+      const links = serviceAddonsByService.get(serviceId) ?? [];
+      links.push({
+        addon_id: addon.addon_id,
+        addon_is_exclusive:
+          booleanValue(relation.metadata, "addonIsExclusive") ??
+          addon.is_exclusive,
+        addons: addon,
+        service_id: serviceId,
+      });
+      serviceAddonsByService.set(serviceId, links);
+    }
   }
 
   return serviceEntries
@@ -1085,65 +1347,315 @@ export async function getCmsServiceBySlug(slug: string) {
   return services?.find((service) => service.slug === slug) ?? null;
 }
 
-function mapCmsCofiSample(entry: CmsEntry): Tables<"cofi_samples"> {
-  const profile = entry.profileData;
-  const originalPath =
-    firstAssetUrl(entry) ??
-    stringValue(entry.metadata, "originalRemoteUrl") ??
-    "";
-  const thumbnailPath =
-    secondAssetUrl(entry) ??
-    stringValue(entry.metadata, "thumbnailRemoteUrl") ??
-    originalPath;
-  const originalFilename = filenameFromPath(originalPath, `${entry.slug}.jpg`);
-  const thumbnailFilename = filenameFromPath(
-    thumbnailPath,
-    `${entry.slug}-thumb.jpg`,
-  );
+export type CmsCharacterGalleryItem = {
+  artist_name: string | null;
+  artist_url: string | null;
+  character_id: string;
+  description: string | null;
+  display_order: number;
+  id: string;
+  image_url: string;
+  thumbnail_url: string | null;
+  title: string;
+};
 
-  return {
-    artist_name: stringValue(profile, "artistName") ?? entry.title,
-    artist_slug: stringValue(profile, "artistSlug") ?? entry.slug,
-    booth_location: stringValue(profile, "boothLocation") ?? "",
-    booth_type: stringValue(profile, "boothType") ?? "",
-    created_at: EPOCH,
-    id: legacyId(entry),
-    joining_date: stringValue(profile, "joiningDate") ?? "",
-    original_bytes: numberValue(entry.metadata, "originalBytes") ?? 0,
-    original_content_type: stringValue(entry.metadata, "originalContentType"),
-    original_extension: extensionFromFilename(originalFilename),
-    original_filename: originalFilename,
-    original_image_url:
-      stringValue(entry.metadata, "originalRemoteUrl") ?? originalPath,
-    original_local_path: originalPath,
-    search_text: [
-      entry.title,
-      stringValue(profile, "artistName"),
-      stringValue(profile, "boothLocation"),
-      stringValue(profile, "boothType"),
-      stringValue(profile, "joiningDate"),
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    search_tsv: null,
-    snapshot_index: numberValue(profile, "snapshotIndex") ?? 0,
-    source_sample_id: stringValue(profile, "sourceSampleId") ?? entry.slug,
-    thumbnail_bytes: numberValue(entry.metadata, "thumbnailBytes") ?? 0,
-    thumbnail_content_type: stringValue(entry.metadata, "thumbnailContentType"),
-    thumbnail_extension: extensionFromFilename(thumbnailFilename),
-    thumbnail_filename: thumbnailFilename,
-    thumbnail_local_path: thumbnailPath,
-    thumbnail_url:
-      stringValue(entry.metadata, "thumbnailRemoteUrl") ?? thumbnailPath,
-    updated_at: EPOCH,
+export type CmsCharacterOutfit = {
+  character_id: string;
+  description: string | null;
+  display_order: number;
+  id: string;
+  image_url: string;
+  name: string;
+  outfit_types: { id: string; name: string } | null;
+};
+
+export type CmsCharacterFaction = {
+  character_id: string;
+  created_at: string;
+  faction_id: string;
+  factions?: Tables<"factions">;
+  characters?: Tables<"characters">;
+  id: string;
+  is_current: boolean;
+  join_date: string | null;
+  leave_date: string | null;
+  notes: string | null;
+  rank: string | null;
+  role: string | null;
+};
+
+export type CmsCharacterWorld = {
+  character_id: string;
+  created_at: string;
+  id: string;
+  world_id: string;
+  worlds?: Tables<"worlds">;
+};
+
+export type CmsCharacterRelationship = {
+  description: string | null;
+  id: string;
+  related_character: Pick<
+    Tables<"characters">,
+    | "id"
+    | "name"
+    | "slug"
+    | "nickname"
+    | "age"
+    | "species"
+    | "gender"
+    | "pronouns"
+    | "status"
+    | "occupation"
+    | "profile_image"
+    | "personality_summary"
+  >;
+  relationship_id: string;
+  relationship_type: {
+    description: string | null;
+    id: string;
+    is_mutual: boolean | null;
+    name: string;
+    reverse_name: string | null;
   };
+};
+
+export type CmsLocationGalleryItem = {
+  artist_name: string | null;
+  artist_url: string | null;
+  description: string | null;
+  display_order: number;
+  id: string;
+  image_url: string;
+  location: string;
+  thumbnail_url: string | null;
+  title: string;
+};
+
+export async function getCmsCharacterGallery(characterId: string) {
+  const entries = await getExocorpseCmsEntries("character-gallery");
+  if (!entries) return null;
+  const items = await Promise.all(
+    entries.map(async (entry) => ({
+      artist_name: stringValue(entry.profileData, "artistName"),
+      artist_url: stringValue(entry.profileData, "artistUrl"),
+      character_id:
+        (await resolveTargetLegacyId(entry, "characters", "characterId", [
+          "gallery-character",
+          "character",
+        ])) ?? "",
+      description: entry.bodyMarkdown ?? entry.summary,
+      display_order: numberValue(entry.profileData, "displayOrder") ?? 0,
+      id: legacyId(entry),
+      image_url: firstAssetUrl(entry) ?? "",
+      thumbnail_url: secondAssetUrl(entry),
+      title: entry.title,
+    })),
+  );
+  return sortByDisplayOrder(
+    items.filter(
+      (item) => item.character_id === characterId && Boolean(item.image_url),
+    ),
+  );
 }
 
-export async function getCmsCofiSampleRows() {
-  const entries = await getExocorpseCmsEntries("cofi-samples");
-  return entries
-    ? entries
-        .map(mapCmsCofiSample)
-        .sort((left, right) => left.snapshot_index - right.snapshot_index)
-    : null;
+export async function getCmsCharacterOutfits(characterId: string) {
+  const entries = await getExocorpseCmsEntries("character-outfits");
+  if (!entries) return null;
+  const items = await Promise.all(
+    entries.map(async (entry) => ({
+      character_id:
+        (await resolveTargetLegacyId(entry, "characters", "characterId", [
+          "outfit-character",
+          "character",
+        ])) ?? "",
+      description: entry.bodyMarkdown ?? entry.summary,
+      display_order: numberValue(entry.profileData, "displayOrder") ?? 0,
+      id: legacyId(entry),
+      image_url: firstAssetUrl(entry) ?? "",
+      name: entry.title,
+      outfit_types: null,
+    })),
+  );
+  return sortByDisplayOrder(
+    items.filter((item) => item.character_id === characterId),
+  );
+}
+
+async function getCmsCharacterFactionLinks() {
+  const entries = await getExocorpseCmsEntries("character-factions");
+  if (!entries) return null;
+  const [characters, factions] = await Promise.all([
+    getCmsCharacters(),
+    getCmsFactions(),
+  ]);
+  const characterById = new Map(
+    (characters ?? []).map((item) => [item.id, item]),
+  );
+  const factionById = new Map((factions ?? []).map((item) => [item.id, item]));
+  return Promise.all(
+    entries.map(async (entry) => {
+      const characterId =
+        (await resolveTargetLegacyId(entry, "characters", "characterId", [
+          "membership-character",
+          "character",
+        ])) ?? "";
+      const factionId =
+        (await resolveTargetLegacyId(entry, "factions", "factionId", [
+          "membership-faction",
+          "faction",
+        ])) ?? "";
+      return {
+        character_id: characterId,
+        characters: characterById.get(characterId),
+        created_at: EPOCH,
+        faction_id: factionId,
+        factions: factionById.get(factionId),
+        id: legacyId(entry),
+        is_current: booleanValue(entry.profileData, "isCurrent") ?? true,
+        join_date: stringValue(entry.profileData, "joinDate"),
+        leave_date: stringValue(entry.profileData, "leaveDate"),
+        notes: stringValue(entry.profileData, "notes"),
+        rank: stringValue(entry.profileData, "rank"),
+        role: stringValue(entry.profileData, "role"),
+      } satisfies CmsCharacterFaction;
+    }),
+  );
+}
+
+export async function getCmsCharacterFactions(characterId: string) {
+  const links = await getCmsCharacterFactionLinks();
+  return links?.filter((link) => link.character_id === characterId) ?? null;
+}
+
+export async function getCmsFactionMembers(factionId: string) {
+  const links = await getCmsCharacterFactionLinks();
+  return links?.filter((link) => link.faction_id === factionId) ?? null;
+}
+
+export async function getCmsCharacterWorlds(characterId: string) {
+  const [characterEntries, worldEntries, worlds] = await Promise.all([
+    getExocorpseCmsEntries("characters"),
+    getExocorpseCmsEntries("worlds"),
+    getCmsWorlds(),
+  ]);
+  if (!characterEntries || !worldEntries || !worlds) return null;
+  const character = characterEntries.find(
+    (entry) => legacyId(entry) === characterId,
+  );
+  if (!character) return [];
+  const worldEntryById = new Map(
+    worldEntries.map((entry) => [entry.entryId, entry]),
+  );
+  const worldById = new Map(worlds.map((world) => [world.id, world]));
+  return relationTargets(character, "worlds", "world").flatMap(
+    (targetEntryId) => {
+      const target = worldEntryById.get(targetEntryId);
+      if (!target) return [];
+      const worldId = legacyId(target);
+      return [
+        {
+          character_id: characterId,
+          created_at: EPOCH,
+          id: `${character.entryId}:${targetEntryId}`,
+          world_id: worldId,
+          worlds: worldById.get(worldId),
+        } satisfies CmsCharacterWorld,
+      ];
+    },
+  );
+}
+
+export async function getCmsCharacterRelationships(characterId: string) {
+  const entries = await getExocorpseCmsEntries("character-relationships");
+  const typeEntries = await getExocorpseCmsEntries("relationship-types");
+  const characters = await getCmsCharacters();
+  if (!entries || !characters) return null;
+  const characterById = new Map(characters.map((item) => [item.id, item]));
+  const typeById = new Map(
+    (typeEntries ?? []).map((item) => [legacyId(item), item]),
+  );
+  const relationships = await Promise.all(
+    entries.map(async (entry) => {
+      const characterA =
+        (await resolveTargetLegacyId(entry, "characters", "characterAId", [
+          "relationship-character-a",
+          "character-a",
+        ])) ?? "";
+      const characterB =
+        (await resolveTargetLegacyId(entry, "characters", "characterBId", [
+          "relationship-character-b",
+          "character-b",
+        ])) ?? "";
+      if (characterA !== characterId && characterB !== characterId) return null;
+      const relatedId = characterA === characterId ? characterB : characterA;
+      const related = characterById.get(relatedId);
+      if (!related) return null;
+      const typeId =
+        (await resolveTargetLegacyId(
+          entry,
+          "relationship-types",
+          "relationshipTypeId",
+          ["relationship-type", "type"],
+        )) ?? "";
+      const type = typeById.get(typeId);
+      return {
+        description: entry.bodyMarkdown ?? entry.summary,
+        id: legacyId(entry),
+        related_character: related,
+        relationship_id: legacyId(entry),
+        relationship_type: {
+          description: type?.bodyMarkdown ?? type?.summary ?? null,
+          id: typeId,
+          is_mutual: type ? booleanValue(type.profileData, "isMutual") : null,
+          name: type?.title ?? "Related",
+          reverse_name: type
+            ? stringValue(type.profileData, "reverseName")
+            : null,
+        },
+      } satisfies CmsCharacterRelationship;
+    }),
+  );
+  return relationships.filter((item) => item !== null);
+}
+
+export async function getCmsLocationById(locationId: string) {
+  const locations = await getCmsLocations();
+  return locations?.find((location) => location.id === locationId) ?? null;
+}
+
+export async function getCmsLocationGallery(locationId: string) {
+  const entries = await getExocorpseCmsEntries("location-gallery");
+  if (!entries) return null;
+  const items = await Promise.all(
+    entries.map(async (entry) => ({
+      artist_name: stringValue(entry.profileData, "artistName"),
+      artist_url: stringValue(entry.profileData, "artistUrl"),
+      description: entry.bodyMarkdown ?? entry.summary,
+      display_order: numberValue(entry.profileData, "displayOrder") ?? 0,
+      id: legacyId(entry),
+      image_url: firstAssetUrl(entry) ?? "",
+      location:
+        (await resolveTargetLegacyId(entry, "locations", "locationId", [
+          "gallery-location",
+          "location",
+        ])) ?? "",
+      thumbnail_url: secondAssetUrl(entry),
+      title: entry.title,
+    })),
+  );
+  return sortByDisplayOrder(
+    items.filter((item) => item.location === locationId),
+  );
+}
+
+export async function getCmsHeavenSpacePassages() {
+  const entries = await getExocorpseCmsEntries("heaven-space-passages");
+  return (
+    entries?.map((entry) => ({
+      content: entry.bodyMarkdown ?? "",
+      name: stringValue(entry.profileData, "name") ?? entry.title,
+      tags: stringArrayValue(entry.profileData, "tags") ?? [],
+    })) ?? null
+  );
 }

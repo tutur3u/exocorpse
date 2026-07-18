@@ -1,19 +1,7 @@
-import { getCachedSignedUrl } from "@/lib/actions/storage";
 import { NextRequest } from "next/server";
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-const OG_TRANSFORM = {
-  width: OG_WIDTH,
-  height: OG_HEIGHT,
-  resize: "cover" as const,
-  quality: 72,
-};
-
-function isAbsoluteUrl(value: string) {
-  return value.startsWith("http://") || value.startsWith("https://");
-}
-
 export async function GET(request: NextRequest) {
   const src = request.nextUrl.searchParams.get("src");
 
@@ -22,17 +10,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const resolvedUrl = isAbsoluteUrl(src)
-      ? src
-      : await getCachedSignedUrl(src, {
-          transform: OG_TRANSFORM,
-        });
-
-    if (!resolvedUrl) {
-      return new Response("Image not found", { status: 404 });
+    if (!/^https?:\/\//i.test(src)) {
+      return new Response("Only managed CMS asset URLs are supported", {
+        status: 400,
+      });
     }
 
-    const imageResponse = await fetch(resolvedUrl, {
+    const imageResponse = await fetch(src, {
       next: {
         revalidate: 86400,
       },

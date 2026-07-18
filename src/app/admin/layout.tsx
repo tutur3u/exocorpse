@@ -2,6 +2,7 @@ import AdminNav from "@/components/admin/AdminNav";
 import LogoutButton from "@/components/admin/LogoutButton";
 import { requireAuth } from "@/lib/auth/utils";
 import Link from "next/link";
+import { connection } from "next/server";
 import type { ReactNode } from "react";
 
 export const instant = false;
@@ -11,7 +12,7 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  // Verify authentication at the server component level
+  await connection();
   const user = await requireAuth();
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">

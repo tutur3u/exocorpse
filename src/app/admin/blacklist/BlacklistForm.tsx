@@ -8,13 +8,13 @@ import { useForm } from "react-hook-form";
 
 interface BlacklistFormProps {
   user?: BlacklistedUser | null;
-  onSubmit: (data: { username: string; reasoning?: string }) => Promise<void>;
+  onSubmit: (data: { username: string; reasoning: string }) => Promise<void>;
   onCancel: () => void;
 }
 
 type BlacklistFormData = {
   username: string;
-  reasoning?: string;
+  reasoning: string;
 };
 
 export default function BlacklistForm({
@@ -42,10 +42,14 @@ export default function BlacklistForm({
         alert("Username is required");
         return;
       }
+      if (!data.reasoning.trim()) {
+        alert("Reasoning is required");
+        return;
+      }
 
       await onSubmit({
         username: data.username.trim(),
-        reasoning: data.reasoning?.trim() || undefined,
+        reasoning: data.reasoning.trim(),
       });
     } finally {
       setLoading(false);
@@ -115,15 +119,15 @@ export default function BlacklistForm({
                 htmlFor="reasoning"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Reason for Blacklisting
+                Reason for Blacklisting <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="reasoning"
                 disabled={loading}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter reason (optional)"
+                placeholder="Enter reason"
                 rows={4}
-                {...register("reasoning")}
+                {...register("reasoning", { required: true })}
               />
             </div>
 

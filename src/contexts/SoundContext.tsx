@@ -43,7 +43,7 @@ const SoundContext = createContext<SoundContextType>(SOUND_CONTEXT_FALLBACK);
 export function SoundProvider({ children }: { children: React.ReactNode }) {
   const [isBootComplete, setBootComplete] = useState(false);
   const pathname = usePathname();
-  const soundEnabled = !pathname.startsWith("/cofi/samples");
+  const soundEnabled = true;
 
   const playSound = useCallback(
     (type: SoundType, options?: { volume?: number; onend?: () => void }) => {

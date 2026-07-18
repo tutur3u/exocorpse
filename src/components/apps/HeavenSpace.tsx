@@ -3,6 +3,7 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useSound } from "@/contexts/SoundContext";
 import { buildHeavenSpaceUrl } from "@/lib/game-query";
+import { getHeavenSpacePassages } from "@/lib/actions/heaven-space";
 import {
   HEAVEN_SPACE_STORAGE_KEY,
   advanceHeavenSpaceSnapshot,
@@ -15,6 +16,7 @@ import {
   type HeavenSpaceState,
 } from "@/lib/heaven-space/runtime";
 import toastWithSound from "@/lib/toast";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import {
@@ -90,6 +92,11 @@ const COVER_PALETTE: ScenePalette = {
 
 export default function HeavenSpace() {
   const { playSound } = useSound();
+  const { data: passages = [] } = useQuery({
+    queryFn: getHeavenSpacePassages,
+    queryKey: ["heaven-space-passages"],
+    staleTime: 5 * 60 * 1000,
+  });
   const [snapshot, setSnapshot] = useState<HeavenSpaceSnapshot>(
     createInitialHeavenSpaceSnapshot(),
   );
@@ -102,6 +109,9 @@ export default function HeavenSpace() {
   const previousSnapshotRef = useRef<HeavenSpaceSnapshot | null>(null);
 
   useEffect(() => {
+    if (passages.length === 0) {
+      return;
+    }
     setHasMounted(true);
 
     try {
@@ -113,13 +123,13 @@ export default function HeavenSpace() {
 
       const parsed = JSON.parse(stored);
 
-      if (isHeavenSpaceSnapshot(parsed)) {
+      if (isHeavenSpaceSnapshot(parsed, passages)) {
         setSnapshot(parsed);
       }
     } catch (error) {
       console.error("Failed to load Heaven Space save:", error);
     }
-  }, []);
+  }, [passages]);
 
   useEffect(() => {
     if (!hasMounted) {
@@ -169,8 +179,11 @@ export default function HeavenSpace() {
   }, [snapshot.currentPassage]);
 
   const scene = useMemo(
-    () => resolveCurrentHeavenSpacePassage(snapshot),
-    [snapshot],
+    () =>
+      passages.length > 0
+        ? resolveCurrentHeavenSpacePassage(snapshot, passages)
+        : null,
+    [passages, snapshot],
   );
   const deferredScene = useDeferredValue(scene);
   const hasProgress =
@@ -178,13 +191,22 @@ export default function HeavenSpace() {
     snapshot.state.memory > 0 ||
     snapshot.state.sleep > 0 ||
     snapshot.state.annoyed > 0;
+  if (!deferredScene) {
+    return (
+      <div className="flex h-full items-center justify-center bg-slate-950 text-slate-300">
+        Loading Heaven Space from Tuturuuu CMS…
+      </div>
+    );
+  }
   const palette = getScenePalette(deferredScene);
   const routeSignal = getRouteSignal(deferredScene);
 
   const handleAdvance = (target: string) => {
     playSound("click");
     startTransition(() => {
-      setSnapshot((current) => advanceHeavenSpaceSnapshot(current, target));
+      setSnapshot((current) =>
+        advanceHeavenSpaceSnapshot(current, target, passages),
+      );
     });
   };
 
@@ -679,6 +701,7 @@ export default function HeavenSpace() {
                     alt={deferredScene.imageAlt || deferredScene.displayName}
                     fill
                     priority
+                    unoptimized={deferredScene.image.startsWith("http")}
                     className="object-cover transition duration-500 group-hover:scale-[1.025]"
                   />
                 ) : (
@@ -948,6 +971,7 @@ function FullscreenSceneImage({
               alt={imageAlt}
               fill
               priority
+              unoptimized={imageSrc.startsWith("http")}
               className="object-contain"
             />
             <div

@@ -1,4 +1,4 @@
-import { useStorageUrl } from "@/hooks/useStorageUrl";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
 import toastWithSound from "@/lib/toast";
 import { Columns2, Eye, PenSquare } from "lucide-react";
 import { Children, isValidElement, useId, useRef, useState } from "react";
@@ -205,10 +205,7 @@ export function StorageImage({
   const isStoragePath = Boolean(
     src && !src.startsWith("http") && !src.startsWith("/"),
   );
-  const { signedUrl, loading } = useStorageUrl(
-    isStoragePath ? src : null,
-    isStoragePath,
-  );
+  const { signedUrl, loading } = useMediaUrl(isStoragePath ? src : null);
 
   const imageSrc = isStoragePath ? (signedUrl ?? undefined) : src;
 
