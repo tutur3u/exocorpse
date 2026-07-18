@@ -5,7 +5,7 @@ import CmsEntryList from "@/components/admin/cms-management/CmsEntryList";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
-import { ArrowUpRight, Database, RefreshCw, X } from "lucide-react";
+import { ArrowUpRight, Library, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
 
 export default function CmsManagementWorkspace({
@@ -50,8 +50,8 @@ export default function CmsManagementWorkspace({
   if (!collection) {
     return (
       <div className="rounded-2xl border border-amber-300 bg-amber-50 p-6 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-        The collections for this management area are not available in Tuturuuu
-        CMS.
+        This content area is not ready yet. Please refresh the page or try again
+        in a moment.
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function CmsManagementWorkspace({
               href="/"
               target="_blank"
             >
-              Public site
+              View public site
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
             <a
@@ -87,8 +87,8 @@ export default function CmsManagementWorkspace({
               rel="noreferrer"
               target="_blank"
             >
-              <Database className="h-3.5 w-3.5" />
-              Open Tuturuuu Studio
+              <Library className="h-3.5 w-3.5" />
+              Open content library
             </a>
           </div>
         </div>
@@ -157,6 +157,7 @@ export default function CmsManagementWorkspace({
           definitions={definitions}
           draft={draft}
           fields={fields}
+          key={`${collection.id}:${entryId || "new"}`}
           onBlocksChange={setBlocks}
           onDelete={deleteEntry}
           onDeleteAsset={deleteAsset}
@@ -175,7 +176,7 @@ export default function CmsManagementWorkspace({
       {pending ? (
         <div className="fixed right-5 bottom-5 z-50 flex items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white shadow-xl dark:bg-white dark:text-zinc-950">
           <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-          Syncing with Tuturuuu CMS
+          Saving your changes…
         </div>
       ) : null}
     </div>

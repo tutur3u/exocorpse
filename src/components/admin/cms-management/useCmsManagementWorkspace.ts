@@ -183,7 +183,7 @@ export function useCmsManagementWorkspace({
           text:
             error instanceof Error
               ? error.message
-              : "The CMS operation failed.",
+              : "Something went wrong. Please try again.",
         });
       }
     });
@@ -210,7 +210,7 @@ export function useCmsManagementWorkspace({
     if (missingRelation)
       throw new Error(`${missingRelation.label} is required.`);
     if (draft.status === "scheduled" && !draft.scheduled_for) {
-      throw new Error("Choose a publication time for this scheduled record.");
+      throw new Error("Choose a publication time for this scheduled item.");
     }
   }
 
@@ -230,7 +230,7 @@ export function useCmsManagementWorkspace({
         text:
           error instanceof Error
             ? error.message
-            : "Review this record before saving.",
+            : "Review this item before saving.",
       });
       return;
     }
@@ -242,9 +242,7 @@ export function useCmsManagementWorkspace({
           entryId: selectedEntry?.id,
           expectedUpdatedAt: selectedEntry?.updated_at,
         }),
-      selectedEntry
-        ? "Record updated in Tuturuuu CMS."
-        : "Record created in Tuturuuu CMS.",
+      selectedEntry ? "Changes saved." : "Your new item is ready.",
       (bundle) => {
         setStudio((current) => ({
           ...current,
@@ -275,7 +273,7 @@ export function useCmsManagementWorkspace({
     const deletedId = selectedEntry.id;
     run(
       () => deleteAdminCmsEntry(deletedId),
-      "Record deleted from Tuturuuu CMS.",
+      "Item deleted.",
       () => {
         const remaining = studio.entries.filter(
           (entry) =>
@@ -311,7 +309,7 @@ export function useCmsManagementWorkspace({
           entrySlug: selectedEntry.slug,
           formData,
         }),
-      "Media uploaded to Tuturuuu Storage.",
+      "Media uploaded.",
       (asset) =>
         setStudio((current) => ({
           ...current,
@@ -326,7 +324,7 @@ export function useCmsManagementWorkspace({
   function deleteAsset(assetId: string) {
     run(
       () => deleteAdminCmsAsset(assetId),
-      "Media removed from Tuturuuu CMS.",
+      "Media removed.",
       () =>
         setStudio((current) => ({
           ...current,

@@ -1,8 +1,12 @@
 "use client";
 
-import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
 import CmsBlockEditor from "@/components/admin/cms-management/CmsBlockEditor";
+import CmsEditorTabs, {
+  type CmsEditorTab,
+} from "@/components/admin/cms-management/CmsEditorTabs";
 import CmsEntryBasics from "@/components/admin/cms-management/CmsEntryBasics";
+import CmsMediaPanel from "@/components/admin/cms-management/CmsMediaPanel";
+import CmsPublishingSettings from "@/components/admin/cms-management/CmsPublishingSettings";
 import CmsRelationEditor from "@/components/admin/cms-management/CmsRelationEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
 import type {
@@ -67,17 +71,22 @@ export default function CmsEntryEditor({
   studio,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [activeTab, setActiveTab] = useState<CmsEditorTab>("content");
   const canSave = Boolean(draft.title.trim() && draft.slug.trim() && !pending);
+  const connectionCount = Object.values(relationSelections).reduce(
+    (count, selections) => count + selections.length,
+    0,
+  );
 
   return (
     <div className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.08),transparent_34%)]">
       <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/92">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold tracking-[0.22em] text-cyan-700 uppercase dark:text-cyan-300">
-            {selectedEntryId ? "Editing record" : "New record"}
+            {selectedEntryId ? "Editing" : "Creating a new item"}
           </p>
           <h2 className="truncate text-lg font-semibold text-zinc-950 dark:text-zinc-50">
-            {draft.title || `Untitled ${collection.title} record`}
+            {draft.title || `Untitled ${collection.title}`}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -99,59 +108,84 @@ export default function CmsEntryEditor({
             type="button"
           >
             <Save className="h-3.5 w-3.5" />
-            {pending ? "Saving…" : "Save record"}
+            {pending ? "Saving…" : "Save changes"}
           </button>
         </div>
       </div>
 
-      <div className="space-y-4 p-4 @3xl:p-6">
-        <CmsEntryBasics
-          draft={draft}
-          onChange={onDraftChange}
-          onTitleChange={onTitleChange}
-        />
-        <CmsStructuredFields
-          definitions={fields}
-          draft={draft}
-          onChange={onDraftChange}
-        />
-        <CmsBlockEditor
-          allowedBlockTypes={allowedBlockTypes}
-          blocks={blocks}
-          onChange={onBlocksChange}
-        />
-        <CmsRelationEditor
-          definitions={definitions}
-          entryId={selectedEntryId}
-          onChange={onRelationsChange}
-          selections={relationSelections}
-          studio={studio}
-        />
-        {selectedEntryId ? (
-          <CmsAssetManager
+      <CmsEditorTabs
+        activeTab={activeTab}
+        assetCount={assets.length}
+        blockCount={blocks.length}
+        connectionCount={connectionCount}
+        hasConnections={definitions.length > 0}
+        onChange={setActiveTab}
+      />
+
+      <div
+        aria-labelledby={`cms-${activeTab}-tab`}
+        className="min-h-[34rem] space-y-4 p-4 @3xl:p-6"
+        id={`cms-${activeTab}-panel`}
+        role="tabpanel"
+      >
+        {activeTab === "content" ? (
+          <>
+            <CmsEntryBasics
+              draft={draft}
+              onChange={onDraftChange}
+              onTitleChange={onTitleChange}
+            />
+            <CmsStructuredFields
+              definitions={fields}
+              draft={draft}
+              onChange={onDraftChange}
+            />
+            <CmsBlockEditor
+              allowedBlockTypes={allowedBlockTypes}
+              blocks={blocks}
+              onChange={onBlocksChange}
+            />
+          </>
+        ) : null}
+
+        {activeTab === "connections" ? (
+          <CmsRelationEditor
+            definitions={definitions}
+            entryId={selectedEntryId}
+            onChange={onRelationsChange}
+            selections={relationSelections}
+            studio={studio}
+          />
+        ) : null}
+
+        {activeTab === "media" ? (
+          <CmsMediaPanel
             allowedAssetTypes={allowedAssetTypes}
             assets={assets}
-            disabled={pending}
+            canSave={canSave}
             onDelete={onDeleteAsset}
+            onSave={onSave}
             onUpload={onUploadAsset}
+            pending={pending}
+            saved={Boolean(selectedEntryId)}
           />
-        ) : (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/70 px-5 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-            Save this record once to unlock managed media uploads.
-          </div>
-        )}
+        ) : null}
+
+        {activeTab === "settings" ? (
+          <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+        ) : null}
       </div>
 
       <ConfirmDeleteDialog
         isOpen={confirmingDelete}
         loading={pending}
-        message={`Delete “${draft.title}” and its blocks, relations, and attached media? This cannot be undone.`}
+        message={`“${draft.title}” and everything attached to it will be permanently removed.`}
         onCancel={() => setConfirmingDelete(false)}
         onConfirm={() => {
           setConfirmingDelete(false);
           onDelete();
         }}
-        title={`Delete ${collection.title} record`}
+        title={`Delete this ${collection.title.toLowerCase()}?`}
       />
     </div>
   );

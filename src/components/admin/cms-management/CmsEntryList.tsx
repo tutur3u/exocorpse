@@ -23,6 +23,13 @@ const statusStyles: Record<ExocorpseCmsEntry["status"], string> = {
   scheduled: "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300",
 };
 
+const statusLabels: Record<ExocorpseCmsEntry["status"], string> = {
+  archived: "Archived",
+  draft: "Draft",
+  published: "Live",
+  scheduled: "Scheduled",
+};
+
 export default function CmsEntryList({
   collection,
   entries,
@@ -61,7 +68,7 @@ export default function CmsEntryList({
               {collection.title}
             </p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {entries.length} {entries.length === 1 ? "record" : "records"}
+              {entries.length} {entries.length === 1 ? "item" : "items"}
             </p>
           </div>
           <button
@@ -70,7 +77,7 @@ export default function CmsEntryList({
             type="button"
           >
             <FilePlus2 className="h-4 w-4" />
-            New
+            Add
           </button>
         </div>
         <label className="relative block">
@@ -78,7 +85,7 @@ export default function CmsEntryList({
           <input
             className="w-full rounded-xl border border-zinc-300/80 bg-white py-2 pr-3 pl-9 text-sm transition outline-none placeholder:text-zinc-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-900"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Find by title or slug"
+            placeholder="Search by title"
             value={query}
           />
         </label>
@@ -96,7 +103,7 @@ export default function CmsEntryList({
               onClick={() => setStatus(option)}
               type="button"
             >
-              {option === "all" ? "All" : option}
+              {option === "all" ? "All" : statusLabels[option]}
             </button>
           ))}
         </div>
@@ -117,21 +124,18 @@ export default function CmsEntryList({
             <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
               {entry.title}
             </span>
-            <span className="mt-1.5 flex items-center justify-between gap-2">
-              <span className="truncate font-mono text-[10px] text-zinc-500 dark:text-zinc-400">
-                /{entry.slug}
-              </span>
+            <span className="mt-1.5 flex items-center justify-end gap-2">
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${statusStyles[entry.status]}`}
               >
-                {entry.status}
+                {statusLabels[entry.status]}
               </span>
             </span>
           </button>
         ))}
         {filteredEntries.length === 0 ? (
           <div className="p-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            No matching records.
+            No matching items.
           </div>
         ) : null}
       </div>

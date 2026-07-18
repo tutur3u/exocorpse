@@ -1,5 +1,8 @@
 "use client";
 
+import { AlertTriangle, LoaderCircle } from "lucide-react";
+import { useEffect } from "react";
+
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
   onConfirm: () => void;
@@ -19,67 +22,57 @@ export default function ConfirmDeleteDialog({
   confirmText = "Delete",
   loading = false,
 }: ConfirmDeleteDialogProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) onCancel();
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isOpen, loading, onCancel]);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50"
-      role="button"
-      tabIndex={0}
-      aria-label="Cancel delete"
-      onClick={onCancel}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          onCancel();
-        }
+      className="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/70 p-4 backdrop-blur-sm"
+      onClick={() => {
+        if (!loading) onCancel();
       }}
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+        className="w-full max-w-md overflow-hidden rounded-[1.5rem] border border-white/10 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.45)] dark:bg-zinc-950"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-dialog-title"
         aria-describedby="delete-dialog-description"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-            <svg
-              className="h-6 w-6 text-red-600 dark:text-red-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+        <div className="flex items-start gap-4 p-6">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+            <AlertTriangle className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <h3
               id="delete-dialog-title"
-              className="text-lg font-bold text-gray-900 dark:text-white"
+              className="font-serif text-xl font-semibold text-zinc-950 dark:text-white"
             >
               {title}
             </h3>
             <p
               id="delete-dialog-description"
-              className="mt-2 text-sm text-gray-700 dark:text-gray-300"
+              className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300"
             >
               {message}
             </p>
           </div>
         </div>
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-2 border-t border-zinc-200 bg-zinc-50/80 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             Cancel
           </button>
@@ -87,9 +80,10 @@ export default function ConfirmDeleteDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Deleting..." : confirmText}
+            {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+            {loading ? "Deleting…" : confirmText}
           </button>
         </div>
       </div>

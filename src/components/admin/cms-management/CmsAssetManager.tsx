@@ -4,7 +4,7 @@ import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
 import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
 import { FileImage, Trash2, UploadCloud } from "lucide-react";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export default function CmsAssetManager({
   allowedAssetTypes,
@@ -20,6 +20,7 @@ export default function CmsAssetManager({
   onUpload: (formData: FormData) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedFile, setSelectedFile] = useState("");
   const accept = allowedAssetTypes.length
     ? allowedAssetTypes.map((type) => `${type}/*`).join(",")
     : undefined;
@@ -30,31 +31,38 @@ export default function CmsAssetManager({
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
             <FileImage className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-            Managed media
+            Media
           </h3>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Uploads use Tuturuuu Storage and versioned delivery URLs.
+            Add images and files that bring this item to life.
           </p>
         </div>
         <form
           action={(formData) => {
             onUpload(formData);
             formRef.current?.reset();
+            setSelectedFile("");
           }}
           className="flex flex-wrap items-center gap-2"
           ref={formRef}
         >
-          <input
-            accept={accept}
-            className="max-w-52 text-xs text-zinc-500 file:mr-2 file:rounded-lg file:border-0 file:bg-zinc-200 file:px-2.5 file:py-1.5 file:text-xs file:font-medium dark:file:bg-zinc-800 dark:file:text-zinc-200"
-            disabled={disabled}
-            name="file"
-            required
-            type="file"
-          />
+          <label className="cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-cyan-500 hover:text-cyan-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-cyan-300">
+            {selectedFile || "Choose a file"}
+            <input
+              accept={accept}
+              className="sr-only"
+              disabled={disabled}
+              name="file"
+              onChange={(event) =>
+                setSelectedFile(event.target.files?.[0]?.name ?? "")
+              }
+              required
+              type="file"
+            />
+          </label>
           <button
             className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-500 disabled:opacity-50"
-            disabled={disabled}
+            disabled={disabled || !selectedFile}
             type="submit"
           >
             <UploadCloud className="h-3.5 w-3.5" />
@@ -74,7 +82,7 @@ export default function CmsAssetManager({
               {asset.asset_type === "image" && imageUrl ? (
                 <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-900">
                   <Image
-                    alt={asset.alt_text ?? "CMS asset preview"}
+                    alt={asset.alt_text ?? "Media preview"}
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 100vw, 360px"
@@ -90,10 +98,10 @@ export default function CmsAssetManager({
               <div className="flex items-center gap-3 p-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                    {asset.alt_text ?? `${asset.asset_type} asset`}
+                    {asset.alt_text ?? `${asset.asset_type} file`}
                   </p>
                   <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
-                    {asset.storage_path ? "Managed" : "External"} · revisioned
+                    {asset.storage_path ? "Ready to use" : "Linked media"}
                   </p>
                 </div>
                 <button
@@ -112,7 +120,7 @@ export default function CmsAssetManager({
       </div>
       {assets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          No media attached to this record.
+          No media yet. Choose a file to add the first one.
         </div>
       ) : null}
     </section>

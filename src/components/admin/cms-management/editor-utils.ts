@@ -145,7 +145,7 @@ function blockContent(block: CmsBlockDraft): ExocorpseJson {
   const parsed = JSON.parse(block.contentText) as ExocorpseJson;
   if (!isJsonRecord(parsed)) {
     throw new Error(
-      `${humanizeField(block.blockType)} content must be a JSON object.`,
+      `${humanizeField(block.blockType)} has an invalid advanced data format.`,
     );
   }
   return parsed;

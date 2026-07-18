@@ -41,7 +41,7 @@ function JsonInput({
             onChange(JSON.parse(text) as ExocorpseJson);
             setError(null);
           } catch {
-            setError("Enter a valid JSON value before saving.");
+            setError("This advanced field has an invalid format.");
           }
         }}
         onChange={(event) => setText(event.target.value)}
