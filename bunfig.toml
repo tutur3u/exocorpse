@@ -1,0 +1,5 @@
+[install]
+linker = "isolated"
+# The global store currently splits peer/type identity for React dependencies.
+globalStore = false
+publicHoistPattern = ["*"]
