@@ -10,12 +10,17 @@ import CmsPublishingSettings from "@/components/admin/cms-management/CmsPublishi
 import CmsRelationEditor from "@/components/admin/cms-management/CmsRelationEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
+import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
 import type {
   CmsBlockDraft,
   CmsEntryDraft,
   CmsRelationSelections,
 } from "@/components/admin/cms-management/editor-types";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import {
+  legacyEditorTabs,
+  splitLegacyEditorFields,
+} from "@/components/admin/cms-management/legacy-editor-tabs";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsCollection,
@@ -76,32 +81,65 @@ export default function CmsEntryEditor({
   theme,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [activeTab, setActiveTab] = useState<CmsEditorTab>("content");
+  const [activeTab, setActiveTab] = useState<CmsEditorTab>("basic");
   const canSave = Boolean(draft.title.trim() && draft.slug.trim() && !pending);
   const connectionCount = Object.values(relationSelections).reduce(
     (count, selections) => count + selections.length,
     0,
   );
+  const groupedFields = splitLegacyEditorFields(fields);
+  const tabs = legacyEditorTabs({
+    assetCount: assets.length,
+    blockCount: blocks.length,
+    collection,
+    connectionCount,
+    fields: groupedFields,
+    hasAssets: allowedAssetTypes.length > 0,
+    hasBlocks: allowedBlockTypes.length > 0,
+    hasConnections: definitions.length > 0,
+  });
+  const itemName = collectionItemLabel(collection).replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
+  const relationInBasics =
+    definitions.length > 0 &&
+    ["stories", "worlds", "factions", "locations"].includes(collection.slug);
+  const singlePageLayout =
+    collection.slug === "blog-posts" ||
+    collection.slug.startsWith("portfolio-") ||
+    collection.slug === "commission-services" ||
+    collection.slug === "commission-addons";
+  const isBlog = collection.slug === "blog-posts";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
-      <div className="px-4 pt-6 pb-4 sm:px-6">
+      <div
+        className={`px-4 pt-6 pb-4 sm:px-6 ${isBlog ? "border-b border-zinc-200 bg-linear-to-br from-red-50 via-white to-orange-50 dark:border-zinc-800 dark:from-red-950/30 dark:via-zinc-950 dark:to-zinc-950" : ""}`}
+      >
+        {isBlog ? (
+          <p className="text-xs font-semibold tracking-[0.32em] text-red-700 uppercase dark:text-red-300">
+            {selectedEntryId ? "Edit Sequence" : "Draft Sequence"}
+          </p>
+        ) : null}
         <h2 className="truncate text-2xl font-bold text-gray-900 dark:text-white">
-          {selectedEntryId
-            ? `Edit ${draft.title}`
-            : `Create New ${collection.title}`}
+          {selectedEntryId ? `Edit ${itemName}` : `Create New ${itemName}`}
         </h2>
+        {isBlog ? (
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Tighten the metadata, sharpen the excerpt, and control when the
+            archive entry becomes visible.
+          </p>
+        ) : null}
       </div>
 
-      <CmsEditorTabs
-        activeTab={activeTab}
-        assetCount={assets.length}
-        blockCount={blocks.length}
-        connectionCount={connectionCount}
-        hasConnections={definitions.length > 0}
-        onChange={setActiveTab}
-        theme={theme}
-      />
+      {!singlePageLayout ? (
+        <CmsEditorTabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          tabs={tabs}
+          theme={theme}
+        />
+      ) : null}
 
       <div
         aria-labelledby={`cms-${activeTab}-tab`}
@@ -109,7 +147,51 @@ export default function CmsEntryEditor({
         id={`cms-${activeTab}-panel`}
         role="tabpanel"
       >
-        {activeTab === "content" ? (
+        {singlePageLayout ? (
+          <div className="grid gap-6 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.8fr)]">
+            <div className="space-y-5">
+              <CmsEntryBasics
+                draft={draft}
+                onChange={onDraftChange}
+                onTitleChange={onTitleChange}
+              />
+              <CmsBlockEditor
+                allowedBlockTypes={allowedBlockTypes}
+                blocks={blocks}
+                onChange={onBlocksChange}
+              />
+            </div>
+            <div className="space-y-5">
+              <CmsStructuredFields
+                definitions={fields}
+                draft={draft}
+                onChange={onDraftChange}
+              />
+              {definitions.length ? (
+                <CmsRelationEditor
+                  definitions={definitions}
+                  entryId={selectedEntryId}
+                  onChange={onRelationsChange}
+                  selections={relationSelections}
+                  studio={studio}
+                />
+              ) : null}
+              {allowedAssetTypes.length ? (
+                <CmsMediaPanel
+                  allowedAssetTypes={allowedAssetTypes}
+                  assets={assets}
+                  canSave={canSave}
+                  onDelete={onDeleteAsset}
+                  onSave={onSave}
+                  onUpload={onUploadAsset}
+                  pending={pending}
+                  saved={Boolean(selectedEntryId)}
+                />
+              ) : null}
+              <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+            </div>
+          </div>
+        ) : activeTab === "basic" ? (
           <>
             <CmsEntryBasics
               draft={draft}
@@ -117,10 +199,33 @@ export default function CmsEntryEditor({
               onTitleChange={onTitleChange}
             />
             <CmsStructuredFields
-              definitions={fields}
+              definitions={groupedFields.basic}
               draft={draft}
               onChange={onDraftChange}
+              title="Basic Details"
             />
+            {relationInBasics ? (
+              <CmsRelationEditor
+                definitions={definitions}
+                entryId={selectedEntryId}
+                onChange={onRelationsChange}
+                selections={relationSelections}
+                studio={studio}
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        {activeTab === "details" ? (
+          <CmsStructuredFields
+            definitions={groupedFields.details}
+            draft={draft}
+            onChange={onDraftChange}
+          />
+        ) : null}
+
+        {activeTab === "content" ? (
+          <>
             <CmsBlockEditor
               allowedBlockTypes={allowedBlockTypes}
               blocks={blocks}
@@ -140,24 +245,42 @@ export default function CmsEntryEditor({
         ) : null}
 
         {activeTab === "media" ? (
-          <CmsMediaPanel
-            allowedAssetTypes={allowedAssetTypes}
-            assets={assets}
-            canSave={canSave}
-            onDelete={onDeleteAsset}
-            onSave={onSave}
-            onUpload={onUploadAsset}
-            pending={pending}
-            saved={Boolean(selectedEntryId)}
-          />
+          <>
+            <CmsStructuredFields
+              definitions={groupedFields.visuals}
+              draft={draft}
+              onChange={onDraftChange}
+              title="Visual Style"
+            />
+            <CmsMediaPanel
+              allowedAssetTypes={allowedAssetTypes}
+              assets={assets}
+              canSave={canSave}
+              onDelete={onDeleteAsset}
+              onSave={onSave}
+              onUpload={onUploadAsset}
+              pending={pending}
+              saved={Boolean(selectedEntryId)}
+            />
+          </>
         ) : null}
 
         {activeTab === "settings" ? (
-          <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+          <>
+            <CmsStructuredFields
+              definitions={groupedFields.publishing}
+              draft={draft}
+              onChange={onDraftChange}
+              title="Publishing Options"
+            />
+            <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+          </>
         ) : null}
       </div>
 
-      <div className="sticky bottom-0 flex flex-col-reverse items-stretch gap-2 border-t border-gray-300 bg-white/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 dark:border-gray-600 dark:bg-gray-800/95">
+      <div
+        className={`sticky bottom-0 flex flex-col-reverse items-stretch gap-2 border-t px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 ${isBlog ? "border-zinc-200 bg-[#fffaf6]/95 dark:border-zinc-800 dark:bg-zinc-950/95" : "border-gray-300 bg-white/95 dark:border-gray-600 dark:bg-gray-800/95"}`}
+      >
         <div>
           {selectedEntryId ? (
             <button
@@ -181,13 +304,17 @@ export default function CmsEntryEditor({
             Cancel
           </button>
           <button
-            className="inline-flex w-full items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isBlog ? "rounded-full bg-zinc-950 hover:bg-red-700 dark:bg-red-600 dark:text-zinc-950 dark:hover:bg-red-500" : "rounded bg-blue-600 hover:bg-blue-700"}`}
             disabled={!canSave}
             onClick={onSave}
             type="button"
           >
             <Save className="h-4 w-4" />
-            {pending ? "Saving..." : "Save changes"}
+            {pending
+              ? "Saving..."
+              : selectedEntryId
+                ? `Update ${itemName}`
+                : `Create ${itemName}`}
           </button>
         </div>
       </div>

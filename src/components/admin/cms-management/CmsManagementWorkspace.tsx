@@ -9,6 +9,7 @@ import {
   collectionTabLabel,
 } from "@/components/admin/cms-management/collection-copy";
 import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/gallery-utils";
+import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
@@ -27,6 +28,9 @@ export default function CmsManagementWorkspace({
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [aboutTab, setAboutTab] = useState<
+    "profile" | "about" | "faq" | "dni" | "socials"
+  >("profile");
   const workspace = useCmsManagementWorkspace({ initialStudio, section });
   const {
     assets,
@@ -81,7 +85,31 @@ export default function CmsManagementWorkspace({
   const relationFilter = buildCmsEntryGalleryFilter(studio, collection.id);
   const itemLabel = collectionItemLabel(collection);
   const theme = adminCmsTheme(section.key);
-  const canCreate = collection.slug !== "about";
+  const canCreate =
+    !["about", "portfolio"].includes(section.key) &&
+    collection.slug !== "about";
+  const createActionLabel =
+    section.key === "services"
+      ? "Create Service"
+      : section.key === "addons"
+        ? "Create Add-on"
+        : `New ${itemLabel.replace(/^./, (letter) => letter.toUpperCase())}`;
+  const visibleEntries =
+    section.key !== "about" || collection.slug !== "about-content"
+      ? entries
+      : entries.filter((entry) => {
+          const profile = isJsonRecord(entry.profile_data)
+            ? entry.profile_data
+            : {};
+          const entrySection = profile.section;
+          if (aboutTab === "dni") {
+            return entrySection === "dni_soft" || entrySection === "dni_hard";
+          }
+          if (aboutTab === "socials") return entrySection === "social_link";
+          return !["dni_soft", "dni_hard", "social_link"].includes(
+            String(entrySection),
+          );
+        });
 
   const collectionButton = (
     item: (typeof visibleCollections)[number],
@@ -119,20 +147,27 @@ export default function CmsManagementWorkspace({
 
   const entryGallery = (
     <CmsEntryGallery
+      aboutTab={aboutTab}
       assets={studio.assets}
       collection={collection}
-      entries={entries}
+      entries={visibleEntries}
       key={collection.id}
-      onCreate={() => {
-        createEntry();
+      onCreate={(profileData) => {
+        createEntry(profileData);
         setEditorOpen(true);
       }}
       onDelete={(entry) => setDeletingEntryId(entry.id)}
+      onOpenCollection={(slug) => {
+        const target = visibleCollections.find((item) => item.slug === slug);
+        if (target) selectCollection(target.id);
+      }}
       onSelect={(nextEntryId) => {
         setEntryId(nextEntryId);
         setEditorOpen(true);
       }}
       relationFilter={relationFilter}
+      sectionKey={section.key}
+      studio={studio}
       supportsImages={config.assetTypes.includes("image")}
       theme={theme}
     />
@@ -156,88 +191,71 @@ export default function CmsManagementWorkspace({
 
   return (
     <div className="@container space-y-6">
-      <header
-        className={
-          section.key === "about"
-            ? "rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-cyan-50 p-8 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-cyan-950/20"
-            : section.key === "blog-posts"
-              ? "rounded-[1.75rem] border border-zinc-800 bg-[radial-gradient(circle_at_top_left,rgba(145,49,44,0.28),transparent_38%),linear-gradient(180deg,rgba(24,16,18,0.98),rgba(13,14,18,0.98))] p-6 shadow-[0_30px_90px_-45px_rgba(0,0,0,0.55)]"
-              : "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
-        }
-      >
-        <div
+      {section.key !== "blog-posts" ? (
+        <header
           className={
-            section.key === "about" || section.key === "blog-posts"
-              ? "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
-              : "contents"
+            section.key === "about"
+              ? "rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-cyan-50 p-8 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-cyan-950/20"
+              : "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
           }
         >
-          <div>
-            {section.key === "about" || section.key === "blog-posts" ? (
-              <p
-                className={`text-xs font-semibold tracking-[0.25em] uppercase ${
-                  section.key === "blog-posts"
-                    ? "text-red-300"
-                    : theme.accentText
-                }`}
+          <div
+            className={
+              section.key === "about"
+                ? "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
+                : "contents"
+            }
+          >
+            <div>
+              {section.key === "about" ? (
+                <p
+                  className={`text-xs font-semibold tracking-[0.25em] uppercase ${theme.accentText}`}
+                >
+                  About Management
+                </p>
+              ) : null}
+              <h1
+                className={`text-3xl font-bold text-gray-900 dark:text-white ${section.key === "about" ? "mt-3" : ""}`}
               >
-                {section.key === "blog-posts"
-                  ? "Editorial Desk"
-                  : "About Management"}
+                {section.key === "about" ? "About Me Admin" : section.title}
+              </h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+                {section.description}
               </p>
-            ) : null}
-            <h1
-              className={`text-3xl font-bold ${
-                section.key === "blog-posts"
-                  ? "mt-2 text-zinc-50"
-                  : section.key === "about"
-                    ? "mt-3 text-gray-900 dark:text-white"
-                    : "text-gray-900 dark:text-white"
-              }`}
-            >
-              {section.key === "about"
-                ? "About Me Admin"
-                : section.key === "blog-posts"
-                  ? "Blog post management"
-                  : section.title}
-            </h1>
-            <p
-              className={`mt-2 max-w-3xl text-sm leading-6 ${
-                section.key === "blog-posts"
-                  ? "text-zinc-400"
-                  : "text-gray-600 dark:text-gray-400"
-              }`}
-            >
-              {section.description}
-            </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {section.key === "about" ? (
+                <span className="rounded-full border border-cyan-200 bg-white/90 px-4 py-2 text-xs font-medium tracking-[0.2em] text-cyan-700 uppercase shadow-sm dark:border-cyan-900/60 dark:bg-gray-950/90 dark:text-cyan-400">
+                  {studio.entries.length} managed rows
+                </span>
+              ) : null}
+              {canCreate ? (
+                <button
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                  onClick={() => {
+                    createEntry();
+                    setEditorOpen(true);
+                  }}
+                  type="button"
+                >
+                  + {createActionLabel}
+                </button>
+              ) : null}
+              {section.key === "cms" ? (
+                <a
+                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                  href={cmsHref}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <Library className="h-3.5 w-3.5" />
+                  Open Tuturuuu CMS
+                </a>
+              ) : null}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {canCreate ? (
-              <button
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
-                onClick={() => {
-                  createEntry();
-                  setEditorOpen(true);
-                }}
-                type="button"
-              >
-                + New {itemLabel}
-              </button>
-            ) : null}
-            {section.key === "cms" ? (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                href={cmsHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <Library className="h-3.5 w-3.5" />
-                Open Tuturuuu CMS
-              </a>
-            ) : null}
-          </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       {message ? (
         <div
@@ -264,10 +282,57 @@ export default function CmsManagementWorkspace({
         <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="rounded-[1.75rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
             <nav aria-label={`${section.title} content`} className="space-y-2">
-              {primaryCollections.map((item) => collectionButton(item))}
+              {[
+                ["profile", "Profile", "Hero, copy, section titles"],
+                ["about", "About", "Use cards, experiences, favorites"],
+                ["faq", "FAQ", "Fixed FAQ renderers"],
+                ["dni", "DNI", "Soft and hard boundaries"],
+                ["socials", "Socials", "Platform cards and colors"],
+              ].map(([id, label, eyebrow]) => (
+                <button
+                  className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                    aboutTab === id
+                      ? "border-cyan-300 bg-cyan-50 shadow-sm dark:border-cyan-800 dark:bg-cyan-950/30"
+                      : "border-transparent bg-gray-50 hover:border-gray-200 hover:bg-white dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-950"
+                  }`}
+                  key={id}
+                  onClick={() => {
+                    const nextTab = id as typeof aboutTab;
+                    setAboutTab(nextTab);
+                    const targetSlug =
+                      nextTab === "profile"
+                        ? "about"
+                        : nextTab === "faq"
+                          ? "about-faqs"
+                          : "about-content";
+                    const target = primaryCollections.find(
+                      (item) => item.slug === targetSlug,
+                    );
+                    if (target) selectCollection(target.id);
+                  }}
+                  type="button"
+                >
+                  <p className="text-xs font-semibold tracking-[0.18em] text-gray-500 uppercase dark:text-gray-400">
+                    {eyebrow}
+                  </p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                    {label}
+                  </p>
+                </button>
+              ))}
             </nav>
           </aside>
           <div className="min-w-0 space-y-6">{entryGallery}</div>
+        </div>
+      ) : section.key === "portfolio" ? (
+        <div className="rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-800">
+          <nav
+            aria-label={`${section.title} content`}
+            className="-mb-px flex gap-8 overflow-x-auto border-b border-gray-200 px-6 dark:border-gray-700"
+          >
+            {primaryCollections.map((item) => collectionButton(item, "tab"))}
+          </nav>
+          <div className="p-6">{entryGallery}</div>
         </div>
       ) : (
         <>
@@ -279,7 +344,7 @@ export default function CmsManagementWorkspace({
               {primaryCollections.map((item) => collectionButton(item, "tab"))}
             </nav>
           ) : null}
-          {supportingNavigation}
+          {section.key === "cms" ? supportingNavigation : null}
           {entryGallery}
         </>
       )}
@@ -288,6 +353,7 @@ export default function CmsManagementWorkspace({
         <CmsEntryEditorDialog
           onClose={() => setEditorOpen(false)}
           title={entryId ? `Edit ${draft.title}` : `Add ${collection.title}`}
+          variant={section.key === "blog-posts" ? "blog" : "default"}
         >
           <CmsEntryEditor
             allowedAssetTypes={config.assetTypes}

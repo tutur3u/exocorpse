@@ -163,10 +163,17 @@ export function useCmsManagementWorkspace({
     setEntryId(firstEntryId(studio, nextCollectionId));
   }
 
-  function createEntry() {
+  function createEntry(initialProfileData: Record<string, ExocorpseJson> = {}) {
     if (!collection) return;
     setEntryId("");
-    setDraft(applyFieldDefaults(emptyEntry(collection.id), fields));
+    const nextDraft = applyFieldDefaults(emptyEntry(collection.id), fields);
+    const profileData = isJsonRecord(nextDraft.profile_data)
+      ? nextDraft.profile_data
+      : {};
+    setDraft({
+      ...nextDraft,
+      profile_data: { ...profileData, ...initialProfileData },
+    });
     setBlocks([]);
     setRelationSelections(
       Object.fromEntries(definitions.map((definition) => [definition.id, []])),

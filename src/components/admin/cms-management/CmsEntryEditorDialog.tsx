@@ -7,10 +7,12 @@ export default function CmsEntryEditorDialog({
   children,
   onClose,
   title,
+  variant = "default",
 }: {
   children: ReactNode;
   onClose: () => void;
   title: string;
+  variant?: "blog" | "default";
 }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -31,7 +33,9 @@ export default function CmsEntryEditorDialog({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-hidden bg-black/50 sm:items-center sm:p-4">
+    <div
+      className={`fixed inset-0 z-[60] flex items-end justify-center overflow-hidden sm:items-center sm:p-4 ${variant === "blog" ? "bg-black/65 backdrop-blur-sm" : "bg-black/50"}`}
+    >
       <button
         aria-label="Close editor"
         className="absolute inset-0 cursor-default"
@@ -41,7 +45,11 @@ export default function CmsEntryEditorDialog({
       <section
         aria-label={title}
         aria-modal="true"
-        className="animate-slideUp relative flex h-[100dvh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg dark:bg-gray-800"
+        className={`animate-slideUp relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-t-2xl shadow-xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg ${
+          variant === "blog"
+            ? "max-w-6xl bg-[#fffaf6] dark:bg-zinc-950"
+            : "max-w-4xl bg-white dark:bg-gray-800"
+        }`}
         role="dialog"
       >
         {children}

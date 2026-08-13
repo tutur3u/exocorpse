@@ -18,6 +18,7 @@ export default function CmsEntryCard({
   entry,
   onDelete,
   onEdit,
+  secondaryActions = [],
   previewAsset,
   supportsImages,
   theme,
@@ -28,6 +29,11 @@ export default function CmsEntryCard({
   entry: ExocorpseCmsEntry;
   onDelete: () => void;
   onEdit: () => void;
+  secondaryActions?: Array<{
+    label: string;
+    onClick: () => void;
+    tone: "blue" | "pink" | "purple";
+  }>;
   previewAsset?: ExocorpseCmsAsset;
   supportsImages: boolean;
   theme: AdminCmsTheme;
@@ -93,6 +99,26 @@ export default function CmsEntryCard({
           <p className="mt-1 line-clamp-2 text-sm leading-5 text-gray-600 dark:text-gray-400">
             {description}
           </p>
+        ) : null}
+        {secondaryActions.length ? (
+          <div className="mt-4 space-y-2">
+            {secondaryActions.map((action) => (
+              <button
+                className={`w-full rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  action.tone === "purple"
+                    ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
+                    : action.tone === "pink"
+                      ? "bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:hover:bg-pink-900/50"
+                      : "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                }`}
+                key={action.label}
+                onClick={action.onClick}
+                type="button"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
         ) : null}
         <div className="mt-4 flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
           <button

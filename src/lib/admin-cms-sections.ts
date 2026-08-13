@@ -26,7 +26,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     collectionSlugs: ["about", "about-content", "about-faqs"],
     defaultCollectionSlug: "about",
     description:
-      "This page manages the public About Me window end-to-end: hero copy, section labels, bespoke FAQ renderers, DNI rules, and social cards.",
+      "This page manages the public About Me window end-to-end: hero copy, section labels, bespoke FAQ renderers, DNI rules, and social cards. Changes revalidate both the homepage and this admin route.",
     eyebrow: "Identity desk",
     key: "about",
     primaryCollectionSlugs: ["about", "about-content", "about-faqs"],
@@ -102,8 +102,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "tags",
     ],
     defaultCollectionSlug: "portfolio-art",
-    description:
-      "Manage artwork, writing, games, and what appears as featured work.",
+    description: "Manage your art, writing, and game portfolio pieces.",
     eyebrow: "Portfolio rotation",
     key: "portfolio",
     primaryCollectionSlugs: [
@@ -111,7 +110,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "portfolio-writing",
       "portfolio-games",
     ],
-    title: "Portfolio",
+    title: "Portfolio Management",
   },
   services: {
     collectionSlugs: [

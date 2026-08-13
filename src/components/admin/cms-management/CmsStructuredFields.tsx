@@ -13,10 +13,12 @@ export default function CmsStructuredFields({
   definitions,
   draft,
   onChange,
+  title = "Details",
 }: {
   definitions: ExocorpseCmsFieldDefinition[];
   draft: CmsEntryDraft;
   onChange: (draft: CmsEntryDraft) => void;
+  title?: string;
 }) {
   if (!definitions.length) return null;
   const standardDefinitions = definitions.filter(
@@ -46,7 +48,7 @@ export default function CmsStructuredFields({
       <div>
         <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
           <SlidersHorizontal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          Details
+          {title}
         </h3>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           Add the information visitors need for this item.

@@ -1,50 +1,27 @@
 "use client";
 
-import { FileText, Images, Link2, Settings2 } from "lucide-react";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
+import type { CmsEditorTabConfig } from "@/components/admin/cms-management/legacy-editor-tabs";
 
-export type CmsEditorTab = "connections" | "content" | "media" | "settings";
-
-type Tab = {
-  count?: number;
-  icon: typeof FileText;
-  id: CmsEditorTab;
-  label: string;
-};
+export type CmsEditorTab =
+  | "basic"
+  | "connections"
+  | "content"
+  | "details"
+  | "media"
+  | "settings";
 
 export default function CmsEditorTabs({
   activeTab,
-  assetCount,
-  blockCount,
-  connectionCount,
-  hasConnections,
   onChange,
+  tabs,
   theme,
 }: {
   activeTab: CmsEditorTab;
-  assetCount: number;
-  blockCount: number;
-  connectionCount: number;
-  hasConnections: boolean;
   onChange: (tab: CmsEditorTab) => void;
+  tabs: CmsEditorTabConfig[];
   theme: AdminCmsTheme;
 }) {
-  const tabs: Tab[] = [
-    { count: blockCount, icon: FileText, id: "content", label: "Content" },
-    ...(hasConnections
-      ? [
-          {
-            count: connectionCount,
-            icon: Link2,
-            id: "connections" as const,
-            label: "Related content",
-          },
-        ]
-      : []),
-    { count: assetCount, icon: Images, id: "media", label: "Media" },
-    { icon: Settings2, id: "settings", label: "Publish" },
-  ];
-
   return (
     <div
       aria-label="Editing sections"
