@@ -17,6 +17,7 @@ export type AdminCmsSection = {
   description: string;
   eyebrow: string;
   key: AdminCmsSectionKey;
+  primaryCollectionSlugs?: string[];
   title: string;
 };
 
@@ -25,27 +26,29 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     collectionSlugs: ["about", "about-content", "about-faqs"],
     defaultCollectionSlug: "about",
     description:
-      "Shape the profile, social cards, favorites, boundaries, and frequently asked questions as one connected About experience.",
+      "Manage your profile, social cards, favorites, boundaries, and frequently asked questions.",
     eyebrow: "Identity desk",
     key: "about",
+    primaryCollectionSlugs: ["about", "about-content", "about-faqs"],
     title: "About Me",
   },
   addons: {
     collectionSlugs: ["commission-addons", "commission-services"],
     defaultCollectionSlug: "commission-addons",
     description:
-      "Maintain price modifiers and connect each add-on to the commission services where it belongs.",
+      "Manage commission add-ons, prices, and the services they belong to.",
     eyebrow: "Commission modifiers",
     key: "addons",
+    primaryCollectionSlugs: ["commission-addons"],
     title: "Add-ons",
   },
   "blog-posts": {
     collectionSlugs: ["blog-posts", "tags"],
     defaultCollectionSlug: "blog-posts",
-    description:
-      "Write, preview, tag, publish, and illustrate long-form posts without leaving the Exocorpse control room.",
+    description: "Write, illustrate, and publish blog posts.",
     eyebrow: "Editorial desk",
     key: "blog-posts",
+    primaryCollectionSlugs: ["blog-posts"],
     title: "Blog Posts",
   },
   characters: {
@@ -61,15 +64,15 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     ],
     defaultCollectionSlug: "characters",
     description:
-      "Manage character profiles alongside outfits, galleries, relationships, memberships, locations, and reusable types.",
+      "Manage character profiles, artwork, outfits, relationships, and locations.",
     eyebrow: "Character archive",
     key: "characters",
+    primaryCollectionSlugs: ["characters"],
     title: "Characters",
   },
   cms: {
     collectionSlugs: [],
-    description:
-      "Inspect every Exocorpse collection with typed fields, content blocks, managed media, publishing, and UUID relations.",
+    description: "Manage every part of the site from one complete library.",
     eyebrow: "Tuturuuu CMS",
     key: "cms",
     title: "Complete Content Library",
@@ -78,18 +81,20 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     collectionSlugs: ["factions", "character-factions"],
     defaultCollectionSlug: "factions",
     description:
-      "Maintain organizations, hierarchy, world placement, and content-bearing character memberships together.",
+      "Manage factions, their hierarchy, members, and the worlds they belong to.",
     eyebrow: "Faction registry",
     key: "factions",
+    primaryCollectionSlugs: ["factions"],
     title: "Factions",
   },
   locations: {
     collectionSlugs: ["locations", "location-gallery", "character-locations"],
     defaultCollectionSlug: "locations",
     description:
-      "Build nested places, assign their worlds, curate location galleries, and connect character location records.",
+      "Manage places, maps, galleries, and the worlds they belong to.",
     eyebrow: "Atlas desk",
     key: "locations",
+    primaryCollectionSlugs: ["locations"],
     title: "Locations",
   },
   portfolio: {
@@ -101,9 +106,14 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     ],
     defaultCollectionSlug: "portfolio-art",
     description:
-      "Curate art, writing, and games with shared tags, featured ordering, media, and publication controls.",
+      "Manage artwork, writing, games, and what appears as featured work.",
     eyebrow: "Portfolio rotation",
     key: "portfolio",
+    primaryCollectionSlugs: [
+      "portfolio-art",
+      "portfolio-writing",
+      "portfolio-games",
+    ],
     title: "Portfolio",
   },
   services: {
@@ -115,18 +125,19 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     ],
     defaultCollectionSlug: "commission-services",
     description:
-      "Manage services, styles, examples, pricing, availability, and add-on relationships in one commission workspace.",
+      "Manage commission services, styles, examples, prices, and availability.",
     eyebrow: "Commission catalogue",
     key: "services",
+    primaryCollectionSlugs: ["commission-services"],
     title: "Commission Services",
   },
   stories: {
     collectionSlugs: ["stories", "tags"],
     defaultCollectionSlug: "stories",
-    description:
-      "Create story universes, control publication and theme, and connect reusable taxonomy through native CMS relations.",
+    description: "Manage story universes, themes, visibility, and publishing.",
     eyebrow: "Universe registry",
     key: "stories",
+    primaryCollectionSlugs: ["stories"],
     title: "Stories",
   },
   worlds: {
@@ -140,9 +151,10 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     ],
     defaultCollectionSlug: "worlds",
     description:
-      "Build worlds and their chronology together: timelines, events, participants, factions, types, and locations remain connected by UUID.",
+      "Manage worlds within your stories, with timelines and events close at hand.",
     eyebrow: "Worldbuilding atlas",
     key: "worlds",
+    primaryCollectionSlugs: ["worlds"],
     title: "Worlds",
   },
 };

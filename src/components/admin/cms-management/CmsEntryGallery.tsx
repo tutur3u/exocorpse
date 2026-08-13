@@ -2,6 +2,10 @@
 
 import CmsEntryCard from "@/components/admin/cms-management/CmsEntryCard";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
+import {
+  type CmsEntryGalleryFilter,
+  selectCmsEntryCardMedia,
+} from "@/components/admin/cms-management/gallery-utils";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsCollection,
@@ -21,6 +25,7 @@ export default function CmsEntryGallery({
   assets,
   collection,
   entries,
+  relationFilter,
   onCreate,
   onDelete,
   onSelect,
@@ -28,6 +33,7 @@ export default function CmsEntryGallery({
   assets: ExocorpseCmsAsset[];
   collection: ExocorpseCmsCollection;
   entries: ExocorpseCmsEntry[];
+  relationFilter?: CmsEntryGalleryFilter;
   onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
@@ -36,11 +42,17 @@ export default function CmsEntryGallery({
   const [status, setStatus] = useState<"all" | ExocorpseCmsEntry["status"]>(
     "all",
   );
+  const [relationTargetId, setRelationTargetId] = useState("all");
   const itemLabel = collectionItemLabel(collection);
   const filteredEntries = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return entries
       .filter((entry) => status === "all" || entry.status === status)
+      .filter(
+        (entry) =>
+          relationTargetId === "all" ||
+          relationFilter?.entryTargetIds[entry.id]?.includes(relationTargetId),
+      )
       .filter(
         (entry) =>
           !normalized ||
@@ -54,19 +66,24 @@ export default function CmsEntryGallery({
         }
         return left.title.localeCompare(right.title);
       });
-  }, [entries, query, status]);
+  }, [entries, query, relationFilter, relationTargetId, status]);
 
-  const firstAssetByEntry = useMemo(() => {
-    const previews = new Map<string, ExocorpseCmsAsset>();
-    [...assets]
-      .sort((left, right) => left.sort_order - right.sort_order)
-      .forEach((asset) => {
-        if (asset.entry_id && !previews.has(asset.entry_id)) {
-          previews.set(asset.entry_id, asset);
-        }
-      });
-    return previews;
-  }, [assets]);
+  const mediaByEntry = useMemo(() => {
+    const assetsByEntry = new Map<string, ExocorpseCmsAsset[]>();
+    for (const asset of assets) {
+      if (!asset.entry_id) continue;
+      const entryAssets = assetsByEntry.get(asset.entry_id) ?? [];
+      entryAssets.push(asset);
+      assetsByEntry.set(asset.entry_id, entryAssets);
+    }
+
+    return new Map(
+      entries.map((entry) => [
+        entry.id,
+        selectCmsEntryCardMedia(collection, assetsByEntry.get(entry.id) ?? []),
+      ]),
+    );
+  }, [assets, collection, entries]);
 
   return (
     <section className="space-y-5">
@@ -89,15 +106,25 @@ export default function CmsEntryGallery({
             value={query}
           />
         </label>
-        <button
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
-          onClick={onCreate}
-          type="button"
-        >
-          <FilePlus2 className="h-4 w-4" />
-          Add {itemLabel}
-        </button>
       </div>
+
+      {relationFilter ? (
+        <label className="block rounded-xl border border-zinc-200/80 bg-white p-4 text-sm font-medium text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+          <span className="mb-2 block">Filter by {relationFilter.label}</span>
+          <select
+            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-zinc-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            onChange={(event) => setRelationTargetId(event.target.value)}
+            value={relationTargetId}
+          >
+            <option value="all">All {collection.title.toLowerCase()}</option>
+            {relationFilter.options.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <div className="flex gap-2 overflow-x-auto pb-1">
         {(["all", "draft", "published", "scheduled", "archived"] as const).map(
@@ -119,18 +146,22 @@ export default function CmsEntryGallery({
       </div>
 
       {filteredEntries.length ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredEntries.map((entry, index) => (
-            <CmsEntryCard
-              asset={firstAssetByEntry.get(entry.id)}
-              collection={collection}
-              eager={index < 3}
-              entry={entry}
-              key={entry.id}
-              onDelete={() => onDelete(entry)}
-              onEdit={() => onSelect(entry.id)}
-            />
-          ))}
+        <div className="grid items-start gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+          {filteredEntries.map((entry, index) => {
+            const media = mediaByEntry.get(entry.id);
+            return (
+              <CmsEntryCard
+                avatarAsset={media?.avatar}
+                collection={collection}
+                eager={index < 3}
+                entry={entry}
+                key={entry.id}
+                onDelete={() => onDelete(entry)}
+                onEdit={() => onSelect(entry.id)}
+                previewAsset={media?.preview}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/60 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/50">
@@ -142,6 +173,16 @@ export default function CmsEntryGallery({
               ? "Try a different search or status."
               : `Add your first ${itemLabel} when you are ready.`}
           </p>
+          {!entries.length ? (
+            <button
+              className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500"
+              onClick={onCreate}
+              type="button"
+            >
+              <FilePlus2 className="h-4 w-4" />
+              Add {itemLabel}
+            </button>
+          ) : null}
         </div>
       )}
     </section>

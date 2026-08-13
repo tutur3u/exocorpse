@@ -3,11 +3,21 @@
 import CmsEntryEditor from "@/components/admin/cms-management/CmsEntryEditor";
 import CmsEntryEditorDialog from "@/components/admin/cms-management/CmsEntryEditorDialog";
 import CmsEntryGallery from "@/components/admin/cms-management/CmsEntryGallery";
+import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
+import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/gallery-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
-import { ArrowUpRight, Library, RefreshCw, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  FilePlus2,
+  Library,
+  RefreshCw,
+  Settings2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -61,43 +71,86 @@ export default function CmsManagementWorkspace({
     );
   }
 
+  const primaryCollectionSlugs = new Set(
+    section.primaryCollectionSlugs ??
+      (section.collectionSlugs.length ? section.collectionSlugs : []),
+  );
+  const primaryCollections = primaryCollectionSlugs.size
+    ? visibleCollections.filter((item) => primaryCollectionSlugs.has(item.slug))
+    : visibleCollections;
+  const supportingCollections = primaryCollectionSlugs.size
+    ? visibleCollections.filter(
+        (item) => !primaryCollectionSlugs.has(item.slug),
+      )
+    : [];
+  const relationFilter = buildCmsEntryGalleryFilter(studio, collection.id);
+  const itemLabel = collectionItemLabel(collection);
+
+  const collectionButton = (item: (typeof visibleCollections)[number]) => {
+    const count = studio.entries.filter(
+      (entry) => entry.collection_id === item.id,
+    ).length;
+    return (
+      <button
+        className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+          item.id === collection.id
+            ? "bg-cyan-600 text-white shadow-sm"
+            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
+        }`}
+        key={item.id}
+        onClick={() => selectCollection(item.id)}
+        type="button"
+      >
+        {item.title}
+        <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-75">
+          {count}
+        </span>
+      </button>
+    );
+  };
+
   return (
-    <div className="@container space-y-5">
-      <header className="relative overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-950 px-5 py-6 text-white shadow-[0_24px_80px_rgba(9,9,11,0.18)] @3xl:px-8 @3xl:py-8 dark:border-zinc-800">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_10%,rgba(34,211,238,0.18),transparent_28%),linear-gradient(135deg,transparent_45%,rgba(244,63,94,0.08))]" />
-        <div className="relative flex flex-col gap-5 @3xl:flex-row @3xl:items-end @3xl:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-300 uppercase">
-              {section.eyebrow}
-            </p>
-            <h1 className="mt-2 font-serif text-3xl leading-tight font-semibold tracking-tight @3xl:text-4xl">
-              {section.title}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-300">
-              {section.description}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-100 transition hover:border-cyan-300/60 hover:bg-cyan-300/10"
-              href="/"
+    <div className="@container space-y-6">
+      <header className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-950 dark:text-white">
+            {section.title}
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            {section.description}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-cyan-600 to-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            onClick={() => {
+              createEntry();
+              setEditorOpen(true);
+            }}
+            type="button"
+          >
+            <FilePlus2 className="h-4 w-4" />
+            New {itemLabel}
+          </button>
+          <Link
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            href="/"
+            target="_blank"
+          >
+            View public site
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+          {section.key === "cms" ? (
+            <a
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              href={cmsHref}
+              rel="noreferrer"
               target="_blank"
             >
-              View public site
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-            {section.key === "cms" ? (
-              <a
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-cyan-300"
-                href={cmsHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <Library className="h-3.5 w-3.5" />
-                Open Tuturuuu CMS
-              </a>
-            ) : null}
-          </div>
+              <Library className="h-3.5 w-3.5" />
+              Open Tuturuuu CMS
+            </a>
+          ) : null}
         </div>
       </header>
 
@@ -122,35 +175,36 @@ export default function CmsManagementWorkspace({
         </div>
       ) : null}
 
-      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-zinc-200/80 bg-white/80 p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/70">
-        {visibleCollections.map((item) => {
-          const count = studio.entries.filter(
-            (entry) => entry.collection_id === item.id,
-          ).length;
-          return (
-            <button
-              className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                item.id === collection.id
-                  ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                  : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
-              }`}
-              key={item.id}
-              onClick={() => selectCollection(item.id)}
-              type="button"
-            >
-              {item.title}
-              <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-70">
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {primaryCollections.length > 1 ? (
+        <nav
+          aria-label={`${section.title} content`}
+          className="flex gap-1 overflow-x-auto border-b border-zinc-200 pb-2 dark:border-zinc-800"
+        >
+          {primaryCollections.map(collectionButton)}
+        </nav>
+      ) : null}
+
+      {supportingCollections.length ? (
+        <details className="group rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-700 marker:content-none dark:text-zinc-300">
+            <Settings2 className="h-4 w-4 text-zinc-400" />
+            <span className="flex-1">Related content</span>
+            <span className="text-xs font-normal text-zinc-500">
+              {supportingCollections.length} types
+            </span>
+            <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
+          </summary>
+          <div className="flex flex-wrap gap-1 border-t border-zinc-200 p-2 dark:border-zinc-800">
+            {supportingCollections.map(collectionButton)}
+          </div>
+        </details>
+      ) : null}
 
       <CmsEntryGallery
         assets={studio.assets}
         collection={collection}
         entries={entries}
+        key={collection.id}
         onCreate={() => {
           createEntry();
           setEditorOpen(true);
@@ -160,6 +214,7 @@ export default function CmsManagementWorkspace({
           setEntryId(nextEntryId);
           setEditorOpen(true);
         }}
+        relationFilter={relationFilter}
       />
 
       {editorOpen ? (

@@ -35,6 +35,32 @@ describe("branded CMS admin sections", () => {
           section.defaultCollectionSlug,
         );
       }
+      for (const slug of section.primaryCollectionSlugs ?? []) {
+        expect(section.collectionSlugs).toContain(slug);
+      }
+      if (section.defaultCollectionSlug && section.primaryCollectionSlugs) {
+        expect(section.primaryCollectionSlugs).toContain(
+          section.defaultCollectionSlug,
+        );
+      }
     }
+  });
+
+  test("keeps wiki pages focused on their familiar primary records", () => {
+    expect(ADMIN_CMS_SECTIONS.stories.primaryCollectionSlugs).toEqual([
+      "stories",
+    ]);
+    expect(ADMIN_CMS_SECTIONS.worlds.primaryCollectionSlugs).toEqual([
+      "worlds",
+    ]);
+    expect(ADMIN_CMS_SECTIONS.characters.primaryCollectionSlugs).toEqual([
+      "characters",
+    ]);
+    expect(ADMIN_CMS_SECTIONS.factions.primaryCollectionSlugs).toEqual([
+      "factions",
+    ]);
+    expect(ADMIN_CMS_SECTIONS.locations.primaryCollectionSlugs).toEqual([
+      "locations",
+    ]);
   });
 });

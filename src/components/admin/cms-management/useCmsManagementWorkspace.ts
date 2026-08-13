@@ -70,11 +70,20 @@ export function useCmsManagementWorkspace({
   const [studio, setStudio] = useState(initialStudio);
   const visibleCollections = useMemo(() => {
     const selectedSlugs = new Set(section.collectionSlugs);
-    return studio.collections.filter(
-      (collection) =>
-        collection.is_enabled !== false &&
-        (!selectedSlugs.size || selectedSlugs.has(collection.slug)),
+    const collectionOrder = new Map(
+      section.collectionSlugs.map((slug, index) => [slug, index]),
     );
+    return studio.collections
+      .filter(
+        (collection) =>
+          collection.is_enabled !== false &&
+          (!selectedSlugs.size || selectedSlugs.has(collection.slug)),
+      )
+      .sort(
+        (left, right) =>
+          (collectionOrder.get(left.slug) ?? Number.MAX_SAFE_INTEGER) -
+          (collectionOrder.get(right.slug) ?? Number.MAX_SAFE_INTEGER),
+      );
   }, [section.collectionSlugs, studio.collections]);
   const defaultCollection =
     visibleCollections.find(
