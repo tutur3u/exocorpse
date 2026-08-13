@@ -93,7 +93,13 @@ export default function CmsEntryEditor({
     0,
   );
   const groupedFields = splitLegacyEditorFields(
-    fields.filter((field) => !isCharacterMediaField(field.key)),
+    fields.filter(
+      (field) =>
+        !isCharacterMediaField(field.key) &&
+        !["displayOrder", "display_order", "sortOrder", "sort_order"].includes(
+          field.key,
+        ),
+    ),
   );
   const tabs = legacyEditorTabs({
     assetCount: assets.length,
