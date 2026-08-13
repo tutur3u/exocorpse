@@ -33,3 +33,16 @@ const ITEM_LABELS: Record<string, string> = {
 export function collectionItemLabel(collection: ExocorpseCmsCollection) {
   return ITEM_LABELS[collection.slug] ?? "item";
 }
+
+const TAB_LABELS: Record<string, string> = {
+  about: "Profile",
+  "about-content": "About",
+  "about-faqs": "FAQ",
+  "portfolio-art": "Art",
+  "portfolio-games": "Games",
+  "portfolio-writing": "Writing",
+};
+
+export function collectionTabLabel(collection: ExocorpseCmsCollection) {
+  return TAB_LABELS[collection.slug] ?? collection.title;
+}

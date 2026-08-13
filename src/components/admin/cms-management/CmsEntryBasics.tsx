@@ -4,7 +4,7 @@ import type { CmsEntryDraft } from "@/components/admin/cms-management/editor-typ
 import { PenLine } from "lucide-react";
 
 const inputClassName =
-  "w-full rounded-xl border border-zinc-300/80 bg-white/90 px-3 py-2.5 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100";
+  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 export default function CmsEntryBasics({
   draft,
@@ -16,11 +16,11 @@ export default function CmsEntryBasics({
   onTitleChange: (title: string) => void;
 }) {
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+    <section className="space-y-4">
       <div>
         <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-          <PenLine className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-          Page details
+          <PenLine className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          Basic Info
         </h3>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           Give visitors a clear title and a helpful introduction.

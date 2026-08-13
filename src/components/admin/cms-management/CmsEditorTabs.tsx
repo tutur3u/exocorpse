@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Images, Link2, Settings2 } from "lucide-react";
+import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 
 export type CmsEditorTab = "connections" | "content" | "media" | "settings";
 
@@ -18,6 +19,7 @@ export default function CmsEditorTabs({
   connectionCount,
   hasConnections,
   onChange,
+  theme,
 }: {
   activeTab: CmsEditorTab;
   assetCount: number;
@@ -25,6 +27,7 @@ export default function CmsEditorTabs({
   connectionCount: number;
   hasConnections: boolean;
   onChange: (tab: CmsEditorTab) => void;
+  theme: AdminCmsTheme;
 }) {
   const tabs: Tab[] = [
     { count: blockCount, icon: FileText, id: "content", label: "Content" },
@@ -45,7 +48,7 @@ export default function CmsEditorTabs({
   return (
     <div
       aria-label="Editing sections"
-      className="flex gap-1 overflow-x-auto border-b border-zinc-200/80 bg-white/92 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950/92"
+      className="flex gap-1 overflow-x-auto border-b border-gray-300 px-4 sm:px-6 dark:border-gray-600"
       role="tablist"
     >
       {tabs.map((tab) => {
@@ -55,10 +58,10 @@ export default function CmsEditorTabs({
           <button
             aria-controls={`cms-${tab.id}-panel`}
             aria-selected={active}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+            className={`inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               active
-                ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
+                ? theme.activeTab
+                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             }`}
             id={`cms-${tab.id}-tab`}
             key={tab.id}
@@ -71,9 +74,7 @@ export default function CmsEditorTabs({
             {tab.count ? (
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                  active
-                    ? "bg-white/15 dark:bg-black/10"
-                    : "bg-zinc-200/80 dark:bg-zinc-800"
+                  active ? "bg-current/10" : "bg-gray-200 dark:bg-gray-700"
                 }`}
               >
                 {tab.count}

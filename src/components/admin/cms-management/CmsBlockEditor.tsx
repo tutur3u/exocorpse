@@ -21,7 +21,7 @@ type Props = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-zinc-300/80 bg-white/90 px-3 py-2.5 text-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-950/80";
+  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700";
 
 export default function CmsBlockEditor({
   allowedBlockTypes,
@@ -49,11 +49,11 @@ export default function CmsBlockEditor({
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+    <section className="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-            <FileText className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             Page sections
           </h3>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
@@ -61,7 +61,7 @@ export default function CmsBlockEditor({
           </p>
         </div>
         <button
-          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs font-semibold transition hover:border-cyan-500 hover:text-cyan-700 dark:border-zinc-700 dark:hover:text-cyan-300"
+          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-xs font-medium transition hover:border-blue-500 hover:text-blue-700 dark:border-gray-600 dark:hover:text-blue-300"
           onClick={() =>
             onChange([
               ...blocks,
@@ -77,7 +77,7 @@ export default function CmsBlockEditor({
 
       {blocks.map((block, index) => (
         <details
-          className="group overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/70 dark:border-zinc-800 dark:bg-zinc-950/60"
+          className="group overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/60"
           key={block.key}
         >
           <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 marker:content-none">
@@ -177,7 +177,7 @@ export default function CmsBlockEditor({
       ))}
 
       {blocks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
           No page sections yet. Add one when this item needs a longer story.
         </div>
       ) : null}

@@ -44,7 +44,7 @@ export function selectCmsEntryCardMedia(
     return left.sort_order - right.sort_order;
   });
 
-  if (collection.slug === "characters" && images[1]) {
+  if (collection.slug === "characters") {
     return { avatar: images[0], preview: images[1] };
   }
 

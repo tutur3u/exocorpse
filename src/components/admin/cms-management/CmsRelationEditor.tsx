@@ -39,7 +39,7 @@ function RelationControl({
   });
 
   return (
-    <details className="group overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50/60 dark:border-zinc-800 dark:bg-zinc-950/50">
+    <details className="group overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 marker:content-none">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -66,7 +66,7 @@ function RelationControl({
         <label className="relative block">
           <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
           <input
-            className="w-full rounded-lg border border-zinc-300 bg-white py-2 pr-3 pl-8 text-xs outline-none focus:border-cyan-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded border border-gray-300 bg-white py-2 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
             onChange={(event) => setQuery(event.target.value)}
             placeholder={`Search ${definition.label.toLowerCase()}…`}
             value={query}
@@ -80,7 +80,7 @@ function RelationControl({
               <button
                 className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs transition ${
                   active
-                    ? "border-cyan-500 bg-cyan-500/10 text-cyan-900 dark:text-cyan-100"
+                    ? "border-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100"
                     : "border-transparent hover:border-zinc-300 hover:bg-white dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
                 }`}
                 key={entry.id}
@@ -100,7 +100,7 @@ function RelationControl({
                 <span
                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                     active
-                      ? "border-cyan-600 bg-cyan-600 text-white"
+                      ? "border-blue-600 bg-blue-600 text-white"
                       : "border-zinc-300 dark:border-zinc-600"
                   }`}
                 >
@@ -168,10 +168,10 @@ export default function CmsRelationEditor({
   if (!definitions.length) return null;
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+    <section className="space-y-4">
       <div>
         <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-          <Link2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+          <Link2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           Connections
         </h3>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">

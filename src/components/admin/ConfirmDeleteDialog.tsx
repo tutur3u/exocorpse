@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, LoaderCircle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
 
 interface ConfirmDeleteDialogProps {
@@ -35,44 +35,44 @@ export default function ConfirmDeleteDialog({
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
       onClick={() => {
         if (!loading) onCancel();
       }}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-[1.5rem] border border-white/10 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.45)] dark:bg-zinc-950"
+        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-dialog-title"
         aria-describedby="delete-dialog-description"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start gap-4 p-6">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-            <AlertTriangle className="h-5 w-5" />
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="flex-1">
             <h3
               id="delete-dialog-title"
-              className="font-serif text-xl font-semibold text-zinc-950 dark:text-white"
+              className="text-lg font-bold text-gray-900 dark:text-white"
             >
               {title}
             </h3>
             <p
               id="delete-dialog-description"
-              className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300"
+              className="mt-2 text-sm text-gray-700 dark:text-gray-300"
             >
               {message}
             </p>
           </div>
         </div>
-        <div className="flex justify-end gap-2 border-t border-zinc-200 bg-zinc-50/80 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
@@ -80,10 +80,9 @@ export default function ConfirmDeleteDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-            {loading ? "Deleting…" : confirmText}
+            {loading ? "Deleting..." : confirmText}
           </button>
         </div>
       </div>

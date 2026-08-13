@@ -3,22 +3,17 @@
 import CmsEntryEditor from "@/components/admin/cms-management/CmsEntryEditor";
 import CmsEntryEditorDialog from "@/components/admin/cms-management/CmsEntryEditorDialog";
 import CmsEntryGallery from "@/components/admin/cms-management/CmsEntryGallery";
-import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
+import { adminCmsTheme } from "@/components/admin/cms-management/admin-theme";
+import {
+  collectionItemLabel,
+  collectionTabLabel,
+} from "@/components/admin/cms-management/collection-copy";
 import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/gallery-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
-import {
-  ArrowUpRight,
-  ChevronDown,
-  FilePlus2,
-  Library,
-  RefreshCw,
-  Settings2,
-  X,
-} from "lucide-react";
-import Link from "next/link";
+import { ChevronDown, Library, RefreshCw, Settings2, X } from "lucide-react";
 import { useState } from "react";
 
 export default function CmsManagementWorkspace({
@@ -85,23 +80,36 @@ export default function CmsManagementWorkspace({
     : [];
   const relationFilter = buildCmsEntryGalleryFilter(studio, collection.id);
   const itemLabel = collectionItemLabel(collection);
+  const theme = adminCmsTheme(section.key);
+  const canCreate = collection.slug !== "about";
 
-  const collectionButton = (item: (typeof visibleCollections)[number]) => {
+  const collectionButton = (
+    item: (typeof visibleCollections)[number],
+    variant: "pill" | "tab" = "pill",
+  ) => {
     const count = studio.entries.filter(
       (entry) => entry.collection_id === item.id,
     ).length;
     return (
       <button
-        className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+        className={`flex shrink-0 items-center gap-2 text-sm font-medium transition ${
+          variant === "tab"
+            ? "border-b-2 px-1 py-4 whitespace-nowrap"
+            : "rounded-lg px-3 py-2"
+        } ${
           item.id === collection.id
-            ? "bg-cyan-600 text-white shadow-sm"
-            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
+            ? variant === "tab"
+              ? theme.activeTab
+              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+            : variant === "tab"
+              ? "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         }`}
         key={item.id}
         onClick={() => selectCollection(item.id)}
         type="button"
       >
-        {item.title}
+        {collectionTabLabel(item)}
         <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-75">
           {count}
         </span>
@@ -109,48 +117,125 @@ export default function CmsManagementWorkspace({
     );
   };
 
+  const entryGallery = (
+    <CmsEntryGallery
+      assets={studio.assets}
+      collection={collection}
+      entries={entries}
+      key={collection.id}
+      onCreate={() => {
+        createEntry();
+        setEditorOpen(true);
+      }}
+      onDelete={(entry) => setDeletingEntryId(entry.id)}
+      onSelect={(nextEntryId) => {
+        setEntryId(nextEntryId);
+        setEditorOpen(true);
+      }}
+      relationFilter={relationFilter}
+      supportsImages={config.assetTypes.includes("image")}
+      theme={theme}
+    />
+  );
+
+  const supportingNavigation = supportingCollections.length ? (
+    <details className="group rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 marker:content-none dark:text-gray-300">
+        <Settings2 className="h-4 w-4 text-gray-400" />
+        <span className="flex-1">Related content</span>
+        <span className="text-xs font-normal text-gray-500">
+          {supportingCollections.length} types
+        </span>
+        <ChevronDown className="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
+      </summary>
+      <div className="flex flex-wrap gap-1 border-t border-gray-200 p-2 dark:border-gray-800">
+        {supportingCollections.map((item) => collectionButton(item))}
+      </div>
+    </details>
+  ) : null;
+
   return (
     <div className="@container space-y-6">
-      <header className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-950 dark:text-white">
-            {section.title}
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            {section.description}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-cyan-600 to-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            onClick={() => {
-              createEntry();
-              setEditorOpen(true);
-            }}
-            type="button"
-          >
-            <FilePlus2 className="h-4 w-4" />
-            New {itemLabel}
-          </button>
-          <Link
-            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            href="/"
-            target="_blank"
-          >
-            View public site
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
-          {section.key === "cms" ? (
-            <a
-              className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-              href={cmsHref}
-              rel="noreferrer"
-              target="_blank"
+      <header
+        className={
+          section.key === "about"
+            ? "rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-cyan-50 p-8 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-cyan-950/20"
+            : section.key === "blog-posts"
+              ? "rounded-[1.75rem] border border-zinc-800 bg-[radial-gradient(circle_at_top_left,rgba(145,49,44,0.28),transparent_38%),linear-gradient(180deg,rgba(24,16,18,0.98),rgba(13,14,18,0.98))] p-6 shadow-[0_30px_90px_-45px_rgba(0,0,0,0.55)]"
+              : "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
+        }
+      >
+        <div
+          className={
+            section.key === "about" || section.key === "blog-posts"
+              ? "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
+              : "contents"
+          }
+        >
+          <div>
+            {section.key === "about" || section.key === "blog-posts" ? (
+              <p
+                className={`text-xs font-semibold tracking-[0.25em] uppercase ${
+                  section.key === "blog-posts"
+                    ? "text-red-300"
+                    : theme.accentText
+                }`}
+              >
+                {section.key === "blog-posts"
+                  ? "Editorial Desk"
+                  : "About Management"}
+              </p>
+            ) : null}
+            <h1
+              className={`text-3xl font-bold ${
+                section.key === "blog-posts"
+                  ? "mt-2 text-zinc-50"
+                  : section.key === "about"
+                    ? "mt-3 text-gray-900 dark:text-white"
+                    : "text-gray-900 dark:text-white"
+              }`}
             >
-              <Library className="h-3.5 w-3.5" />
-              Open Tuturuuu CMS
-            </a>
-          ) : null}
+              {section.key === "about"
+                ? "About Me Admin"
+                : section.key === "blog-posts"
+                  ? "Blog post management"
+                  : section.title}
+            </h1>
+            <p
+              className={`mt-2 max-w-3xl text-sm leading-6 ${
+                section.key === "blog-posts"
+                  ? "text-zinc-400"
+                  : "text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              {section.description}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {canCreate ? (
+              <button
+                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                onClick={() => {
+                  createEntry();
+                  setEditorOpen(true);
+                }}
+                type="button"
+              >
+                + New {itemLabel}
+              </button>
+            ) : null}
+            {section.key === "cms" ? (
+              <a
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                href={cmsHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <Library className="h-3.5 w-3.5" />
+                Open Tuturuuu CMS
+              </a>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -175,47 +260,29 @@ export default function CmsManagementWorkspace({
         </div>
       ) : null}
 
-      {primaryCollections.length > 1 ? (
-        <nav
-          aria-label={`${section.title} content`}
-          className="flex gap-1 overflow-x-auto border-b border-zinc-200 pb-2 dark:border-zinc-800"
-        >
-          {primaryCollections.map(collectionButton)}
-        </nav>
-      ) : null}
-
-      {supportingCollections.length ? (
-        <details className="group rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-700 marker:content-none dark:text-zinc-300">
-            <Settings2 className="h-4 w-4 text-zinc-400" />
-            <span className="flex-1">Related content</span>
-            <span className="text-xs font-normal text-zinc-500">
-              {supportingCollections.length} types
-            </span>
-            <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
-          </summary>
-          <div className="flex flex-wrap gap-1 border-t border-zinc-200 p-2 dark:border-zinc-800">
-            {supportingCollections.map(collectionButton)}
-          </div>
-        </details>
-      ) : null}
-
-      <CmsEntryGallery
-        assets={studio.assets}
-        collection={collection}
-        entries={entries}
-        key={collection.id}
-        onCreate={() => {
-          createEntry();
-          setEditorOpen(true);
-        }}
-        onDelete={(entry) => setDeletingEntryId(entry.id)}
-        onSelect={(nextEntryId) => {
-          setEntryId(nextEntryId);
-          setEditorOpen(true);
-        }}
-        relationFilter={relationFilter}
-      />
+      {section.key === "about" ? (
+        <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="rounded-[1.75rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
+            <nav aria-label={`${section.title} content`} className="space-y-2">
+              {primaryCollections.map((item) => collectionButton(item))}
+            </nav>
+          </aside>
+          <div className="min-w-0 space-y-6">{entryGallery}</div>
+        </div>
+      ) : (
+        <>
+          {primaryCollections.length > 1 ? (
+            <nav
+              aria-label={`${section.title} content`}
+              className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            >
+              {primaryCollections.map((item) => collectionButton(item, "tab"))}
+            </nav>
+          ) : null}
+          {supportingNavigation}
+          {entryGallery}
+        </>
+      )}
 
       {editorOpen ? (
         <CmsEntryEditorDialog
@@ -241,12 +308,14 @@ export default function CmsManagementWorkspace({
             onDraftChange={setDraft}
             onRelationsChange={setRelationSelections}
             onSave={save}
+            onCancel={() => setEditorOpen(false)}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
             pending={pending}
             relationSelections={relationSelections}
             selectedEntryId={entryId}
             studio={studio}
+            theme={theme}
           />
         </CmsEntryEditorDialog>
       ) : null}

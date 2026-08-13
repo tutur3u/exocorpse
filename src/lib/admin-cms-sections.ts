@@ -26,7 +26,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     collectionSlugs: ["about", "about-content", "about-faqs"],
     defaultCollectionSlug: "about",
     description:
-      "Manage your profile, social cards, favorites, boundaries, and frequently asked questions.",
+      "This page manages the public About Me window end-to-end: hero copy, section labels, bespoke FAQ renderers, DNI rules, and social cards.",
     eyebrow: "Identity desk",
     key: "about",
     primaryCollectionSlugs: ["about", "about-content", "about-faqs"],
@@ -35,17 +35,17 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
   addons: {
     collectionSlugs: ["commission-addons", "commission-services"],
     defaultCollectionSlug: "commission-addons",
-    description:
-      "Manage commission add-ons, prices, and the services they belong to.",
+    description: "Manage add-ons that can be linked to commission services.",
     eyebrow: "Commission modifiers",
     key: "addons",
     primaryCollectionSlugs: ["commission-addons"],
-    title: "Add-ons",
+    title: "Commission Add-ons",
   },
   "blog-posts": {
     collectionSlugs: ["blog-posts", "tags"],
     defaultCollectionSlug: "blog-posts",
-    description: "Write, illustrate, and publish blog posts.",
+    description:
+      "Manage drafts, scheduled drops, and published entries without the layout overwhelming the content.",
     eyebrow: "Editorial desk",
     key: "blog-posts",
     primaryCollectionSlugs: ["blog-posts"],
@@ -63,8 +63,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "outfit-types",
     ],
     defaultCollectionSlug: "characters",
-    description:
-      "Manage character profiles, artwork, outfits, relationships, and locations.",
+    description: "Manage all characters across your worlds.",
     eyebrow: "Character archive",
     key: "characters",
     primaryCollectionSlugs: ["characters"],
@@ -80,8 +79,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
   factions: {
     collectionSlugs: ["factions", "character-factions"],
     defaultCollectionSlug: "factions",
-    description:
-      "Manage factions, their hierarchy, members, and the worlds they belong to.",
+    description: "Manage factions and organizations within your worlds.",
     eyebrow: "Faction registry",
     key: "factions",
     primaryCollectionSlugs: ["factions"],
@@ -90,8 +88,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
   locations: {
     collectionSlugs: ["locations", "location-gallery", "character-locations"],
     defaultCollectionSlug: "locations",
-    description:
-      "Manage places, maps, galleries, and the worlds they belong to.",
+    description: "Manage locations within your worlds.",
     eyebrow: "Atlas desk",
     key: "locations",
     primaryCollectionSlugs: ["locations"],
@@ -125,7 +122,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     ],
     defaultCollectionSlug: "commission-services",
     description:
-      "Manage commission services, styles, examples, prices, and availability.",
+      "Manage your commission services, styles, and example pictures.",
     eyebrow: "Commission catalogue",
     key: "services",
     primaryCollectionSlugs: ["commission-services"],
@@ -134,7 +131,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
   stories: {
     collectionSlugs: ["stories", "tags"],
     defaultCollectionSlug: "stories",
-    description: "Manage story universes, themes, visibility, and publishing.",
+    description: "Manage your story universes.",
     eyebrow: "Universe registry",
     key: "stories",
     primaryCollectionSlugs: ["stories"],
@@ -150,8 +147,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "event-factions",
     ],
     defaultCollectionSlug: "worlds",
-    description:
-      "Manage worlds within your stories, with timelines and events close at hand.",
+    description: "Manage worlds within your stories.",
     eyebrow: "Worldbuilding atlas",
     key: "worlds",
     primaryCollectionSlugs: ["worlds"],

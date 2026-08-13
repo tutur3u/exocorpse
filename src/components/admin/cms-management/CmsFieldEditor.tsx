@@ -14,7 +14,7 @@ type Props = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-zinc-300/80 bg-white/90 px-3 py-2.5 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100";
+  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 function labelFor(definition: ExocorpseCmsFieldDefinition) {
   return definition.label && definition.label !== definition.key
@@ -60,10 +60,10 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
 
   if (definition.field_type === "boolean") {
     return (
-      <label className="flex items-start gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/70 px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 dark:border-gray-700 dark:bg-gray-900/50">
         <input
           checked={value === true}
-          className="mt-0.5 h-4 w-4 accent-cyan-600"
+          className="mt-0.5 h-4 w-4 accent-blue-600"
           onChange={(event) => onChange(event.target.checked)}
           type="checkbox"
         />

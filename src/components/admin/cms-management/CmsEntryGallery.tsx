@@ -1,6 +1,7 @@
 "use client";
 
 import CmsEntryCard from "@/components/admin/cms-management/CmsEntryCard";
+import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
 import {
   type CmsEntryGalleryFilter,
@@ -11,15 +12,8 @@ import type {
   ExocorpseCmsCollection,
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
-import { FilePlus2, Search } from "lucide-react";
+import { FilePlus2 } from "lucide-react";
 import { useMemo, useState } from "react";
-
-const statusLabels: Record<ExocorpseCmsEntry["status"], string> = {
-  archived: "Archived",
-  draft: "Draft",
-  published: "Live",
-  scheduled: "Scheduled",
-};
 
 export default function CmsEntryGallery({
   assets,
@@ -29,6 +23,8 @@ export default function CmsEntryGallery({
   onCreate,
   onDelete,
   onSelect,
+  supportsImages,
+  theme,
 }: {
   assets: ExocorpseCmsAsset[];
   collection: ExocorpseCmsCollection;
@@ -37,28 +33,17 @@ export default function CmsEntryGallery({
   onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
+  supportsImages: boolean;
+  theme: AdminCmsTheme;
 }) {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | ExocorpseCmsEntry["status"]>(
-    "all",
-  );
   const [relationTargetId, setRelationTargetId] = useState("all");
   const itemLabel = collectionItemLabel(collection);
   const filteredEntries = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
     return entries
-      .filter((entry) => status === "all" || entry.status === status)
       .filter(
         (entry) =>
           relationTargetId === "all" ||
           relationFilter?.entryTargetIds[entry.id]?.includes(relationTargetId),
-      )
-      .filter(
-        (entry) =>
-          !normalized ||
-          entry.title.toLowerCase().includes(normalized) ||
-          entry.subtitle?.toLowerCase().includes(normalized) ||
-          entry.summary?.toLowerCase().includes(normalized),
       )
       .sort((left, right) => {
         if (left.sort_order !== right.sort_order) {
@@ -66,7 +51,7 @@ export default function CmsEntryGallery({
         }
         return left.title.localeCompare(right.title);
       });
-  }, [entries, query, relationFilter, relationTargetId, status]);
+  }, [entries, relationFilter, relationTargetId]);
 
   const mediaByEntry = useMemo(() => {
     const assetsByEntry = new Map<string, ExocorpseCmsAsset[]>();
@@ -87,32 +72,11 @@ export default function CmsEntryGallery({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200/80 bg-white/80 p-4 shadow-sm @2xl:flex-row @2xl:items-center dark:border-zinc-800 dark:bg-zinc-950/70">
-        <div className="min-w-0 flex-1">
-          <h2 className="font-serif text-xl font-semibold text-zinc-950 dark:text-zinc-50">
-            {collection.title}
-          </h2>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            {entries.length} total
-          </p>
-        </div>
-        <label className="relative block min-w-0 @2xl:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <input
-            aria-label={`Search ${collection.title}`}
-            className="w-full rounded-xl border border-zinc-300/80 bg-white py-2.5 pr-3 pl-9 text-sm transition outline-none placeholder:text-zinc-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-900"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={`Search ${collection.title.toLowerCase()}`}
-            value={query}
-          />
-        </label>
-      </div>
-
       {relationFilter ? (
-        <label className="block rounded-xl border border-zinc-200/80 bg-white p-4 text-sm font-medium text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+        <label className="block rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
           <span className="mb-2 block">Filter by {relationFilter.label}</span>
           <select
-            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-zinc-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             onChange={(event) => setRelationTargetId(event.target.value)}
             value={relationTargetId}
           >
@@ -126,27 +90,8 @@ export default function CmsEntryGallery({
         </label>
       ) : null}
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {(["all", "draft", "published", "scheduled", "archived"] as const).map(
-          (option) => (
-            <button
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition ${
-                status === option
-                  ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
-                  : "border-zinc-300 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200"
-              }`}
-              key={option}
-              onClick={() => setStatus(option)}
-              type="button"
-            >
-              {option === "all" ? "All" : statusLabels[option]}
-            </button>
-          ),
-        )}
-      </div>
-
       {filteredEntries.length ? (
-        <div className="grid items-start gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+        <div className="grid items-start gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3">
           {filteredEntries.map((entry, index) => {
             const media = mediaByEntry.get(entry.id);
             return (
@@ -159,23 +104,30 @@ export default function CmsEntryGallery({
                 onDelete={() => onDelete(entry)}
                 onEdit={() => onSelect(entry.id)}
                 previewAsset={media?.preview}
+                supportsImages={supportsImages}
+                theme={theme}
               />
             );
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/60 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-950/50">
+        <div className="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center dark:border-gray-800 dark:bg-gray-950">
+          <div
+            className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${theme.emptyIcon}`}
+          >
+            <FilePlus2 className="h-8 w-8" />
+          </div>
           <p className="font-medium text-zinc-700 dark:text-zinc-300">
             {entries.length ? "No matching items" : `No ${itemLabel} yet`}
           </p>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {entries.length
-              ? "Try a different search or status."
+              ? `No ${collection.title.toLowerCase()} match this filter.`
               : `Add your first ${itemLabel} when you are ready.`}
           </p>
           {!entries.length ? (
             <button
-              className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-500"
+              className={`mt-5 inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
               onClick={onCreate}
               type="button"
             >

@@ -26,11 +26,11 @@ export default function CmsAssetManager({
     : undefined;
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+    <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-            <FileImage className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+            <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             Media
           </h3>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
@@ -46,7 +46,7 @@ export default function CmsAssetManager({
           className="flex flex-wrap items-center gap-2"
           ref={formRef}
         >
-          <label className="cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-cyan-500 hover:text-cyan-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-cyan-300">
+          <label className="cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:border-blue-500 hover:text-blue-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:text-blue-300">
             {selectedFile || "Choose a file"}
             <input
               accept={accept}
@@ -61,7 +61,7 @@ export default function CmsAssetManager({
             />
           </label>
           <button
-            className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-500 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             disabled={disabled || !selectedFile}
             type="submit"
           >
@@ -76,7 +76,7 @@ export default function CmsAssetManager({
           const imageUrl = asset.preview_url ?? asset.asset_url;
           return (
             <article
-              className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"
+              className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
               key={asset.id}
             >
               {asset.asset_type === "image" && imageUrl ? (
@@ -119,7 +119,7 @@ export default function CmsAssetManager({
         })}
       </div>
       {assets.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
           No media yet. Choose a file to add the first one.
         </div>
       ) : null}

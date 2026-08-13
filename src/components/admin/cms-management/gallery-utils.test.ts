@@ -8,6 +8,7 @@ import {
   entryCardDescription,
   selectCmsEntryCardMedia,
 } from "./gallery-utils";
+import { collectionTabLabel } from "./collection-copy";
 
 const collection = (slug: string): ExocorpseCmsCollection => ({
   collection_type: "content",
@@ -72,6 +73,14 @@ describe("CMS entry gallery media", () => {
     ).toEqual({ avatar: profile, preview: banner });
   });
 
+  test("keeps a lone character image in the profile position", () => {
+    const profile = asset("profile", 0);
+
+    expect(
+      selectCmsEntryCardMedia(collection("characters"), [profile]),
+    ).toEqual({ avatar: profile, preview: undefined });
+  });
+
   test("uses the first usable image and skips files or missing sources", () => {
     const cover = asset("cover", 2);
 
@@ -95,6 +104,17 @@ describe("CMS entry card copy", () => {
     expect(entryCardDescription(entry({ subtitle: "question?" }))).toBe(
       undefined,
     );
+  });
+});
+
+describe("legacy dashboard tab copy", () => {
+  test("uses the familiar About and Portfolio labels", () => {
+    expect(collectionTabLabel(collection("about"))).toBe("Profile");
+    expect(collectionTabLabel(collection("about-content"))).toBe("About");
+    expect(collectionTabLabel(collection("about-faqs"))).toBe("FAQ");
+    expect(collectionTabLabel(collection("portfolio-art"))).toBe("Art");
+    expect(collectionTabLabel(collection("portfolio-writing"))).toBe("Writing");
+    expect(collectionTabLabel(collection("portfolio-games"))).toBe("Games");
   });
 });
 

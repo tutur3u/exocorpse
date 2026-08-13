@@ -36,8 +36,8 @@ export default function CmsMediaPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-dashed border-cyan-300 bg-cyan-50/60 px-5 py-12 text-center dark:border-cyan-900 dark:bg-cyan-950/20">
-      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300">
+    <div className="rounded-lg border-2 border-dashed border-gray-300 px-5 py-12 text-center dark:border-gray-600">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
         <Images className="h-5 w-5" />
       </span>
       <p className="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">
@@ -48,7 +48,7 @@ export default function CmsMediaPanel({
         media here.
       </p>
       <button
-        className="mt-4 rounded-xl bg-cyan-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-cyan-500 disabled:opacity-45"
+        className="mt-4 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         disabled={!canSave}
         onClick={onSave}
         type="button"

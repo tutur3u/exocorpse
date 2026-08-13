@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 const inputClassName =
-  "w-full rounded-xl border border-zinc-300/80 bg-white/90 px-3 py-2.5 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100";
+  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 const visibilityHelp: Record<CmsEntryDraft["status"], string> = {
   archived: "Hidden from visitors and kept in your library.",
@@ -28,10 +28,10 @@ export default function CmsPublishingSettings({
 }) {
   return (
     <div className="space-y-4">
-      <section className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+      <section className="space-y-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-            <Eye className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+            <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             Visibility
           </h3>
           <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
@@ -86,7 +86,7 @@ export default function CmsPublishingSettings({
         </div>
       </section>
 
-      <details className="group rounded-2xl border border-zinc-200/80 bg-white/70 dark:border-zinc-800 dark:bg-zinc-900/40">
+      <details className="group rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 marker:content-none">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
             <SlidersHorizontal className="h-4 w-4" />
@@ -107,7 +107,7 @@ export default function CmsPublishingSettings({
               <Link className="h-3.5 w-3.5" />
               Page address <span className="text-rose-500">*</span>
             </span>
-            <div className="flex items-center rounded-xl border border-zinc-300/80 bg-white/90 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/15 dark:border-zinc-700 dark:bg-zinc-950/80">
+            <div className="flex items-center rounded border border-gray-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-600 dark:bg-gray-700">
               <span className="pl-3 font-mono text-xs text-zinc-400">/</span>
               <input
                 className="min-w-0 flex-1 bg-transparent px-1 py-2.5 font-mono text-sm outline-none"

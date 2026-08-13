@@ -9,6 +9,7 @@ import CmsMediaPanel from "@/components/admin/cms-management/CmsMediaPanel";
 import CmsPublishingSettings from "@/components/admin/cms-management/CmsPublishingSettings";
 import CmsRelationEditor from "@/components/admin/cms-management/CmsRelationEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
+import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import type {
   CmsBlockDraft,
   CmsEntryDraft,
@@ -37,6 +38,7 @@ type Props = {
   onBlocksChange: (blocks: CmsBlockDraft[]) => void;
   onDelete: () => void;
   onDeleteAsset: (assetId: string) => void;
+  onCancel: () => void;
   onDraftChange: (draft: CmsEntryDraft) => void;
   onSave: () => void;
   onTitleChange: (title: string) => void;
@@ -46,6 +48,7 @@ type Props = {
   relationSelections: CmsRelationSelections;
   selectedEntryId: string;
   studio: ExocorpseCmsStudio;
+  theme: AdminCmsTheme;
 };
 
 export default function CmsEntryEditor({
@@ -58,6 +61,7 @@ export default function CmsEntryEditor({
   draft,
   fields,
   onBlocksChange,
+  onCancel,
   onDelete,
   onDeleteAsset,
   onDraftChange,
@@ -69,6 +73,7 @@ export default function CmsEntryEditor({
   relationSelections,
   selectedEntryId,
   studio,
+  theme,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState<CmsEditorTab>("content");
@@ -79,38 +84,13 @@ export default function CmsEntryEditor({
   );
 
   return (
-    <div className="min-w-0 bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.08),transparent_34%)]">
-      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 py-3 pr-16 pl-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/92">
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold tracking-[0.22em] text-cyan-700 uppercase dark:text-cyan-300">
-            {selectedEntryId ? "Editing" : "Creating a new item"}
-          </p>
-          <h2 className="truncate text-lg font-semibold text-zinc-950 dark:text-zinc-50">
-            {draft.title || `Untitled ${collection.title}`}
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectedEntryId ? (
-            <button
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950"
-              disabled={pending}
-              onClick={() => setConfirmingDelete(true)}
-              type="button"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete
-            </button>
-          ) : null}
-          <button
-            className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!canSave}
-            onClick={onSave}
-            type="button"
-          >
-            <Save className="h-3.5 w-3.5" />
-            {pending ? "Saving…" : "Save changes"}
-          </button>
-        </div>
+    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
+      <div className="px-4 pt-6 pb-4 sm:px-6">
+        <h2 className="truncate text-2xl font-bold text-gray-900 dark:text-white">
+          {selectedEntryId
+            ? `Edit ${draft.title}`
+            : `Create New ${collection.title}`}
+        </h2>
       </div>
 
       <CmsEditorTabs
@@ -120,11 +100,12 @@ export default function CmsEntryEditor({
         connectionCount={connectionCount}
         hasConnections={definitions.length > 0}
         onChange={setActiveTab}
+        theme={theme}
       />
 
       <div
         aria-labelledby={`cms-${activeTab}-tab`}
-        className="min-h-[34rem] space-y-4 p-4 @3xl:p-6"
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6"
         id={`cms-${activeTab}-panel`}
         role="tabpanel"
       >
@@ -174,6 +155,41 @@ export default function CmsEntryEditor({
         {activeTab === "settings" ? (
           <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
         ) : null}
+      </div>
+
+      <div className="sticky bottom-0 flex flex-col-reverse items-stretch gap-2 border-t border-gray-300 bg-white/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 dark:border-gray-600 dark:bg-gray-800/95">
+        <div>
+          {selectedEntryId ? (
+            <button
+              className="inline-flex w-full items-center justify-center gap-2 rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-200 disabled:opacity-50 sm:w-auto dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+              disabled={pending}
+              onClick={() => setConfirmingDelete(true)}
+              type="button"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          ) : null}
+        </div>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <button
+            className="w-full rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300 disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+            disabled={pending}
+            onClick={onCancel}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            className="inline-flex w-full items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            disabled={!canSave}
+            onClick={onSave}
+            type="button"
+          >
+            <Save className="h-4 w-4" />
+            {pending ? "Saving..." : "Save changes"}
+          </button>
+        </div>
       </div>
 
       <ConfirmDeleteDialog
