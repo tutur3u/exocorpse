@@ -145,14 +145,11 @@ function ItemCard({
     <details className="group rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase dark:text-gray-400">
-            Existing Item
-          </p>
           <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
             {itemSummary}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Order {draft.display_order} • ID {item.id.slice(0, 8)}
+            Position {draft.display_order + 1}
           </p>
         </div>
         <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
@@ -363,11 +360,8 @@ export default function AboutContentItemsEditor({
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
             <div>
               <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                Add Item
+                Add new
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Create a new row for this section.
-              </p>
             </div>
             <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
           </summary>

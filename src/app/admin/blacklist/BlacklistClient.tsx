@@ -1,5 +1,6 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   addBlacklistedUser,
@@ -159,25 +160,21 @@ export default function BlacklistClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Blacklist Management
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Manage blacklisted users and their reasons
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setEditingUser(null);
-            setShowForm(true);
-          }}
-          className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
-        >
-          + Add to Blacklist
-        </button>
-      </div>
+      <AdminPageHeader
+        actions={
+          <button
+            className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
+            onClick={() => {
+              setEditingUser(null);
+              setShowForm(true);
+            }}
+            type="button"
+          >
+            + Add person
+          </button>
+        }
+        title="Blacklist"
+      />
 
       {/* Search */}
       <div>

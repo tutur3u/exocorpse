@@ -63,4 +63,10 @@ describe("branded CMS admin sections", () => {
       "locations",
     ]);
   });
+
+  test("uses concise user-facing page titles", () => {
+    for (const section of Object.values(ADMIN_CMS_SECTIONS)) {
+      expect(section.title).not.toMatch(/management|admin|tuturuuu|cms/i);
+    }
+  });
 });

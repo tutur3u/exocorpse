@@ -189,13 +189,13 @@ function FaqCard({
         return (
           <>
             <FaqField
-              label="Programs Text"
+              label="Programs"
               value={draft.programs_text}
               onChange={(value) => setField("programs_text", value)}
               multiline={true}
             />
             <FaqField
-              label="Devices Text"
+              label="Devices"
               value={draft.devices_text}
               onChange={(value) => setField("devices_text", value)}
               multiline={true}
@@ -206,13 +206,13 @@ function FaqCard({
         return (
           <>
             <FaqField
-              label="Procreate Text"
+              label="Procreate"
               value={draft.brushes_procreate_text}
               onChange={(value) => setField("brushes_procreate_text", value)}
               multiline={true}
             />
             <FaqField
-              label="Paint Tool SAI Text"
+              label="Paint Tool SAI"
               value={draft.brushes_paint_tool_sai_text}
               onChange={(value) =>
                 setField("brushes_paint_tool_sai_text", value)
@@ -225,7 +225,7 @@ function FaqCard({
         return (
           <>
             <FaqField
-              label="Intro Text"
+              label="Introduction"
               value={draft.social_intro_text}
               onChange={(value) => setField("social_intro_text", value)}
               multiline={true}
@@ -237,7 +237,7 @@ function FaqCard({
               multiline={true}
             />
             <FaqField
-              label="Styled Display Name"
+              label="Display name"
               value={draft.social_display_name}
               onChange={(value) => setField("social_display_name", value)}
             />
@@ -252,7 +252,7 @@ function FaqCard({
       case "commissions":
         return (
           <FaqField
-            label="Commissions Text"
+            label="Answer"
             value={draft.commissions_text}
             onChange={(value) => setField("commissions_text", value)}
             multiline={true}
@@ -350,15 +350,9 @@ function FaqCard({
     <details className="group rounded-[1.75rem] border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-violet-600 uppercase dark:text-violet-400">
-            FAQ Type
-          </p>
-          <h3 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-            {faq.faq_type}
-          </h3>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {faq.question}
-          </p>
+          </h3>
         </div>
         <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
       </summary>
@@ -389,7 +383,7 @@ function FaqCard({
             onChange={(value) => setField("question", value)}
           />
           <FaqField
-            label="Display Order"
+            label="Position"
             value={draft.display_order}
             type="number"
             onChange={(value) => setField("display_order", value)}
@@ -409,33 +403,33 @@ function sectionFields(section: AboutContentSection): ContentFieldConfig[] {
       return [
         { key: "title", label: "Label", type: "text" },
         { key: "body", label: "Body", type: "textarea", rows: 3 },
-        { key: "display_order", label: "Display Order", type: "number" },
+        { key: "display_order", label: "Position", type: "number" },
       ];
     case "faq_brush_inside":
     case "faq_brush_outside":
       return [
         { key: "title", label: "Brush Name", type: "text" },
         { key: "url", label: "Brush URL", type: "text" },
-        { key: "display_order", label: "Display Order", type: "number" },
+        { key: "display_order", label: "Position", type: "number" },
       ];
     case "faq_permission_allowed":
     case "faq_permission_prohibited":
       return [
         { key: "title", label: "Policy Label", type: "text" },
         { key: "body", label: "Policy Text", type: "textarea", rows: 3 },
-        { key: "display_order", label: "Display Order", type: "number" },
+        { key: "display_order", label: "Position", type: "number" },
       ];
     case "faq_asset_credit":
       return [
         { key: "title", label: "Credit Label", type: "text" },
         { key: "subtitle", label: "Display Name", type: "text" },
         { key: "url", label: "Credit URL", type: "text" },
-        { key: "display_order", label: "Display Order", type: "number" },
+        { key: "display_order", label: "Position", type: "number" },
       ];
     case "faq_artist":
       return [
         { key: "title", label: "Artist Name", type: "text" },
-        { key: "display_order", label: "Display Order", type: "number" },
+        { key: "display_order", label: "Position", type: "number" },
       ];
     default:
       return [];
@@ -485,18 +479,9 @@ export default function AboutFaqEditor({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[2rem] border border-violet-200 bg-linear-to-br from-violet-50 via-white to-fuchsia-50 p-6 dark:border-violet-900/70 dark:from-violet-950/40 dark:via-gray-950 dark:to-fuchsia-950/30">
-        <p className="text-xs font-semibold tracking-[0.2em] text-violet-600 uppercase dark:text-violet-400">
-          FAQ Control
-        </p>
-        <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-          Fixed FAQ Renderer
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-          Each card maps to one of the nine public FAQ renderers. Question text
-          and order are editable, but the renderer types stay fixed.
-        </p>
-      </div>
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        Questions
+      </h2>
 
       {data.faqs.map((faq) => {
         const stableFaq = faqByType[faq.faq_type as keyof typeof faqByType];
@@ -509,7 +494,7 @@ export default function AboutFaqEditor({
           <FaqCard key={stableFaq.id} faq={stableFaq} onUpdateFaq={onUpdateFaq}>
             {stableFaq.faq_type === "programs" ? (
               <RelatedItems
-                title="Programs: Other Stuff Rows"
+                title="Other tools"
                 section="faq_program_other"
                 items={itemsBySection.faq_program_other}
                 onCreateItem={onCreateItem}
@@ -521,7 +506,7 @@ export default function AboutFaqEditor({
             {stableFaq.faq_type === "brushes" ? (
               <div className="grid gap-4 xl:grid-cols-2">
                 <RelatedItems
-                  title="Brushes: Inside Clip Studio Assets"
+                  title="Clip Studio brushes"
                   section="faq_brush_inside"
                   items={itemsBySection.faq_brush_inside}
                   onCreateItem={onCreateItem}
@@ -529,7 +514,7 @@ export default function AboutFaqEditor({
                   onDeleteItem={onDeleteItem}
                 />
                 <RelatedItems
-                  title="Brushes: Outside Clip Studio Assets"
+                  title="Other brushes"
                   section="faq_brush_outside"
                   items={itemsBySection.faq_brush_outside}
                   onCreateItem={onCreateItem}
@@ -542,7 +527,7 @@ export default function AboutFaqEditor({
             {stableFaq.faq_type === "permissions" ? (
               <div className="grid gap-4 xl:grid-cols-2">
                 <RelatedItems
-                  title="Allowed Policies"
+                  title="Allowed uses"
                   section="faq_permission_allowed"
                   items={itemsBySection.faq_permission_allowed}
                   onCreateItem={onCreateItem}
@@ -550,7 +535,7 @@ export default function AboutFaqEditor({
                   onDeleteItem={onDeleteItem}
                 />
                 <RelatedItems
-                  title="Prohibited Policies"
+                  title="Not allowed"
                   section="faq_permission_prohibited"
                   items={itemsBySection.faq_permission_prohibited}
                   onCreateItem={onCreateItem}

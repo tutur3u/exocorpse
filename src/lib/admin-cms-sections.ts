@@ -74,7 +74,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     description: "Manage every part of the site from one complete library.",
     eyebrow: "Tuturuuu CMS",
     key: "cms",
-    title: "Complete Content Library",
+    title: "Content library",
   },
   factions: {
     collectionSlugs: ["factions", "character-factions"],
@@ -110,7 +110,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "portfolio-writing",
       "portfolio-games",
     ],
-    title: "Portfolio Management",
+    title: "Portfolio",
   },
   services: {
     collectionSlugs: [

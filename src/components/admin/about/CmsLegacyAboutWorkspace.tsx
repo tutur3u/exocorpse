@@ -5,6 +5,7 @@ import AboutContentItemsEditor, {
 } from "@/components/admin/about/AboutContentItemsEditor";
 import AboutFaqEditor from "@/components/admin/about/AboutFaqEditor";
 import AboutSettingsForm from "@/components/admin/about/AboutSettingsForm";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import {
   isJsonRecord,
   slugify,
@@ -46,20 +47,20 @@ const aboutUseFields: ContentFieldConfig[] = [
       value,
     })),
   },
-  { key: "display_order", label: "Display Order", type: "number" },
+  { key: "display_order", label: "Position", type: "number" },
 ];
 
 const experienceFields: ContentFieldConfig[] = [
   { key: "icon_key", label: "Emoji/Icon", type: "text" },
   { key: "body", label: "Text", type: "textarea", rows: 3 },
-  { key: "display_order", label: "Display Order", type: "number" },
+  { key: "display_order", label: "Position", type: "number" },
 ];
 
 const favoriteFields: ContentFieldConfig[] = [
   { key: "title", label: "Category", type: "text" },
   { key: "icon_key", label: "Emoji/Icon", type: "text" },
   { key: "body", label: "Items", type: "textarea", rows: 4 },
-  { key: "display_order", label: "Display Order", type: "number" },
+  { key: "display_order", label: "Position", type: "number" },
 ];
 
 const socialFields: ContentFieldConfig[] = [
@@ -85,12 +86,12 @@ const socialFields: ContentFieldConfig[] = [
     })),
   },
   { key: "is_full_width", label: "Full Width Card", type: "checkbox" },
-  { key: "display_order", label: "Display Order", type: "number" },
+  { key: "display_order", label: "Position", type: "number" },
 ];
 
 const dniFields: ContentFieldConfig[] = [
   { key: "body", label: "Rule Text", type: "textarea", rows: 3 },
-  { key: "display_order", label: "Display Order", type: "number" },
+  { key: "display_order", label: "Position", type: "number" },
 ];
 
 const EPOCH = new Date(0).toISOString();
@@ -273,27 +274,22 @@ const tabConfig = [
   {
     id: "profile",
     label: "Profile",
-    eyebrow: "Hero, copy, section titles",
   },
   {
     id: "about",
     label: "About",
-    eyebrow: "Use cards, experiences, favorites",
   },
   {
     id: "faq",
     label: "FAQ",
-    eyebrow: "Fixed FAQ renderers",
   },
   {
     id: "dni",
     label: "DNI",
-    eyebrow: "Soft and hard boundaries",
   },
   {
     id: "socials",
     label: "Socials",
-    eyebrow: "Platform cards and colors",
   },
 ] as const;
 
@@ -796,55 +792,32 @@ export default function CmsLegacyAboutWorkspace({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-cyan-50 p-8 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-cyan-950/20">
-        <p className="text-xs font-semibold tracking-[0.25em] text-cyan-700 uppercase dark:text-cyan-400">
-          About Management
-        </p>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              About Me Admin
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-              This page manages the public About Me window end-to-end: hero
-              copy, section labels, bespoke FAQ renderers, DNI rules, and social
-              cards. Changes revalidate both the homepage and this admin route.
-            </p>
-          </div>
-          <div className="rounded-full border border-cyan-200 bg-white/90 px-4 py-2 text-xs font-medium tracking-[0.2em] text-cyan-700 uppercase shadow-sm dark:border-cyan-900/60 dark:bg-gray-950/90 dark:text-cyan-400">
-            {data.items.length} managed rows
-          </div>
-        </div>
-      </div>
+      <AdminPageHeader title="About" />
 
-      <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="rounded-[1.75rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <div className="space-y-2">
-            {tabConfig.map((tab) => {
-              const active = activeTab === tab.id;
+      <div className="space-y-5">
+        <nav
+          aria-label="About sections"
+          className="flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-800 dark:bg-gray-950"
+        >
+          {tabConfig.map((tab) => {
+            const active = activeTab === tab.id;
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                    active
-                      ? "border-cyan-300 bg-cyan-50 shadow-sm dark:border-cyan-800 dark:bg-cyan-950/30"
-                      : "border-transparent bg-gray-50 hover:border-gray-200 hover:bg-white dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:bg-gray-950"
-                  }`}
-                >
-                  <p className="text-xs font-semibold tracking-[0.18em] text-gray-500 uppercase dark:text-gray-400">
-                    {tab.eyebrow}
-                  </p>
-                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
-                    {tab.label}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </aside>
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  active
+                    ? "bg-cyan-600 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
 
         <div className="min-w-0">{renderTab()}</div>
       </div>

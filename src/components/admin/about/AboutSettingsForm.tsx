@@ -3,7 +3,6 @@
 import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
 import type { AboutPageSettings } from "@/lib/about";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
-import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type AboutSettingsFormProps = {
@@ -67,6 +66,7 @@ export default function AboutSettingsForm({
 }: AboutSettingsFormProps) {
   const [draft, setDraft] = useState<SettingsDraft>(toDraft(settings));
   const [saving, setSaving] = useState(false);
+  const [section, setSection] = useState<"hero" | "labels">("hero");
   const initialDraft = useMemo(() => toDraft(settings), [settings]);
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
@@ -82,20 +82,23 @@ export default function AboutSettingsForm({
   };
 
   return (
-    <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-gray-50 p-6 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-blue-600 uppercase dark:text-blue-400">
-            Profile Control
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-            Hero and Section Copy
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-gray-600 dark:text-gray-400">
-            Update the public header image, identity text, and the labels shown
-            across the About, FAQ, DNI, and Socials tabs.
-          </p>
-        </div>
+    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+      <div className="flex flex-col gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800">
+        <nav
+          aria-label="Profile settings"
+          className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-900"
+        >
+          {(["hero", "labels"] as const).map((item) => (
+            <button
+              className={`rounded-md px-4 py-2 text-sm font-medium transition ${section === item ? "bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              key={item}
+              onClick={() => setSection(item)}
+              type="button"
+            >
+              {item === "hero" ? "Profile" : "Section labels"}
+            </button>
+          ))}
+        </nav>
         <button
           type="button"
           onClick={async () => {
@@ -110,161 +113,120 @@ export default function AboutSettingsForm({
             }
           }}
           disabled={saving || !hasChanges}
-          className="rounded-xl bg-linear-to-r from-blue-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save Profile Settings"}
+          {saving ? "Saving..." : "Save changes"}
         </button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <details
-          open
-          className="group rounded-[1.5rem] border border-gray-200 bg-white/80 dark:border-gray-800 dark:bg-gray-950/80"
-        >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Hero
-              </h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                This is the panel visitors see before switching tabs.
-              </p>
-            </div>
-            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
-          </summary>
+      {section === "hero" ? (
+        <div className="space-y-5 p-5">
+          <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-900/40">
+            <CmsAssetManager
+              allowedAssetTypes={["image"]}
+              assets={assets}
+              disabled={mediaPending}
+              onDelete={onDeleteAsset}
+              onUpload={onUploadAsset}
+            />
+            <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+              The first image is shown on your About page.
+            </p>
+          </div>
 
-          <div className="space-y-5 border-t border-gray-200 p-5 dark:border-gray-800">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-900/40">
-              <CmsAssetManager
-                allowedAssetTypes={["image"]}
-                assets={assets}
-                disabled={mediaPending}
-                onDelete={onDeleteAsset}
-                onUpload={onUploadAsset}
-              />
-              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                The first image is used as the public About hero. Files remain
-                managed and versioned by Tuturuuu CMS.
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  Hero Name
-                </span>
-                <input
-                  value={draft.hero_name}
-                  onChange={(event) =>
-                    setField("hero_name", event.target.value)
-                  }
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  Hero Image Alt
-                </span>
-                <input
-                  value={draft.hero_image_alt}
-                  onChange={(event) =>
-                    setField("hero_image_alt", event.target.value)
-                  }
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                />
-              </label>
-            </div>
-
+          <div className="grid gap-4 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm">
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                Hero Subtitle
+                Hero Name
               </span>
               <input
-                value={draft.hero_subtitle}
+                value={draft.hero_name}
+                onChange={(event) => setField("hero_name", event.target.value)}
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Hero Image Alt
+              </span>
+              <input
+                value={draft.hero_image_alt}
                 onChange={(event) =>
-                  setField("hero_subtitle", event.target.value)
+                  setField("hero_image_alt", event.target.value)
                 }
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
             </label>
-
-            <label className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Hero Bio
-              </span>
-              <textarea
-                value={draft.hero_bio}
-                rows={6}
-                onChange={(event) => setField("hero_bio", event.target.value)}
-                className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-              />
-            </label>
           </div>
-        </details>
 
-        <details
-          open
-          className="group rounded-[1.5rem] border border-gray-200 bg-white/80 dark:border-gray-800 dark:bg-gray-950/80"
-        >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Public Labels
-              </h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Fine-tune the language used in each public tab and section.
-              </p>
-            </div>
-            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
-          </summary>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              Hero Subtitle
+            </span>
+            <input
+              value={draft.hero_subtitle}
+              onChange={(event) =>
+                setField("hero_subtitle", event.target.value)
+              }
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </label>
 
-          <div className="grid gap-4 border-t border-gray-200 p-5 dark:border-gray-800">
-            {[
-              ["about_use_heading", "About Use Heading"],
-              ["experiences_heading", "Experiences Heading"],
-              ["more_info_heading", "More Info Heading"],
-              ["favorites_heading", "Favorites Heading"],
-              ["faq_title", "FAQ Title"],
-              ["faq_intro", "FAQ Intro"],
-              ["dni_title", "DNI Title"],
-              ["dni_intro", "DNI Intro"],
-              ["socials_title", "Socials Title"],
-              ["socials_intro", "Socials Intro"],
-              ["socials_primary_username", "Primary Username"],
-              ["socials_secondary_username", "Secondary Username"],
-            ].map(([key, label]) => {
-              const fieldKey = key as keyof SettingsDraft;
-              const isLongText = key.endsWith("_intro");
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              Hero Bio
+            </span>
+            <textarea
+              value={draft.hero_bio}
+              rows={6}
+              onChange={(event) => setField("hero_bio", event.target.value)}
+              className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+            />
+          </label>
+        </div>
+      ) : (
+        <div className="grid gap-4 p-5 md:grid-cols-2">
+          {[
+            ["about_use_heading", "About Use Heading"],
+            ["experiences_heading", "Experiences Heading"],
+            ["more_info_heading", "More Info Heading"],
+            ["favorites_heading", "Favorites Heading"],
+            ["faq_title", "FAQ Title"],
+            ["faq_intro", "FAQ Intro"],
+            ["dni_title", "DNI Title"],
+            ["dni_intro", "DNI Intro"],
+            ["socials_title", "Socials Title"],
+            ["socials_intro", "Socials Intro"],
+            ["socials_primary_username", "Primary Username"],
+            ["socials_secondary_username", "Secondary Username"],
+          ].map(([key, label]) => {
+            const fieldKey = key as keyof SettingsDraft;
+            const isLongText = key.endsWith("_intro");
 
-              return (
-                <label key={key} className="flex flex-col gap-2 text-sm">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {label}
-                  </span>
-                  {isLongText ? (
-                    <textarea
-                      value={draft[fieldKey]}
-                      rows={3}
-                      onChange={(event) =>
-                        setField(fieldKey, event.target.value)
-                      }
-                      className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                    />
-                  ) : (
-                    <input
-                      value={draft[fieldKey]}
-                      onChange={(event) =>
-                        setField(fieldKey, event.target.value)
-                      }
-                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                    />
-                  )}
-                </label>
-              );
-            })}
-          </div>
-        </details>
-      </div>
+            return (
+              <label key={key} className="flex flex-col gap-2 text-sm">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {label}
+                </span>
+                {isLongText ? (
+                  <textarea
+                    value={draft[fieldKey]}
+                    rows={3}
+                    onChange={(event) => setField(fieldKey, event.target.value)}
+                    className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                  />
+                ) : (
+                  <input
+                    value={draft[fieldKey]}
+                    onChange={(event) => setField(fieldKey, event.target.value)}
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                  />
+                )}
+              </label>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

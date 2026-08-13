@@ -163,7 +163,7 @@ function DashboardSection({
       </div>
       <div
         className={
-          title === "Wiki Management"
+          title === "Wiki"
             ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
             : "grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         }
@@ -179,27 +179,15 @@ function DashboardSection({
 export default function AdminDashboard() {
   return (
     <div className="space-y-8">
-      <header className="rounded-xl border border-gray-200 bg-linear-to-r from-blue-50 to-purple-50 p-8 dark:border-gray-800 dark:from-blue-950/30 dark:to-purple-950/30">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          Welcome to EXOCORPSE
-        </h1>
-        <p className="mt-3 text-lg text-gray-700 dark:text-gray-300">
-          Central hub for managing your creative universe
-        </p>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Manage stories, worlds, characters, portfolio, blog posts, and more
-        </p>
-      </header>
-
       <DashboardSection
         cards={wikiCards}
         gradient="from-blue-500 to-purple-500"
-        title="Wiki Management"
+        title="Wiki"
       />
       <DashboardSection
         cards={contentCards}
         gradient="from-amber-500 to-teal-500"
-        title="Content Management"
+        title="Content"
       />
     </div>
   );

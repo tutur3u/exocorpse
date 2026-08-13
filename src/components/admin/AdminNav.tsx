@@ -39,8 +39,8 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "CMS",
-    items: [{ href: "/admin/cms", label: "Complete Library" }],
+    label: "Advanced",
+    items: [{ href: "/admin/cms", label: "Content library" }],
   },
 ];
 

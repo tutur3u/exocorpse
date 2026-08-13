@@ -130,7 +130,6 @@ export default function CmsEntryGallery({
       <CmsBlogEntryGallery
         assets={assets}
         entries={entries}
-        onCreate={onCreate}
         onDelete={onDelete}
         onSelect={onSelect}
       />

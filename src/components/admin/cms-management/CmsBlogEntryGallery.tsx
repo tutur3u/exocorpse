@@ -6,14 +6,11 @@ import type {
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
 import {
-  CalendarClock,
+  ChevronDown,
   FilePenLine,
   FileText,
-  Plus,
   Search,
-  Sparkles,
   Trash2,
-  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -53,13 +50,11 @@ function formatShortDate(value: string | null) {
 export default function CmsBlogEntryGallery({
   assets,
   entries,
-  onCreate,
   onDelete,
   onSelect,
 }: {
   assets: ExocorpseCmsAsset[];
   entries: ExocorpseCmsEntry[];
-  onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
 }) {
@@ -95,124 +90,70 @@ export default function CmsBlogEntryGallery({
             .includes(normalized)),
     );
   }, [entries, query, status]);
-  const stats: Array<{
-    color: string;
-    count: number;
-    icon: LucideIcon;
+  const statusTabs: Array<{
+    id: "all" | ExocorpseCmsEntry["status"];
     label: string;
   }> = [
-    {
-      color: "border-zinc-800 bg-zinc-950/80 text-zinc-100",
-      count: entries.filter((entry) => entry.status === "draft").length,
-      icon: FileText,
-      label: "Drafts",
-    },
-    {
-      color: "border-amber-900/60 bg-amber-500/8 text-amber-300",
-      count: entries.filter((entry) => entry.status === "scheduled").length,
-      icon: CalendarClock,
-      label: "Scheduled",
-    },
-    {
-      color: "border-emerald-900/60 bg-emerald-500/8 text-emerald-300",
-      count: entries.filter((entry) => entry.status === "published").length,
-      icon: Sparkles,
-      label: "Published",
-    },
+    { id: "all", label: "All" },
+    { id: "draft", label: "Drafts" },
+    { id: "scheduled", label: "Scheduled" },
+    { id: "published", label: "Published" },
+    { id: "archived", label: "Archived" },
   ];
 
   return (
     <div className="@container space-y-5">
-      <section className="overflow-hidden rounded-[1.75rem] border border-zinc-800 bg-[linear-gradient(180deg,rgba(9,12,20,0.98),rgba(13,14,18,0.98))] shadow-[0_30px_90px_-45px_rgba(0,0,0,0.55)]">
-        <div className="border-b border-zinc-800/90 bg-[radial-gradient(circle_at_top_left,rgba(145,49,44,0.28),transparent_38%),linear-gradient(180deg,rgba(24,16,18,0.88),rgba(15,15,18,0.25))] px-5 py-5 @lg:px-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold tracking-[0.34em] text-red-300 uppercase">
-                Editorial Desk
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-zinc-50">
-                Blog post management
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
-                Manage drafts, scheduled drops, and published entries without
-                the layout overwhelming the content.
-              </p>
-            </div>
+      <nav
+        aria-label="Filter blog posts"
+        className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-1"
+      >
+        {statusTabs.map((tab) => {
+          const count =
+            tab.id === "all"
+              ? entries.length
+              : entries.filter((entry) => entry.status === tab.id).length;
+          return (
             <button
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-500"
-              onClick={onCreate}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                status === tab.id
+                  ? "bg-red-600 text-white"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+              }`}
+              key={tab.id}
+              onClick={() => setStatus(tab.id)}
               type="button"
             >
-              <Plus className="h-4 w-4" />
-              New Post
+              {tab.label}
+              <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-xs">
+                {count}
+              </span>
             </button>
-          </div>
-        </div>
+          );
+        })}
+      </nav>
 
-        <div className="grid gap-3 px-5 py-4 @md:grid-cols-3 @lg:px-6">
-          {stats.map(({ color, count, icon: Icon, label }) => (
-            <div className={`rounded-2xl border p-4 ${color}`} key={label}>
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-current/10">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-[11px] font-semibold tracking-[0.24em] uppercase opacity-80">
-                    {label}
-                  </p>
-                  <p className="mt-1 text-2xl font-semibold text-zinc-50">
-                    {count}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-[1.5rem] border border-zinc-800 bg-zinc-950/95 p-4 @lg:p-5">
-        <div className="grid gap-3 @xl:grid-cols-[minmax(0,1.3fr)_minmax(12rem,0.55fr)]">
+      <details className="group rounded-xl border border-zinc-800 bg-zinc-950/95">
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-300 marker:content-none">
+          <Search className="h-4 w-4 text-zinc-500" />
+          <span className="flex-1">Search and filters</span>
+          <ChevronDown className="h-4 w-4 text-zinc-500 transition group-open:rotate-180" />
+        </summary>
+        <div className="border-t border-zinc-800 p-4">
           <label>
-            <span className="mb-2 block text-[11px] font-semibold tracking-[0.24em] text-zinc-500 uppercase">
-              Search
-            </span>
+            <span className="sr-only">Search posts</span>
             <span className="relative block">
               <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-zinc-500" />
               <input
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-11 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-red-500"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Title, slug, excerpt, or content snippet"
+                placeholder="Title or excerpt"
                 type="search"
                 value={query}
               />
             </span>
           </label>
-          <label>
-            <span className="mb-2 block text-[11px] font-semibold tracking-[0.24em] text-zinc-500 uppercase">
-              Status
-            </span>
-            <select
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-red-500"
-              onChange={(event) =>
-                setStatus(
-                  event.target.value as "all" | ExocorpseCmsEntry["status"],
-                )
-              }
-              value={status}
-            >
-              <option value="all">All statuses</option>
-              <option value="draft">Drafts</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-          </label>
         </div>
-        <p className="mt-4 border-t border-zinc-800 pt-4 text-sm text-zinc-400">
-          {entries.length.toLocaleString()} total posts.{" "}
-          {filteredEntries.length} visible with current filters.
-        </p>
-      </section>
+      </details>
 
       {filteredEntries.length ? (
         <section className="space-y-4">
@@ -249,10 +190,7 @@ export default function CmsBlogEntryGallery({
                   </div>
                   <div className="space-y-4 p-5 @lg:p-6">
                     <div>
-                      <p className="text-[11px] font-semibold tracking-[0.3em] text-zinc-500 uppercase">
-                        /{entry.slug}
-                      </p>
-                      <h2 className="mt-2 text-2xl font-semibold text-zinc-50">
+                      <h2 className="text-2xl font-semibold text-zinc-50">
                         {entry.title}
                       </h2>
                     </div>
@@ -261,37 +199,13 @@ export default function CmsBlogEntryGallery({
                         entry.subtitle ??
                         "No excerpt yet. Open the editor to add a sharper listing summary."}
                     </p>
-                    <div className="grid gap-3 @md:grid-cols-3">
-                      {[
-                        ["Created", formatShortDate(entry.created_at)],
-                        ["Updated", formatShortDate(entry.updated_at)],
-                        [
-                          "Publish Window",
-                          formatShortDate(
-                            entry.scheduled_for ?? entry.published_at,
-                          ),
-                        ],
-                      ].map(([label, value]) => (
-                        <div
-                          className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-3"
-                          key={label}
-                        >
-                          <p className="text-[11px] font-semibold tracking-[0.22em] text-zinc-500 uppercase">
-                            {label}
-                          </p>
-                          <p className="mt-1 text-sm text-zinc-200">{value}</p>
-                        </div>
-                      ))}
-                    </div>
                     <p className="text-sm text-zinc-400">
-                      {statusData.summary}
+                      {statusData.summary} Updated{" "}
+                      {formatShortDate(entry.updated_at)}.
                     </p>
                   </div>
                   <div className="border-t border-zinc-800 bg-zinc-950/60 p-5 @lg:border-t-0 @lg:border-l @lg:p-6">
-                    <p className="text-[11px] font-semibold tracking-[0.26em] text-zinc-500 uppercase">
-                      Actions
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-3 @lg:flex-col">
+                    <div className="flex flex-wrap gap-3 @lg:flex-col">
                       <button
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-500"
                         onClick={() => onSelect(entry.id)}

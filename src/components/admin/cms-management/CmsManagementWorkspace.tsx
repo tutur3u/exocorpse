@@ -12,6 +12,7 @@ import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/ga
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { ChevronDown, Library, RefreshCw, Settings2, X } from "lucide-react";
@@ -177,7 +178,7 @@ export default function CmsManagementWorkspace({
     <details className="group rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 marker:content-none dark:text-gray-300">
         <Settings2 className="h-4 w-4 text-gray-400" />
-        <span className="flex-1">Related content</span>
+        <span className="flex-1">More content</span>
         <span className="text-xs font-normal text-gray-500">
           {supportingCollections.length} types
         </span>
@@ -191,71 +192,36 @@ export default function CmsManagementWorkspace({
 
   return (
     <div className="@container space-y-6">
-      {section.key !== "blog-posts" ? (
-        <header
-          className={
-            section.key === "about"
-              ? "rounded-[2rem] border border-gray-200 bg-linear-to-br from-white via-white to-cyan-50 p-8 shadow-sm dark:border-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-cyan-950/20"
-              : "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
-          }
-        >
-          <div
-            className={
-              section.key === "about"
-                ? "flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between"
-                : "contents"
-            }
-          >
-            <div>
-              {section.key === "about" ? (
-                <p
-                  className={`text-xs font-semibold tracking-[0.25em] uppercase ${theme.accentText}`}
-                >
-                  About Management
-                </p>
-              ) : null}
-              <h1
-                className={`text-3xl font-bold text-gray-900 dark:text-white ${section.key === "about" ? "mt-3" : ""}`}
+      <AdminPageHeader
+        actions={
+          <>
+            {canCreate ? (
+              <button
+                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                onClick={() => {
+                  createEntry();
+                  setEditorOpen(true);
+                }}
+                type="button"
               >
-                {section.key === "about" ? "About Me Admin" : section.title}
-              </h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
-                {section.description}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {section.key === "about" ? (
-                <span className="rounded-full border border-cyan-200 bg-white/90 px-4 py-2 text-xs font-medium tracking-[0.2em] text-cyan-700 uppercase shadow-sm dark:border-cyan-900/60 dark:bg-gray-950/90 dark:text-cyan-400">
-                  {studio.entries.length} managed rows
-                </span>
-              ) : null}
-              {canCreate ? (
-                <button
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
-                  onClick={() => {
-                    createEntry();
-                    setEditorOpen(true);
-                  }}
-                  type="button"
-                >
-                  + {createActionLabel}
-                </button>
-              ) : null}
-              {section.key === "cms" ? (
-                <a
-                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                  href={cmsHref}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <Library className="h-3.5 w-3.5" />
-                  Open Tuturuuu CMS
-                </a>
-              ) : null}
-            </div>
-          </div>
-        </header>
-      ) : null}
+                + {createActionLabel}
+              </button>
+            ) : null}
+            {section.key === "cms" ? (
+              <a
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                href={cmsHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <Library className="h-3.5 w-3.5" />
+                Advanced library
+              </a>
+            ) : null}
+          </>
+        }
+        title={section.title}
+      />
 
       {message ? (
         <div
@@ -283,12 +249,12 @@ export default function CmsManagementWorkspace({
           <aside className="rounded-[1.75rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
             <nav aria-label={`${section.title} content`} className="space-y-2">
               {[
-                ["profile", "Profile", "Hero, copy, section titles"],
-                ["about", "About", "Use cards, experiences, favorites"],
-                ["faq", "FAQ", "Fixed FAQ renderers"],
-                ["dni", "DNI", "Soft and hard boundaries"],
-                ["socials", "Socials", "Platform cards and colors"],
-              ].map(([id, label, eyebrow]) => (
+                ["profile", "Profile"],
+                ["about", "About"],
+                ["faq", "FAQ"],
+                ["dni", "DNI"],
+                ["socials", "Socials"],
+              ].map(([id, label]) => (
                 <button
                   className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
                     aboutTab === id
@@ -312,10 +278,7 @@ export default function CmsManagementWorkspace({
                   }}
                   type="button"
                 >
-                  <p className="text-xs font-semibold tracking-[0.18em] text-gray-500 uppercase dark:text-gray-400">
-                    {eyebrow}
-                  </p>
-                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                  <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {label}
                   </p>
                 </button>
