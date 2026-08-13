@@ -105,7 +105,7 @@ export function MultiSelect({
           className="mb-3 block text-sm font-semibold text-foreground"
         >
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className="ml-1 text-destructive">*</span>}
         </label>
       )}
 
@@ -118,7 +118,7 @@ export function MultiSelect({
                 <button
                   type="button"
                   onClick={() => handleRemoveTag(item.id)}
-                  className="hover:bg-primary/30 focus:ring-primary ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-background"
+                  className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-primary/30 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-background"
                   aria-label={`Remove ${item.name}`}
                 >
                   <X className="h-3 w-3" />
@@ -171,7 +171,7 @@ export function MultiSelect({
                 className={
                   isFormVariant
                     ? "border-b border-gray-300 p-3 dark:border-gray-600"
-                    : "border-input border-b p-3"
+                    : "border-b border-input p-3"
                 }
               >
                 <input
@@ -229,7 +229,7 @@ export function MultiSelect({
                     className={
                       isFormVariant
                         ? "px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400"
-                        : "text-muted-foreground px-3 py-8 text-center text-sm"
+                        : "px-3 py-8 text-center text-sm text-muted-foreground"
                     }
                   >
                     No items found
@@ -242,7 +242,7 @@ export function MultiSelect({
       </div>
 
       {helperText && (
-        <p className="text-muted-foreground mt-2 text-xs">{helperText}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{helperText}</p>
       )}
     </div>
   );

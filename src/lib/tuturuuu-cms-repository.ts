@@ -176,6 +176,62 @@ export async function updateExocorpseCmsEntryBundle(
   return result;
 }
 
+export async function reorderExocorpseCmsEntries(
+  order: Array<{ entryId: string; sortOrder: number }>,
+) {
+  const studio = await getExocorpseCmsStudio();
+  const updated: ExocorpseCmsEntry[] = [];
+  for (const item of order) {
+    const entry = studio.entries.find(
+      (candidate) => candidate.id === item.entryId,
+    );
+    if (!entry || entry.sort_order === item.sortOrder) continue;
+    const bundle = await updateExocorpseCmsEntryBundle(
+      entry.id,
+      entry.updated_at,
+      {
+        entry: {
+          collectionId: entry.collection_id,
+          metadata: entry.metadata,
+          profileData: entry.profile_data,
+          scheduledFor:
+            entry.status === "scheduled" ? entry.scheduled_for : null,
+          slug: entry.slug,
+          sortOrder: item.sortOrder,
+          status: entry.status,
+          subtitle: entry.subtitle,
+          summary: entry.summary,
+          title: entry.title,
+        },
+        blocks: studio.blocks
+          .filter((block) => block.entry_id === entry.id)
+          .map((block) => ({
+            blockType: block.block_type,
+            content: block.content,
+            id: block.id,
+            sortOrder: block.sort_order,
+            stableSourceId: block.stable_source_id,
+            title: block.title,
+          })),
+        relations: (studio.relations ?? [])
+          .filter(
+            (relation) =>
+              relation.from_entry_id === entry.id &&
+              relation.relation_definition_id,
+          )
+          .map((relation) => ({
+            definitionId: relation.relation_definition_id as string,
+            metadata: relation.metadata,
+            sortOrder: relation.sort_order,
+            toEntryId: relation.to_entry_id,
+          })),
+      },
+    );
+    updated.push(bundle.entry);
+  }
+  return updated;
+}
+
 export async function deleteExocorpseCmsEntry(entryId: string) {
   await cmsRequest<{ id: string }>(
     workspacePath(`/entries/${encodeURIComponent(entryId)}`),
@@ -207,6 +263,24 @@ export async function deleteExocorpseCmsAsset(assetId: string) {
     { method: "DELETE" },
   );
   await invalidateDelivery();
+}
+
+export async function reorderExocorpseCmsAssets(
+  order: Array<{ assetId: string; sortOrder: number }>,
+) {
+  const assets = await Promise.all(
+    order.map(({ assetId, sortOrder }) =>
+      cmsRequest<ExocorpseCmsAsset>(
+        workspacePath(`/assets/${encodeURIComponent(assetId)}`),
+        {
+          body: JSON.stringify({ sort_order: sortOrder }),
+          method: "PATCH",
+        },
+      ),
+    ),
+  );
+  await invalidateDelivery();
+  return assets.map(withAdminCmsAssetPreview);
 }
 
 export async function uploadExocorpseCmsAssetFile(input: {

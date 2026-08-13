@@ -1,10 +1,9 @@
 "use client";
 
 import type { CmsEntryDraft } from "@/components/admin/cms-management/editor-types";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
 import { PenLine } from "lucide-react";
-
-const inputClassName =
-  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 export default function CmsEntryBasics({
   draft,
@@ -32,8 +31,8 @@ export default function CmsEntryBasics({
           <span className="font-medium text-zinc-800 dark:text-zinc-200">
             Title <span className="text-rose-500">*</span>
           </span>
-          <input
-            className={inputClassName}
+          <Input
+            className="bg-white dark:bg-gray-800"
             maxLength={160}
             onChange={(event) => onTitleChange(event.target.value)}
             placeholder="Add a clear, memorable title"
@@ -44,8 +43,8 @@ export default function CmsEntryBasics({
           <span className="font-medium text-zinc-800 dark:text-zinc-200">
             Subtitle
           </span>
-          <input
-            className={inputClassName}
+          <Input
+            className="bg-white dark:bg-gray-800"
             maxLength={200}
             onChange={(event) =>
               onChange({ ...draft, subtitle: event.target.value || null })
@@ -60,8 +59,8 @@ export default function CmsEntryBasics({
         <span className="font-medium text-zinc-800 dark:text-zinc-200">
           Short description
         </span>
-        <textarea
-          className={`${inputClassName} min-h-24 leading-6`}
+        <Textarea
+          className="min-h-24 bg-white leading-6 dark:bg-gray-800"
           maxLength={1000}
           onChange={(event) =>
             onChange({ ...draft, summary: event.target.value || null })

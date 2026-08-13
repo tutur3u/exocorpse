@@ -50,6 +50,8 @@ export default function CmsManagementWorkspace({
     message,
     pending,
     relationSelections,
+    reorderEntries,
+    reorderAssets,
     save,
     selectCollection,
     setBlocks,
@@ -162,6 +164,7 @@ export default function CmsManagementWorkspace({
         const target = visibleCollections.find((item) => item.slug === slug);
         if (target) selectCollection(target.id);
       }}
+      onReorder={reorderEntries}
       onSelect={(nextEntryId) => {
         setEntryId(nextEntryId);
         setEditorOpen(true);
@@ -336,6 +339,7 @@ export default function CmsManagementWorkspace({
             onDeleteAsset={deleteAsset}
             onDraftChange={setDraft}
             onRelationsChange={setRelationSelections}
+            onReorderAssets={reorderAssets}
             onSave={save}
             onCancel={() => setEditorOpen(false)}
             onTitleChange={changeTitle}

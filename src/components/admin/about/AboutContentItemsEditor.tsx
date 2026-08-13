@@ -1,6 +1,11 @@
 "use client";
 
 import type { AboutContentItem, AboutContentSection } from "@/lib/about";
+import SortableList from "@/components/admin/SortableList";
+import { Button } from "@tuturuuu/ui/button";
+import { Checkbox } from "@tuturuuu/ui/checkbox";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -148,16 +153,13 @@ function ItemCard({
           <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
             {itemSummary}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Position {draft.display_order + 1}
-          </p>
         </div>
         <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
       </summary>
 
       <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
         <div className="flex flex-wrap justify-end gap-2">
-          <button
+          <Button
             type="button"
             onClick={async () => {
               setSaving(true);
@@ -168,11 +170,11 @@ function ItemCard({
               }
             }}
             disabled={saving || deleting || !hasChanges}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {saving ? "Saving..." : "Save"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={async () => {
               setDeleting(true);
@@ -183,10 +185,11 @@ function ItemCard({
               }
             }}
             disabled={saving || deleting}
-            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40"
+            className="border-red-800 text-red-400 hover:bg-red-950/40"
+            variant="outline"
           >
             {deleting ? "Deleting..." : "Delete"}
-          </button>
+          </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -222,7 +225,7 @@ function FieldInput({
 
   if (field.type === "textarea") {
     return (
-      <textarea
+      <Textarea
         value={String(value)}
         rows={field.rows ?? 3}
         placeholder={field.placeholder}
@@ -252,11 +255,9 @@ function FieldInput({
   if (field.type === "checkbox") {
     return (
       <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm dark:border-gray-700 dark:bg-gray-900">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={Boolean(value)}
-          onChange={(event) => onChange(field.key, event.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          onCheckedChange={(checked) => onChange(field.key, checked === true)}
         />
         <span className="text-gray-700 dark:text-gray-300">{field.label}</span>
       </label>
@@ -264,7 +265,7 @@ function FieldInput({
   }
 
   return (
-    <input
+    <Input
       type={field.type === "number" ? "number" : "text"}
       value={field.type === "number" ? Number(value) : String(value)}
       placeholder={field.placeholder}
@@ -303,6 +304,7 @@ export default function AboutContentItemsEditor({
     createDraft(section, undefined, nextOrder),
   );
   const [creating, setCreating] = useState(false);
+  const visibleFields = fields.filter((field) => field.key !== "display_order");
 
   useEffect(() => {
     setNewItem(createDraft(section, undefined, nextOrder));
@@ -343,18 +345,36 @@ export default function AboutContentItemsEditor({
       </summary>
 
       <div className="space-y-4 border-t border-gray-200 p-5 dark:border-gray-800">
-        <div className="space-y-4">
-          {items.map((item) => (
+        <SortableList
+          className="space-y-4"
+          getId={(item) => item.id}
+          items={items}
+          onReorder={async (ordered) => {
+            await Promise.all(
+              ordered.map((item, displayOrder) =>
+                item.display_order === displayOrder
+                  ? Promise.resolve()
+                  : onUpdate(
+                      item.id,
+                      serializeDraft({
+                        ...createDraft(section, item),
+                        display_order: displayOrder,
+                      }),
+                    ),
+              ),
+            );
+          }}
+        >
+          {(item) => (
             <ItemCard
-              key={item.id}
               item={item}
               section={section}
-              fields={fields}
+              fields={visibleFields}
               onUpdate={onUpdate}
               onDelete={onDelete}
             />
-          ))}
-        </div>
+          )}
+        </SortableList>
 
         <details className="group rounded-2xl border border-dashed border-gray-300 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-900/40">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
@@ -386,7 +406,7 @@ export default function AboutContentItemsEditor({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {fields.map((field) => (
+              {visibleFields.map((field) => (
                 <label key={field.key} className="flex flex-col gap-2 text-sm">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {field.label}

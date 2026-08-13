@@ -14,6 +14,7 @@ import {
   deleteAdminCmsAsset,
   deleteAdminCmsEntry,
   saveAdminCmsEntry,
+  reorderAdminCmsAssets,
   uploadAdminCmsAsset,
 } from "@/lib/actions/cms";
 import {
@@ -30,6 +31,7 @@ import {
 import toastWithSound from "@/lib/toast";
 import { useMemo, useState } from "react";
 import type {
+  ExocorpseCmsAsset,
   ExocorpseCmsEntry,
   ExocorpseCmsStudio,
   ExocorpseJson,
@@ -605,6 +607,40 @@ export default function CmsLegacyAboutWorkspace({
       .finally(() => setMediaPending(false));
   };
 
+  const reorderSettingsAssets = (assets: ExocorpseCmsAsset[]) => {
+    const ordered = assets.map((asset, sortOrder) => ({
+      ...asset,
+      sort_order: sortOrder,
+    }));
+    setStudio((current) => ({
+      ...current,
+      assets: current.assets.map(
+        (asset) => ordered.find((item) => item.id === asset.id) ?? asset,
+      ),
+    }));
+    setMediaPending(true);
+    void reorderAdminCmsAssets(
+      ordered.map((asset) => ({
+        assetId: asset.id,
+        sortOrder: asset.sort_order,
+      })),
+    )
+      .then((updated) =>
+        setStudio((current) => ({
+          ...current,
+          assets: current.assets.map(
+            (asset) => updated.find((item) => item.id === asset.id) ?? asset,
+          ),
+        })),
+      )
+      .catch((error: unknown) =>
+        toastWithSound.error(
+          error instanceof Error ? error.message : "Failed to reorder images",
+        ),
+      )
+      .finally(() => setMediaPending(false));
+  };
+
   const renderTab = () => {
     switch (activeTab) {
       case "profile":
@@ -613,6 +649,7 @@ export default function CmsLegacyAboutWorkspace({
             assets={heroAssets}
             mediaPending={mediaPending}
             onDeleteAsset={deleteSettingsAsset}
+            onReorderAssets={reorderSettingsAssets}
             settings={data.settings}
             onSave={saveSettings}
             onUploadAsset={uploadSettingsAsset}

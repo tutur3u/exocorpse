@@ -13,6 +13,7 @@ export default function CmsMediaPanel({
   onDelete,
   onSave,
   onUpload,
+  onReorder,
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -22,6 +23,7 @@ export default function CmsMediaPanel({
   onDelete: (assetId: string) => void;
   onSave: () => void;
   onUpload: (formData: FormData) => void;
+  onReorder: (assets: ExocorpseCmsAsset[]) => void;
 }) {
   if (saved) {
     return (
@@ -31,6 +33,7 @@ export default function CmsMediaPanel({
         disabled={pending}
         onDelete={onDelete}
         onUpload={onUpload}
+        onReorder={onReorder}
       />
     );
   }

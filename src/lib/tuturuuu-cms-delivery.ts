@@ -13,6 +13,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { cache } from "react";
 import type { BlacklistedUser } from "@/types/exocorpse-cms";
 import type {
+  Character,
   ExocorpseJson as Json,
   ExocorpseTable as Tables,
 } from "@/types/exocorpse-content";
@@ -616,7 +617,7 @@ function mapCmsWorld(entry: CmsEntry): Tables<"worlds"> {
   };
 }
 
-function mapCmsCharacter(entry: CmsEntry): Tables<"characters"> {
+function mapCmsCharacter(entry: CmsEntry): Character {
   const profile = entry.profileData;
 
   return {
@@ -624,6 +625,9 @@ function mapCmsCharacter(entry: CmsEntry): Tables<"characters"> {
     age: numberValue(profile, "age"),
     backstory: markdownBlock(entry, "Backstory"),
     banner_image: secondAssetUrl(entry),
+    banner_image_position_x: numberValue(profile, "bannerImagePositionX") ?? 50,
+    banner_image_position_y: numberValue(profile, "bannerImagePositionY") ?? 50,
+    banner_image_zoom: numberValue(profile, "bannerImageZoom") ?? 1,
     birthday: stringValue(profile, "birthday"),
     build: stringValue(profile, "build"),
     color_palette: stringArrayValue(profile, "colorPalette"),
@@ -648,6 +652,11 @@ function mapCmsCharacter(entry: CmsEntry): Tables<"characters"> {
     personality_summary:
       stringValue(profile, "personalitySummary") ?? entry.summary,
     profile_image: firstAssetUrl(entry),
+    profile_image_position_x:
+      numberValue(profile, "profileImagePositionX") ?? 50,
+    profile_image_position_y:
+      numberValue(profile, "profileImagePositionY") ?? 50,
+    profile_image_zoom: numberValue(profile, "profileImageZoom") ?? 1,
     pronouns: stringValue(profile, "pronouns"),
     quote: stringValue(profile, "quote"),
     skin_tone: stringValue(profile, "skinTone"),
@@ -1358,6 +1367,9 @@ export type CmsCharacterGalleryItem = {
   image_url: string;
   thumbnail_url: string | null;
   title: string;
+  is_sensitive: boolean;
+  sensitive_label: string | null;
+  is_reference_sheet: boolean;
 };
 
 export type CmsCharacterOutfit = {
@@ -1368,6 +1380,9 @@ export type CmsCharacterOutfit = {
   image_url: string;
   name: string;
   outfit_types: { id: string; name: string } | null;
+  is_sensitive: boolean;
+  sensitive_label: string | null;
+  is_reference_sheet: boolean;
 };
 
 export type CmsCharacterFaction = {
@@ -1451,6 +1466,9 @@ export async function getCmsCharacterGallery(characterId: string) {
       image_url: firstAssetUrl(entry) ?? "",
       thumbnail_url: secondAssetUrl(entry),
       title: entry.title,
+      is_sensitive: entry.profileData.sensitiveContent === true,
+      sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
+      is_reference_sheet: entry.profileData.referenceSheet === true,
     })),
   );
   return sortByDisplayOrder(
@@ -1476,6 +1494,9 @@ export async function getCmsCharacterOutfits(characterId: string) {
       image_url: firstAssetUrl(entry) ?? "",
       name: entry.title,
       outfit_types: null,
+      is_sensitive: entry.profileData.sensitiveContent === true,
+      sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
+      is_reference_sheet: entry.profileData.referenceSheet === true,
     })),
   );
   return sortByDisplayOrder(

@@ -3,6 +3,7 @@
 
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
+@source "../../node_modules/@tuturuuu/ui/src/components/ui/*.tsx";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -172,6 +173,24 @@
 :root {
   --background: #020617;
   --foreground: #e2e8f0;
+  --card: #07101f;
+  --card-foreground: #f8fafc;
+  --popover: #07101f;
+  --popover-foreground: #f8fafc;
+  --primary: #0891b2;
+  --primary-foreground: #ffffff;
+  --secondary: #172033;
+  --secondary-foreground: #f8fafc;
+  --muted: #172033;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #475569;
+  --ring: #22d3ee;
+  --radius: 0.625rem;
   --theme_primary_color: #3b82f6;
   --theme_secondary_color: #1e40af;
   --theme_text_color: #f8fafc;
@@ -180,6 +199,27 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -193,6 +233,11 @@ body {
   color: var(--foreground);
   font-family: var(--font-baskervville), Arial, Helvetica, sans-serif;
   overflow: hidden;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .bg-theme-primary {

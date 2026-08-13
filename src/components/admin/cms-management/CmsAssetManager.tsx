@@ -5,6 +5,8 @@ import { shouldBypassImageOptimization } from "@/components/admin/cms-management
 import { FileImage, Trash2, UploadCloud } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { Button } from "@tuturuuu/ui/button";
+import SortableList from "@/components/admin/SortableList";
 
 export default function CmsAssetManager({
   allowedAssetTypes,
@@ -12,22 +14,44 @@ export default function CmsAssetManager({
   disabled,
   onDelete,
   onUpload,
+  onReorder,
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
   disabled: boolean;
   onDelete: (assetId: string) => void;
   onUpload: (formData: FormData) => void;
+  onReorder: (assets: ExocorpseCmsAsset[]) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState("");
+  const [dragActive, setDragActive] = useState(false);
   const accept = allowedAssetTypes.length
     ? allowedAssetTypes.map((type) => `${type}/*`).join(",")
     : undefined;
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-dashed p-4 transition ${dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" : "border-transparent"}`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragActive(true);
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={(event) => {
+          if (event.currentTarget === event.target) setDragActive(false);
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragActive(false);
+          const file = event.dataTransfer.files[0];
+          if (!file || disabled) return;
+          const formData = new FormData();
+          formData.set("file", file);
+          onUpload(formData);
+        }}
+      >
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
             <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -60,19 +84,27 @@ export default function CmsAssetManager({
               type="file"
             />
           </label>
-          <button
+          <Button
             className="inline-flex items-center gap-1.5 rounded bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             disabled={disabled || !selectedFile}
             type="submit"
           >
             <UploadCloud className="h-3.5 w-3.5" />
             Upload
-          </button>
+          </Button>
         </form>
       </div>
 
-      <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
-        {assets.map((asset) => {
+      <SortableList
+        className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3"
+        getId={(asset) => asset.id}
+        items={[...assets].sort(
+          (left, right) => left.sort_order - right.sort_order,
+        )}
+        layout="grid"
+        onReorder={onReorder}
+      >
+        {(asset) => {
           const imageUrl = asset.preview_url ?? asset.asset_url;
           return (
             <article
@@ -104,20 +136,22 @@ export default function CmsAssetManager({
                     {asset.storage_path ? "Ready to use" : "Linked media"}
                   </p>
                 </div>
-                <button
+                <Button
                   aria-label="Delete media"
-                  className="rounded-lg p-2 text-zinc-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-40 dark:hover:bg-rose-950 dark:hover:text-rose-300"
+                  className="text-zinc-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-40 dark:hover:bg-rose-950 dark:hover:text-rose-300"
                   disabled={disabled}
                   onClick={() => onDelete(asset.id)}
+                  size="icon"
                   type="button"
+                  variant="ghost"
                 >
                   <Trash2 className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </article>
           );
-        })}
-      </div>
+        }}
+      </SortableList>
       {assets.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
           No media yet. Choose a file to add the first one.

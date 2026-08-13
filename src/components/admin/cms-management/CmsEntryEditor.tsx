@@ -9,6 +9,9 @@ import CmsMediaPanel from "@/components/admin/cms-management/CmsMediaPanel";
 import CmsPublishingSettings from "@/components/admin/cms-management/CmsPublishingSettings";
 import CmsRelationEditor from "@/components/admin/cms-management/CmsRelationEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
+import CmsCharacterMediaSettings, {
+  isCharacterMediaField,
+} from "@/components/admin/cms-management/CmsCharacterMediaSettings";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
 import type {
@@ -49,6 +52,7 @@ type Props = {
   onTitleChange: (title: string) => void;
   onUploadAsset: (formData: FormData) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
+  onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   pending: boolean;
   relationSelections: CmsRelationSelections;
   selectedEntryId: string;
@@ -71,6 +75,7 @@ export default function CmsEntryEditor({
   onDeleteAsset,
   onDraftChange,
   onRelationsChange,
+  onReorderAssets,
   onSave,
   onTitleChange,
   onUploadAsset,
@@ -87,7 +92,9 @@ export default function CmsEntryEditor({
     (count, selections) => count + selections.length,
     0,
   );
-  const groupedFields = splitLegacyEditorFields(fields);
+  const groupedFields = splitLegacyEditorFields(
+    fields.filter((field) => !isCharacterMediaField(field.key)),
+  );
   const tabs = legacyEditorTabs({
     assetCount: assets.length,
     blockCount: blocks.length,
@@ -184,6 +191,7 @@ export default function CmsEntryEditor({
                   onDelete={onDeleteAsset}
                   onSave={onSave}
                   onUpload={onUploadAsset}
+                  onReorder={onReorderAssets}
                   pending={pending}
                   saved={Boolean(selectedEntryId)}
                 />
@@ -246,6 +254,12 @@ export default function CmsEntryEditor({
 
         {activeTab === "media" ? (
           <>
+            <CmsCharacterMediaSettings
+              assets={assets}
+              collectionSlug={collection.slug}
+              draft={draft}
+              onChange={onDraftChange}
+            />
             <CmsStructuredFields
               definitions={groupedFields.visuals}
               draft={draft}
@@ -259,6 +273,7 @@ export default function CmsEntryEditor({
               onDelete={onDeleteAsset}
               onSave={onSave}
               onUpload={onUploadAsset}
+              onReorder={onReorderAssets}
               pending={pending}
               saved={Boolean(selectedEntryId)}
             />

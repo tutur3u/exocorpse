@@ -8,6 +8,7 @@ import {
   Link,
   SlidersHorizontal,
 } from "lucide-react";
+import { Input } from "@tuturuuu/ui/input";
 
 const inputClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
@@ -68,7 +69,7 @@ export default function CmsPublishingSettings({
                 <CalendarClock className="h-3.5 w-3.5" />
                 Publish date and time
               </span>
-              <input
+              <Input
                 className={inputClassName}
                 onChange={(event) =>
                   onChange({
@@ -96,7 +97,7 @@ export default function CmsPublishingSettings({
               Page options
             </span>
             <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
-              Address and display order
+              Address and publishing details
             </span>
           </span>
           <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
@@ -109,7 +110,7 @@ export default function CmsPublishingSettings({
             </span>
             <div className="flex items-center rounded border border-gray-300 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-600 dark:bg-gray-700">
               <span className="pl-3 font-mono text-xs text-zinc-400">/</span>
-              <input
+              <Input
                 className="min-w-0 flex-1 bg-transparent px-1 py-2.5 font-mono text-sm outline-none"
                 maxLength={120}
                 onChange={(event) =>
@@ -119,25 +120,6 @@ export default function CmsPublishingSettings({
                 value={draft.slug}
               />
             </div>
-          </label>
-          <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-zinc-800 dark:text-zinc-200">
-              Display order
-            </span>
-            <input
-              className={inputClassName}
-              onChange={(event) =>
-                onChange({
-                  ...draft,
-                  sort_order: Number(event.target.value) || 0,
-                })
-              }
-              type="number"
-              value={draft.sort_order}
-            />
-            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
-              Lower numbers appear first.
-            </span>
           </label>
         </div>
       </details>

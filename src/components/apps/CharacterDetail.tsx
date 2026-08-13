@@ -4,6 +4,7 @@ import Lightbox, { type LightboxContent } from "@/components/shared/Lightbox";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import SpotifyEmbed from "@/components/shared/SpotifyEmbed";
 import StorageImage from "@/components/shared/StorageImage";
+import SensitiveImageButton from "@/components/shared/SensitiveImageButton";
 import { useInitialWikiData } from "@/contexts/InitialWikiDataContext";
 import { useWindows } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
@@ -156,6 +157,10 @@ export default function CharacterDetail({
               className="h-full w-full object-cover"
               width={1200}
               height={128}
+              style={{
+                objectPosition: `${character.banner_image_position_x}% ${character.banner_image_position_y}%`,
+                transform: `scale(${character.banner_image_zoom})`,
+              }}
             />
             {/* Overlay for better text readability */}
             <div className="text-theme-text absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/60" />
@@ -181,6 +186,10 @@ export default function CharacterDetail({
                 className="h-full w-full object-cover"
                 width={160}
                 height={160}
+                style={{
+                  objectPosition: `${character.profile_image_position_x}% ${character.profile_image_position_y}%`,
+                  transform: `scale(${character.profile_image_zoom})`,
+                }}
                 fallback={
                   <div className="bg-theme-primary flex h-full w-full items-center justify-center text-3xl font-bold text-white @md:text-4xl @lg:text-5xl @xl:text-6xl">
                     {character.name.charAt(0)}
@@ -636,9 +645,10 @@ export default function CharacterDetail({
                         className="bg-theme-secondary overflow-hidden rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                       >
                         {outfit.image_url && (
-                          <button
-                            type="button"
-                            onClick={() =>
+                          <SensitiveImageButton
+                            sensitive={outfit.is_sensitive}
+                            label={outfit.sensitive_label}
+                            onOpen={() =>
                               setLightboxContent({
                                 imageUrl: outfit.image_url as string,
                                 title: outfit.name,
@@ -646,6 +656,11 @@ export default function CharacterDetail({
                                 signedUrl: imageUrls.get(
                                   outfit.image_url as string,
                                 ),
+                                download: outfit.is_reference_sheet
+                                  ? {
+                                      filename: `${outfit.name}-reference-sheet`,
+                                    }
+                                  : undefined,
                               })
                             }
                             className="group bg-theme-secondary relative h-56 w-full overflow-hidden"
@@ -679,7 +694,7 @@ export default function CharacterDetail({
                                 />
                               </svg>
                             </div>
-                          </button>
+                          </SensitiveImageButton>
                         )}
                         <div className="p-4">
                           <h4 className="text-theme-text mb-1 text-lg font-bold">
@@ -918,15 +933,19 @@ export default function CharacterDetail({
                 ) : (
                   <div className="grid grid-cols-2 gap-4 @md:grid-cols-3 @lg:grid-cols-4 @xl:grid-cols-5">
                     {gallery.map((image) => (
-                      <button
+                      <SensitiveImageButton
                         key={image.id}
-                        type="button"
-                        onClick={() =>
+                        sensitive={image.is_sensitive}
+                        label={image.sensitive_label}
+                        onOpen={() =>
                           setLightboxContent({
                             imageUrl: image.image_url,
                             title: image.title,
                             description: image.description,
                             signedUrl: imageUrls.get(image.image_url),
+                            download: image.is_reference_sheet
+                              ? { filename: `${image.title}-reference-sheet` }
+                              : undefined,
                             footer: image.artist_name && (
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-theme-text bg-theme-primary rounded-full px-3 py-1 font-medium">
@@ -945,7 +964,7 @@ export default function CharacterDetail({
                           width={128}
                           height={128}
                         />
-                      </button>
+                      </SensitiveImageButton>
                     ))}
                   </div>
                 )}

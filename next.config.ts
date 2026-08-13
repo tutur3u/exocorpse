@@ -15,6 +15,7 @@ const privateNoStoreHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@tuturuuu/icons", "@tuturuuu/ui", "@tuturuuu/utils"],
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,

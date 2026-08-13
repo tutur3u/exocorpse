@@ -51,4 +51,32 @@ describe("canonical Exocorpse CMS schema", () => {
       ]),
     );
   });
+
+  test("defines crop, spoiler, and reference-sheet presentation fields", () => {
+    const fields = EXOCORPSE_CMS_SCHEMA.fieldDefinitions;
+    expect(fields).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          collectionSlug: "characters",
+          key: "profileImagePositionX",
+          fieldType: "number",
+        }),
+        expect.objectContaining({
+          collectionSlug: "characters",
+          key: "bannerImageZoom",
+          fieldType: "number",
+        }),
+        expect.objectContaining({
+          collectionSlug: "character-gallery",
+          key: "sensitiveContent",
+          fieldType: "boolean",
+        }),
+        expect.objectContaining({
+          collectionSlug: "character-outfits",
+          key: "referenceSheet",
+          fieldType: "boolean",
+        }),
+      ]),
+    );
+  });
 });

@@ -20,6 +20,8 @@ import {
   deleteAdminCmsAsset,
   deleteAdminCmsEntry,
   saveAdminCmsEntry,
+  reorderAdminCmsEntries,
+  reorderAdminCmsAssets,
   uploadAdminCmsAsset,
 } from "@/lib/actions/cms";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
@@ -28,7 +30,6 @@ import type {
   ExocorpseCmsStudio,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
 function firstEntryId(studio: ExocorpseCmsStudio, collectionId: string) {
@@ -65,7 +66,6 @@ export function useCmsManagementWorkspace({
   initialStudio: ExocorpseCmsStudio;
   section: AdminCmsSection;
 }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [studio, setStudio] = useState(initialStudio);
   const visibleCollections = useMemo(() => {
@@ -111,7 +111,13 @@ export function useCmsManagementWorkspace({
     visibleCollections[0];
   const entries = useMemo(
     () =>
-      studio.entries.filter((entry) => entry.collection_id === collection?.id),
+      studio.entries
+        .filter((entry) => entry.collection_id === collection?.id)
+        .sort(
+          (left, right) =>
+            left.sort_order - right.sort_order ||
+            left.title.localeCompare(right.title),
+        ),
     [collection?.id, studio.entries],
   );
   const selectedEntry =
@@ -192,7 +198,6 @@ export function useCmsManagementWorkspace({
         const result = await operation();
         onSuccess(result);
         setMessage({ kind: "success", text: success });
-        router.refresh();
       } catch (error) {
         setMessage({
           kind: "error",
@@ -349,6 +354,36 @@ export function useCmsManagementWorkspace({
     );
   }
 
+  function reorderAssets(nextAssets: typeof assets) {
+    const ordered = nextAssets.map((asset, sortOrder) => ({
+      ...asset,
+      sort_order: sortOrder,
+    }));
+    setStudio((current) => ({
+      ...current,
+      assets: current.assets.map(
+        (asset) => ordered.find((item) => item.id === asset.id) ?? asset,
+      ),
+    }));
+    run(
+      () =>
+        reorderAdminCmsAssets(
+          ordered.map((asset) => ({
+            assetId: asset.id,
+            sortOrder: asset.sort_order,
+          })),
+        ),
+      "Media order updated.",
+      (updated) =>
+        setStudio((current) => ({
+          ...current,
+          assets: current.assets.map(
+            (asset) => updated.find((item) => item.id === asset.id) ?? asset,
+          ),
+        })),
+    );
+  }
+
   function changeTitle(title: string) {
     setDraft((current) => ({
       ...current,
@@ -359,6 +394,39 @@ export function useCmsManagementWorkspace({
           : current.slug,
       title,
     }));
+  }
+
+  function reorderEntries(nextEntries: typeof entries) {
+    const ordered = nextEntries.map((entry, sortOrder) => ({
+      ...entry,
+      sort_order: sortOrder,
+    }));
+    const orderedIds = new Set(ordered.map((entry) => entry.id));
+    setStudio((current) => ({
+      ...current,
+      entries: current.entries.map((entry) =>
+        orderedIds.has(entry.id)
+          ? (ordered.find((item) => item.id === entry.id) ?? entry)
+          : entry,
+      ),
+    }));
+    run(
+      () =>
+        reorderAdminCmsEntries(
+          ordered.map((entry) => ({
+            entryId: entry.id,
+            sortOrder: entry.sort_order,
+          })),
+        ),
+      "Display order updated.",
+      (updated) =>
+        setStudio((current) => ({
+          ...current,
+          entries: current.entries.map(
+            (entry) => updated.find((item) => item.id === entry.id) ?? entry,
+          ),
+        })),
+    );
   }
 
   return {
@@ -378,6 +446,8 @@ export function useCmsManagementWorkspace({
     message,
     pending,
     relationSelections,
+    reorderAssets,
+    reorderEntries,
     save,
     selectCollection,
     setBlocks,

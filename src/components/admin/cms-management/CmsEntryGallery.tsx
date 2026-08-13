@@ -1,6 +1,9 @@
 "use client";
 
 import CmsEntryCard from "@/components/admin/cms-management/CmsEntryCard";
+import SortableList, {
+  mergeVisibleOrder,
+} from "@/components/admin/SortableList";
 import CmsBlogEntryGallery from "@/components/admin/cms-management/CmsBlogEntryGallery";
 import CmsAboutEntryGallery from "@/components/admin/cms-management/CmsAboutEntryGallery";
 import CmsCommissionEntryGallery from "@/components/admin/cms-management/CmsCommissionEntryGallery";
@@ -31,6 +34,7 @@ export default function CmsEntryGallery({
   onCreate,
   onDelete,
   onOpenCollection,
+  onReorder,
   onSelect,
   sectionKey,
   studio,
@@ -45,6 +49,7 @@ export default function CmsEntryGallery({
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onOpenCollection: (slug: string) => void;
+  onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
   sectionKey: AdminCmsSectionKey;
   studio: ExocorpseCmsStudio;
@@ -157,6 +162,7 @@ export default function CmsEntryGallery({
         entries={entries}
         onCreate={onCreate}
         onDelete={onDelete}
+        onReorder={onReorder}
         onSelect={onSelect}
       />
     );
@@ -172,6 +178,7 @@ export default function CmsEntryGallery({
         kind={collection.slug === "commission-addons" ? "addons" : "services"}
         onCreate={onCreate}
         onDelete={onDelete}
+        onReorder={onReorder}
         onSelect={onSelect}
         studio={studio}
       />
@@ -239,8 +246,19 @@ export default function CmsEntryGallery({
       ) : null}
 
       {filteredEntries.length ? (
-        <div className="grid items-start gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3">
-          {filteredEntries.map((entry, index) => {
+        <SortableList
+          className="grid items-start gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3"
+          getId={(entry) => entry.id}
+          items={filteredEntries}
+          layout="grid"
+          onReorder={(next) =>
+            onReorder(mergeVisibleOrder(entries, next, (entry) => entry.id))
+          }
+        >
+          {(entry) => {
+            const index = filteredEntries.findIndex(
+              (item) => item.id === entry.id,
+            );
             const media = mediaByEntry.get(entry.id);
             const secondaryActions =
               collection.slug === "characters"
@@ -289,8 +307,8 @@ export default function CmsEntryGallery({
                 theme={theme}
               />
             );
-          })}
-        </div>
+          }}
+        </SortableList>
       ) : (
         <div className="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center dark:border-gray-800 dark:bg-gray-950">
           <div

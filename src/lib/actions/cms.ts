@@ -6,6 +6,8 @@ import {
   deleteExocorpseCmsAsset,
   deleteExocorpseCmsEntry,
   getExocorpseCmsStudio,
+  reorderExocorpseCmsEntries,
+  reorderExocorpseCmsAssets,
   updateExocorpseCmsEntryBundle,
   uploadExocorpseCmsAssetFile,
 } from "@/lib/tuturuuu-cms-repository";
@@ -52,6 +54,24 @@ export async function deleteAdminCmsEntry(entryId: string) {
   await verifyAuth();
   await deleteExocorpseCmsEntry(entryId);
   revalidatePath("/admin", "layout");
+}
+
+export async function reorderAdminCmsEntries(
+  order: Array<{ entryId: string; sortOrder: number }>,
+) {
+  await verifyAuth();
+  const entries = await reorderExocorpseCmsEntries(order);
+  revalidatePath("/admin", "layout");
+  return entries;
+}
+
+export async function reorderAdminCmsAssets(
+  order: Array<{ assetId: string; sortOrder: number }>,
+) {
+  await verifyAuth();
+  const assets = await reorderExocorpseCmsAssets(order);
+  revalidatePath("/admin", "layout");
+  return assets;
 }
 
 export async function uploadAdminCmsAsset(input: {

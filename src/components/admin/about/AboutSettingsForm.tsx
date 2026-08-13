@@ -4,11 +4,15 @@ import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
 import type { AboutPageSettings } from "@/lib/about";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
 import { useEffect, useMemo, useState } from "react";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
+import { Button } from "@tuturuuu/ui/button";
 
 type AboutSettingsFormProps = {
   assets: ExocorpseCmsAsset[];
   mediaPending: boolean;
   onDeleteAsset: (assetId: string) => void;
+  onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   settings: AboutPageSettings;
   onSave: (updates: Partial<AboutPageSettings>) => Promise<void>;
   onUploadAsset: (formData: FormData) => void;
@@ -60,6 +64,7 @@ export default function AboutSettingsForm({
   assets,
   mediaPending,
   onDeleteAsset,
+  onReorderAssets,
   settings,
   onSave,
   onUploadAsset,
@@ -99,7 +104,7 @@ export default function AboutSettingsForm({
             </button>
           ))}
         </nav>
-        <button
+        <Button
           type="button"
           onClick={async () => {
             setSaving(true);
@@ -116,7 +121,7 @@ export default function AboutSettingsForm({
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save changes"}
-        </button>
+        </Button>
       </div>
 
       {section === "hero" ? (
@@ -128,6 +133,7 @@ export default function AboutSettingsForm({
               disabled={mediaPending}
               onDelete={onDeleteAsset}
               onUpload={onUploadAsset}
+              onReorder={onReorderAssets}
             />
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
               The first image is shown on your About page.
@@ -139,7 +145,7 @@ export default function AboutSettingsForm({
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 Hero Name
               </span>
-              <input
+              <Input
                 value={draft.hero_name}
                 onChange={(event) => setField("hero_name", event.target.value)}
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
@@ -149,7 +155,7 @@ export default function AboutSettingsForm({
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 Hero Image Alt
               </span>
-              <input
+              <Input
                 value={draft.hero_image_alt}
                 onChange={(event) =>
                   setField("hero_image_alt", event.target.value)
@@ -163,7 +169,7 @@ export default function AboutSettingsForm({
             <span className="font-medium text-gray-700 dark:text-gray-300">
               Hero Subtitle
             </span>
-            <input
+            <Input
               value={draft.hero_subtitle}
               onChange={(event) =>
                 setField("hero_subtitle", event.target.value)
@@ -176,7 +182,7 @@ export default function AboutSettingsForm({
             <span className="font-medium text-gray-700 dark:text-gray-300">
               Hero Bio
             </span>
-            <textarea
+            <Textarea
               value={draft.hero_bio}
               rows={6}
               onChange={(event) => setField("hero_bio", event.target.value)}
@@ -209,14 +215,14 @@ export default function AboutSettingsForm({
                   {label}
                 </span>
                 {isLongText ? (
-                  <textarea
+                  <Textarea
                     value={draft[fieldKey]}
                     rows={3}
                     onChange={(event) => setField(fieldKey, event.target.value)}
                     className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                   />
                 ) : (
-                  <input
+                  <Input
                     value={draft[fieldKey]}
                     onChange={(event) => setField(fieldKey, event.target.value)}
                     className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"

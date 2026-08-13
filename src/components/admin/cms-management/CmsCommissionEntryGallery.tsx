@@ -6,6 +6,10 @@ import type {
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
 import { useMemo, useState } from "react";
+import { Input } from "@tuturuuu/ui/input";
+import SortableList, {
+  mergeVisibleOrder,
+} from "@/components/admin/SortableList";
 
 function profileValue(entry: ExocorpseCmsEntry, key: string) {
   return isJsonRecord(entry.profile_data) ? entry.profile_data[key] : undefined;
@@ -16,6 +20,7 @@ export default function CmsCommissionEntryGallery({
   kind,
   onCreate,
   onDelete,
+  onReorder,
   onSelect,
   studio,
 }: {
@@ -23,6 +28,7 @@ export default function CmsCommissionEntryGallery({
   kind: "addons" | "services";
   onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
+  onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
   studio: ExocorpseCmsStudio;
 }) {
@@ -59,7 +65,7 @@ export default function CmsCommissionEntryGallery({
       {kind === "addons" ? (
         <>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <input
+            <Input
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search add-ons..."
@@ -111,10 +117,16 @@ export default function CmsCommissionEntryGallery({
       ) : null}
 
       {filteredEntries.length ? (
-        <div
+        <SortableList
           className={`grid sm:grid-cols-2 lg:grid-cols-3 ${kind === "addons" ? "gap-4" : "gap-6"}`}
+          getId={(entry) => entry.id}
+          items={filteredEntries}
+          layout="grid"
+          onReorder={(next) =>
+            onReorder(mergeVisibleOrder(entries, next, (entry) => entry.id))
+          }
         >
-          {filteredEntries.map((entry) => {
+          {(entry) => {
             const exclusive = profileValue(entry, "isExclusive") === true;
             const percentage = profileValue(entry, "percentage") === true;
             const rawPrice = profileValue(
@@ -200,8 +212,8 @@ export default function CmsCommissionEntryGallery({
                 </div>
               </article>
             );
-          })}
-        </div>
+          }}
+        </SortableList>
       ) : (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center dark:border-gray-600">
           <p className="text-gray-500 dark:text-gray-400">

@@ -1,6 +1,7 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { Download } from "lucide-react";
 import { createPortal } from "react-dom";
 
 export type LightboxContent = {
@@ -9,6 +10,7 @@ export type LightboxContent = {
   description?: string | null;
   footer?: ReactNode;
   signedUrl?: string; // Optional pre-fetched signed URL
+  download?: { filename: string };
 };
 
 type LightboxProps = {
@@ -29,6 +31,30 @@ export default function Lightbox({
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const prevFocus = useRef<HTMLElement | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
+
+  async function downloadImage() {
+    if (!content?.download) return;
+    setDownloading(true);
+    setDownloadError("");
+    try {
+      const response = await fetch(content.signedUrl || content.imageUrl);
+      if (!response.ok) throw new Error("Download failed");
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      const extension = blob.type.split("/")[1]?.split("+")[0] || "png";
+      link.download = `${content.download.filename.replace(/[^a-z0-9_-]+/gi, "-")}.${extension}`;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      setDownloadError("The image could not be downloaded. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -95,6 +121,22 @@ export default function Lightbox({
             />
           )}
           {content.footer && <div>{content.footer}</div>}
+          {content.download ? (
+            <button
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-60 dark:bg-white dark:text-gray-900"
+              disabled={downloading}
+              onClick={downloadImage}
+              type="button"
+            >
+              <Download className="h-4 w-4" />
+              {downloading ? "Preparing download…" : "Download reference sheet"}
+            </button>
+          ) : null}
+          {downloadError ? (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              {downloadError}
+            </p>
+          ) : null}
         </div>
         {onPrevious && (
           <button

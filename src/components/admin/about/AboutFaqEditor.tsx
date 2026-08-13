@@ -13,6 +13,8 @@ import {
 } from "@/lib/about";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
 
 type AboutFaqEditorProps = {
   data: AboutPageData;
@@ -114,14 +116,14 @@ function FaqField({
         {label}
       </span>
       {multiline ? (
-        <textarea
+        <Textarea
           value={String(value)}
           rows={rows}
           onChange={(event) => onChange(event.target.value)}
           className={`${className} resize-y`}
         />
       ) : (
-        <input
+        <Input
           type={type}
           value={String(value)}
           onChange={(event) => onChange(event.target.value)}
@@ -291,7 +293,7 @@ function FaqCard({
                 <span className="font-medium text-gray-700 dark:text-gray-300">
                   Template
                 </span>
-                <textarea
+                <Textarea
                   ref={usernameTemplateRef}
                   value={draft.username_template}
                   rows={3}
@@ -381,12 +383,6 @@ function FaqCard({
             label="Question"
             value={draft.question}
             onChange={(value) => setField("question", value)}
-          />
-          <FaqField
-            label="Position"
-            value={draft.display_order}
-            type="number"
-            onChange={(value) => setField("display_order", value)}
           />
           {renderSubtypeFields()}
         </div>

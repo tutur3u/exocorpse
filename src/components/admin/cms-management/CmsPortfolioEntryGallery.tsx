@@ -8,6 +8,7 @@ import type {
 } from "@/types/exocorpse-cms";
 import { FilePenLine, Gamepad2, ImageIcon, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
+import SortableList from "@/components/admin/SortableList";
 
 const copy = {
   "portfolio-art": {
@@ -33,6 +34,7 @@ export default function CmsPortfolioEntryGallery({
   entries,
   onCreate,
   onDelete,
+  onReorder,
   onSelect,
 }: {
   assets: ExocorpseCmsAsset[];
@@ -40,6 +42,7 @@ export default function CmsPortfolioEntryGallery({
   entries: ExocorpseCmsEntry[];
   onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
+  onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
 }) {
   const sectionCopy =
@@ -87,8 +90,13 @@ export default function CmsPortfolioEntryGallery({
           </button>
         </div>
       ) : collection.slug === "portfolio-writing" ? (
-        <div className="space-y-4">
-          {entries.map((entry) => {
+        <SortableList
+          className="space-y-4"
+          getId={(entry) => entry.id}
+          items={entries}
+          onReorder={onReorder}
+        >
+          {(entry) => {
             const asset = assetFor(entry.id);
             const imageUrl = asset?.preview_url ?? asset?.asset_url;
             return (
@@ -138,11 +146,17 @@ export default function CmsPortfolioEntryGallery({
                 </div>
               </article>
             );
-          })}
-        </div>
+          }}
+        </SortableList>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {entries.map((entry) => {
+        <SortableList
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          getId={(entry) => entry.id}
+          items={entries}
+          layout="grid"
+          onReorder={onReorder}
+        >
+          {(entry) => {
             const asset = assetFor(entry.id);
             const imageUrl = asset?.preview_url ?? asset?.asset_url;
             const isArt = collection.slug === "portfolio-art";
@@ -195,8 +209,8 @@ export default function CmsPortfolioEntryGallery({
                 </div>
               </article>
             );
-          })}
-        </div>
+          }}
+        </SortableList>
       )}
     </div>
   );

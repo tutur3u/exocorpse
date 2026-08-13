@@ -1,6 +1,7 @@
 import { useMediaUrl } from "@/hooks/useMediaUrl";
 import toastWithSound from "@/lib/toast";
 import { Columns2, Eye, PenSquare } from "lucide-react";
+import { Textarea } from "@tuturuuu/ui/textarea";
 import { Children, isValidElement, useId, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -569,7 +570,7 @@ export default function MarkdownEditor({
   );
 
   const renderTextarea = () => (
-    <textarea
+    <Textarea
       ref={textareaRef}
       id={`markdown-textarea-${editorId}`}
       value={value}

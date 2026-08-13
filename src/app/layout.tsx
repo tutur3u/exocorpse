@@ -1,4 +1,5 @@
 import { CursorProvider } from "@/contexts/CursorContext";
+import ImageProtection from "@/components/ImageProtection";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { WindowThemeProvider } from "@/contexts/WindowThemeContext";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body
         className={`${baskervvile.variable} bg-background text-foreground antialiased`}
       >
+        <ImageProtection />
         <Analytics />
         <NuqsAdapter>
           <CursorProvider>

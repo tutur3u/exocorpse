@@ -365,6 +365,16 @@ export const EXOCORPSE_CMS_SCHEMA = {
     ].map((key) => field("characters", key, key)),
     field("characters", "age", "Age", "number"),
     field("characters", "colorPalette", "Color palette", "string-array"),
+    ...[
+      "profileImagePositionX",
+      "profileImagePositionY",
+      "profileImageZoom",
+      "bannerImagePositionX",
+      "bannerImagePositionY",
+      "bannerImageZoom",
+    ].map((key) =>
+      field("characters", key, key.replace(/([A-Z])/g, " $1"), "number"),
+    ),
     field("relationship-types", "isMutual", "Mutual", "boolean"),
     field("relationship-types", "reverseName", "Reverse name"),
     ...["outfit-types", "event-types"].flatMap((slug) => [
@@ -392,6 +402,11 @@ export const EXOCORPSE_CMS_SCHEMA = {
     field("character-gallery", "commissionDate", "Commission date", "date"),
     field("character-gallery", "isFeatured", "Featured", "boolean"),
     field("character-gallery", "tags", "Tags", "string-array"),
+    ...["character-gallery", "character-outfits"].flatMap((slug) => [
+      field(slug, "sensitiveContent", "Sensitive content", "boolean"),
+      field(slug, "sensitiveLabel", "Spoiler warning"),
+      field(slug, "referenceSheet", "Character reference sheet", "boolean"),
+    ]),
     ...["isCurrent", "joinDate", "leaveDate", "notes", "rank", "role"].map(
       (key) =>
         field(

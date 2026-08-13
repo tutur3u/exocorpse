@@ -113,6 +113,9 @@ export interface Character extends AuditFields {
   age: number | null;
   backstory: string | null;
   banner_image: string | null;
+  banner_image_position_x: number;
+  banner_image_position_y: number;
+  banner_image_zoom: number;
   birthday: string | null;
   build: string | null;
   color_palette: string[] | null;
@@ -132,6 +135,9 @@ export interface Character extends AuditFields {
   occupation: string | null;
   personality_summary: string | null;
   profile_image: string | null;
+  profile_image_position_x: number;
+  profile_image_position_y: number;
+  profile_image_zoom: number;
   pronouns: string | null;
   quote: string | null;
   skin_tone: string | null;

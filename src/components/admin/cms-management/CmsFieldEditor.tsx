@@ -5,6 +5,9 @@ import type {
   ExocorpseCmsFieldDefinition,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
+import { Checkbox } from "@tuturuuu/ui/checkbox";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
 import { useState } from "react";
 
 type Props = {
@@ -34,7 +37,7 @@ function JsonInput({
 
   return (
     <>
-      <textarea
+      <Textarea
         className={`${inputClassName} min-h-32 font-mono text-xs`}
         onBlur={() => {
           try {
@@ -61,11 +64,10 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
   if (definition.field_type === "boolean") {
     return (
       <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 dark:border-gray-700 dark:bg-gray-900/50">
-        <input
+        <Checkbox
           checked={value === true}
-          className="mt-0.5 h-4 w-4 accent-blue-600"
-          onChange={(event) => onChange(event.target.checked)}
-          type="checkbox"
+          className="mt-0.5"
+          onCheckedChange={(checked) => onChange(checked === true)}
         />
         <span>
           <span className="block text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -117,7 +119,7 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
           ))}
         </select>
       ) : definition.field_type === "markdown" ? (
-        <textarea
+        <Textarea
           className={`${inputClassName} min-h-36 leading-6`}
           onChange={(event) => onChange(event.target.value)}
           placeholder={`Write ${label.toLowerCase()} in Markdown…`}
@@ -126,7 +128,7 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
       ) : definition.field_type === "json" ? (
         <JsonInput onChange={onChange} value={value} />
       ) : definition.field_type === "string-array" ? (
-        <textarea
+        <Textarea
           className={`${inputClassName} min-h-24`}
           onChange={(event) =>
             onChange(
@@ -140,7 +142,7 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
           value={Array.isArray(value) ? value.join("\n") : ""}
         />
       ) : (
-        <input
+        <Input
           className={inputClassName}
           onChange={(event) => {
             const next = event.target.value;

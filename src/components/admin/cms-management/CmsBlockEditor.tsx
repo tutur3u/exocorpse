@@ -5,14 +5,11 @@ import {
   newBlock,
 } from "@/components/admin/cms-management/editor-utils";
 import type { CmsBlockDraft } from "@/components/admin/cms-management/editor-types";
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronDown,
-  FileText,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import SortableList from "@/components/admin/SortableList";
+import { Button } from "@tuturuuu/ui/button";
+import { Input } from "@tuturuuu/ui/input";
+import { Textarea } from "@tuturuuu/ui/textarea";
+import { ChevronDown, FileText, Plus, Trash2 } from "lucide-react";
 
 type Props = {
   allowedBlockTypes: string[];
@@ -40,14 +37,6 @@ export default function CmsBlockEditor({
     );
   }
 
-  function move(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= blocks.length) return;
-    const next = [...blocks];
-    [next[index], next[target]] = [next[target]!, next[index]!];
-    onChange(next.map((block, sortOrder) => ({ ...block, sortOrder })));
-  }
-
   return (
     <section className="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
       <div className="flex items-center justify-between gap-3">
@@ -60,8 +49,9 @@ export default function CmsBlockEditor({
             Build longer pages from focused, reorderable sections.
           </p>
         </div>
-        <button
-          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-xs font-medium transition hover:border-blue-500 hover:text-blue-700 dark:border-gray-600 dark:hover:text-blue-300"
+        <Button
+          size="sm"
+          variant="outline"
           onClick={() =>
             onChange([
               ...blocks,
@@ -72,109 +62,106 @@ export default function CmsBlockEditor({
         >
           <Plus className="h-3.5 w-3.5" />
           Add section
-        </button>
+        </Button>
       </div>
 
-      {blocks.map((block, index) => (
-        <details
-          className="group overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/60"
-          key={block.key}
-        >
-          <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 marker:content-none">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-200 text-[11px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-              {index + 1}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                {block.title || `Section ${index + 1}`}
-              </span>
-              <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
-                {block.blockType === "markdown"
-                  ? "Text"
-                  : humanizeField(block.blockType)}
-              </span>
-            </span>
-            <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
-          </summary>
-          <div className="space-y-3 border-t border-zinc-200 p-3 dark:border-zinc-800">
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                className="rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                onChange={(event) =>
-                  update(index, {
-                    blockType: event.target.value,
-                    contentText: event.target.value === "markdown" ? "" : "{}",
-                  })
-                }
-                value={block.blockType}
-              >
-                {Array.from(new Set([...blockTypes, block.blockType])).map(
-                  (type) => (
-                    <option key={type} value={type}>
-                      {type === "markdown" ? "Text" : humanizeField(type)}
-                    </option>
-                  ),
-                )}
-              </select>
-              <input
-                className="min-w-40 flex-1 rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                onChange={(event) =>
-                  update(index, { title: event.target.value })
-                }
-                placeholder="Optional section title"
-                value={block.title}
-              />
-              <div className="ml-auto flex items-center gap-1">
-                <button
-                  aria-label="Move block up"
-                  className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white"
-                  disabled={index === 0}
-                  onClick={() => move(index, -1)}
-                  type="button"
-                >
-                  <ArrowUp className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  aria-label="Move block down"
-                  className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-white"
-                  disabled={index === blocks.length - 1}
-                  onClick={() => move(index, 1)}
-                  type="button"
-                >
-                  <ArrowDown className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  aria-label="Delete block"
-                  className="rounded-lg p-1.5 text-zinc-500 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-950 dark:hover:text-rose-300"
-                  onClick={() =>
-                    onChange(blocks.filter((_, item) => item !== index))
+      <SortableList
+        className="space-y-3"
+        getId={(block) => block.key}
+        items={blocks}
+        onReorder={(next) =>
+          onChange(next.map((block, sortOrder) => ({ ...block, sortOrder })))
+        }
+      >
+        {(block) => {
+          const index = blocks.findIndex((item) => item.key === block.key);
+          return (
+            <details
+              className="group overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/60"
+              key={block.key}
+            >
+              <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 marker:content-none">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-200 text-[11px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {block.title || `Section ${index + 1}`}
+                  </span>
+                  <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
+                    {block.blockType === "markdown"
+                      ? "Text"
+                      : humanizeField(block.blockType)}
+                  </span>
+                </span>
+                <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
+              </summary>
+              <div className="space-y-3 border-t border-zinc-200 p-3 dark:border-zinc-800">
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    className="rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                    onChange={(event) =>
+                      update(index, {
+                        blockType: event.target.value,
+                        contentText:
+                          event.target.value === "markdown" ? "" : "{}",
+                      })
+                    }
+                    value={block.blockType}
+                  >
+                    {Array.from(new Set([...blockTypes, block.blockType])).map(
+                      (type) => (
+                        <option key={type} value={type}>
+                          {type === "markdown" ? "Text" : humanizeField(type)}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                  <Input
+                    className="min-w-40 flex-1 bg-white text-xs dark:bg-zinc-900"
+                    onChange={(event) =>
+                      update(index, { title: event.target.value })
+                    }
+                    placeholder="Optional section title"
+                    value={block.title}
+                  />
+                  <div className="ml-auto flex items-center gap-1">
+                    <Button
+                      aria-label="Delete block"
+                      className="text-zinc-500 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-950 dark:hover:text-rose-300"
+                      onClick={() =>
+                        onChange(blocks.filter((_, item) => item !== index))
+                      }
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  className={`${inputClassName} min-h-44 ${
+                    block.blockType === "markdown"
+                      ? "leading-6"
+                      : "font-mono text-xs"
+                  }`}
+                  onChange={(event) =>
+                    update(index, { contentText: event.target.value })
                   }
-                  type="button"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                  placeholder={
+                    block.blockType === "markdown"
+                      ? "Write this section’s content…"
+                      : "Add advanced section data…"
+                  }
+                  spellCheck={block.blockType === "markdown"}
+                  value={block.contentText}
+                />
               </div>
-            </div>
-            <textarea
-              className={`${inputClassName} min-h-44 ${
-                block.blockType === "markdown"
-                  ? "leading-6"
-                  : "font-mono text-xs"
-              }`}
-              onChange={(event) =>
-                update(index, { contentText: event.target.value })
-              }
-              placeholder={
-                block.blockType === "markdown"
-                  ? "Write this section’s content…"
-                  : "Add advanced section data…"
-              }
-              spellCheck={block.blockType === "markdown"}
-              value={block.contentText}
-            />
-          </div>
-        </details>
-      ))}
+            </details>
+          );
+        }}
+      </SortableList>
 
       {blocks.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
