@@ -48,9 +48,17 @@ export default function CmsEntryCard({
       : collection.slug === "characters"
         ? "h-32"
         : "h-48";
+  const cardHeight =
+    collection.slug === "characters"
+      ? "h-full min-h-[34rem]"
+      : supportsImages
+        ? "h-[22rem]"
+        : "h-[14rem]";
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30">
+    <article
+      className={`group relative flex ${cardHeight} flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30`}
+    >
       {supportsImages ? (
         <div
           className={`relative overflow-hidden rounded-t-xl ${previewSize} ${theme.media}`}
