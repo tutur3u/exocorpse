@@ -167,6 +167,7 @@ export function useCmsManagementWorkspace({
     setBlocks(
       blocksToDrafts(
         studio.blocks.filter((block) => block.entry_id === entry?.id),
+        studio.assets.filter((asset) => asset.entry_id === entry?.id),
       ),
     );
     setRelationSelections(
@@ -395,6 +396,10 @@ export function useCmsManagementWorkspace({
 
   function uploadAsset(file: File) {
     if (!selectedEntry || !collection) return;
+    const replacedAssetIds =
+      collection.slug === "portfolio-art"
+        ? assets.map((asset) => asset.id)
+        : [];
     run(
       async () => {
         const storagePath = await uploadCmsAssetDirect({
@@ -402,19 +407,24 @@ export function useCmsManagementWorkspace({
           entrySlug: selectedEntry.slug,
           file,
         });
-        return registerAdminCmsAsset({
+        const asset = await registerAdminCmsAsset({
           entryId: selectedEntry.id,
           fileName: file.name,
           fileType: file.type,
           storagePath,
         });
+        await Promise.all(replacedAssetIds.map(deleteAdminCmsAsset));
+        return asset;
       },
       "Media uploaded.",
       (asset) =>
         setStudio((current) => ({
           ...current,
           assets: [
-            ...current.assets.filter((item) => item.id !== asset.id),
+            ...current.assets.filter(
+              (item) =>
+                item.id !== asset.id && !replacedAssetIds.includes(item.id),
+            ),
             asset,
           ],
         })),

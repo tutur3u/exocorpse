@@ -15,6 +15,9 @@ export default function CmsMediaPanel({
   onUpload,
   onReorder,
   previewSize = "default",
+  mode = "gallery",
+  title,
+  description,
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -23,9 +26,12 @@ export default function CmsMediaPanel({
   saved: boolean;
   onDelete: (assetId: string) => void;
   onSave: () => void;
-  onUpload: (file: File) => void;
+  onUpload: (file: File) => Promise<void> | void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
   previewSize?: "compact" | "default";
+  mode?: "gallery" | "single";
+  title?: string;
+  description?: string;
 }) {
   if (saved) {
     return (
@@ -37,6 +43,9 @@ export default function CmsMediaPanel({
         onUpload={onUpload}
         onReorder={onReorder}
         previewSize={previewSize}
+        mode={mode}
+        title={title}
+        description={description}
       />
     );
   }

@@ -15,7 +15,7 @@ type AboutSettingsFormProps = {
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   settings: AboutPageSettings;
   onSave: (updates: Partial<AboutPageSettings>) => Promise<void>;
-  onUploadAsset: (file: File) => void;
+  onUploadAsset: (file: File) => Promise<void> | void;
 };
 
 type SettingsDraft = {
@@ -135,10 +135,9 @@ export default function AboutSettingsForm({
               onUpload={onUploadAsset}
               onReorder={onReorderAssets}
               previewSize="compact"
+              mode="single"
+              title="About image"
             />
-            <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              The first image is shown on your About page.
-            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

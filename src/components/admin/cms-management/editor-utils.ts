@@ -109,7 +109,37 @@ export function collectionConfig(
   };
 }
 
-export function blocksToDrafts(blocks: CmsBlockSource[]): CmsBlockDraft[] {
+const MARKDOWN_IMAGE_DESTINATION_PATTERN =
+  /(!\[[^\]]*\]\()([^)\s]+)((?:\s+["'][^"']*["'])?\))/g;
+
+export function rewriteAdminMarkdownAssetUrls(
+  markdown: string,
+  assets: ExocorpseCmsAsset[],
+) {
+  const urlByLegacySource = new Map<string, string>();
+  for (const asset of assets) {
+    if (!asset.asset_url || asset.asset_type !== "inline-image") continue;
+    const metadata = isJsonRecord(asset.metadata) ? asset.metadata : {};
+    for (const key of ["legacyMarkdownSource", "legacyStoragePath"]) {
+      const source = metadata[key];
+      if (typeof source === "string" && source) {
+        urlByLegacySource.set(source, asset.asset_url);
+      }
+    }
+  }
+  return markdown.replace(
+    MARKDOWN_IMAGE_DESTINATION_PATTERN,
+    (match, prefix: string, source: string, suffix: string) => {
+      const assetUrl = urlByLegacySource.get(source);
+      return assetUrl ? `${prefix}${assetUrl}${suffix}` : match;
+    },
+  );
+}
+
+export function blocksToDrafts(
+  blocks: CmsBlockSource[],
+  assets: ExocorpseCmsAsset[] = [],
+): CmsBlockDraft[] {
   return [...blocks]
     .sort((left, right) => left.sort_order - right.sort_order)
     .map((block) => ({
@@ -118,7 +148,7 @@ export function blocksToDrafts(blocks: CmsBlockSource[]): CmsBlockDraft[] {
         block.block_type === "markdown" &&
         isJsonRecord(block.content) &&
         typeof block.content.markdown === "string"
-          ? block.content.markdown
+          ? rewriteAdminMarkdownAssetUrls(block.content.markdown, assets)
           : JSON.stringify(block.content, null, 2),
       id: block.id,
       key: block.id,

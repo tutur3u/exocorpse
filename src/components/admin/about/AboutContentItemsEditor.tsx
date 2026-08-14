@@ -145,7 +145,23 @@ function ItemCard({
       </summary>
 
       <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="grid gap-4 md:grid-cols-2">
+          {fields.map((field) => (
+            <div
+              key={field.key}
+              className={`flex min-w-0 flex-col gap-2 text-sm ${field.type === "textarea" ? "md:col-span-2" : ""}`}
+            >
+              {field.label ? (
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {field.label}
+                </span>
+              ) : null}
+              <FieldInput field={field} draft={draft} onChange={setField} />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-800">
           <Button
             type="button"
             onClick={async () => {
@@ -177,17 +193,6 @@ function ItemCard({
           >
             {deleting ? "Deleting..." : "Delete"}
           </Button>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {fields.map((field) => (
-            <div key={field.key} className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                {field.label}
-              </span>
-              <FieldInput field={field} draft={draft} onChange={setField} />
-            </div>
-          ))}
         </div>
       </div>
     </details>

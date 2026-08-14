@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildSavePayload,
+  blocksToDrafts,
   shouldBypassImageOptimization,
   slugify,
 } from "./editor-utils";
@@ -60,6 +61,40 @@ describe("CMS management editor helpers", () => {
   test("creates stable URL slugs from display titles", () => {
     expect(slugify("Áster's World — Volume II")).toBe(
       "aster-s-world-volume-ii",
+    );
+  });
+
+  test("uses versioned CMS URLs for inline images in the editor", () => {
+    const [block] = blocksToDrafts(
+      [
+        {
+          block_type: "markdown",
+          content: { markdown: "Before\n\n![Sketch](blog/sketch.png)" },
+          id: "block-id",
+          sort_order: 0,
+          stable_source_id: null,
+          title: "Post content",
+        },
+      ],
+      [
+        {
+          alt_text: "Sketch",
+          asset_type: "inline-image",
+          asset_url: "/api/v1/workspaces/ws/external-projects/assets/image?v=2",
+          entry_id: "entry-id",
+          id: "asset-id",
+          metadata: { legacyMarkdownSource: "blog/sketch.png" },
+          preview_url: null,
+          sort_order: 1,
+          source_url: null,
+          storage_path: "external-projects/blog/sketch.png",
+          updated_at: "2026-07-18T00:00:00.000Z",
+        },
+      ],
+    );
+
+    expect(block?.contentText).toContain(
+      "![Sketch](/api/v1/workspaces/ws/external-projects/assets/image?v=2)",
     );
   });
 

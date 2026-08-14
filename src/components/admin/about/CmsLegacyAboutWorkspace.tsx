@@ -93,7 +93,13 @@ const socialFields: ContentFieldConfig[] = [
 ];
 
 const dniFields: ContentFieldConfig[] = [
-  { key: "body", label: "Rule Text", type: "textarea", rows: 3 },
+  {
+    key: "body",
+    label: "",
+    placeholder: "Write this boundary…",
+    type: "textarea",
+    rows: 3,
+  },
   { key: "display_order", label: "Position", type: "number" },
 ];
 
@@ -561,41 +567,46 @@ export default function CmsLegacyAboutWorkspace({
     }
   };
 
-  const uploadSettingsAsset = (file: File) => {
+  const uploadSettingsAsset = async (file: File) => {
     if (!settingsEntry) return;
     const settingsCollection = collection("about");
     if (!settingsCollection) return;
     if (!file.size) return;
+    const replacedAssetIds = heroAssets.map((asset) => asset.id);
     setMediaPending(true);
-    void uploadCmsAssetDirect({
-      collectionType: settingsCollection.collection_type,
-      entrySlug: settingsEntry.slug,
-      file,
-    })
-      .then((storagePath) =>
-        registerAdminCmsAsset({
-          entryId: settingsEntry.id,
-          fileName: file.name,
-          fileType: file.type,
-          storagePath,
-        }),
-      )
-      .then((asset) => {
-        setStudio((current) => ({
-          ...current,
-          assets: [
-            ...current.assets.filter((item) => item.id !== asset.id),
-            asset,
-          ],
-        }));
-        toastWithSound.success("Hero image uploaded");
-      })
-      .catch((error: unknown) => {
-        toastWithSound.error(
-          error instanceof Error ? error.message : "Failed to upload image",
-        );
-      })
-      .finally(() => setMediaPending(false));
+    try {
+      const storagePath = await uploadCmsAssetDirect({
+        collectionType: settingsCollection.collection_type,
+        entrySlug: settingsEntry.slug,
+        file,
+      });
+      const asset = await registerAdminCmsAsset({
+        entryId: settingsEntry.id,
+        fileName: file.name,
+        fileType: file.type,
+        storagePath,
+      });
+      await Promise.all(replacedAssetIds.map(deleteAdminCmsAsset));
+      setStudio((current) => ({
+        ...current,
+        assets: [
+          ...current.assets.filter(
+            (item) =>
+              item.id !== asset.id && !replacedAssetIds.includes(item.id),
+          ),
+          asset,
+        ],
+      }));
+      toastWithSound.success(
+        replacedAssetIds.length ? "About image replaced" : "About image added",
+      );
+    } catch (error: unknown) {
+      toastWithSound.error(
+        error instanceof Error ? error.message : "Failed to upload image",
+      );
+    } finally {
+      setMediaPending(false);
+    }
   };
 
   const deleteSettingsAsset = (assetId: string) => {

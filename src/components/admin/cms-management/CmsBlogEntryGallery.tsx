@@ -240,7 +240,7 @@ export default function CmsBlogEntryGallery({
                   <div className="border-t border-zinc-800 bg-zinc-950/60 p-5 @lg:border-t-0 @lg:border-l @lg:p-6">
                     <div className="flex flex-wrap gap-3 @lg:flex-col">
                       <button
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-500"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-cyan-500"
                         onClick={() => onSelect(entry.id)}
                         type="button"
                       >

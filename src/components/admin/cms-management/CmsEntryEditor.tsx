@@ -158,9 +158,15 @@ export default function CmsEntryEditor({
 
   const scrollToSection = (tab: CmsEditorTab) => {
     setActiveTab(tab);
-    scrollAreaRef.current
-      ?.querySelector<HTMLElement>(`#cms-${tab}-panel`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const scrollArea = scrollAreaRef.current;
+    const panel = scrollArea?.querySelector<HTMLElement>(`#cms-${tab}-panel`);
+    if (!scrollArea || !panel) return;
+    const top =
+      scrollArea.scrollTop +
+      panel.getBoundingClientRect().top -
+      scrollArea.getBoundingClientRect().top -
+      16;
+    scrollArea.scrollTo({ behavior: "smooth", top });
   };
 
   const updateActiveSection = () => {
@@ -321,6 +327,19 @@ export default function CmsEntryEditor({
             previewSize={
               collection.slug === "portfolio-art" ? "compact" : "default"
             }
+            mode={collection.slug === "portfolio-art" ? "single" : "gallery"}
+            title={
+              collection.slug === "portfolio-art"
+                ? "Artwork image"
+                : collection.slug === "blog-posts"
+                  ? "Cover and post images"
+                  : undefined
+            }
+            description={
+              collection.slug === "blog-posts"
+                ? "The cover appears first. Add more images to use inside the post."
+                : undefined
+            }
             saved={Boolean(selectedEntryId)}
           />
         </>
@@ -439,7 +458,7 @@ export default function CmsEntryEditor({
             Cancel
           </button>
           <button
-            className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isBlog ? "rounded-full bg-zinc-950 hover:bg-red-700 dark:bg-red-600 dark:text-zinc-950 dark:hover:bg-red-500" : "rounded bg-blue-600 hover:bg-blue-700"}`}
+            className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isBlog ? "rounded-full bg-cyan-700 hover:bg-cyan-600 dark:bg-cyan-500 dark:text-zinc-950 dark:hover:bg-cyan-400" : "rounded bg-blue-600 hover:bg-blue-700"}`}
             disabled={!canSave}
             onClick={onSave}
             type="button"

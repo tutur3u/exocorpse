@@ -16,14 +16,20 @@ export default function CmsAssetManager({
   onUpload,
   onReorder,
   previewSize = "default",
+  mode = "gallery",
+  title,
+  description,
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
   disabled: boolean;
   onDelete: (assetId: string) => void;
-  onUpload: (file: File) => void;
+  onUpload: (file: File) => Promise<void> | void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
   previewSize?: "compact" | "default";
+  mode?: "gallery" | "single";
+  title?: string;
+  description?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState("");
@@ -31,6 +37,8 @@ export default function CmsAssetManager({
   const accept = allowedAssetTypes.length
     ? allowedAssetTypes.map((type) => `${type}/*`).join(",")
     : undefined;
+  const hasSingleAsset = mode === "single" && assets.length > 0;
+  const uploadLabel = hasSingleAsset ? "Replace image" : "Upload";
 
   return (
     <section className="space-y-4">
@@ -49,24 +57,29 @@ export default function CmsAssetManager({
           setDragActive(false);
           const file = event.dataTransfer.files[0];
           if (!file || disabled) return;
-          onUpload(file);
+          void onUpload(file);
         }}
       >
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
             <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            Media
+            {title ?? (mode === "single" ? "Image" : "Media")}
           </h3>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Add images and files that bring this item to life.
+            {description ??
+              (hasSingleAsset
+                ? "Choose another image to replace the current one, or remove it."
+                : mode === "single"
+                  ? "Choose one image. You can replace or remove it at any time."
+                  : "Add and arrange the images visitors will see.")}
           </p>
         </div>
         <form
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
             const file = new FormData(event.currentTarget).get("file");
             if (!(file instanceof File) || !file.size) return;
-            onUpload(file);
+            await onUpload(file);
             formRef.current?.reset();
             setSelectedFile("");
           }}
@@ -93,7 +106,7 @@ export default function CmsAssetManager({
             type="submit"
           >
             <UploadCloud className="h-3.5 w-3.5" />
-            Upload
+            {uploadLabel}
           </Button>
         </form>
       </div>
@@ -109,7 +122,7 @@ export default function CmsAssetManager({
           (left, right) => left.sort_order - right.sort_order,
         )}
         layout="grid"
-        onReorder={onReorder}
+        onReorder={mode === "single" ? () => undefined : onReorder}
       >
         {(asset) => {
           const imageUrl = asset.preview_url ?? asset.asset_url;
@@ -165,7 +178,9 @@ export default function CmsAssetManager({
       </SortableList>
       {assets.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-          No media yet. Choose a file to add the first one.
+          {mode === "single"
+            ? "No image selected. Choose or drop one here."
+            : "No media yet. Choose or drop a file to add the first one."}
         </div>
       ) : null}
     </section>
