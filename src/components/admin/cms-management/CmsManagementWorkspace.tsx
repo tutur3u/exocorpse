@@ -3,6 +3,7 @@
 import CmsEntryEditor from "@/components/admin/cms-management/CmsEntryEditor";
 import CmsEntryEditorDialog from "@/components/admin/cms-management/CmsEntryEditorDialog";
 import CmsEntryGallery from "@/components/admin/cms-management/CmsEntryGallery";
+import { CONNECTION_COLLECTION_SLUGS } from "@/components/admin/cms-management/connection-entry-utils";
 import { adminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import {
   collectionItemLabel,
@@ -29,7 +30,10 @@ export default function CmsManagementWorkspace({
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
-  const [relatedTargetId, setRelatedTargetId] = useState<string | null>(null);
+  const [relatedTarget, setRelatedTarget] = useState<{
+    id: string;
+    relationKey: string;
+  } | null>(null);
   const [aboutTab, setAboutTab] = useState<
     "profile" | "about" | "faq" | "dni" | "socials"
   >("profile");
@@ -139,7 +143,7 @@ export default function CmsManagementWorkspace({
         }`}
         key={item.id}
         onClick={() => {
-          setRelatedTargetId(null);
+          setRelatedTarget(null);
           selectCollection(item.id);
         }}
         type="button"
@@ -158,28 +162,30 @@ export default function CmsManagementWorkspace({
       assets={studio.assets}
       collection={collection}
       entries={visibleEntries}
-      initialRelationTargetId={relatedTargetId ?? undefined}
+      initialRelationTargetId={relatedTarget?.id}
       key={collection.id}
       onCreate={(profileData) => {
         createEntry(profileData);
-        if (relatedTargetId) {
+        if (relatedTarget) {
           const relation = definitions.find(
-            (definition) => definition.key === "character",
+            (definition) => definition.key === relatedTarget.relationKey,
           );
           if (relation) {
             setRelationSelections((current) => ({
               ...current,
-              [relation.id]: [relatedTargetId],
+              [relation.id]: [relatedTarget.id],
             }));
           }
         }
         setEditorOpen(true);
       }}
       onDelete={(entry) => setDeletingEntryId(entry.id)}
-      onOpenCollection={(slug) => {
+      onOpenCollection={(slug, targetId, relationKey) => {
         const target = visibleCollections.find((item) => item.slug === slug);
         if (target) {
-          setRelatedTargetId(null);
+          setRelatedTarget(
+            targetId && relationKey ? { id: targetId, relationKey } : null,
+          );
           selectCollection(target.id);
         }
       }}
@@ -360,7 +366,13 @@ export default function CmsManagementWorkspace({
       {editorOpen ? (
         <CmsEntryEditorDialog
           onClose={() => setEditorOpen(false)}
-          title={entryId ? `Edit ${draft.title}` : `Add ${collection.title}`}
+          title={
+            entryId
+              ? CONNECTION_COLLECTION_SLUGS.has(collection.slug)
+                ? `Edit ${itemLabel}`
+                : `Edit ${draft.title}`
+              : `Add ${itemLabel}`
+          }
           variant={section.key === "blog-posts" ? "blog" : "default"}
         >
           <CmsEntryEditor
@@ -391,7 +403,9 @@ export default function CmsManagementWorkspace({
                 (item) => item.slug === slug,
               );
               if (!target) return;
-              setRelatedTargetId(entryId);
+              setRelatedTarget(
+                entryId ? { id: entryId, relationKey: "character" } : null,
+              );
               selectCollection(target.id);
               setEditorOpen(false);
             }}

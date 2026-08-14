@@ -26,7 +26,7 @@ const spaciousFieldKeys = new Set([
   "personalitySummary",
 ]);
 
-const multilineFieldKeys = new Set([...spaciousFieldKeys, "quote"]);
+const multilineFieldKeys = new Set([...spaciousFieldKeys, "notes", "quote"]);
 
 function labelFor(definition: ExocorpseCmsFieldDefinition) {
   return definition.label && definition.label !== definition.key

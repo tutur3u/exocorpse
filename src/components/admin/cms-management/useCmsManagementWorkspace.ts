@@ -10,6 +10,10 @@ import {
   isJsonRecord,
   slugify,
 } from "@/components/admin/cms-management/editor-utils";
+import {
+  CONNECTION_COLLECTION_SLUGS,
+  normalizeConnectionDraft,
+} from "@/components/admin/cms-management/connection-entry-utils";
 import type {
   CmsBlockDraft,
   CmsEditorMessage,
@@ -180,6 +184,9 @@ export function useCmsManagementWorkspace({
     setDraft({
       ...nextDraft,
       profile_data: { ...profileData, ...initialProfileData },
+      status: CONNECTION_COLLECTION_SLUGS.has(collection.slug)
+        ? "published"
+        : nextDraft.status,
     });
     setBlocks([]);
     setRelationSelections(
@@ -212,8 +219,15 @@ export function useCmsManagementWorkspace({
   }
 
   function validate() {
+    const normalizedDraft = normalizeConnectionDraft({
+      collectionSlug: collection?.slug ?? "",
+      definitions,
+      draft,
+      selections: relationSelections,
+      studio,
+    });
     const fieldRecord = (definition: ExocorpseCmsFieldDefinition) => {
-      const value = draft[definition.field_scope];
+      const value = normalizedDraft[definition.field_scope];
       return isJsonRecord(value) ? value : {};
     };
     const missingField = fields.find(
@@ -231,19 +245,23 @@ export function useCmsManagementWorkspace({
     );
     if (missingRelation)
       throw new Error(`${missingRelation.label} is required.`);
-    if (draft.status === "scheduled" && !draft.scheduled_for) {
+    if (
+      normalizedDraft.status === "scheduled" &&
+      !normalizedDraft.scheduled_for
+    ) {
       throw new Error("Choose a publication time for this scheduled item.");
     }
+    return normalizedDraft;
   }
 
   function save() {
     let payload;
     try {
-      validate();
+      const normalizedDraft = validate();
       payload = buildSavePayload({
         blocks,
         definitions,
-        draft,
+        draft: normalizedDraft,
         relationSelections,
       });
     } catch (error) {

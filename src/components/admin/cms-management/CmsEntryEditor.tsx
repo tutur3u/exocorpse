@@ -13,6 +13,12 @@ import CmsCharacterMediaSettings, {
   isCharacterMediaField,
 } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
 import CmsCharacterGalleryOverview from "@/components/admin/cms-management/CmsCharacterGalleryOverview";
+import CmsConnectionEntryEditor from "@/components/admin/cms-management/CmsConnectionEntryEditor";
+import {
+  CONNECTION_COLLECTION_SLUGS,
+  hasDuplicateConnection,
+  isConnectionDraftReady,
+} from "@/components/admin/cms-management/connection-entry-utils";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
 import type {
@@ -91,7 +97,22 @@ export default function CmsEntryEditor({
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState<CmsEditorTab>("basic");
-  const canSave = Boolean(draft.title.trim() && draft.slug.trim() && !pending);
+  const isConnectionEntry = CONNECTION_COLLECTION_SLUGS.has(collection.slug);
+  const duplicateConnection = isConnectionEntry
+    ? hasDuplicateConnection({
+        collectionId: collection.id,
+        collectionSlug: collection.slug,
+        definitions,
+        entryId: selectedEntryId,
+        selections: relationSelections,
+        studio,
+      })
+    : false;
+  const canSave = isConnectionEntry
+    ? isConnectionDraftReady(definitions, relationSelections) &&
+      !duplicateConnection &&
+      !pending
+    : Boolean(draft.title.trim() && draft.slug.trim() && !pending);
   const connectionCount = Object.values(relationSelections).reduce(
     (count, selections) => count + selections.length,
     0,
@@ -127,6 +148,7 @@ export default function CmsEntryEditor({
     definitions.length > 0 &&
     ["stories", "worlds", "factions", "locations"].includes(collection.slug);
   const singlePageLayout =
+    isConnectionEntry ||
     collection.slug === "blog-posts" ||
     collection.slug.startsWith("portfolio-") ||
     collection.slug === "commission-services" ||
@@ -169,7 +191,30 @@ export default function CmsEntryEditor({
         id={`cms-${activeTab}-panel`}
         role="tabpanel"
       >
-        {singlePageLayout ? (
+        {isConnectionEntry ? (
+          <CmsConnectionEntryEditor
+            allowedBlockTypes={allowedBlockTypes}
+            blocks={blocks}
+            collectionSlug={collection.slug}
+            definitions={definitions}
+            duplicate={duplicateConnection}
+            draft={draft}
+            fields={fields.filter(
+              (field) =>
+                ![
+                  "displayOrder",
+                  "display_order",
+                  "sortOrder",
+                  "sort_order",
+                ].includes(field.key),
+            )}
+            onBlocksChange={onBlocksChange}
+            onDraftChange={onDraftChange}
+            onRelationsChange={onRelationsChange}
+            relationSelections={relationSelections}
+            studio={studio}
+          />
+        ) : singlePageLayout ? (
           <div className="grid gap-6 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.8fr)]">
             <div className="space-y-5">
               <CmsEntryBasics
@@ -389,8 +434,14 @@ export default function CmsEntryEditor({
             {pending
               ? "Saving..."
               : selectedEntryId
-                ? `Update ${itemName}`
-                : `Create ${itemName}`}
+                ? isConnectionEntry
+                  ? "Save changes"
+                  : `Update ${itemName}`
+                : isConnectionEntry
+                  ? collection.slug === "character-relationships"
+                    ? "Add relationship"
+                    : "Add membership"
+                  : `Create ${itemName}`}
           </button>
         </div>
       </div>
@@ -398,13 +449,17 @@ export default function CmsEntryEditor({
       <ConfirmDeleteDialog
         isOpen={confirmingDelete}
         loading={pending}
-        message={`“${draft.title}” and everything attached to it will be permanently removed.`}
+        message={
+          isConnectionEntry
+            ? "This connection will be permanently removed from the wiki."
+            : `“${draft.title}” and everything attached to it will be permanently removed.`
+        }
         onCancel={() => setConfirmingDelete(false)}
         onConfirm={() => {
           setConfirmingDelete(false);
           onDelete();
         }}
-        title={`Delete this ${collection.title.toLowerCase()}?`}
+        title={`Delete this ${itemName.toLowerCase()}?`}
       />
     </div>
   );

@@ -7,6 +7,8 @@ import SortableList, {
 import CmsBlogEntryGallery from "@/components/admin/cms-management/CmsBlogEntryGallery";
 import CmsAboutEntryGallery from "@/components/admin/cms-management/CmsAboutEntryGallery";
 import CmsCommissionEntryGallery from "@/components/admin/cms-management/CmsCommissionEntryGallery";
+import CmsConnectionEntryGallery from "@/components/admin/cms-management/CmsConnectionEntryGallery";
+import { CONNECTION_COLLECTION_SLUGS } from "@/components/admin/cms-management/connection-entry-utils";
 import CmsPortfolioEntryGallery from "@/components/admin/cms-management/CmsPortfolioEntryGallery";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
@@ -51,7 +53,11 @@ export default function CmsEntryGallery({
   relationFilter?: CmsEntryGalleryFilter;
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
-  onOpenCollection: (slug: string) => void;
+  onOpenCollection: (
+    slug: string,
+    targetId?: string,
+    relationKey?: string,
+  ) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
   sectionKey: AdminCmsSectionKey;
@@ -190,6 +196,21 @@ export default function CmsEntryGallery({
     );
   }
 
+  if (CONNECTION_COLLECTION_SLUGS.has(collection.slug)) {
+    return (
+      <CmsConnectionEntryGallery
+        assets={assets}
+        collection={collection}
+        entries={entries}
+        onCreate={() => onCreate()}
+        onDelete={onDelete}
+        onReorder={onReorder}
+        onSelect={onSelect}
+        studio={studio}
+      />
+    );
+  }
+
   return (
     <section className="space-y-5">
       {relationFilter &&
@@ -271,18 +292,32 @@ export default function CmsEntryGallery({
                 ? [
                     {
                       label: "Manage Gallery",
-                      onClick: () => onOpenCollection("character-gallery"),
+                      onClick: () =>
+                        onOpenCollection(
+                          "character-gallery",
+                          entry.id,
+                          "character",
+                        ),
                       tone: "blue" as const,
                     },
                     {
                       label: "Manage Factions",
-                      onClick: () => onOpenCollection("character-factions"),
+                      onClick: () =>
+                        onOpenCollection(
+                          "character-factions",
+                          entry.id,
+                          "character",
+                        ),
                       tone: "purple" as const,
                     },
                     {
                       label: "Manage Relationships",
                       onClick: () =>
-                        onOpenCollection("character-relationships"),
+                        onOpenCollection(
+                          "character-relationships",
+                          entry.id,
+                          "character-a",
+                        ),
                       tone: "pink" as const,
                     },
                   ]
@@ -290,7 +325,12 @@ export default function CmsEntryGallery({
                   ? [
                       {
                         label: "Manage Members",
-                        onClick: () => onOpenCollection("character-factions"),
+                        onClick: () =>
+                          onOpenCollection(
+                            "character-factions",
+                            entry.id,
+                            "faction",
+                          ),
                         tone: "purple" as const,
                       },
                     ]
@@ -298,7 +338,12 @@ export default function CmsEntryGallery({
                     ? [
                         {
                           label: "Manage Gallery",
-                          onClick: () => onOpenCollection("location-gallery"),
+                          onClick: () =>
+                            onOpenCollection(
+                              "location-gallery",
+                              entry.id,
+                              "location",
+                            ),
                           tone: "blue" as const,
                         },
                       ]
