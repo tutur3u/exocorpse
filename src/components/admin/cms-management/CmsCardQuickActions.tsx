@@ -25,7 +25,7 @@ export default function CmsCardQuickActions({
   return (
     <TooltipProvider>
       <div
-        className={`flex items-center gap-1 rounded-xl border border-white/10 bg-slate-950/80 p-1 shadow-lg backdrop-blur ${className}`}
+        className={`flex items-center gap-1 rounded-xl border border-white/10 bg-slate-950/80 p-1 opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 ${className}`}
         onClick={stop}
         onKeyDown={stop}
         onPointerDown={stop}
