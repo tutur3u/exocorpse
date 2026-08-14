@@ -4,6 +4,7 @@ import {
   CircleUserRound,
   FilePenLine,
   Globe2,
+  HardDrive,
   MapPin,
   PackagePlus,
   ShieldBan,
@@ -117,6 +118,26 @@ const contentCards: DashboardCard[] = [
   },
 ];
 
+const workspaceCards: DashboardCard[] = [
+  {
+    description:
+      "Browse, preview, organize, and inspect Tuturuuu storage usage",
+    gradient: "from-cyan-500 to-blue-600",
+    href: "/admin/drive",
+    hoverBorder: "hover:border-cyan-300 dark:hover:border-cyan-700",
+    icon: HardDrive,
+    title: "Tuturuuu Drive",
+  },
+  {
+    description: "Invite collaborators and manage workspace access levels",
+    gradient: "from-violet-500 to-fuchsia-600",
+    href: "/admin/members",
+    hoverBorder: "hover:border-violet-300 dark:hover:border-violet-700",
+    icon: UsersRound,
+    title: "Team Members",
+  },
+];
+
 function AdminCard({ card }: { card: DashboardCard }) {
   const Icon = card.icon;
   return (
@@ -188,6 +209,11 @@ export default function AdminDashboard() {
         cards={contentCards}
         gradient="from-amber-500 to-teal-500"
         title="Content"
+      />
+      <DashboardSection
+        cards={workspaceCards}
+        gradient="from-cyan-500 to-violet-500"
+        title="Workspace"
       />
     </div>
   );

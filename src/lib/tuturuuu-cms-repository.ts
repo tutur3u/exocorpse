@@ -49,7 +49,7 @@ function apiUrl(path: string) {
   return `${getExocorpseApiBaseUrl().replace(/\/+$/, "")}${path}`;
 }
 
-async function readApiError(response: Response) {
+export async function readExocorpseApiError(response: Response) {
   const payload = (await response.json().catch(() => null)) as {
     error?: unknown;
   } | null;
@@ -58,7 +58,10 @@ async function readApiError(response: Response) {
     : `Tuturuuu CMS request failed with status ${response.status}`;
 }
 
-async function authenticatedCmsFetch(path: string, init?: RequestInit) {
+export async function authenticatedExocorpseFetch(
+  path: string,
+  init?: RequestInit,
+) {
   const session = await getExocorpseSessionFromCookies();
   if (!session) {
     throw new Error("A valid Tuturuuu CMS session is required.");
@@ -79,13 +82,13 @@ async function authenticatedCmsFetch(path: string, init?: RequestInit) {
 }
 
 async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await authenticatedCmsFetch(path, init);
+  const response = await authenticatedExocorpseFetch(path, init);
 
-  if (!response.ok) throw new Error(await readApiError(response));
+  if (!response.ok) throw new Error(await readExocorpseApiError(response));
   return (await response.json()) as T;
 }
 
-function workspacePath(suffix = "") {
+export function externalProjectPath(suffix = "") {
   return `/workspaces/${encodeURIComponent(
     getExocorpseWorkspaceId(),
   )}/external-projects${suffix}`;
@@ -106,7 +109,7 @@ async function getPrivateExocorpseCmsStudio(collectionSlugs: string[]) {
   }
   const query = searchParams.toString();
   return cmsRequest<ExocorpseCmsStudio>(
-    `${workspacePath()}${query ? `?${query}` : ""}`,
+    `${externalProjectPath()}${query ? `?${query}` : ""}`,
   );
 }
 
@@ -128,8 +131,8 @@ export async function getExocorpseCmsAssetPreviewResponse(
   searchParams: URLSearchParams,
 ) {
   const query = searchParams.toString();
-  return authenticatedCmsFetch(
-    `${workspacePath(`/assets/${encodeURIComponent(assetId)}`)}${query ? `?${query}` : ""}`,
+  return authenticatedExocorpseFetch(
+    `${externalProjectPath(`/assets/${encodeURIComponent(assetId)}`)}${query ? `?${query}` : ""}`,
     { method: "GET", redirect: "manual" },
   );
 }
@@ -150,7 +153,7 @@ export async function getExocorpseCmsCollectionEntries(collectionSlug: string) {
 
 export async function createExocorpseCmsEntryBundle(input: EntryBundleInput) {
   const result = await cmsRequest<EntryBundle>(
-    workspacePath("/entries/bundle"),
+    externalProjectPath("/entries/bundle"),
     {
       body: JSON.stringify(input),
       method: "POST",
@@ -166,7 +169,7 @@ export async function updateExocorpseCmsEntryBundle(
   input: EntryBundleInput,
 ) {
   const result = await cmsRequest<EntryBundle>(
-    workspacePath(`/entries/${encodeURIComponent(entryId)}/bundle`),
+    externalProjectPath(`/entries/${encodeURIComponent(entryId)}/bundle`),
     {
       body: JSON.stringify({ ...input, expectedUpdatedAt }),
       method: "PUT",
@@ -289,7 +292,7 @@ export async function setExocorpseCmsEntryVisibility(
 
 export async function deleteExocorpseCmsEntry(entryId: string) {
   await cmsRequest<{ id: string }>(
-    workspacePath(`/entries/${encodeURIComponent(entryId)}`),
+    externalProjectPath(`/entries/${encodeURIComponent(entryId)}`),
     { method: "DELETE" },
   );
   await invalidateDelivery();
@@ -304,17 +307,20 @@ export async function createExocorpseCmsAsset(payload: {
   source_url?: string | null;
   storage_path?: string | null;
 }) {
-  const result = await cmsRequest<ExocorpseCmsAsset>(workspacePath("/assets"), {
-    body: JSON.stringify(payload),
-    method: "POST",
-  });
+  const result = await cmsRequest<ExocorpseCmsAsset>(
+    externalProjectPath("/assets"),
+    {
+      body: JSON.stringify(payload),
+      method: "POST",
+    },
+  );
   await invalidateDelivery();
   return withAdminCmsAssetPreview(result);
 }
 
 export async function deleteExocorpseCmsAsset(assetId: string) {
   await cmsRequest<{ id: string }>(
-    workspacePath(`/assets/${encodeURIComponent(assetId)}`),
+    externalProjectPath(`/assets/${encodeURIComponent(assetId)}`),
     { method: "DELETE" },
   );
   await invalidateDelivery();
@@ -326,7 +332,7 @@ export async function reorderExocorpseCmsAssets(
   const assets = await Promise.all(
     order.map(({ assetId, sortOrder }) =>
       cmsRequest<ExocorpseCmsAsset>(
-        workspacePath(`/assets/${encodeURIComponent(assetId)}`),
+        externalProjectPath(`/assets/${encodeURIComponent(assetId)}`),
         {
           body: JSON.stringify({ sort_order: sortOrder }),
           method: "PATCH",

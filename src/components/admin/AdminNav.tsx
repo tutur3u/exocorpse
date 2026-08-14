@@ -40,7 +40,11 @@ const navSections: NavSection[] = [
   },
   {
     label: "Advanced",
-    items: [{ href: "/admin/cms", label: "Content library" }],
+    items: [
+      { href: "/admin/cms", label: "Content library" },
+      { href: "/admin/drive", label: "Tuturuuu Drive" },
+      { href: "/admin/members", label: "Team members" },
+    ],
   },
 ];
 
