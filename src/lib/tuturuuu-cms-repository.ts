@@ -64,7 +64,11 @@ export async function authenticatedExocorpseFetch(
 ) {
   const session = await getExocorpseSessionFromCookies();
   if (!session) {
-    throw new Error("A valid Tuturuuu CMS session is required.");
+    const error = new Error(
+      "A valid Tuturuuu CMS session is required.",
+    ) as Error & { status: number };
+    error.status = 401;
+    throw error;
   }
 
   return fetch(apiUrl(path), {

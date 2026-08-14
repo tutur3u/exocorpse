@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const calls: unknown[][] = [];
+let teamError: (Error & { status?: number }) | undefined;
 
 mock.module("@/lib/tuturuuu-admin-integrations", () => ({
   addExocorpseTeamRoleMember: async (...args: unknown[]) => {
@@ -21,7 +22,10 @@ mock.module("@/lib/tuturuuu-admin-integrations", () => ({
   getExocorpseDriveReadUrl: async () => ({
     data: { signedUrl: "https://example.com" },
   }),
-  getExocorpseTeam: async () => ({ context: {}, members: [], roles: [] }),
+  getExocorpseTeam: async () => {
+    if (teamError) throw teamError;
+    return { context: {}, members: [], roles: [] };
+  },
   inviteExocorpseTeamMembers: async (...args: unknown[]) => {
     calls.push(["invite", ...args]);
     return { message: "success", successCount: 1 };
@@ -38,7 +42,19 @@ mock.module("@/lib/tuturuuu-admin-integrations", () => ({
 }));
 
 describe("admin team route", () => {
-  beforeEach(() => calls.splice(0));
+  beforeEach(() => {
+    calls.splice(0);
+    teamError = undefined;
+  });
+
+  it("preserves authentication failures from the shared session boundary", async () => {
+    teamError = Object.assign(new Error("Sign in required."), { status: 401 });
+    const { GET } = await import("../team/route");
+    const response = await GET();
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Sign in required." });
+  });
 
   it("forwards invitations through the authenticated Tuturuuu boundary", async () => {
     const { POST } = await import("../team/route");
