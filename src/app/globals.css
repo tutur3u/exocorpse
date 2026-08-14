@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "streamdown/styles.css";
-@import "@tuturuuu/editor/styles.css";
 
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";

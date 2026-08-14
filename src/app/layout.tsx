@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { Baskervville } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "react-hot-toast";
+import "@tuturuuu/editor/styles.css";
 import "./globals.css";
 
 const baskervvile = Baskervville({

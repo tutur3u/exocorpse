@@ -25,7 +25,7 @@ import type {
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
 import type { AdminCmsSectionKey } from "@/lib/admin-cms-sections";
-import { FilePlus2 } from "lucide-react";
+import { FilePlus2, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function CmsEntryGallery({
@@ -222,35 +222,86 @@ export default function CmsEntryGallery({
     <section className="space-y-5">
       {relationFilter &&
       usesStoryAndWorldFilters(collection.slug, sectionKey) ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
-            <span className="mb-2 block">Select a Story</span>
+        <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-sm dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.09),transparent_32%),radial-gradient(circle_at_top_right,rgba(217,70,239,0.07),transparent_26%),linear-gradient(180deg,rgba(8,12,22,0.98),rgba(5,8,15,0.98))]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
+                <SlidersHorizontal className="h-4 w-4 text-cyan-500" />
+                Find characters
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Narrow the list by story and world.
+              </p>
+            </div>
+            <span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-400">
+              {filteredEntries.length} shown
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <span className="mb-2 block">Story</span>
+              <select
+                className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
+                onChange={(event) => {
+                  setStoryTargetId(event.target.value);
+                  setRelationTargetId("all");
+                }}
+                value={storyTargetId}
+              >
+                <option value="all">All Stories</option>
+                {storyOptions.map((story) => (
+                  <option key={story.id} value={story.id}>
+                    {story.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <span className="mb-2 block">World</span>
+              <select
+                className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-45 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
+                disabled={storyTargetId === "all"}
+                onChange={(event) => setRelationTargetId(event.target.value)}
+                value={relationTargetId}
+              >
+                <option value="all">All Worlds</option>
+                {availableRelationOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      ) : relationFilter ? (
+        <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-sm dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.09),transparent_32%),radial-gradient(circle_at_top_right,rgba(217,70,239,0.07),transparent_26%),linear-gradient(180deg,rgba(8,12,22,0.98),rgba(5,8,15,0.98))]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
+                <SlidersHorizontal className="h-4 w-4 text-cyan-500" />
+                Find {collection.title.toLowerCase()}
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Choose a {relationFilter.label.toLowerCase()} to narrow the
+                list.
+              </p>
+            </div>
+            <span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-400">
+              {filteredEntries.length} shown
+            </span>
+          </div>
+          <label className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <span className="sr-only">Filter by {relationFilter.label}</span>
             <select
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              onChange={(event) => {
-                setStoryTargetId(event.target.value);
-                setRelationTargetId("all");
-              }}
-              value={storyTargetId}
-            >
-              <option value="all">All Stories</option>
-              {storyOptions.map((story) => (
-                <option key={story.id} value={story.id}>
-                  {story.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
-            <span className="mb-2 block">Select a World</span>
-            <select
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              disabled={storyTargetId === "all"}
+              className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
               onChange={(event) => setRelationTargetId(event.target.value)}
               value={relationTargetId}
             >
-              <option value="all">All Worlds</option>
-              {availableRelationOptions.map((option) => (
+              <option value="all">All {collection.title.toLowerCase()}</option>
+              {relationFilter.options.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.title}
                 </option>
@@ -258,25 +309,6 @@ export default function CmsEntryGallery({
             </select>
           </label>
         </div>
-      ) : relationFilter ? (
-        <label className="block rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
-          <span className="mb-2 block">
-            Filter by {relationFilter.label}
-            {sectionKey === "worlds" ? " (Optional)" : ""}
-          </span>
-          <select
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-            onChange={(event) => setRelationTargetId(event.target.value)}
-            value={relationTargetId}
-          >
-            <option value="all">All {collection.title.toLowerCase()}</option>
-            {relationFilter.options.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.title}
-              </option>
-            ))}
-          </select>
-        </label>
       ) : null}
 
       {filteredEntries.length ? (

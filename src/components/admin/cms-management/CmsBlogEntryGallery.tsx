@@ -130,58 +130,62 @@ export default function CmsBlogEntryGallery({
 
   return (
     <div className="@container space-y-5">
-      <nav
-        aria-label="Filter blog posts"
-        className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-1"
-      >
-        {statusTabs.map((tab) => {
-          const count =
-            tab.id === "all"
-              ? entries.length
-              : entries.filter((entry) => visibilityFor(entry) === tab.id)
-                  .length;
-          return (
-            <button
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
-                status === tab.id
-                  ? "bg-red-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-              }`}
-              key={tab.id}
-              onClick={() => setStatus(tab.id)}
-              type="button"
-            >
-              {tab.label}
-              <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-xs">
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <details className="group rounded-xl border border-zinc-800 bg-zinc-950/95">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-300 marker:content-none">
-          <Search className="h-4 w-4 text-zinc-500" />
-          <span className="flex-1">Search and filters</span>
-          <ChevronDown className="h-4 w-4 text-zinc-500 transition group-open:rotate-180" />
-        </summary>
-        <div className="border-t border-zinc-800 p-4">
-          <label>
-            <span className="sr-only">Search posts</span>
-            <span className="relative block">
-              <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <input
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-11 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-red-500"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Title or excerpt"
-                type="search"
-                value={query}
-              />
-            </span>
-          </label>
+      <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-sm dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.09),transparent_32%),radial-gradient(circle_at_top_right,rgba(217,70,239,0.07),transparent_26%),linear-gradient(180deg,rgba(8,12,22,0.98),rgba(5,8,15,0.98))]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
+              Find posts
+            </h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              Search by title or choose who can see them.
+            </p>
+          </div>
+          <span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-400">
+            {filteredEntries.length} of {entries.length}
+          </span>
         </div>
-      </details>
+        <label className="relative mt-4 block">
+          <span className="sr-only">Search posts</span>
+          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <input
+            className="h-11 w-full rounded-md border border-slate-300 bg-white/80 pr-3 pl-9 text-sm text-slate-900 shadow-inner outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search titles or excerpts…"
+            type="search"
+            value={query}
+          />
+        </label>
+        <nav
+          aria-label="Filter blog posts"
+          className="mt-3 flex gap-1 overflow-x-auto rounded-xl border border-slate-200/80 bg-white/45 p-1 dark:border-white/8 dark:bg-white/[0.025]"
+        >
+          {statusTabs.map((tab) => {
+            const count =
+              tab.id === "all"
+                ? entries.length
+                : entries.filter((entry) => visibilityFor(entry) === tab.id)
+                    .length;
+            return (
+              <button
+                className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  status === tab.id
+                    ? "bg-cyan-600 text-white shadow-sm dark:bg-cyan-400/15 dark:text-cyan-100"
+                    : "text-zinc-500 hover:bg-white hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[0.055] dark:hover:text-zinc-100"
+                }`}
+                key={tab.id}
+                onClick={() => setStatus(tab.id)}
+                type="button"
+              >
+                {tab.label}
+                <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-xs">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
       {filteredEntries.length ? (
         <section className="space-y-4">
