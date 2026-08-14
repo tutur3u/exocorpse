@@ -27,6 +27,7 @@ import {
   reorderAdminCmsEntries,
   reorderAdminCmsAssets,
   registerAdminCmsAsset,
+  setAdminCmsEntryVisibility,
 } from "@/lib/actions/cms";
 import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
@@ -95,9 +96,10 @@ export function useCmsManagementWorkspace({
       (collection) => collection.slug === section.defaultCollectionSlug,
     ) ?? visibleCollections[0];
   const [collectionId, setCollectionId] = useState(defaultCollection?.id ?? "");
-  const [entryId, setEntryId] = useState(() =>
+  const [entryId, setEntryIdState] = useState(() =>
     firstEntryId(initialStudio, defaultCollection?.id ?? ""),
   );
+  const [creatingEntry, setCreatingEntry] = useState(false);
   const [draft, setDraft] = useState<CmsEntryDraft>(() =>
     entryDraft(
       initialStudio.entries.find((entry) => entry.id === entryId) ?? null,
@@ -153,6 +155,10 @@ export function useCmsManagementWorkspace({
   useEffect(() => {
     if (!collection) return;
     const entry = studio.entries.find((item) => item.id === entryId) ?? null;
+    // New drafts deliberately use an empty entry id. Their defaults and
+    // contextual relations are initialized by createEntry(), so do not replace
+    // them with another blank draft after that state transition.
+    if (creatingEntry) return;
     setDraft(
       entry
         ? entryDraft(entry, collection.id)
@@ -166,12 +172,18 @@ export function useCmsManagementWorkspace({
     setRelationSelections(
       initialRelationSelections(studio, entry?.id ?? "", definitions),
     );
-  }, [collection, definitions, entryId, fields, studio]);
+  }, [collection, creatingEntry, definitions, entryId, fields, studio]);
+
+  function setEntryId(nextEntryId: string) {
+    setCreatingEntry(false);
+    setEntryIdState(nextEntryId);
+  }
 
   function selectCollection(nextCollectionId: string) {
     setMessage(null);
+    setCreatingEntry(false);
     setCollectionId(nextCollectionId);
-    setEntryId(firstEntryId(studio, nextCollectionId));
+    setEntryIdState(firstEntryId(studio, nextCollectionId));
   }
 
   function createEntry(
@@ -179,7 +191,8 @@ export function useCmsManagementWorkspace({
     initialRelations: CmsRelationSelections = {},
   ) {
     if (!collection) return;
-    setEntryId("");
+    setCreatingEntry(true);
+    setEntryIdState("");
     const nextDraft = applyFieldDefaults(emptyEntry(collection.id), fields);
     const profileData = isJsonRecord(nextDraft.profile_data)
       ? nextDraft.profile_data
@@ -347,6 +360,39 @@ export function useCmsManagementWorkspace({
     );
   }
 
+  function setEntryVisibility(
+    targetEntryId: string,
+    visibility: "draft" | "published" | "unlisted",
+  ) {
+    run(
+      () => setAdminCmsEntryVisibility(targetEntryId, visibility),
+      visibility === "draft"
+        ? "Post moved to drafts."
+        : visibility === "unlisted"
+          ? "Post is available by direct link."
+          : "Post published.",
+      (bundle) =>
+        setStudio((current) => ({
+          ...current,
+          blocks: [
+            ...current.blocks.filter(
+              (block) => block.entry_id !== bundle.entry.id,
+            ),
+            ...bundle.blocks,
+          ],
+          entries: current.entries.map((entry) =>
+            entry.id === bundle.entry.id ? bundle.entry : entry,
+          ),
+          relations: [
+            ...(current.relations ?? []).filter(
+              (relation) => relation.from_entry_id !== bundle.entry.id,
+            ),
+            ...bundle.relations,
+          ],
+        })),
+    );
+  }
+
   function uploadAsset(file: File) {
     if (!selectedEntry || !collection) return;
     run(
@@ -483,6 +529,7 @@ export function useCmsManagementWorkspace({
     reorderEntries,
     save,
     selectCollection,
+    setEntryVisibility,
     setBlocks,
     setDraft,
     setEntryId,

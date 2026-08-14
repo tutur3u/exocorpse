@@ -13,6 +13,7 @@ import {
   type AboutUseIconKey,
 } from "@/lib/about";
 import type { ComponentType } from "react";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 const useCardIconMap: Record<
   AboutUseIconKey,
@@ -62,7 +63,10 @@ export default function AboutTab({ data }: { data: AboutPageData }) {
                   <Icon className={iconColorClass} aria-hidden="true" />
                   {item.title}
                 </h4>
-                <p className="text-sm text-slate-300">{item.body}</p>
+                <MarkdownRenderer
+                  className="text-sm text-slate-300"
+                  content={item.body}
+                />
               </div>
             );
           })}
@@ -82,7 +86,10 @@ export default function AboutTab({ data }: { data: AboutPageData }) {
               className="flex items-start gap-3 rounded-lg border border-white/6 bg-slate-950/85 p-3 transition-colors hover:bg-slate-900"
             >
               <span className="text-xl">{item.icon_key}</span>
-              <span className="text-sm text-slate-300">{item.body}</span>
+              <MarkdownRenderer
+                className="min-w-0 text-sm text-slate-300"
+                content={item.body}
+              />
             </div>
           ))}
         </div>
@@ -101,7 +108,10 @@ export default function AboutTab({ data }: { data: AboutPageData }) {
               className="flex items-start gap-3 rounded-lg border border-white/6 bg-slate-950/85 p-3 transition-colors hover:bg-slate-900"
             >
               <span className="text-xl">{item.icon_key}</span>
-              <span className="text-sm text-slate-300">{item.body}</span>
+              <MarkdownRenderer
+                className="min-w-0 text-sm text-slate-300"
+                content={item.body}
+              />
             </div>
           ))}
         </div>
@@ -123,7 +133,10 @@ export default function AboutTab({ data }: { data: AboutPageData }) {
                 <span className="text-lg">{fav.icon_key}</span>
                 {fav.title}
               </h4>
-              <p className="text-sm text-slate-300">{fav.body}</p>
+              <MarkdownRenderer
+                className="text-sm text-slate-300"
+                content={fav.body}
+              />
             </div>
           ))}
         </div>

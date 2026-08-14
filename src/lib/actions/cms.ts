@@ -9,6 +9,7 @@ import {
   getExocorpseCmsStudio,
   reorderExocorpseCmsEntries,
   reorderExocorpseCmsAssets,
+  setExocorpseCmsEntryVisibility,
   updateExocorpseCmsEntryBundle,
 } from "@/lib/tuturuuu-cms-repository";
 import type { ExocorpseJson } from "@/types/exocorpse-cms";
@@ -72,6 +73,17 @@ export async function reorderAdminCmsAssets(
   const assets = await reorderExocorpseCmsAssets(order);
   revalidatePath("/admin", "layout");
   return assets;
+}
+
+export async function setAdminCmsEntryVisibility(
+  entryId: string,
+  visibility: "draft" | "published" | "unlisted",
+) {
+  await verifyAuth();
+  const result = await setExocorpseCmsEntryVisibility(entryId, visibility);
+  revalidatePath("/admin", "layout");
+  revalidatePath("/");
+  return result;
 }
 
 export async function registerAdminCmsAsset(input: {

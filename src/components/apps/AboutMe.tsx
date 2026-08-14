@@ -1,6 +1,7 @@
 "use client";
 
 import StorageImage from "@/components/shared/StorageImage";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { useInitialAboutData } from "@/contexts/InitialAboutDataContext";
 import type { AboutPageData } from "@/lib/about";
 import { getAboutPageData } from "@/lib/actions/about";
@@ -73,9 +74,10 @@ export default function AboutMe() {
               {data.settings.hero_subtitle}
             </p>
           </div>
-          <div className="max-w-2xl whitespace-pre-line text-slate-200">
-            {data.settings.hero_bio}
-          </div>
+          <MarkdownRenderer
+            className="max-w-2xl text-slate-200"
+            content={data.settings.hero_bio}
+          />
         </div>
       </div>
 

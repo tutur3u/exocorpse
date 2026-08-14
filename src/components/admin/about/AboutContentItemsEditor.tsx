@@ -1,11 +1,11 @@
 "use client";
 
 import type { AboutContentItem, AboutContentSection } from "@/lib/about";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import SortableList from "@/components/admin/SortableList";
 import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
 import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -194,12 +194,12 @@ function ItemCard({
 
         <div className="grid gap-4 md:grid-cols-2">
           {fields.map((field) => (
-            <label key={field.key} className="flex flex-col gap-2 text-sm">
+            <div key={field.key} className="flex flex-col gap-2 text-sm">
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 {field.label}
               </span>
               <FieldInput field={field} draft={draft} onChange={setField} />
-            </label>
+            </div>
           ))}
         </div>
       </div>
@@ -225,12 +225,11 @@ function FieldInput({
 
   if (field.type === "textarea") {
     return (
-      <Textarea
+      <AdminMarkdownEditor
+        minHeight={`${Math.max((field.rows ?? 3) * 2.25, 8)}rem`}
+        onChange={(value) => onChange(field.key, value)}
+        placeholder={field.placeholder ?? `Write ${field.label.toLowerCase()}…`}
         value={String(value)}
-        rows={field.rows ?? 3}
-        placeholder={field.placeholder}
-        onChange={(event) => onChange(field.key, event.target.value)}
-        className={`${baseInputClass} resize-y`}
       />
     );
   }
@@ -407,7 +406,7 @@ export default function AboutContentItemsEditor({
 
             <div className="grid gap-4 md:grid-cols-2">
               {visibleFields.map((field) => (
-                <label key={field.key} className="flex flex-col gap-2 text-sm">
+                <div key={field.key} className="flex flex-col gap-2 text-sm">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {field.label}
                   </span>
@@ -416,7 +415,7 @@ export default function AboutContentItemsEditor({
                     draft={newItem}
                     onChange={setNewField}
                   />
-                </label>
+                </div>
               ))}
             </div>
           </div>

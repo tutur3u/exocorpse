@@ -3,6 +3,7 @@
 import { ConfirmExitDialog } from "@/components/shared/ConfirmDialog";
 import { useFormDirtyState } from "@/hooks/useFormDirtyState";
 import type { BlacklistedUser } from "@/lib/actions/blacklist";
+import { Textarea } from "@tuturuuu/ui/textarea";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -121,7 +122,7 @@ export default function BlacklistForm({
               >
                 Reason for Blacklisting <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <Textarea
                 id="reasoning"
                 disabled={loading}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"

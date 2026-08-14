@@ -30,7 +30,7 @@ export default function CmsEditorTabs({
   return (
     <div
       aria-label="Editing sections"
-      className="flex gap-1 overflow-x-auto border-b border-gray-300 px-4 sm:px-6 dark:border-gray-600"
+      className="flex gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/80 p-2.5 sm:px-5 dark:border-slate-700 dark:bg-slate-950/45"
       role="tablist"
     >
       {tabs.map((tab) => {
@@ -40,10 +40,10 @@ export default function CmsEditorTabs({
           <button
             aria-controls={`cms-${tab.id}-panel`}
             aria-selected={active}
-            className={`inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
               active
                 ? theme.activeTab
-                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-100"
             }`}
             id={`cms-${tab.id}-tab`}
             key={tab.id}

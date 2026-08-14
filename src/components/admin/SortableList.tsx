@@ -56,7 +56,7 @@ function SortableItem<T>({
 
   return (
     <div
-      className={`group/sortable relative min-w-0 ${isDragging ? "z-40 opacity-70" : ""}`}
+      className={`group/sortable relative h-full min-w-0 ${isDragging ? "z-40 opacity-70" : ""}`}
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
@@ -64,7 +64,7 @@ function SortableItem<T>({
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className={`absolute top-3 left-3 z-30 cursor-grab border-zinc-300 bg-white/90 text-zinc-600 opacity-0 shadow-md backdrop-blur transition-[opacity,background-color,border-color,color,box-shadow] group-hover/sortable:opacity-100 hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-700 focus-visible:opacity-100 active:cursor-grabbing dark:border-slate-600 dark:bg-slate-950/90 dark:text-slate-300 dark:hover:border-cyan-300/60 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-100 [@media(hover:none)]:opacity-100 ${isDragging ? "opacity-100" : ""} ${handleClassName ?? ""}`}
+        className={`absolute top-3 right-3 z-30 cursor-grab border-zinc-300 bg-white/90 text-zinc-600 opacity-0 shadow-md backdrop-blur transition-[opacity,background-color,border-color,color,box-shadow] group-hover/sortable:opacity-100 hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-700 focus-visible:opacity-100 active:cursor-grabbing dark:border-slate-600 dark:bg-slate-950/90 dark:text-slate-300 dark:hover:border-cyan-300/60 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-100 [@media(hover:none)]:opacity-100 ${isDragging ? "opacity-100" : ""} ${handleClassName ?? ""}`}
         size="icon"
         title="Drag to reorder"
         type="button"

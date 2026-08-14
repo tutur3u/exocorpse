@@ -50,7 +50,7 @@ export default function CmsEntryCard({
         : "h-48";
 
   return (
-    <article className="group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30">
       {supportsImages ? (
         <div
           className={`relative overflow-hidden rounded-t-xl ${previewSize} ${theme.media}`}
@@ -91,7 +91,9 @@ export default function CmsEntryCard({
         </div>
       ) : null}
 
-      <div className={`p-4 ${avatarAsset && avatarUrl ? "pt-12" : ""}`}>
+      <div
+        className={`flex flex-1 flex-col p-4 ${avatarAsset && avatarUrl ? "pt-12" : ""}`}
+      >
         <h3 className="line-clamp-2 text-lg leading-6 font-bold text-gray-900 dark:text-gray-100">
           {entry.title || "Untitled"}
         </h3>
@@ -120,7 +122,7 @@ export default function CmsEntryCard({
             ))}
           </div>
         ) : null}
-        <div className="mt-4 flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div className="mt-auto flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
           <button
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             onClick={onEdit}

@@ -2,6 +2,7 @@
 
 import CmsBlockEditor from "@/components/admin/cms-management/CmsBlockEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import type {
   CmsBlockDraft,
   CmsEntryDraft,
@@ -13,7 +14,6 @@ import type {
   ExocorpseCmsRelationDefinition,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
-import { Textarea } from "@tuturuuu/ui/textarea";
 import {
   AlertTriangle,
   ArrowRight,
@@ -198,26 +198,24 @@ export default function CmsConnectionEntryEditor({
             "Choose the label visitors will see for this relationship.",
             <HeartHandshake className="h-4 w-4" />,
           )}
-          <label className="block space-y-2 text-sm">
+          <div className="block space-y-2 text-sm">
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               Relationship summary
             </span>
-            <Textarea
-              className="min-h-40 resize-y bg-white leading-6 dark:bg-zinc-900"
+            <AdminMarkdownEditor
+              compact
               maxLength={1000}
-              onChange={(event) =>
+              minHeight="10rem"
+              onChange={(value) =>
                 onDraftChange({
                   ...draft,
-                  summary: event.target.value || null,
+                  summary: value || null,
                 })
               }
               placeholder="What is their dynamic? Add the useful context visitors should see…"
               value={draft.summary ?? ""}
             />
-            <span className="block text-right text-xs text-zinc-400">
-              {(draft.summary ?? "").length}/1000
-            </span>
-          </label>
+          </div>
         </section>
       ) : (
         <CmsStructuredFields

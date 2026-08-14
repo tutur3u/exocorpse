@@ -1,11 +1,36 @@
 @import "tailwindcss";
 @import "streamdown/styles.css";
+@import "@tuturuuu/editor/styles.css";
 
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
 @source "../../node_modules/@tuturuuu/ui/src/components/ui/*.tsx";
+@source "../../node_modules/@tuturuuu/editor/dist/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+.admin-markdown-editor {
+  --tuturuuu-editor-active-background: rgb(6 182 212 / 0.12);
+  --tuturuuu-editor-active-border: rgb(34 211 238 / 0.42);
+  --tuturuuu-editor-background: rgb(255 255 255 / 0.82);
+  --tuturuuu-editor-border: rgb(148 163 184 / 0.55);
+  --tuturuuu-editor-focus: rgb(8 145 178);
+  --tuturuuu-editor-focus-ring: rgb(6 182 212 / 0.16);
+  --tuturuuu-editor-muted: rgb(100 116 139);
+  --tuturuuu-editor-toolbar-background: rgb(248 250 252 / 0.92);
+}
+
+.dark .admin-markdown-editor {
+  --tuturuuu-editor-active-background: rgb(34 211 238 / 0.1);
+  --tuturuuu-editor-active-border: rgb(103 232 249 / 0.34);
+  --tuturuuu-editor-background: rgb(6 10 19 / 0.72);
+  --tuturuuu-editor-border: rgb(71 85 105 / 0.72);
+  --tuturuuu-editor-focus: rgb(103 232 249);
+  --tuturuuu-editor-focus-ring: rgb(34 211 238 / 0.15);
+  --tuturuuu-editor-foreground: rgb(241 245 249);
+  --tuturuuu-editor-muted: rgb(148 163 184);
+  --tuturuuu-editor-toolbar-background: rgb(15 23 42 / 0.76);
+}
 
 /* Custom animations */
 @keyframes fadeIn {

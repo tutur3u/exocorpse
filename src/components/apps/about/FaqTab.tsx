@@ -7,6 +7,7 @@ import {
   type AboutPageData,
 } from "@/lib/about";
 import { useState } from "react";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import {
   FaCheckCircle,
   FaChevronDown,
@@ -161,11 +162,17 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
             </div>
             <div>
               <p className="mb-1 font-medium text-slate-100">PROCREATE:</p>
-              <p className="ml-4 text-sm">{faq.brushes_procreate_text}</p>
+              <MarkdownRenderer
+                className="ml-4 text-sm"
+                content={faq.brushes_procreate_text ?? ""}
+              />
             </div>
             <div>
               <p className="mb-1 font-medium text-slate-100">PAINT TOOL SAI:</p>
-              <p className="ml-4 text-sm">{faq.brushes_paint_tool_sai_text}</p>
+              <MarkdownRenderer
+                className="ml-4 text-sm"
+                content={faq.brushes_paint_tool_sai_text ?? ""}
+              />
             </div>
           </div>
         );
@@ -203,7 +210,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
       case "social":
         return (
           <div className="space-y-2">
-            <p>{faq.social_intro_text}</p>
+            <MarkdownRenderer content={faq.social_intro_text ?? ""} />
             <blockquote className="border-l-4 border-cyan-400 bg-cyan-950/45 py-2 pl-4 text-sm text-slate-100 italic">
               {faq.social_note_prefix}{" "}
               <code className="rounded bg-slate-800 px-1.5 py-0.5 text-slate-100 not-italic">
@@ -253,7 +260,7 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
         );
 
       case "commissions":
-        return <p>{faq.commissions_text}</p>;
+        return <MarkdownRenderer content={faq.commissions_text ?? ""} />;
 
       case "username":
         return (
@@ -283,7 +290,10 @@ export default function FaqTab({ data }: { data: AboutPageData }) {
         <h2 className="bg-linear-to-r from-cyan-200 to-fuchsia-300 bg-clip-text text-3xl font-bold text-transparent">
           {data.settings.faq_title}
         </h2>
-        <p className="mt-2 text-sm text-slate-300">{data.settings.faq_intro}</p>
+        <MarkdownRenderer
+          className="mt-2 text-sm text-slate-300"
+          content={data.settings.faq_intro}
+        />
       </div>
 
       <div className="space-y-3">

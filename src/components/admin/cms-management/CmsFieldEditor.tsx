@@ -1,5 +1,6 @@
 "use client";
 
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import { humanizeField } from "@/components/admin/cms-management/editor-utils";
 import type {
   ExocorpseCmsFieldDefinition,
@@ -53,7 +54,7 @@ function JsonInput({
             onChange(JSON.parse(text) as ExocorpseJson);
             setError(null);
           } catch {
-            setError("This advanced field has an invalid format.");
+            setError("Please review the value in this field.");
           }
         }}
         onChange={(event) => setText(event.target.value)}
@@ -101,8 +102,10 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
     definition.field_type === "markdown" ||
     multilineFieldKeys.has(definition.key);
 
+  const Wrapper = isMultiline ? "div" : "label";
+
   return (
-    <label
+    <Wrapper
       className={`block space-y-1.5 text-sm ${isMultiline ? "@3xl:col-span-2" : ""}`}
     >
       <span className="flex items-center gap-2 font-medium text-zinc-800 dark:text-zinc-200">
@@ -133,9 +136,9 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
           ))}
         </select>
       ) : isMultiline ? (
-        <Textarea
-          className={`${inputClassName} ${spaciousFieldKeys.has(definition.key) ? "min-h-64" : "min-h-28"} resize-y leading-6`}
-          onChange={(event) => onChange(event.target.value)}
+        <AdminMarkdownEditor
+          minHeight={spaciousFieldKeys.has(definition.key) ? "18rem" : "11rem"}
+          onChange={onChange}
           placeholder={`Write ${label.toLowerCase()}…`}
           value={stringValue}
         />
@@ -192,6 +195,6 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
           {description}
         </span>
       ) : null}
-    </label>
+    </Wrapper>
   );
 }

@@ -147,22 +147,17 @@ export default function CmsEntryEditor({
   const relationInBasics =
     definitions.length > 0 &&
     ["stories", "worlds", "factions", "locations"].includes(collection.slug);
-  const singlePageLayout =
-    isConnectionEntry ||
-    collection.slug === "blog-posts" ||
-    collection.slug.startsWith("portfolio-") ||
-    collection.slug === "commission-services" ||
-    collection.slug === "commission-addons";
+  const singlePageLayout = isConnectionEntry;
   const isBlog = collection.slug === "blog-posts";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
       <div
-        className={`px-4 pt-6 pb-4 sm:px-6 ${isBlog ? "border-b border-zinc-200 bg-linear-to-br from-red-50 via-white to-orange-50 dark:border-zinc-800 dark:from-red-950/30 dark:via-zinc-950 dark:to-zinc-950" : ""}`}
+        className={`px-4 pt-6 pr-16 pb-4 sm:px-6 sm:pr-18 ${isBlog ? "border-b border-zinc-200 bg-linear-to-br from-red-50 via-white to-orange-50 dark:border-zinc-800 dark:from-red-950/30 dark:via-zinc-950 dark:to-zinc-950" : "border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_30%)] dark:border-slate-700"}`}
       >
         {isBlog ? (
           <p className="text-xs font-semibold tracking-[0.32em] text-red-700 uppercase dark:text-red-300">
-            {selectedEntryId ? "Edit Sequence" : "Draft Sequence"}
+            {selectedEntryId ? "Edit post" : "New post"}
           </p>
         ) : null}
         <h2 className="truncate text-2xl font-bold text-gray-900 dark:text-white">
@@ -170,8 +165,7 @@ export default function CmsEntryEditor({
         </h2>
         {isBlog ? (
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Tighten the metadata, sharpen the excerpt, and control when the
-            archive entry becomes visible.
+            Shape the story, choose its cover, and control who can read it.
           </p>
         ) : null}
       </div>

@@ -3,6 +3,7 @@
 import AboutContentItemsEditor, {
   type ContentFieldConfig,
 } from "@/components/admin/about/AboutContentItemsEditor";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import {
   groupAboutItemsBySection,
   mapAboutFaqsByType,
@@ -111,16 +112,16 @@ function FaqField({
     "rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100";
 
   return (
-    <label className="flex flex-col gap-2 text-sm">
+    <div className="flex flex-col gap-2 text-sm">
       <span className="font-medium text-gray-700 dark:text-gray-300">
         {label}
       </span>
       {multiline ? (
-        <Textarea
+        <AdminMarkdownEditor
+          minHeight={`${Math.max(rows * 2.25, 8)}rem`}
+          onChange={onChange}
+          placeholder={`Write ${label.toLowerCase()}…`}
           value={String(value)}
-          rows={rows}
-          onChange={(event) => onChange(event.target.value)}
-          className={`${className} resize-y`}
         />
       ) : (
         <Input
@@ -130,7 +131,7 @@ function FaqField({
           className={className}
         />
       )}
-    </label>
+    </div>
   );
 }
 

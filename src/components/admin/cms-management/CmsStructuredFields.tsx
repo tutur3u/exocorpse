@@ -72,10 +72,10 @@ export default function CmsStructuredFields({
         <details className="group overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 marker:content-none">
             <span className="min-w-0 flex-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-              Advanced details
+              More options
             </span>
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {advancedDefinitions.length} optional
+              Optional
             </span>
             <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
           </summary>

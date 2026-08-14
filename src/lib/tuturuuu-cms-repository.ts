@@ -232,6 +232,61 @@ export async function reorderExocorpseCmsEntries(
   return updated;
 }
 
+export async function setExocorpseCmsEntryVisibility(
+  entryId: string,
+  visibility: "draft" | "published" | "unlisted",
+) {
+  const studio = await getExocorpseCmsStudio();
+  const entry = studio.entries.find((candidate) => candidate.id === entryId);
+  if (!entry) throw new Error("This post is no longer available.");
+  const profileData =
+    entry.profile_data &&
+    typeof entry.profile_data === "object" &&
+    !Array.isArray(entry.profile_data)
+      ? entry.profile_data
+      : {};
+
+  return updateExocorpseCmsEntryBundle(entry.id, entry.updated_at, {
+    entry: {
+      collectionId: entry.collection_id,
+      metadata: entry.metadata,
+      profileData: {
+        ...profileData,
+        visibility: visibility === "unlisted" ? "unlisted" : "public",
+      },
+      scheduledFor: null,
+      slug: entry.slug,
+      sortOrder: entry.sort_order,
+      status: visibility === "draft" ? "draft" : "published",
+      subtitle: entry.subtitle,
+      summary: entry.summary,
+      title: entry.title,
+    },
+    blocks: studio.blocks
+      .filter((block) => block.entry_id === entry.id)
+      .map((block) => ({
+        blockType: block.block_type,
+        content: block.content,
+        id: block.id,
+        sortOrder: block.sort_order,
+        stableSourceId: block.stable_source_id,
+        title: block.title,
+      })),
+    relations: (studio.relations ?? [])
+      .filter(
+        (relation) =>
+          relation.from_entry_id === entry.id &&
+          relation.relation_definition_id,
+      )
+      .map((relation) => ({
+        definitionId: relation.relation_definition_id as string,
+        metadata: relation.metadata,
+        sortOrder: relation.sort_order,
+        toEntryId: relation.to_entry_id,
+      })),
+  });
+}
+
 export async function deleteExocorpseCmsEntry(entryId: string) {
   await cmsRequest<{ id: string }>(
     workspacePath(`/entries/${encodeURIComponent(entryId)}`),

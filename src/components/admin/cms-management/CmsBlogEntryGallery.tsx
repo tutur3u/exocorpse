@@ -1,19 +1,29 @@
 "use client";
 
-import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
+import {
+  isJsonRecord,
+  shouldBypassImageOptimization,
+} from "@/components/admin/cms-management/editor-utils";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
 import {
   ChevronDown,
+  Check,
+  Copy,
+  ExternalLink,
   FilePenLine,
   FileText,
+  Globe2,
   Search,
   Trash2,
+  EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+
+type BlogVisibility = ExocorpseCmsEntry["status"] | "unlisted";
 
 const statusCopy = {
   archived: {
@@ -36,7 +46,19 @@ const statusCopy = {
     label: "Scheduled",
     summary: "Queued for its selected publication time.",
   },
-} satisfies Record<ExocorpseCmsEntry["status"], object>;
+  unlisted: {
+    chip: "border-cyan-700 bg-cyan-500/15 text-cyan-200",
+    label: "Unlisted",
+    summary: "Available to anyone with the direct link.",
+  },
+} satisfies Record<BlogVisibility, object>;
+
+function visibilityFor(entry: ExocorpseCmsEntry): BlogVisibility {
+  const profile = isJsonRecord(entry.profile_data) ? entry.profile_data : {};
+  return entry.status === "published" && profile.visibility === "unlisted"
+    ? "unlisted"
+    : entry.status;
+}
 
 function formatShortDate(value: string | null) {
   if (!value) return "Not scheduled yet";
@@ -52,16 +74,20 @@ export default function CmsBlogEntryGallery({
   entries,
   onDelete,
   onSelect,
+  onSetVisibility,
 }: {
   assets: ExocorpseCmsAsset[];
   entries: ExocorpseCmsEntry[];
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
+  onSetVisibility: (
+    entryId: string,
+    visibility: "draft" | "published" | "unlisted",
+  ) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | ExocorpseCmsEntry["status"]>(
-    "all",
-  );
+  const [status, setStatus] = useState<"all" | BlogVisibility>("all");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const mediaByEntry = useMemo(
     () =>
       new Map(
@@ -81,7 +107,7 @@ export default function CmsBlogEntryGallery({
     const normalized = query.trim().toLowerCase();
     return entries.filter(
       (entry) =>
-        (status === "all" || entry.status === status) &&
+        (status === "all" || visibilityFor(entry) === status) &&
         (!normalized ||
           [entry.title, entry.slug, entry.subtitle, entry.summary]
             .filter(Boolean)
@@ -91,13 +117,14 @@ export default function CmsBlogEntryGallery({
     );
   }, [entries, query, status]);
   const statusTabs: Array<{
-    id: "all" | ExocorpseCmsEntry["status"];
+    id: "all" | BlogVisibility;
     label: string;
   }> = [
     { id: "all", label: "All" },
     { id: "draft", label: "Drafts" },
     { id: "scheduled", label: "Scheduled" },
     { id: "published", label: "Published" },
+    { id: "unlisted", label: "Unlisted" },
     { id: "archived", label: "Archived" },
   ];
 
@@ -111,7 +138,8 @@ export default function CmsBlogEntryGallery({
           const count =
             tab.id === "all"
               ? entries.length
-              : entries.filter((entry) => entry.status === tab.id).length;
+              : entries.filter((entry) => visibilityFor(entry) === tab.id)
+                  .length;
           return (
             <button
               className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
@@ -158,7 +186,8 @@ export default function CmsBlogEntryGallery({
       {filteredEntries.length ? (
         <section className="space-y-4">
           {filteredEntries.map((entry) => {
-            const statusData = statusCopy[entry.status];
+            const visibility = visibilityFor(entry);
+            const statusData = statusCopy[visibility];
             const asset = mediaByEntry.get(entry.id);
             const imageUrl = asset?.preview_url ?? asset?.asset_url;
             return (
@@ -213,6 +242,67 @@ export default function CmsBlogEntryGallery({
                       >
                         <FilePenLine className="h-4 w-4" /> Edit
                       </button>
+                      <button
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-cyan-500/60 hover:bg-cyan-500/10 hover:text-cyan-100"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(
+                            `${window.location.origin}/?blog-post=${encodeURIComponent(entry.slug)}`,
+                          );
+                          setCopiedId(entry.id);
+                          window.setTimeout(() => setCopiedId(null), 1800);
+                        }}
+                        type="button"
+                      >
+                        {copiedId === entry.id ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                        {copiedId === entry.id ? "Copied" : "Copy link"}
+                      </button>
+                      {visibility === "published" ||
+                      visibility === "unlisted" ? (
+                        <a
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-zinc-900"
+                          href={`/?blog-post=${encodeURIComponent(entry.slug)}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <ExternalLink className="h-4 w-4" /> Open post
+                        </a>
+                      ) : null}
+                      <details className="group relative">
+                        <summary className="flex cursor-pointer list-none items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 marker:content-none hover:bg-zinc-900">
+                          {visibility === "unlisted" ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Globe2 className="h-4 w-4" />
+                          )}
+                          Visibility
+                          <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
+                        </summary>
+                        <div className="mt-2 grid gap-1 rounded-xl border border-zinc-700 bg-zinc-900 p-1.5 shadow-xl">
+                          {(
+                            [
+                              ["published", "Published", "Shown in the blog"],
+                              ["unlisted", "Unlisted", "Only via direct link"],
+                              ["draft", "Draft", "Hidden from visitors"],
+                            ] as const
+                          ).map(([value, label, help]) => (
+                            <button
+                              className="rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition hover:bg-zinc-800"
+                              key={value}
+                              onClick={() => onSetVisibility(entry.id, value)}
+                              type="button"
+                            >
+                              <span className="block font-medium">{label}</span>
+                              <span className="block text-xs text-zinc-500">
+                                {help}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </details>
                       <button
                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-900/70 bg-red-500/8 px-4 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/15"
                         onClick={() => onDelete(entry)}

@@ -5,6 +5,7 @@ import {
   newBlock,
 } from "@/components/admin/cms-management/editor-utils";
 import type { CmsBlockDraft } from "@/components/admin/cms-management/editor-types";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import SortableList from "@/components/admin/SortableList";
 import { Button } from "@tuturuuu/ui/button";
 import { Input } from "@tuturuuu/ui/input";
@@ -140,23 +141,24 @@ export default function CmsBlockEditor({
                     </Button>
                   </div>
                 </div>
-                <Textarea
-                  className={`${inputClassName} min-h-44 ${
-                    block.blockType === "markdown"
-                      ? "leading-6"
-                      : "font-mono text-xs"
-                  }`}
-                  onChange={(event) =>
-                    update(index, { contentText: event.target.value })
-                  }
-                  placeholder={
-                    block.blockType === "markdown"
-                      ? "Write this section’s content…"
-                      : "Add advanced section data…"
-                  }
-                  spellCheck={block.blockType === "markdown"}
-                  value={block.contentText}
-                />
+                {block.blockType === "markdown" ? (
+                  <AdminMarkdownEditor
+                    minHeight="18rem"
+                    onChange={(value) => update(index, { contentText: value })}
+                    placeholder="Write this section’s content…"
+                    value={block.contentText}
+                  />
+                ) : (
+                  <Textarea
+                    className={`${inputClassName} min-h-44 font-mono text-xs`}
+                    onChange={(event) =>
+                      update(index, { contentText: event.target.value })
+                    }
+                    placeholder="Add the section details…"
+                    spellCheck={false}
+                    value={block.contentText}
+                  />
+                )}
               </div>
             </details>
           );

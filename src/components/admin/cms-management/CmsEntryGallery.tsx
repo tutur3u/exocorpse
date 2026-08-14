@@ -40,6 +40,7 @@ export default function CmsEntryGallery({
   onOpenCollection,
   onReorder,
   onSelect,
+  onSetVisibility,
   sectionKey,
   studio,
   supportsImages,
@@ -60,6 +61,10 @@ export default function CmsEntryGallery({
   ) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
+  onSetVisibility: (
+    entryId: string,
+    visibility: "draft" | "published" | "unlisted",
+  ) => void;
   sectionKey: AdminCmsSectionKey;
   studio: ExocorpseCmsStudio;
   supportsImages: boolean;
@@ -148,6 +153,7 @@ export default function CmsEntryGallery({
         entries={entries}
         onDelete={onDelete}
         onSelect={onSelect}
+        onSetVisibility={onSetVisibility}
       />
     );
   }
@@ -275,7 +281,7 @@ export default function CmsEntryGallery({
 
       {filteredEntries.length ? (
         <SortableList
-          className="grid items-start gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3"
+          className="grid items-stretch gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3"
           getId={(entry) => entry.id}
           items={filteredEntries}
           layout="grid"

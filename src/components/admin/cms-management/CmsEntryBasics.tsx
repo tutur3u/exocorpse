@@ -1,8 +1,8 @@
 "use client";
 
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import type { CmsEntryDraft } from "@/components/admin/cms-management/editor-types";
 import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
 import { PenLine } from "lucide-react";
 
 export default function CmsEntryBasics({
@@ -55,23 +55,19 @@ export default function CmsEntryBasics({
         </label>
       </div>
 
-      <label className="block space-y-1.5 text-sm">
+      <div className="block space-y-1.5 text-sm">
         <span className="font-medium text-zinc-800 dark:text-zinc-200">
           Short description
         </span>
-        <Textarea
-          className="min-h-24 bg-white leading-6 dark:bg-gray-800"
+        <AdminMarkdownEditor
+          compact
           maxLength={1000}
-          onChange={(event) =>
-            onChange({ ...draft, summary: event.target.value || null })
-          }
+          minHeight="8rem"
+          onChange={(value) => onChange({ ...draft, summary: value || null })}
           placeholder="Help visitors understand what this is at a glance"
           value={draft.summary ?? ""}
         />
-        <span className="block text-right text-[10px] text-zinc-400">
-          {(draft.summary ?? "").length}/1000
-        </span>
-      </label>
+      </div>
     </section>
   );
 }

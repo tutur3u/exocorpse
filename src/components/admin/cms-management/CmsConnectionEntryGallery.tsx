@@ -257,10 +257,7 @@ export default function CmsConnectionEntryGallery({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="min-w-0 flex-1">
-            <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-cyan-700 uppercase dark:text-cyan-300/80">
-              {isRelationship ? "Connection map" : "Faction roster"}
-            </p>
-            <h2 className="mt-1 font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
+            <h2 className="font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
               {isRelationship
                 ? "Character relationships"
                 : "Faction memberships"}

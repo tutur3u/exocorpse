@@ -1,11 +1,11 @@
 "use client";
 
 import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import type { AboutPageSettings } from "@/lib/about";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
 import { Button } from "@tuturuuu/ui/button";
 
 type AboutSettingsFormProps = {
@@ -178,17 +178,17 @@ export default function AboutSettingsForm({
             />
           </label>
 
-          <label className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-gray-700 dark:text-gray-300">
               Hero Bio
             </span>
-            <Textarea
+            <AdminMarkdownEditor
+              minHeight="14rem"
+              onChange={(value) => setField("hero_bio", value)}
+              placeholder="Introduce yourself…"
               value={draft.hero_bio}
-              rows={6}
-              onChange={(event) => setField("hero_bio", event.target.value)}
-              className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
             />
-          </label>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 p-5 md:grid-cols-2">
@@ -210,16 +210,17 @@ export default function AboutSettingsForm({
             const isLongText = key.endsWith("_intro");
 
             return (
-              <label key={key} className="flex flex-col gap-2 text-sm">
+              <div key={key} className="flex flex-col gap-2 text-sm">
                 <span className="font-medium text-gray-700 dark:text-gray-300">
                   {label}
                 </span>
                 {isLongText ? (
-                  <Textarea
+                  <AdminMarkdownEditor
+                    compact
+                    minHeight="8rem"
+                    onChange={(value) => setField(fieldKey, value)}
+                    placeholder={`Write ${label.toLowerCase()}…`}
                     value={draft[fieldKey]}
-                    rows={3}
-                    onChange={(event) => setField(fieldKey, event.target.value)}
-                    className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                   />
                 ) : (
                   <Input
@@ -228,7 +229,7 @@ export default function AboutSettingsForm({
                     className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                   />
                 )}
-              </label>
+              </div>
             );
           })}
         </div>

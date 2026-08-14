@@ -59,6 +59,7 @@ export default function CmsManagementWorkspace({
     reorderAssets,
     save,
     selectCollection,
+    setEntryVisibility,
     setBlocks,
     setDraft,
     setEntryId,
@@ -192,6 +193,7 @@ export default function CmsManagementWorkspace({
         beginCreateEntry();
       }}
       onDelete={(entry) => setDeletingEntryId(entry.id)}
+      onSetVisibility={setEntryVisibility}
       onOpenCollection={(slug, targetId, relationKey) => {
         const target = visibleCollections.find((item) => item.slug === slug);
         if (target) {
@@ -233,7 +235,7 @@ export default function CmsManagementWorkspace({
     section.key === "characters" ? (
       <nav
         aria-label="Character content"
-        className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+        className="flex gap-6 overflow-x-auto rounded-xl border border-slate-200 bg-white px-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
         {[
           "characters",
@@ -274,7 +276,7 @@ export default function CmsManagementWorkspace({
                 target="_blank"
               >
                 <Library className="h-3.5 w-3.5" />
-                Advanced library
+                Content library
               </a>
             ) : null}
           </>
@@ -357,7 +359,7 @@ export default function CmsManagementWorkspace({
           <div className="p-6">{entryGallery}</div>
         </div>
       ) : (
-        <>
+        <div className="space-y-6">
           {relatedContentNavigation}
           {!relatedContentNavigation && primaryCollections.length > 1 ? (
             <nav
@@ -369,7 +371,7 @@ export default function CmsManagementWorkspace({
           ) : null}
           {section.key === "cms" ? supportingNavigation : null}
           {entryGallery}
-        </>
+        </div>
       )}
 
       {editorOpen ? (

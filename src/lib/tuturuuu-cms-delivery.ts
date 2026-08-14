@@ -1210,6 +1210,10 @@ export async function getCmsPublishedBlogPosts() {
   const entries = await getExocorpseCmsEntries("blog-posts");
   return entries
     ? entries
+        .filter(
+          (entry) =>
+            stringValue(entry.profileData, "visibility") !== "unlisted",
+        )
         .map(mapCmsBlogPost)
         .filter((post) => isVisiblePublishedDate(post.published_at))
         .sort((left, right) =>
@@ -1237,8 +1241,11 @@ export async function getCmsPublishedBlogPostsPaginated(
 }
 
 export async function getCmsBlogPostBySlug(slug: string) {
-  const posts = await getCmsPublishedBlogPosts();
-  return posts?.find((post) => post.slug === slug) ?? null;
+  const entries = await getExocorpseCmsEntries("blog-posts");
+  const entry = entries?.find((candidate) => candidate.slug === slug);
+  if (!entry) return null;
+  const post = mapCmsBlogPost(entry);
+  return isVisiblePublishedDate(post.published_at) ? post : null;
 }
 
 export async function getCmsActiveServices(): Promise<
