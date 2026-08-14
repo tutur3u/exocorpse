@@ -13,6 +13,7 @@ import { collectionItemLabel } from "@/components/admin/cms-management/collectio
 import {
   type CmsEntryGalleryFilter,
   selectCmsEntryCardMedia,
+  usesStoryAndWorldFilters,
 } from "@/components/admin/cms-management/gallery-utils";
 import type {
   ExocorpseCmsAsset,
@@ -191,7 +192,8 @@ export default function CmsEntryGallery({
 
   return (
     <section className="space-y-5">
-      {relationFilter && ["characters", "factions"].includes(sectionKey) ? (
+      {relationFilter &&
+      usesStoryAndWorldFilters(collection.slug, sectionKey) ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="rounded-lg border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
             <span className="mb-2 block">Select a Story</span>

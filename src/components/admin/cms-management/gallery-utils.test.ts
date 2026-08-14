@@ -7,6 +7,7 @@ import {
   buildCmsEntryGalleryFilter,
   entryCardDescription,
   selectCmsEntryCardMedia,
+  usesStoryAndWorldFilters,
 } from "./gallery-utils";
 import { collectionTabLabel } from "./collection-copy";
 
@@ -119,6 +120,15 @@ describe("legacy dashboard tab copy", () => {
 });
 
 describe("CMS entry gallery relation filters", () => {
+  test("only uses story and world selectors for the character list", () => {
+    expect(usesStoryAndWorldFilters("characters", "characters")).toBe(true);
+    expect(usesStoryAndWorldFilters("character-gallery", "characters")).toBe(
+      false,
+    );
+    expect(usesStoryAndWorldFilters("character-outfits", "characters")).toBe(
+      false,
+    );
+  });
   test("recreates the familiar story filter for worlds", () => {
     const story = {
       collection_id: "stories-id",

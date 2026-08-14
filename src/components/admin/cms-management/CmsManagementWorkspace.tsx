@@ -217,16 +217,19 @@ export default function CmsManagementWorkspace({
         aria-label="Character content"
         className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >
-        {[...primaryCollections, ...supportingCollections]
-          .filter((item) =>
-            [
-              "characters",
-              "character-gallery",
-              "character-outfits",
-              "character-relationships",
-              "character-factions",
-            ].includes(item.slug),
+        {[
+          "characters",
+          "character-gallery",
+          "character-outfits",
+          "character-relationships",
+          "character-factions",
+        ]
+          .map((slug) =>
+            [...primaryCollections, ...supportingCollections].find(
+              (item) => item.slug === slug,
+            ),
           )
+          .filter((item) => item !== undefined)
           .map((item) => collectionButton(item, "tab"))}
       </nav>
     ) : null;

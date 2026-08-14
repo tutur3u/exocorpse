@@ -4,6 +4,14 @@ import type {
   ExocorpseCmsEntry,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
+import type { AdminCmsSectionKey } from "@/lib/admin-cms-sections";
+
+export function usesStoryAndWorldFilters(
+  collectionSlug: string,
+  sectionKey: AdminCmsSectionKey,
+) {
+  return sectionKey === "characters" && collectionSlug === "characters";
+}
 
 export type CmsEntryCardMedia = {
   avatar?: ExocorpseCmsAsset;
