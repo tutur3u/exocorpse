@@ -5,10 +5,7 @@ import type {
 } from "@/types/exocorpse-cms";
 import {
   BookOpenText,
-  Brain,
-  Dumbbell,
   FileText,
-  HeartHandshake,
   ImageIcon,
   Images,
   Link2,
@@ -136,38 +133,26 @@ export function legacyEditorTabs({
 }): CmsEditorTabConfig[] {
   if (collection.slug === "characters") {
     return [
-      { icon: FileText, id: "basic", label: "Basic Info" },
-      { icon: ScanFace, id: "physical", label: "Physical" },
-      { icon: Brain, id: "personality", label: "Personality" },
-      ...(hasBlocks
-        ? [
-            {
-              icon: BookOpenText,
-              id: "content" as const,
-              label: "History & Lore",
-            },
-          ]
-        : []),
-      { icon: Dumbbell, id: "abilities", label: "Abilities" },
       {
-        count: assetCount,
-        icon: Palette,
-        id: "media",
-        label: "Visuals",
+        icon: FileText,
+        id: "basic",
+        label: "Basic Info & Publishing",
       },
-      { icon: ImageIcon, id: "gallery", label: "Gallery" },
-      { icon: HeartHandshake, id: "fanwork", label: "Fanwork Policy" },
-      ...(hasConnections
-        ? [
-            {
-              count: connectionCount,
-              icon: Link2,
-              id: "connections" as const,
-              label: "Relationships",
-            },
-          ]
-        : []),
-      { icon: Settings2, id: "settings", label: "Publishing" },
+      {
+        icon: ScanFace,
+        id: "physical",
+        label: "Physical & Personality",
+      },
+      {
+        icon: BookOpenText,
+        id: "content",
+        label: "Relationships, Lore & Abilities",
+      },
+      {
+        icon: ImageIcon,
+        id: "gallery",
+        label: "Gallery & Fanwork Policy",
+      },
     ];
   }
   const visualLabel =

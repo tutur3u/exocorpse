@@ -36,7 +36,7 @@ import type {
   ExocorpseCmsStudio,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 function firstEntryId(studio: ExocorpseCmsStudio, collectionId: string) {
   return (
@@ -72,7 +72,9 @@ export function useCmsManagementWorkspace({
   initialStudio: ExocorpseCmsStudio;
   section: AdminCmsSection;
 }) {
+  const galleryUploadSequenceRef = useRef(0);
   const [pending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
   const [studio, setStudio] = useState(initialStudio);
   const visibleCollections = useMemo(() => {
     const selectedSlugs = new Set(section.collectionSlugs);
@@ -431,6 +433,171 @@ export function useCmsManagementWorkspace({
     );
   }
 
+  async function uploadInlineAsset(file: File) {
+    if (!selectedEntry || !collection) {
+      throw new Error("Save this item before adding an image to its text.");
+    }
+    setUploading(true);
+    setMessage(null);
+    try {
+      const storagePath = await uploadCmsAssetDirect({
+        collectionType: collection.collection_type,
+        entrySlug: selectedEntry.slug,
+        file,
+      });
+      const asset = await registerAdminCmsAsset({
+        assetType: "inline-image",
+        entryId: selectedEntry.id,
+        fileName: file.name,
+        fileType: file.type,
+        storagePath,
+      });
+      if (!asset.asset_url) {
+        await deleteAdminCmsAsset(asset.id);
+        throw new Error(
+          "The image uploaded, but its public link was not ready.",
+        );
+      }
+      setStudio((current) => ({
+        ...current,
+        assets: [
+          ...current.assets.filter((item) => item.id !== asset.id),
+          asset,
+        ],
+      }));
+      setMessage({ kind: "success", text: "Image added to the text." });
+      return asset.asset_url;
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "That image could not be added. Please try again.",
+      });
+      throw error;
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function uploadCharacterGalleryAsset(file: File, characterId: string) {
+    const galleryCollection = studio.collections.find(
+      (item) => item.slug === "character-gallery",
+    );
+    const relationDefinition = (studio.relationDefinitions ?? []).find(
+      (definition) =>
+        definition.source_collection_id === galleryCollection?.id &&
+        definition.key === "character",
+    );
+    const character = studio.entries.find((entry) => entry.id === characterId);
+    if (!galleryCollection || !relationDefinition || !character) {
+      throw new Error("This character gallery is not ready yet.");
+    }
+
+    setUploading(true);
+    setMessage(null);
+    let createdEntryId: string | null = null;
+    try {
+      const fileTitle = file.name.replace(/\.[^.]+$/, "").trim() || "Artwork";
+      const slug = slugify(
+        `${character.slug}-${fileTitle}-${crypto.randomUUID().slice(0, 8)}`,
+      );
+      const relatedGalleryEntryIds = new Set(
+        (studio.relations ?? [])
+          .filter(
+            (relation) =>
+              relation.relation_definition_id === relationDefinition.id &&
+              relation.to_entry_id === characterId,
+          )
+          .map((relation) => relation.from_entry_id),
+      );
+      const existingSortOrders = studio.entries
+        .filter(
+          (entry) =>
+            entry.collection_id === galleryCollection.id &&
+            relatedGalleryEntryIds.has(entry.id),
+        )
+        .map((entry) => entry.sort_order);
+      const sortOrder =
+        Math.max(-1, ...existingSortOrders) +
+        1 +
+        galleryUploadSequenceRef.current++;
+      const bundle = await saveAdminCmsEntry({
+        blocks: [],
+        entry: {
+          collectionId: galleryCollection.id,
+          metadata: {},
+          profileData: { sensitiveContent: false },
+          scheduledFor: null,
+          slug,
+          sortOrder,
+          status: "published",
+          subtitle: null,
+          summary: null,
+          title: fileTitle,
+        },
+        relations: [
+          {
+            definitionId: relationDefinition.id,
+            sortOrder: 0,
+            toEntryId: characterId,
+          },
+        ],
+      });
+      createdEntryId = bundle.entry.id;
+      const storagePath = await uploadCmsAssetDirect({
+        collectionType: galleryCollection.collection_type,
+        entrySlug: bundle.entry.slug,
+        file,
+      });
+      const asset = await registerAdminCmsAsset({
+        entryId: bundle.entry.id,
+        fileName: file.name,
+        fileType: file.type,
+        storagePath,
+      });
+      setStudio((current) => ({
+        ...current,
+        assets: [
+          ...current.assets.filter((item) => item.id !== asset.id),
+          asset,
+        ],
+        blocks: [
+          ...current.blocks.filter(
+            (block) => block.entry_id !== bundle.entry.id,
+          ),
+          ...bundle.blocks,
+        ],
+        entries: [
+          ...current.entries.filter((entry) => entry.id !== bundle.entry.id),
+          bundle.entry,
+        ],
+        relations: [
+          ...(current.relations ?? []).filter(
+            (relation) => relation.from_entry_id !== bundle.entry.id,
+          ),
+          ...bundle.relations,
+        ],
+      }));
+      setMessage({ kind: "success", text: "Gallery image added." });
+    } catch (error) {
+      if (createdEntryId) {
+        await deleteAdminCmsEntry(createdEntryId).catch(() => undefined);
+      }
+      setMessage({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "That gallery image could not be added. Please try again.",
+      });
+      throw error;
+    } finally {
+      setUploading(false);
+    }
+  }
+
   function deleteAsset(assetId: string) {
     run(
       () => deleteAdminCmsAsset(assetId),
@@ -533,7 +700,7 @@ export function useCmsManagementWorkspace({
     entryId,
     fields,
     message,
-    pending,
+    pending: pending || uploading,
     relationSelections,
     reorderAssets,
     reorderEntries,
@@ -547,6 +714,8 @@ export function useCmsManagementWorkspace({
     setRelationSelections,
     studio,
     uploadAsset,
+    uploadCharacterGalleryAsset,
+    uploadInlineAsset,
     visibleCollections,
   };
 }

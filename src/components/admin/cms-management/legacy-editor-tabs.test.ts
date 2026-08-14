@@ -35,7 +35,7 @@ describe("legacy CMS editor navigation", () => {
     ]);
   });
 
-  test("keeps character relationships separate from media and content", () => {
+  test("groups the character editor into four focused sections", () => {
     const tabs = legacyEditorTabs({
       assetCount: 2,
       blockCount: 1,
@@ -48,16 +48,10 @@ describe("legacy CMS editor navigation", () => {
     });
 
     expect(tabs.map((tab) => tab.label)).toEqual([
-      "Basic Info",
-      "Physical",
-      "Personality",
-      "History & Lore",
-      "Abilities",
-      "Visuals",
-      "Gallery",
-      "Fanwork Policy",
-      "Relationships",
-      "Publishing",
+      "Basic Info & Publishing",
+      "Physical & Personality",
+      "Relationships, Lore & Abilities",
+      "Gallery & Fanwork Policy",
     ]);
   });
 

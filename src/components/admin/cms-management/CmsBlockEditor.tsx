@@ -16,6 +16,7 @@ type Props = {
   allowedBlockTypes: string[];
   blocks: CmsBlockDraft[];
   onChange: (blocks: CmsBlockDraft[]) => void;
+  onImageUpload?: (file: File) => Promise<string>;
 };
 
 const inputClassName =
@@ -25,6 +26,7 @@ export default function CmsBlockEditor({
   allowedBlockTypes,
   blocks,
   onChange,
+  onImageUpload,
 }: Props) {
   const blockTypes = allowedBlockTypes.length
     ? allowedBlockTypes
@@ -145,6 +147,7 @@ export default function CmsBlockEditor({
                   <AdminMarkdownEditor
                     minHeight="18rem"
                     onChange={(value) => update(index, { contentText: value })}
+                    onImageUpload={onImageUpload}
                     placeholder="Write this section’s content…"
                     value={block.contentText}
                   />

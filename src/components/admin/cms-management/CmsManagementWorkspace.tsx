@@ -67,6 +67,8 @@ export default function CmsManagementWorkspace({
     setRelationSelections,
     studio,
     uploadAsset,
+    uploadCharacterGalleryAsset,
+    uploadInlineAsset,
     visibleCollections,
   } = workspace;
 
@@ -239,7 +241,6 @@ export default function CmsManagementWorkspace({
       >
         {[
           "characters",
-          "character-gallery",
           "character-outfits",
           "character-relationships",
           "character-factions",
@@ -409,16 +410,18 @@ export default function CmsManagementWorkspace({
             onCancel={() => setEditorOpen(false)}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
-            onOpenCollection={(slug) => {
+            onUploadGalleryAsset={(file) =>
+              uploadCharacterGalleryAsset(file, entryId)
+            }
+            onUploadInlineAsset={uploadInlineAsset}
+            onEditGalleryEntry={(galleryEntryId) => {
               const target = visibleCollections.find(
-                (item) => item.slug === slug,
+                (item) => item.slug === "character-gallery",
               );
               if (!target) return;
-              setRelatedTarget(
-                entryId ? { id: entryId, relationKey: "character" } : null,
-              );
+              setRelatedTarget(null);
               selectCollection(target.id);
-              setEditorOpen(false);
+              setEntryId(galleryEntryId);
             }}
             pending={pending}
             relationSelections={relationSelections}

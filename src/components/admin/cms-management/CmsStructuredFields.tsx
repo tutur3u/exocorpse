@@ -13,11 +13,13 @@ export default function CmsStructuredFields({
   definitions,
   draft,
   onChange,
+  onImageUpload,
   title = "Details",
 }: {
   definitions: ExocorpseCmsFieldDefinition[];
   draft: CmsEntryDraft;
   onChange: (draft: CmsEntryDraft) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   title?: string;
 }) {
   if (!definitions.length) return null;
@@ -63,6 +65,7 @@ export default function CmsStructuredFields({
               definition={definition}
               key={`${draft.id || "new"}:${definition.id}`}
               onChange={(value) => update(definition, value)}
+              onImageUpload={onImageUpload}
               value={record[definition.key]}
             />
           );
@@ -88,6 +91,7 @@ export default function CmsStructuredFields({
                   definition={definition}
                   key={`${draft.id || "new"}:${definition.id}`}
                   onChange={(value) => update(definition, value)}
+                  onImageUpload={onImageUpload}
                   value={record[definition.key]}
                 />
               );

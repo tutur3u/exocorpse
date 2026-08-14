@@ -11,6 +11,7 @@ export default function AdminMarkdownEditor({
   maxLength,
   minHeight = compact ? "8rem" : "16rem",
   onChange,
+  onImageUpload,
   placeholder,
   value,
 }: {
@@ -18,10 +19,12 @@ export default function AdminMarkdownEditor({
   maxLength?: number;
   minHeight?: string;
   onChange: (value: string) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   placeholder: string;
   value: string;
 }) {
   const [showMoreTools, setShowMoreTools] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
   const style = {
@@ -64,6 +67,23 @@ export default function AdminMarkdownEditor({
           if (maxLength && markdown.length > maxLength) return;
           onChange(markdown);
         }}
+        onImageUpload={
+          onImageUpload
+            ? async (file) => {
+                setImageError(null);
+                const url = await onImageUpload(file);
+                setImageError(null);
+                return url;
+              }
+            : undefined
+        }
+        onImageUploadError={(error) =>
+          setImageError(
+            error instanceof Error
+              ? error.message
+              : "That image could not be added. Please try again.",
+          )
+        }
         placeholder={placeholder}
       />
       <button
@@ -89,6 +109,14 @@ export default function AdminMarkdownEditor({
       {maxLength ? (
         <p className="mt-1 text-right text-[0.68rem] text-slate-500 dark:text-slate-400">
           {value.length}/{maxLength}
+        </p>
+      ) : null}
+      {imageError ? (
+        <p
+          className="mt-2 text-sm text-rose-600 dark:text-rose-300"
+          role="alert"
+        >
+          {imageError}
         </p>
       ) : null}
     </div>

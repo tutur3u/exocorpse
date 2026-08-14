@@ -14,6 +14,7 @@ import { useState } from "react";
 type Props = {
   definition: ExocorpseCmsFieldDefinition;
   onChange: (value: ExocorpseJson | undefined) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   value: ExocorpseJson | undefined;
 };
 
@@ -66,7 +67,12 @@ function JsonInput({
   );
 }
 
-export default function CmsFieldEditor({ definition, onChange, value }: Props) {
+export default function CmsFieldEditor({
+  definition,
+  onChange,
+  onImageUpload,
+  value,
+}: Props) {
   if (!definition.is_enabled) return null;
   const label = labelFor(definition);
   const description = definition.description;
@@ -139,6 +145,7 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
         <AdminMarkdownEditor
           minHeight={spaciousFieldKeys.has(definition.key) ? "18rem" : "11rem"}
           onChange={onChange}
+          onImageUpload={onImageUpload}
           placeholder={`Write ${label.toLowerCase()}…`}
           value={stringValue}
         />

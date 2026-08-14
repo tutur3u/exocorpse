@@ -87,16 +87,21 @@ export async function setAdminCmsEntryVisibility(
 }
 
 export async function registerAdminCmsAsset(input: {
+  assetType?: string;
   entryId: string;
   fileName: string;
   fileType: string;
+  metadata?: ExocorpseJson;
   storagePath: string;
 }) {
   await verifyAuth();
+  const assetType =
+    input.assetType ?? (input.fileType.split("/")[0] || "image");
   if (
     !input.entryId ||
     !input.fileName ||
     input.fileName.length > 255 ||
+    !/^[a-z][a-z0-9-]{0,63}$/.test(assetType) ||
     !input.storagePath.startsWith("external-projects/") ||
     input.storagePath.length > 1024
   ) {
@@ -104,8 +109,9 @@ export async function registerAdminCmsAsset(input: {
   }
   const asset = await createExocorpseCmsAsset({
     alt_text: input.fileName,
-    asset_type: input.fileType.split("/")[0] || "image",
+    asset_type: assetType,
     entry_id: input.entryId,
+    metadata: input.metadata,
     storage_path: input.storagePath,
   });
   revalidatePath("/admin", "layout");

@@ -8,10 +8,12 @@ import { PenLine } from "lucide-react";
 export default function CmsEntryBasics({
   draft,
   onChange,
+  onImageUpload,
   onTitleChange,
 }: {
   draft: CmsEntryDraft;
   onChange: (draft: CmsEntryDraft) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   onTitleChange: (title: string) => void;
 }) {
   return (
@@ -64,6 +66,7 @@ export default function CmsEntryBasics({
           maxLength={1000}
           minHeight="8rem"
           onChange={(value) => onChange({ ...draft, summary: value || null })}
+          onImageUpload={onImageUpload}
           placeholder="Help visitors understand what this is at a glance"
           value={draft.summary ?? ""}
         />

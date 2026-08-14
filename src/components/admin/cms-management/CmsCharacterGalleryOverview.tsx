@@ -6,18 +6,41 @@ import {
 } from "@/components/admin/cms-management/editor-utils";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
-import { ImageIcon, Plus } from "lucide-react";
+import { ImageIcon, Loader2, Pencil, Upload } from "lucide-react";
 import Image from "next/image";
+import { useRef, useState } from "react";
 
 export default function CmsCharacterGalleryOverview({
   characterId,
-  onManage,
+  onEdit,
+  onUpload,
+  pending,
   studio,
 }: {
   characterId: string;
-  onManage: () => void;
+  onEdit: (entryId: string) => void;
+  onUpload: (file: File) => Promise<void>;
+  pending: boolean;
   studio: ExocorpseCmsStudio;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadFiles = async (files: FileList | File[]) => {
+    const images = Array.from(files).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    if (!images.length) return;
+    setUploading(true);
+    try {
+      for (const file of images) await onUpload(file);
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
   if (!characterId) {
     return (
       <section className="rounded-xl border-2 border-dashed border-zinc-300 px-6 py-14 text-center dark:border-zinc-700">
@@ -26,8 +49,7 @@ export default function CmsCharacterGalleryOverview({
           Save the character first
         </p>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          The gallery will be available as soon as this character has been
-          created.
+          You can add gallery images as soon as the character has been created.
         </p>
       </section>
     );
@@ -68,23 +90,68 @@ export default function CmsCharacterGalleryOverview({
         .sort((left, right) => left.sort_order - right.sort_order),
     ]),
   );
+  const busy = pending || uploading;
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-zinc-950 dark:text-white">
-            <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Character Gallery ({entries.length})
-          </h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Artwork connected to this character, in its public display order.
-          </p>
+      <div
+        className={`rounded-2xl border-2 border-dashed p-5 transition sm:p-6 ${
+          dragging
+            ? "border-cyan-400 bg-cyan-50 dark:bg-cyan-950/20"
+            : "border-slate-300 bg-slate-50/70 hover:border-cyan-400 dark:border-slate-700 dark:bg-slate-900/40"
+        }`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            setDragging(false);
+          }
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          void uploadFiles(event.dataTransfer.files);
+        }}
+      >
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300">
+            {busy ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="text-base font-semibold text-slate-950 dark:text-white">
+              {busy ? "Adding images…" : "Add images to this gallery"}
+            </h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Drop one or more images here, or choose them from your device.
+            </p>
+          </div>
+          <input
+            accept="image/*"
+            className="sr-only"
+            disabled={busy}
+            multiple
+            onChange={(event) => {
+              if (event.target.files) void uploadFiles(event.target.files);
+            }}
+            ref={inputRef}
+            type="file"
+          />
+          <Button
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+            type="button"
+          >
+            <ImageIcon className="h-4 w-4" />
+            Choose images
+          </Button>
         </div>
-        <Button onClick={onManage} type="button">
-          <Plus className="h-4 w-4" />
-          Add or arrange artwork
-        </Button>
       </div>
 
       {entries.length ? (
@@ -97,18 +164,18 @@ export default function CmsCharacterGalleryOverview({
               : {};
             return (
               <button
-                className="group overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 text-left transition hover:border-blue-400 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+                className="group overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 text-left transition hover:border-cyan-400 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
                 key={entry.id}
-                onClick={onManage}
+                onClick={() => onEdit(entry.id)}
                 type="button"
               >
-                <div className="relative aspect-square bg-zinc-200 dark:bg-zinc-950">
+                <div className="relative aspect-[4/3] bg-zinc-200 dark:bg-zinc-950">
                   {asset?.asset_type === "image" && imageUrl ? (
                     <Image
                       alt={asset.alt_text ?? entry.title}
                       className="object-cover transition duration-200 group-hover:scale-[1.02]"
                       fill
-                      sizes="(max-width: 768px) 100vw, 320px"
+                      sizes="(max-width: 768px) 100vw, 420px"
                       src={imageUrl}
                       unoptimized={shouldBypassImageOptimization(asset)}
                     />
@@ -123,32 +190,29 @@ export default function CmsCharacterGalleryOverview({
                     </span>
                   ) : null}
                 </div>
-                <div className="p-3">
-                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                <div className="flex items-center gap-3 p-3">
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
                     {entry.title}
                   </p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Open gallery manager to edit
-                  </p>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-700 dark:text-cyan-300">
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit
+                  </span>
                 </div>
               </button>
             );
           })}
         </div>
       ) : (
-        <button
-          className="grid w-full place-items-center rounded-xl border-2 border-dashed border-zinc-300 px-6 py-14 text-center transition hover:border-blue-400 hover:bg-blue-50/50 dark:border-zinc-700 dark:hover:bg-blue-950/20"
-          onClick={onManage}
-          type="button"
-        >
-          <ImageIcon className="h-10 w-10 text-zinc-400" />
-          <span className="mt-3 font-semibold text-zinc-800 dark:text-zinc-200">
-            No gallery artwork yet
-          </span>
-          <span className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Add the first image for this character.
-          </span>
-        </button>
+        <div className="rounded-xl border border-slate-200 px-6 py-8 text-center dark:border-slate-700">
+          <ImageIcon className="mx-auto h-8 w-8 text-slate-400" />
+          <p className="mt-3 font-semibold text-slate-800 dark:text-slate-200">
+            No gallery images yet
+          </p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Add the first image above. It will appear here immediately.
+          </p>
+        </div>
       )}
     </section>
   );

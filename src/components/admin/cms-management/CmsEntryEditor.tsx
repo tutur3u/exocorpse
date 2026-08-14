@@ -39,8 +39,45 @@ import type {
   ExocorpseCmsRelationDefinition,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
-import { Save, Trash2 } from "lucide-react";
+import { ChevronDown, Save, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+
+function CharacterEditorSection({
+  children,
+  description,
+  open = true,
+  title,
+}: {
+  children: ReactNode;
+  description?: string;
+  open?: boolean;
+  title: string;
+}) {
+  return (
+    <details
+      className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
+      open={open}
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">
+            {title}
+          </h3>
+          {description ? (
+            <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" />
+      </summary>
+      <div className="space-y-5 border-t border-slate-200 p-5 sm:p-6 dark:border-slate-800">
+        {children}
+      </div>
+    </details>
+  );
+}
 
 type Props = {
   allowedAssetTypes: string[];
@@ -59,7 +96,9 @@ type Props = {
   onSave: () => void;
   onTitleChange: (title: string) => void;
   onUploadAsset: (file: File) => void;
-  onOpenCollection: (slug: string) => void;
+  onUploadGalleryAsset: (file: File) => Promise<void>;
+  onUploadInlineAsset: (file: File) => Promise<string>;
+  onEditGalleryEntry: (entryId: string) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   pending: boolean;
@@ -88,7 +127,9 @@ export default function CmsEntryEditor({
   onSave,
   onTitleChange,
   onUploadAsset,
-  onOpenCollection,
+  onUploadGalleryAsset,
+  onUploadInlineAsset,
+  onEditGalleryEntry,
   pending,
   relationSelections,
   selectedEntryId,
@@ -159,6 +200,10 @@ export default function CmsEntryEditor({
   const scrollToSection = (tab: CmsEditorTab) => {
     setActiveTab(tab);
     const scrollArea = scrollAreaRef.current;
+    if (isCharacter) {
+      scrollArea?.scrollTo({ behavior: "smooth", top: 0 });
+      return;
+    }
     const panel = scrollArea?.querySelector<HTMLElement>(`#cms-${tab}-panel`);
     if (!scrollArea || !panel) return;
     const top =
@@ -170,6 +215,7 @@ export default function CmsEntryEditor({
   };
 
   const updateActiveSection = () => {
+    if (isCharacter) return;
     const scrollArea = scrollAreaRef.current;
     if (!scrollArea) return;
     if (
@@ -200,6 +246,7 @@ export default function CmsEntryEditor({
           <CmsEntryBasics
             draft={draft}
             onChange={onDraftChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             onTitleChange={onTitleChange}
           />
           <CmsStructuredFields
@@ -208,6 +255,7 @@ export default function CmsEntryEditor({
             }
             draft={draft}
             onChange={onDraftChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             title="Basic Details"
           />
           {relationInBasics ? (
@@ -228,6 +276,7 @@ export default function CmsEntryEditor({
           definitions={groupedFields.details}
           draft={draft}
           onChange={onDraftChange}
+          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
         />
       );
     }
@@ -237,6 +286,7 @@ export default function CmsEntryEditor({
           definitions={characterFields.physical}
           draft={draft}
           onChange={onDraftChange}
+          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
           title="Physical Details"
         />
       );
@@ -247,6 +297,7 @@ export default function CmsEntryEditor({
           definitions={characterFields.personality}
           draft={draft}
           onChange={onDraftChange}
+          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
           title="Personality Summary"
         />
       );
@@ -257,6 +308,7 @@ export default function CmsEntryEditor({
           definitions={characterFields.abilities}
           draft={draft}
           onChange={onDraftChange}
+          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
           title="Abilities & Skills"
         />
       );
@@ -275,7 +327,9 @@ export default function CmsEntryEditor({
       return (
         <CmsCharacterGalleryOverview
           characterId={selectedEntryId}
-          onManage={() => onOpenCollection("character-gallery")}
+          onEdit={onEditGalleryEntry}
+          onUpload={onUploadGalleryAsset}
+          pending={pending}
           studio={studio}
         />
       );
@@ -286,6 +340,7 @@ export default function CmsEntryEditor({
           allowedBlockTypes={allowedBlockTypes}
           blocks={blocks}
           onChange={onBlocksChange}
+          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
         />
       );
     }
@@ -313,6 +368,7 @@ export default function CmsEntryEditor({
             definitions={groupedFields.visuals}
             draft={draft}
             onChange={onDraftChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             title="Visual Style"
           />
           <CmsMediaPanel
@@ -361,6 +417,169 @@ export default function CmsEntryEditor({
     return null;
   };
 
+  const renderCharacterSection = () => {
+    if (activeTab === "basic") {
+      return (
+        <>
+          <CharacterEditorSection
+            description="Name, introduction, and the details readers see first."
+            title="Basic Info"
+          >
+            <CmsEntryBasics
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+              onTitleChange={onTitleChange}
+            />
+            <CmsStructuredFields
+              definitions={characterFields.basic}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+          </CharacterEditorSection>
+          <CharacterEditorSection
+            description="Profile picture, banner, and the character's visual presentation."
+            title="Profile Images"
+          >
+            <CmsCharacterMediaSettings
+              assets={assets}
+              collectionSlug={collection.slug}
+              draft={draft}
+              onChange={onDraftChange}
+            />
+            <CmsStructuredFields
+              definitions={groupedFields.visuals}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+            <CmsMediaPanel
+              allowedAssetTypes={allowedAssetTypes}
+              assets={assets}
+              canSave={canSave}
+              mode="gallery"
+              onDelete={onDeleteAsset}
+              onReorder={onReorderAssets}
+              onSave={onSave}
+              onUpload={onUploadAsset}
+              pending={pending}
+              saved={Boolean(selectedEntryId)}
+              title="Profile and banner images"
+            />
+          </CharacterEditorSection>
+          <CharacterEditorSection
+            description="Choose when and how this character appears on the site."
+            title="Publishing"
+          >
+            <CmsStructuredFields
+              definitions={groupedFields.publishing}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+            <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+          </CharacterEditorSection>
+        </>
+      );
+    }
+    if (activeTab === "physical") {
+      return (
+        <>
+          <CharacterEditorSection
+            description="Appearance, identity, and distinguishing traits."
+            title="Physical Details"
+          >
+            <CmsStructuredFields
+              definitions={characterFields.physical}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+          </CharacterEditorSection>
+          <CharacterEditorSection
+            description="Temperament, habits, motivations, and personality."
+            title="Personality Summary"
+          >
+            <CmsStructuredFields
+              definitions={characterFields.personality}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+          </CharacterEditorSection>
+        </>
+      );
+    }
+    if (activeTab === "content") {
+      return (
+        <>
+          <CharacterEditorSection
+            description="The people, factions, stories, and places connected to this character."
+            title="Relationships"
+          >
+            <CmsRelationEditor
+              definitions={definitions}
+              entryId={selectedEntryId}
+              onChange={onRelationsChange}
+              selections={relationSelections}
+              studio={studio}
+            />
+          </CharacterEditorSection>
+          <CharacterEditorSection
+            description="Write the character's history and longer story sections."
+            title="Backstory / Lore"
+          >
+            <CmsBlockEditor
+              allowedBlockTypes={allowedBlockTypes}
+              blocks={blocks}
+              onChange={onBlocksChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+          </CharacterEditorSection>
+          <CharacterEditorSection
+            description="Powers, learned skills, strengths, and limitations."
+            title="Abilities"
+          >
+            <CmsStructuredFields
+              definitions={characterFields.abilities}
+              draft={draft}
+              onChange={onDraftChange}
+              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            />
+          </CharacterEditorSection>
+        </>
+      );
+    }
+    return (
+      <>
+        <CharacterEditorSection
+          description="Upload and edit this character's artwork without leaving the editor."
+          title="Gallery"
+        >
+          <CmsCharacterGalleryOverview
+            characterId={selectedEntryId}
+            onEdit={onEditGalleryEntry}
+            onUpload={onUploadGalleryAsset}
+            pending={pending}
+            studio={studio}
+          />
+        </CharacterEditorSection>
+        <CharacterEditorSection
+          description="Explain what fans may create and how the work may be shared."
+          title="Fanwork Policy"
+        >
+          <CmsStructuredFields
+            definitions={characterFields.fanwork}
+            draft={draft}
+            onChange={onDraftChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+          />
+        </CharacterEditorSection>
+      </>
+    );
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
       <div
@@ -392,7 +611,7 @@ export default function CmsEntryEditor({
 
       <div
         className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6"
-        onScroll={updateActiveSection}
+        onScroll={isCharacter ? undefined : updateActiveSection}
         ref={scrollAreaRef}
       >
         {isConnectionEntry ? (
@@ -418,6 +637,14 @@ export default function CmsEntryEditor({
             relationSelections={relationSelections}
             studio={studio}
           />
+        ) : isCharacter ? (
+          <section
+            aria-labelledby={`cms-${activeTab}-tab`}
+            className="space-y-4"
+            id={`cms-${activeTab}-panel`}
+          >
+            {renderCharacterSection()}
+          </section>
         ) : (
           tabs.map((tab) => (
             <section
