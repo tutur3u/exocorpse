@@ -9,7 +9,7 @@ import {
   selectCmsEntryCardMedia,
   usesStoryAndWorldFilters,
 } from "./gallery-utils";
-import { collectionTabLabel } from "./collection-copy";
+import { collectionItemLabel, collectionTabLabel } from "./collection-copy";
 
 const collection = (slug: string): ExocorpseCmsCollection => ({
   collection_type: "content",
@@ -116,6 +116,12 @@ describe("legacy dashboard tab copy", () => {
     expect(collectionTabLabel(collection("portfolio-art"))).toBe("Art");
     expect(collectionTabLabel(collection("portfolio-writing"))).toBe("Writing");
     expect(collectionTabLabel(collection("portfolio-games"))).toBe("Games");
+  });
+
+  test("calls character gallery records artwork", () => {
+    expect(collectionItemLabel(collection("character-gallery"))).toBe(
+      "artwork",
+    );
   });
 });
 

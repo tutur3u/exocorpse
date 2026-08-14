@@ -143,7 +143,7 @@ describe("legacy CMS editor navigation", () => {
       connectionCount: 2,
       fields,
       hasAssets: true,
-      hasBlocks: false,
+      hasBlocks: true,
       hasConnections: true,
     });
 

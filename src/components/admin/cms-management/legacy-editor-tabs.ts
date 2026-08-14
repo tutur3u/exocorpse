@@ -177,7 +177,7 @@ export function legacyEditorTabs({
       label: visualLabel,
     });
   }
-  if (hasBlocks) {
+  if (hasBlocks && collection.slug !== "character-gallery") {
     tabs.push({
       count: blockCount,
       icon: Images,

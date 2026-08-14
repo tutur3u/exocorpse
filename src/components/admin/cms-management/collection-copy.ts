@@ -7,7 +7,7 @@ const ITEM_LABELS: Record<string, string> = {
   "blog-posts": "post",
   characters: "character",
   "character-factions": "membership",
-  "character-gallery": "gallery item",
+  "character-gallery": "artwork",
   "character-locations": "location record",
   "character-outfits": "outfit",
   "character-relationships": "relationship",
