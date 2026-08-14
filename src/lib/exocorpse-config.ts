@@ -1,4 +1,5 @@
 export const EXOCORPSE_APP_NAME = "exocorpse";
+export const EXOCORPSE_PRODUCTION_ORIGIN = "https://exocorpse.net";
 
 export type ExocorpseAdminTargetKey =
   "dashboard" | "library" | "preview" | "members" | "settings";
@@ -144,6 +145,14 @@ export function getExocorpseAppBaseUrl(requestOrigin?: string) {
 
   if (configured?.trim()) {
     return trimTrailingSlash(configured.trim());
+  }
+
+  // Vercel invokes route handlers on the immutable deployment hostname even
+  // when the request arrived through the canonical domain. Tuturuuu validates
+  // external-app return URLs against registered origins, so production auth
+  // must never leak that ephemeral hostname into the login redirect.
+  if (process.env.VERCEL_ENV === "production") {
+    return EXOCORPSE_PRODUCTION_ORIGIN;
   }
 
   if (requestOrigin?.trim()) {

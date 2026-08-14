@@ -1,5 +1,6 @@
 import {
   buildExocorpseCentralizedLoginUrl,
+  getExocorpseAppBaseUrl,
   resolveExocorpseAdminTargetKey,
 } from "@/lib/exocorpse-config";
 import { type NextRequest, NextResponse } from "next/server";
@@ -13,7 +14,7 @@ export function GET(request: NextRequest) {
 
   return NextResponse.redirect(
     buildExocorpseCentralizedLoginUrl({
-      appBaseUrl: request.nextUrl.origin,
+      appBaseUrl: getExocorpseAppBaseUrl(request.nextUrl.origin),
       nextUrl,
     }),
   );
