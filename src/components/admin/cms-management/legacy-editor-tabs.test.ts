@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import type { ExocorpseCmsCollection } from "@/types/exocorpse-cms";
-import { legacyEditorTabs } from "./legacy-editor-tabs";
+import {
+  legacyEditorTabs,
+  splitCharacterEditorFields,
+} from "./legacy-editor-tabs";
 
 const collection = (slug: string): ExocorpseCmsCollection => ({
   collection_type: "content",
@@ -46,10 +49,56 @@ describe("legacy CMS editor navigation", () => {
 
     expect(tabs.map((tab) => tab.label)).toEqual([
       "Basic Info",
-      "Media",
-      "Content",
+      "Physical",
+      "Personality",
+      "History & Lore",
+      "Abilities",
+      "Visuals",
+      "Gallery",
+      "Fanwork Policy",
       "Relationships",
       "Publishing",
+    ]);
+  });
+
+  test("gives long character writing fields their historical sections", () => {
+    const definitions = [
+      "abilities",
+      "distinguishingFeatures",
+      "fanworkPolicy",
+      "nickname",
+      "personalitySummary",
+      "quote",
+    ].map((key, sort_order) => ({
+      collection_id: "characters-id",
+      default_value: null,
+      description: null,
+      field_scope: "profile_data" as const,
+      field_type: "string" as const,
+      id: `${key}-id`,
+      is_enabled: true,
+      is_required: false,
+      key,
+      label: key,
+      options: [],
+      sort_order,
+      source: "test",
+    }));
+
+    const grouped = splitCharacterEditorFields(definitions);
+    expect(grouped.abilities.map((field) => field.key)).toEqual(["abilities"]);
+    expect(grouped.physical.map((field) => field.key)).toEqual([
+      "distinguishingFeatures",
+    ]);
+    expect(grouped.personality.map((field) => field.key)).toEqual([
+      "personalitySummary",
+    ]);
+    expect(grouped.fanwork.map((field) => field.key)).toEqual([
+      "fanworkPolicy",
+    ]);
+    expect(grouped.basic.map((field) => field.key)).toEqual([
+      "nickname",
+      "quote",
     ]);
   });
 

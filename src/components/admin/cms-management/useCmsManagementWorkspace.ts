@@ -22,8 +22,9 @@ import {
   saveAdminCmsEntry,
   reorderAdminCmsEntries,
   reorderAdminCmsAssets,
-  uploadAdminCmsAsset,
+  registerAdminCmsAsset,
 } from "@/lib/actions/cms";
+import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type {
   ExocorpseCmsFieldDefinition,
@@ -320,16 +321,22 @@ export function useCmsManagementWorkspace({
     );
   }
 
-  function uploadAsset(formData: FormData) {
+  function uploadAsset(file: File) {
     if (!selectedEntry || !collection) return;
     run(
-      () =>
-        uploadAdminCmsAsset({
+      async () => {
+        const storagePath = await uploadCmsAssetDirect({
           collectionType: collection.collection_type,
-          entryId: selectedEntry.id,
           entrySlug: selectedEntry.slug,
-          formData,
-        }),
+          file,
+        });
+        return registerAdminCmsAsset({
+          entryId: selectedEntry.id,
+          fileName: file.name,
+          fileType: file.type,
+          storagePath,
+        });
+      },
       "Media uploaded.",
       (asset) =>
         setStudio((current) => ({

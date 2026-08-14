@@ -283,28 +283,6 @@ export async function reorderExocorpseCmsAssets(
   return assets.map(withAdminCmsAssetPreview);
 }
 
-export async function uploadExocorpseCmsAssetFile(input: {
-  collectionType: string;
-  entryId: string;
-  entrySlug: string;
-  file: File;
-}) {
-  const formData = new FormData();
-  formData.set("collectionType", input.collectionType);
-  formData.set("entrySlug", input.entrySlug);
-  formData.set("file", input.file);
-  const upload = await cmsRequest<{ path: string }>(
-    workspacePath("/assets/upload-url"),
-    { body: formData, method: "POST" },
-  );
-  return createExocorpseCmsAsset({
-    alt_text: input.file.name,
-    asset_type: input.file.type.split("/")[0] || "image",
-    entry_id: input.entryId,
-    storage_path: upload.path,
-  });
-}
-
 export function entryBlocksForBundle(
   studio: ExocorpseCmsStudio,
   entryId: string,

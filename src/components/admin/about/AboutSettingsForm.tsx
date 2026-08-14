@@ -15,7 +15,7 @@ type AboutSettingsFormProps = {
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   settings: AboutPageSettings;
   onSave: (updates: Partial<AboutPageSettings>) => Promise<void>;
-  onUploadAsset: (formData: FormData) => void;
+  onUploadAsset: (file: File) => void;
 };
 
 type SettingsDraft = {

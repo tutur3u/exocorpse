@@ -15,8 +15,9 @@ import {
   deleteAdminCmsEntry,
   saveAdminCmsEntry,
   reorderAdminCmsAssets,
-  uploadAdminCmsAsset,
+  registerAdminCmsAsset,
 } from "@/lib/actions/cms";
+import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import {
   ABOUT_SOCIAL_COLOR_KEYS,
   ABOUT_SOCIAL_ICON_KEYS,
@@ -560,17 +561,25 @@ export default function CmsLegacyAboutWorkspace({
     }
   };
 
-  const uploadSettingsAsset = (formData: FormData) => {
+  const uploadSettingsAsset = (file: File) => {
     if (!settingsEntry) return;
     const settingsCollection = collection("about");
     if (!settingsCollection) return;
+    if (!file.size) return;
     setMediaPending(true);
-    void uploadAdminCmsAsset({
+    void uploadCmsAssetDirect({
       collectionType: settingsCollection.collection_type,
-      entryId: settingsEntry.id,
       entrySlug: settingsEntry.slug,
-      formData,
+      file,
     })
+      .then((storagePath) =>
+        registerAdminCmsAsset({
+          entryId: settingsEntry.id,
+          fileName: file.name,
+          fileType: file.type,
+          storagePath,
+        }),
+      )
       .then((asset) => {
         setStudio((current) => ({
           ...current,

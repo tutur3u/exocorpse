@@ -12,6 +12,7 @@ import CmsStructuredFields from "@/components/admin/cms-management/CmsStructured
 import CmsCharacterMediaSettings, {
   isCharacterMediaField,
 } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
+import CmsCharacterGalleryOverview from "@/components/admin/cms-management/CmsCharacterGalleryOverview";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import { collectionItemLabel } from "@/components/admin/cms-management/collection-copy";
 import type {
@@ -22,6 +23,7 @@ import type {
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import {
   legacyEditorTabs,
+  splitCharacterEditorFields,
   splitLegacyEditorFields,
 } from "@/components/admin/cms-management/legacy-editor-tabs";
 import type {
@@ -50,7 +52,8 @@ type Props = {
   onDraftChange: (draft: CmsEntryDraft) => void;
   onSave: () => void;
   onTitleChange: (title: string) => void;
-  onUploadAsset: (formData: FormData) => void;
+  onUploadAsset: (file: File) => void;
+  onOpenCollection: (slug: string) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   pending: boolean;
@@ -79,6 +82,7 @@ export default function CmsEntryEditor({
   onSave,
   onTitleChange,
   onUploadAsset,
+  onOpenCollection,
   pending,
   relationSelections,
   selectedEntryId,
@@ -101,6 +105,11 @@ export default function CmsEntryEditor({
         ),
     ),
   );
+  const characterFields = splitCharacterEditorFields([
+    ...groupedFields.basic,
+    ...groupedFields.details,
+  ]);
+  const isCharacter = collection.slug === "characters";
   const tabs = legacyEditorTabs({
     assetCount: assets.length,
     blockCount: blocks.length,
@@ -213,7 +222,9 @@ export default function CmsEntryEditor({
               onTitleChange={onTitleChange}
             />
             <CmsStructuredFields
-              definitions={groupedFields.basic}
+              definitions={
+                isCharacter ? characterFields.basic : groupedFields.basic
+              }
               draft={draft}
               onChange={onDraftChange}
               title="Basic Details"
@@ -235,6 +246,50 @@ export default function CmsEntryEditor({
             definitions={groupedFields.details}
             draft={draft}
             onChange={onDraftChange}
+          />
+        ) : null}
+
+        {isCharacter && activeTab === "physical" ? (
+          <CmsStructuredFields
+            definitions={characterFields.physical}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Physical Details"
+          />
+        ) : null}
+
+        {isCharacter && activeTab === "personality" ? (
+          <CmsStructuredFields
+            definitions={characterFields.personality}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Personality Summary"
+          />
+        ) : null}
+
+        {isCharacter && activeTab === "abilities" ? (
+          <CmsStructuredFields
+            definitions={characterFields.abilities}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Abilities & Skills"
+          />
+        ) : null}
+
+        {isCharacter && activeTab === "fanwork" ? (
+          <CmsStructuredFields
+            definitions={characterFields.fanwork}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Fanwork Policy"
+          />
+        ) : null}
+
+        {isCharacter && activeTab === "gallery" ? (
+          <CmsCharacterGalleryOverview
+            characterId={selectedEntryId}
+            onManage={() => onOpenCollection("character-gallery")}
+            studio={studio}
           />
         ) : null}
 

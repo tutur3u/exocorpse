@@ -12,7 +12,10 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json().catch(() => null)) as {
+    contentType?: unknown;
     path?: unknown;
+    size?: unknown;
+    upsert?: unknown;
   } | null;
   const path = typeof body?.path === "string" ? body.path : "";
   const segments = path.split("/").filter(Boolean);
@@ -28,9 +31,12 @@ export async function POST(request: NextRequest) {
     {
       body: JSON.stringify({
         collectionType: segments[0],
+        contentType:
+          typeof body?.contentType === "string" ? body.contentType : undefined,
         entrySlug: segments[1],
         filename,
-        upsert: true,
+        size: typeof body?.size === "number" ? body.size : undefined,
+        upsert: typeof body?.upsert === "boolean" ? body.upsert : true,
       }),
       cache: "no-store",
       headers: {

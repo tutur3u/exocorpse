@@ -29,6 +29,7 @@ export default function CmsManagementWorkspace({
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [relatedTargetId, setRelatedTargetId] = useState<string | null>(null);
   const [aboutTab, setAboutTab] = useState<
     "profile" | "about" | "faq" | "dni" | "socials"
   >("profile");
@@ -137,7 +138,10 @@ export default function CmsManagementWorkspace({
               : "text-gray-600 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         }`}
         key={item.id}
-        onClick={() => selectCollection(item.id)}
+        onClick={() => {
+          setRelatedTargetId(null);
+          selectCollection(item.id);
+        }}
         type="button"
       >
         {collectionTabLabel(item)}
@@ -154,15 +158,30 @@ export default function CmsManagementWorkspace({
       assets={studio.assets}
       collection={collection}
       entries={visibleEntries}
+      initialRelationTargetId={relatedTargetId ?? undefined}
       key={collection.id}
       onCreate={(profileData) => {
         createEntry(profileData);
+        if (relatedTargetId) {
+          const relation = definitions.find(
+            (definition) => definition.key === "character",
+          );
+          if (relation) {
+            setRelationSelections((current) => ({
+              ...current,
+              [relation.id]: [relatedTargetId],
+            }));
+          }
+        }
         setEditorOpen(true);
       }}
       onDelete={(entry) => setDeletingEntryId(entry.id)}
       onOpenCollection={(slug) => {
         const target = visibleCollections.find((item) => item.slug === slug);
-        if (target) selectCollection(target.id);
+        if (target) {
+          setRelatedTargetId(null);
+          selectCollection(target.id);
+        }
       }}
       onReorder={reorderEntries}
       onSelect={(nextEntryId) => {
@@ -192,6 +211,25 @@ export default function CmsManagementWorkspace({
       </div>
     </details>
   ) : null;
+  const relatedContentNavigation =
+    section.key === "characters" ? (
+      <nav
+        aria-label="Character content"
+        className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+      >
+        {[...primaryCollections, ...supportingCollections]
+          .filter((item) =>
+            [
+              "characters",
+              "character-gallery",
+              "character-outfits",
+              "character-relationships",
+              "character-factions",
+            ].includes(item.slug),
+          )
+          .map((item) => collectionButton(item, "tab"))}
+      </nav>
+    ) : null;
 
   return (
     <div className="@container space-y-6">
@@ -302,7 +340,8 @@ export default function CmsManagementWorkspace({
         </div>
       ) : (
         <>
-          {primaryCollections.length > 1 ? (
+          {relatedContentNavigation}
+          {!relatedContentNavigation && primaryCollections.length > 1 ? (
             <nav
               aria-label={`${section.title} content`}
               className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -344,6 +383,15 @@ export default function CmsManagementWorkspace({
             onCancel={() => setEditorOpen(false)}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
+            onOpenCollection={(slug) => {
+              const target = visibleCollections.find(
+                (item) => item.slug === slug,
+              );
+              if (!target) return;
+              setRelatedTargetId(entryId);
+              selectCollection(target.id);
+              setEditorOpen(false);
+            }}
             pending={pending}
             relationSelections={relationSelections}
             selectedEntryId={entryId}

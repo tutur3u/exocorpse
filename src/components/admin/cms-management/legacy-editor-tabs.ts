@@ -4,10 +4,16 @@ import type {
   ExocorpseCmsFieldDefinition,
 } from "@/types/exocorpse-cms";
 import {
+  BookOpenText,
+  Brain,
+  Dumbbell,
   FileText,
+  HeartHandshake,
+  ImageIcon,
   Images,
   Link2,
   Palette,
+  ScanFace,
   Settings2,
   SlidersHorizontal,
   type LucideIcon,
@@ -46,6 +52,51 @@ const basicFieldKeys = new Set([
   "worldType",
 ]);
 
+const characterFieldGroups = {
+  abilities: new Set(["abilities"]),
+  fanwork: new Set(["fanworkPolicy"]),
+  personality: new Set(["personalitySummary"]),
+  physical: new Set([
+    "age",
+    "birthday",
+    "build",
+    "distinguishingFeatures",
+    "eyeColor",
+    "gender",
+    "hairColor",
+    "height",
+    "occupation",
+    "pronouns",
+    "skinTone",
+    "species",
+    "status",
+    "weight",
+  ]),
+};
+
+export function splitCharacterEditorFields(
+  definitions: ExocorpseCmsFieldDefinition[],
+) {
+  const assigned = new Set(
+    Object.values(characterFieldGroups).flatMap((keys) => [...keys]),
+  );
+  return {
+    abilities: definitions.filter((field) =>
+      characterFieldGroups.abilities.has(field.key),
+    ),
+    basic: definitions.filter((field) => !assigned.has(field.key)),
+    fanwork: definitions.filter((field) =>
+      characterFieldGroups.fanwork.has(field.key),
+    ),
+    personality: definitions.filter((field) =>
+      characterFieldGroups.personality.has(field.key),
+    ),
+    physical: definitions.filter((field) =>
+      characterFieldGroups.physical.has(field.key),
+    ),
+  };
+}
+
 export function splitLegacyEditorFields(
   definitions: ExocorpseCmsFieldDefinition[],
 ) {
@@ -83,6 +134,42 @@ export function legacyEditorTabs({
   hasBlocks: boolean;
   hasConnections: boolean;
 }): CmsEditorTabConfig[] {
+  if (collection.slug === "characters") {
+    return [
+      { icon: FileText, id: "basic", label: "Basic Info" },
+      { icon: ScanFace, id: "physical", label: "Physical" },
+      { icon: Brain, id: "personality", label: "Personality" },
+      ...(hasBlocks
+        ? [
+            {
+              icon: BookOpenText,
+              id: "content" as const,
+              label: "History & Lore",
+            },
+          ]
+        : []),
+      { icon: Dumbbell, id: "abilities", label: "Abilities" },
+      {
+        count: assetCount,
+        icon: Palette,
+        id: "media",
+        label: "Visuals",
+      },
+      { icon: ImageIcon, id: "gallery", label: "Gallery" },
+      { icon: HeartHandshake, id: "fanwork", label: "Fanwork Policy" },
+      ...(hasConnections
+        ? [
+            {
+              count: connectionCount,
+              icon: Link2,
+              id: "connections" as const,
+              label: "Relationships",
+            },
+          ]
+        : []),
+      { icon: Settings2, id: "settings", label: "Publishing" },
+    ];
+  }
   const visualLabel =
     collection.slug === "stories"
       ? "Theme & Style"

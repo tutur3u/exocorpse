@@ -19,6 +19,15 @@ type Props = {
 const inputClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
+const spaciousFieldKeys = new Set([
+  "abilities",
+  "distinguishingFeatures",
+  "fanworkPolicy",
+  "personalitySummary",
+]);
+
+const multilineFieldKeys = new Set([...spaciousFieldKeys, "quote"]);
+
 function labelFor(definition: ExocorpseCmsFieldDefinition) {
   return definition.label && definition.label !== definition.key
     ? definition.label
@@ -88,9 +97,14 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
     typeof value === "string" || typeof value === "number" ? String(value) : "";
   const isColor =
     /color/i.test(definition.key) && /^#[0-9a-f]{6}$/i.test(stringValue);
+  const isMultiline =
+    definition.field_type === "markdown" ||
+    multilineFieldKeys.has(definition.key);
 
   return (
-    <label className="block space-y-1.5 text-sm">
+    <label
+      className={`block space-y-1.5 text-sm ${isMultiline ? "@3xl:col-span-2" : ""}`}
+    >
       <span className="flex items-center gap-2 font-medium text-zinc-800 dark:text-zinc-200">
         {label}
         {definition.is_required ? (
@@ -118,11 +132,11 @@ export default function CmsFieldEditor({ definition, onChange, value }: Props) {
             </option>
           ))}
         </select>
-      ) : definition.field_type === "markdown" ? (
+      ) : isMultiline ? (
         <Textarea
-          className={`${inputClassName} min-h-36 leading-6`}
+          className={`${inputClassName} ${spaciousFieldKeys.has(definition.key) ? "min-h-64" : "min-h-28"} resize-y leading-6`}
           onChange={(event) => onChange(event.target.value)}
-          placeholder={`Write ${label.toLowerCase()} in Markdown…`}
+          placeholder={`Write ${label.toLowerCase()}…`}
           value={stringValue}
         />
       ) : definition.field_type === "json" ? (

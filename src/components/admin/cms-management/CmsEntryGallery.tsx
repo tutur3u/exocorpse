@@ -30,6 +30,7 @@ export default function CmsEntryGallery({
   assets,
   collection,
   entries,
+  initialRelationTargetId,
   relationFilter,
   onCreate,
   onDelete,
@@ -45,6 +46,7 @@ export default function CmsEntryGallery({
   assets: ExocorpseCmsAsset[];
   collection: ExocorpseCmsCollection;
   entries: ExocorpseCmsEntry[];
+  initialRelationTargetId?: string;
   relationFilter?: CmsEntryGalleryFilter;
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
@@ -56,7 +58,9 @@ export default function CmsEntryGallery({
   supportsImages: boolean;
   theme: AdminCmsTheme;
 }) {
-  const [relationTargetId, setRelationTargetId] = useState("all");
+  const [relationTargetId, setRelationTargetId] = useState(
+    initialRelationTargetId ?? "all",
+  );
   const [storyTargetId, setStoryTargetId] = useState("all");
   const itemLabel = collectionItemLabel(collection);
   const worldsCollection = studio.collections.find(
@@ -263,6 +267,11 @@ export default function CmsEntryGallery({
             const secondaryActions =
               collection.slug === "characters"
                 ? [
+                    {
+                      label: "Manage Gallery",
+                      onClick: () => onOpenCollection("character-gallery"),
+                      tone: "blue" as const,
+                    },
                     {
                       label: "Manage Factions",
                       onClick: () => onOpenCollection("character-factions"),

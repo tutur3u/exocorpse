@@ -2,6 +2,7 @@
 
 import { verifyAuth } from "@/lib/auth/utils";
 import {
+  createExocorpseCmsAsset,
   createExocorpseCmsEntryBundle,
   deleteExocorpseCmsAsset,
   deleteExocorpseCmsEntry,
@@ -9,7 +10,6 @@ import {
   reorderExocorpseCmsEntries,
   reorderExocorpseCmsAssets,
   updateExocorpseCmsEntryBundle,
-  uploadExocorpseCmsAssetFile,
 } from "@/lib/tuturuuu-cms-repository";
 import type { ExocorpseJson } from "@/types/exocorpse-cms";
 import { revalidatePath } from "next/cache";
@@ -74,16 +74,28 @@ export async function reorderAdminCmsAssets(
   return assets;
 }
 
-export async function uploadAdminCmsAsset(input: {
-  collectionType: string;
+export async function registerAdminCmsAsset(input: {
   entryId: string;
-  entrySlug: string;
-  formData: FormData;
+  fileName: string;
+  fileType: string;
+  storagePath: string;
 }) {
   await verifyAuth();
-  const file = input.formData.get("file");
-  if (!(file instanceof File)) throw new Error("Select a media file.");
-  const asset = await uploadExocorpseCmsAssetFile({ ...input, file });
+  if (
+    !input.entryId ||
+    !input.fileName ||
+    input.fileName.length > 255 ||
+    !input.storagePath.startsWith("external-projects/") ||
+    input.storagePath.length > 1024
+  ) {
+    throw new Error("The uploaded media record is invalid.");
+  }
+  const asset = await createExocorpseCmsAsset({
+    alt_text: input.fileName,
+    asset_type: input.fileType.split("/")[0] || "image",
+    entry_id: input.entryId,
+    storage_path: input.storagePath,
+  });
   revalidatePath("/admin", "layout");
   return asset;
 }

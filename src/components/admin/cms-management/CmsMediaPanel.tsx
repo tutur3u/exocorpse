@@ -22,7 +22,7 @@ export default function CmsMediaPanel({
   saved: boolean;
   onDelete: (assetId: string) => void;
   onSave: () => void;
-  onUpload: (formData: FormData) => void;
+  onUpload: (file: File) => void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
 }) {
   if (saved) {

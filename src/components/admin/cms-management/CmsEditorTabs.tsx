@@ -4,11 +4,16 @@ import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-them
 import type { CmsEditorTabConfig } from "@/components/admin/cms-management/legacy-editor-tabs";
 
 export type CmsEditorTab =
+  | "abilities"
   | "basic"
   | "connections"
   | "content"
   | "details"
+  | "fanwork"
+  | "gallery"
   | "media"
+  | "personality"
+  | "physical"
   | "settings";
 
 export default function CmsEditorTabs({

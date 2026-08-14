@@ -20,7 +20,7 @@ export default function CmsAssetManager({
   assets: ExocorpseCmsAsset[];
   disabled: boolean;
   onDelete: (assetId: string) => void;
-  onUpload: (formData: FormData) => void;
+  onUpload: (file: File) => void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -47,9 +47,7 @@ export default function CmsAssetManager({
           setDragActive(false);
           const file = event.dataTransfer.files[0];
           if (!file || disabled) return;
-          const formData = new FormData();
-          formData.set("file", file);
-          onUpload(formData);
+          onUpload(file);
         }}
       >
         <div>
@@ -62,8 +60,11 @@ export default function CmsAssetManager({
           </p>
         </div>
         <form
-          action={(formData) => {
-            onUpload(formData);
+          onSubmit={(event) => {
+            event.preventDefault();
+            const file = new FormData(event.currentTarget).get("file");
+            if (!(file instanceof File) || !file.size) return;
+            onUpload(file);
             formRef.current?.reset();
             setSelectedFile("");
           }}
