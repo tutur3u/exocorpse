@@ -71,5 +71,8 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "patchedDependencies": {
+    "@tuturuuu/ui@0.26.1": "patches/@tuturuuu%2Fui@0.26.1.patch"
+  }
 }
