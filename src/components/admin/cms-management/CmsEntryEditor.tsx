@@ -46,17 +46,20 @@ import { useEffect, useRef, useState } from "react";
 function CharacterEditorSection({
   children,
   description,
+  id,
   open = true,
   title,
 }: {
   children: ReactNode;
   description?: string;
+  id: string;
   open?: boolean;
   title: string;
 }) {
   return (
     <details
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
+      id={id}
       open={open}
     >
       <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
@@ -237,6 +240,43 @@ export default function CmsEntryEditor({
       if (panel && panel.getBoundingClientRect().top <= marker) next = tab.id;
     }
     setActiveTab((current) => (current === next ? current : next));
+  };
+
+  const characterSubsections: Record<
+    "basic" | "content" | "gallery" | "physical",
+    { id: string; label: string }[]
+  > = {
+    basic: [
+      { id: "character-basic-info", label: "Basic Info" },
+      { id: "character-profile-images", label: "Profile Images" },
+      { id: "character-publishing", label: "Publishing" },
+    ],
+    physical: [
+      { id: "character-physical-details", label: "Physical Details" },
+      { id: "character-personality", label: "Personality" },
+    ],
+    content: [
+      { id: "character-relationships", label: "Relationships" },
+      { id: "character-lore", label: "Backstory / Lore" },
+      { id: "character-abilities", label: "Abilities" },
+    ],
+    gallery: [
+      { id: "character-gallery", label: "Gallery" },
+      { id: "character-fanwork", label: "Fanwork Policy" },
+    ],
+  };
+
+  const scrollToCharacterSubsection = (id: string) => {
+    const scrollArea = scrollAreaRef.current;
+    const panel = scrollArea?.querySelector<HTMLDetailsElement>(`#${id}`);
+    if (!scrollArea || !panel) return;
+    panel.open = true;
+    const top =
+      scrollArea.scrollTop +
+      panel.getBoundingClientRect().top -
+      scrollArea.getBoundingClientRect().top -
+      64;
+    scrollArea.scrollTo({ behavior: "smooth", top });
   };
 
   const renderSection = (tab: CmsEditorTab) => {
@@ -423,6 +463,7 @@ export default function CmsEntryEditor({
         <>
           <CharacterEditorSection
             description="Name, introduction, and the details readers see first."
+            id="character-basic-info"
             title="Basic Info"
           >
             <CmsEntryBasics
@@ -440,6 +481,7 @@ export default function CmsEntryEditor({
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Profile picture, banner, and the character's visual presentation."
+            id="character-profile-images"
             title="Profile Images"
           >
             <CmsCharacterMediaSettings
@@ -470,6 +512,7 @@ export default function CmsEntryEditor({
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Choose when and how this character appears on the site."
+            id="character-publishing"
             title="Publishing"
           >
             <CmsStructuredFields
@@ -488,6 +531,7 @@ export default function CmsEntryEditor({
         <>
           <CharacterEditorSection
             description="Appearance, identity, and distinguishing traits."
+            id="character-physical-details"
             title="Physical Details"
           >
             <CmsStructuredFields
@@ -499,6 +543,7 @@ export default function CmsEntryEditor({
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Temperament, habits, motivations, and personality."
+            id="character-personality"
             title="Personality Summary"
           >
             <CmsStructuredFields
@@ -516,6 +561,7 @@ export default function CmsEntryEditor({
         <>
           <CharacterEditorSection
             description="The people, factions, stories, and places connected to this character."
+            id="character-relationships"
             title="Relationships"
           >
             <CmsRelationEditor
@@ -528,6 +574,7 @@ export default function CmsEntryEditor({
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Write the character's history and longer story sections."
+            id="character-lore"
             title="Backstory / Lore"
           >
             <CmsBlockEditor
@@ -539,6 +586,7 @@ export default function CmsEntryEditor({
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Powers, learned skills, strengths, and limitations."
+            id="character-abilities"
             title="Abilities"
           >
             <CmsStructuredFields
@@ -555,6 +603,7 @@ export default function CmsEntryEditor({
       <>
         <CharacterEditorSection
           description="Upload and edit this character's artwork without leaving the editor."
+          id="character-gallery"
           title="Gallery"
         >
           <CmsCharacterGalleryOverview
@@ -567,6 +616,7 @@ export default function CmsEntryEditor({
         </CharacterEditorSection>
         <CharacterEditorSection
           description="Explain what fans may create and how the work may be shared."
+          id="character-fanwork"
           title="Fanwork Policy"
         >
           <CmsStructuredFields
@@ -643,6 +693,23 @@ export default function CmsEntryEditor({
             className="space-y-4"
             id={`cms-${activeTab}-panel`}
           >
+            <nav
+              aria-label="Sections in this tab"
+              className="sticky top-0 z-20 flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
+            >
+              {characterSubsections[
+                activeTab as keyof typeof characterSubsections
+              ].map((subsection) => (
+                <button
+                  className="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-cyan-50 hover:text-cyan-800 dark:text-slate-300 dark:hover:bg-cyan-950/40 dark:hover:text-cyan-200"
+                  key={subsection.id}
+                  onClick={() => scrollToCharacterSubsection(subsection.id)}
+                  type="button"
+                >
+                  {subsection.label}
+                </button>
+              ))}
+            </nav>
             {renderCharacterSection()}
           </section>
         ) : (

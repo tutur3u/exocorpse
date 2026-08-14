@@ -327,66 +327,33 @@ export default function CmsEntryGallery({
             );
             const media = mediaByEntry.get(entry.id);
             const secondaryActions =
-              collection.slug === "characters"
+              collection.slug === "factions"
                 ? [
                     {
-                      label: "Manage Gallery",
-                      onClick: () =>
-                        onOpenCollection(
-                          "character-gallery",
-                          entry.id,
-                          "character",
-                        ),
-                      tone: "blue" as const,
-                    },
-                    {
-                      label: "Manage Factions",
+                      label: "Manage Members",
                       onClick: () =>
                         onOpenCollection(
                           "character-factions",
                           entry.id,
-                          "character",
+                          "faction",
                         ),
                       tone: "purple" as const,
                     },
-                    {
-                      label: "Manage Relationships",
-                      onClick: () =>
-                        onOpenCollection(
-                          "character-relationships",
-                          entry.id,
-                          "character-a",
-                        ),
-                      tone: "pink" as const,
-                    },
                   ]
-                : collection.slug === "factions"
+                : collection.slug === "locations"
                   ? [
                       {
-                        label: "Manage Members",
+                        label: "Manage Gallery",
                         onClick: () =>
                           onOpenCollection(
-                            "character-factions",
+                            "location-gallery",
                             entry.id,
-                            "faction",
+                            "location",
                           ),
-                        tone: "purple" as const,
+                        tone: "blue" as const,
                       },
                     ]
-                  : collection.slug === "locations"
-                    ? [
-                        {
-                          label: "Manage Gallery",
-                          onClick: () =>
-                            onOpenCollection(
-                              "location-gallery",
-                              entry.id,
-                              "location",
-                            ),
-                          tone: "blue" as const,
-                        },
-                      ]
-                    : [];
+                  : [];
             return (
               <CmsEntryCard
                 avatarAsset={media?.avatar}
