@@ -9,6 +9,7 @@ import {
   type DeliverySourceCollection,
   restoreLoadingEntryStableSourceIds,
 } from "@/lib/tuturuuu-cms-delivery-normalization";
+import { galleryCharacterTargetIds } from "@/lib/gallery-character-relations";
 import { cacheLife, cacheTag } from "next/cache";
 import { cache } from "react";
 import type { BlacklistedUser } from "@/types/exocorpse-cms";
@@ -1458,29 +1459,45 @@ export type CmsLocationGalleryItem = {
 export async function getCmsCharacterGallery(characterId: string) {
   const entries = await getExocorpseCmsEntries("character-gallery");
   if (!entries) return null;
+  const characters = (await getExocorpseCmsEntries("characters")) ?? [];
   const items = await Promise.all(
-    entries.map(async (entry) => ({
-      artist_name: stringValue(entry.profileData, "artistName"),
-      artist_url: stringValue(entry.profileData, "artistUrl"),
-      character_id:
-        (await resolveTargetLegacyId(entry, "characters", "characterId", [
-          "gallery-character",
-          "character",
-        ])) ?? "",
-      description: entry.bodyMarkdown ?? entry.summary,
-      display_order: numberValue(entry.profileData, "displayOrder") ?? 0,
-      id: legacyId(entry),
-      image_url: firstAssetUrl(entry) ?? "",
-      thumbnail_url: secondAssetUrl(entry),
-      title: entry.title,
-      is_sensitive: entry.profileData.sensitiveContent === true,
-      sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
-      is_reference_sheet: entry.profileData.referenceSheet === true,
-    })),
+    entries.map(async (entry) => {
+      const taggedEntryIds = galleryCharacterTargetIds(entry.relations);
+      const taggedCharacterIds = taggedEntryIds.length
+        ? taggedEntryIds.map((entryId) => {
+            const character = characters.find(
+              (candidate) => candidate.entryId === entryId,
+            );
+            return character ? legacyId(character) : entryId;
+          })
+        : [
+            (await resolveTargetLegacyId(entry, "characters", "characterId", [
+              "gallery-character",
+              "character",
+            ])) ?? "",
+          ];
+
+      return {
+        artist_name: stringValue(entry.profileData, "artistName"),
+        artist_url: stringValue(entry.profileData, "artistUrl"),
+        character_id: taggedCharacterIds[0] ?? "",
+        character_ids: taggedCharacterIds,
+        description: entry.bodyMarkdown ?? entry.summary,
+        display_order: numberValue(entry.profileData, "displayOrder") ?? 0,
+        id: legacyId(entry),
+        image_url: firstAssetUrl(entry) ?? "",
+        thumbnail_url: secondAssetUrl(entry),
+        title: entry.title,
+        is_sensitive: entry.profileData.sensitiveContent === true,
+        sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
+        is_reference_sheet: entry.profileData.referenceSheet === true,
+      };
+    }),
   );
   return sortByDisplayOrder(
     items.filter(
-      (item) => item.character_id === characterId && Boolean(item.image_url),
+      (item) =>
+        item.character_ids.includes(characterId) && Boolean(item.image_url),
     ),
   );
 }

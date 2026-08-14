@@ -518,9 +518,9 @@ export const EXOCORPSE_CMS_SCHEMA = {
     relation(
       "character-gallery",
       "character",
-      "Character",
+      "Tagged characters",
       ["characters"],
-      "one",
+      "many",
       true,
     ),
     relation(

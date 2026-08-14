@@ -303,6 +303,7 @@ export function useCmsManagementWorkspace({
       () =>
         saveAdminCmsEntry({
           ...payload,
+          collectionSlug: collection.slug,
           entryId: selectedEntry?.id,
           expectedUpdatedAt: selectedEntry?.updated_at,
         }),
@@ -398,10 +399,13 @@ export function useCmsManagementWorkspace({
 
   function uploadAsset(file: File) {
     if (!selectedEntry || !collection) return;
-    const replacedAssetIds =
-      collection.slug === "portfolio-art"
-        ? assets.map((asset) => asset.id)
-        : [];
+    const replacedAssetIds = [
+      "character-gallery",
+      "location-gallery",
+      "portfolio-art",
+    ].includes(collection.slug)
+      ? assets.map((asset) => asset.id)
+      : [];
     run(
       async () => {
         const storagePath = await uploadCmsAssetDirect({
@@ -525,6 +529,7 @@ export function useCmsManagementWorkspace({
         galleryUploadSequenceRef.current++;
       const bundle = await saveAdminCmsEntry({
         blocks: [],
+        collectionSlug: galleryCollection.slug,
         entry: {
           collectionId: galleryCollection.id,
           metadata: {},

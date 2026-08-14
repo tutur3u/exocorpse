@@ -155,6 +155,51 @@ export async function getExocorpseCmsCollectionEntries(collectionSlug: string) {
   };
 }
 
+export async function ensureCharacterGalleryTaggingDefinition(
+  collectionId: string,
+) {
+  const studio = await cmsRequest<ExocorpseCmsStudio>(externalProjectPath());
+  const collection = studio.collections.find(
+    (item) => item.id === collectionId,
+  );
+  if (collection?.slug !== "character-gallery") return;
+
+  const definition = (studio.relationDefinitions ?? []).find(
+    (item) =>
+      item.source_collection_id === collection.id && item.key === "character",
+  );
+  if (!definition) {
+    throw new Error("Character tagging is not ready for this gallery yet.");
+  }
+  if (
+    definition.cardinality === "many" &&
+    definition.label === "Tagged characters"
+  ) {
+    return;
+  }
+
+  const targetCollectionIds = (studio.relationDefinitionTargets ?? [])
+    .filter((target) => target.relation_definition_id === definition.id)
+    .map((target) => target.target_collection_id);
+  await cmsRequest(
+    externalProjectPath(
+      `/relation-definitions/${encodeURIComponent(definition.id)}`,
+    ),
+    {
+      body: JSON.stringify({
+        cardinality: "many",
+        isRequired: definition.is_required,
+        key: definition.key,
+        label: "Tagged characters",
+        sourceCollectionId: definition.source_collection_id,
+        targetCollectionIds,
+      }),
+      method: "PATCH",
+    },
+  );
+  await invalidateDelivery();
+}
+
 export async function createExocorpseCmsEntryBundle(input: EntryBundleInput) {
   const result = await cmsRequest<EntryBundle>(
     externalProjectPath("/entries/bundle"),

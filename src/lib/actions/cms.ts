@@ -6,6 +6,7 @@ import {
   createExocorpseCmsEntryBundle,
   deleteExocorpseCmsAsset,
   deleteExocorpseCmsEntry,
+  ensureCharacterGalleryTaggingDefinition,
   getExocorpseCmsStudio,
   reorderExocorpseCmsEntries,
   reorderExocorpseCmsAssets,
@@ -29,6 +30,7 @@ export async function saveAdminCmsEntry(payload: {
     stableSourceId?: string | null;
     title?: string | null;
   }>;
+  collectionSlug?: string;
   entry: Record<string, unknown>;
   entryId?: string;
   expectedUpdatedAt?: string;
@@ -40,13 +42,25 @@ export async function saveAdminCmsEntry(payload: {
   }>;
 }) {
   await verifyAuth();
+  const collectionId = payload.entry.collectionId;
+  if (
+    payload.collectionSlug === "character-gallery" &&
+    typeof collectionId === "string"
+  ) {
+    await ensureCharacterGalleryTaggingDefinition(collectionId);
+  }
+  const bundlePayload = {
+    blocks: payload.blocks,
+    entry: payload.entry,
+    relations: payload.relations,
+  };
   const result = payload.entryId
     ? await updateExocorpseCmsEntryBundle(
         payload.entryId,
         payload.expectedUpdatedAt ?? "",
-        payload,
+        bundlePayload,
       )
-    : await createExocorpseCmsEntryBundle(payload);
+    : await createExocorpseCmsEntryBundle(bundlePayload);
   revalidatePath("/admin", "layout");
   return result;
 }

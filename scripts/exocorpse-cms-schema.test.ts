@@ -52,6 +52,18 @@ describe("canonical Exocorpse CMS schema", () => {
     );
   });
 
+  test("allows artwork to appear in every tagged character gallery", () => {
+    expect(EXOCORPSE_CMS_SCHEMA.relationDefinitions).toContainEqual(
+      expect.objectContaining({
+        cardinality: "many",
+        key: "character",
+        label: "Tagged characters",
+        sourceCollectionSlug: "character-gallery",
+        targetCollectionSlugs: ["characters"],
+      }),
+    );
+  });
+
   test("defines crop, spoiler, and reference-sheet presentation fields", () => {
     const fields = EXOCORPSE_CMS_SCHEMA.fieldDefinitions;
     expect(fields).toEqual(

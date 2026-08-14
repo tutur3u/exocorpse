@@ -13,6 +13,7 @@ import CmsCharacterMediaSettings, {
   isCharacterMediaField,
 } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
 import CmsCharacterGalleryOverview from "@/components/admin/cms-management/CmsCharacterGalleryOverview";
+import CmsGalleryCharacterTagger from "@/components/admin/cms-management/CmsGalleryCharacterTagger";
 import CmsConnectionEntryEditor from "@/components/admin/cms-management/CmsConnectionEntryEditor";
 import {
   CONNECTION_COLLECTION_SLUGS,
@@ -26,6 +27,7 @@ import type {
   CmsEntryDraft,
   CmsRelationSelections,
 } from "@/components/admin/cms-management/editor-types";
+import { galleryCharacterDefinition } from "@/components/admin/cms-management/gallery-character-tagging";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import {
   legacyEditorTabs,
@@ -141,7 +143,9 @@ export default function CmsEntryEditor({
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState<CmsEditorTab>(() =>
-    collection.slug === "portfolio-art" ? "media" : "basic",
+    ["character-gallery", "portfolio-art"].includes(collection.slug)
+      ? "media"
+      : "basic",
   );
   const isConnectionEntry = CONNECTION_COLLECTION_SLUGS.has(collection.slug);
   const duplicateConnection = isConnectionEntry
@@ -177,6 +181,10 @@ export default function CmsEntryEditor({
     ...groupedFields.details,
   ]);
   const isCharacter = collection.slug === "characters";
+  const taggedCharactersDefinition =
+    collection.slug === "character-gallery"
+      ? galleryCharacterDefinition(studio, collection.id)
+      : null;
   const tabs = legacyEditorTabs({
     assetCount: assets.length,
     blockCount: blocks.length,
@@ -197,7 +205,11 @@ export default function CmsEntryEditor({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setActiveTab(collection.slug === "portfolio-art" ? "media" : "basic");
+    setActiveTab(
+      ["character-gallery", "portfolio-art"].includes(collection.slug)
+        ? "media"
+        : "basic",
+    );
   }, [collection.id, collection.slug]);
 
   const scrollToSection = (tab: CmsEditorTab) => {
@@ -396,6 +408,11 @@ export default function CmsEntryEditor({
       );
     }
     if (tab === "media") {
+      const usesSingleArtwork = [
+        "character-gallery",
+        "location-gallery",
+        "portfolio-art",
+      ].includes(collection.slug);
       return (
         <>
           <CmsCharacterMediaSettings
@@ -420,16 +437,16 @@ export default function CmsEntryEditor({
             onUpload={onUploadAsset}
             onReorder={onReorderAssets}
             pending={pending}
-            previewSize={
-              collection.slug === "portfolio-art" ? "compact" : "default"
-            }
-            mode={collection.slug === "portfolio-art" ? "single" : "gallery"}
+            previewSize={usesSingleArtwork ? "compact" : "default"}
+            mode={usesSingleArtwork ? "single" : "gallery"}
             title={
               collection.slug === "portfolio-art"
                 ? "Artwork image"
-                : collection.slug === "blog-posts"
-                  ? "Cover and post images"
-                  : undefined
+                : collection.slug === "character-gallery"
+                  ? "Gallery artwork"
+                  : collection.slug === "blog-posts"
+                    ? "Cover and post images"
+                    : undefined
             }
             description={
               collection.slug === "blog-posts"
@@ -438,6 +455,19 @@ export default function CmsEntryEditor({
             }
             saved={Boolean(selectedEntryId)}
           />
+          {taggedCharactersDefinition ? (
+            <CmsGalleryCharacterTagger
+              definition={taggedCharactersDefinition}
+              onChange={(entryIds) =>
+                onRelationsChange({
+                  ...relationSelections,
+                  [taggedCharactersDefinition.id]: entryIds,
+                })
+              }
+              studio={studio}
+              value={relationSelections[taggedCharactersDefinition.id] ?? []}
+            />
+          ) : null}
         </>
       );
     }

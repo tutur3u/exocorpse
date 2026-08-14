@@ -134,4 +134,23 @@ describe("legacy CMS editor navigation", () => {
       "Publishing",
     ]);
   });
+
+  test("keeps character tagging beside gallery artwork", () => {
+    const tabs = legacyEditorTabs({
+      assetCount: 1,
+      blockCount: 0,
+      collection: collection("character-gallery"),
+      connectionCount: 2,
+      fields,
+      hasAssets: true,
+      hasBlocks: false,
+      hasConnections: true,
+    });
+
+    expect(tabs.map((tab) => tab.label)).toEqual([
+      "Media",
+      "Basic Info",
+      "Publishing",
+    ]);
+  });
 });
