@@ -50,7 +50,7 @@ export default function CmsEntryCard({
         : "h-48";
   const cardHeight =
     collection.slug === "characters"
-      ? "h-full min-h-[34rem]"
+      ? "h-[30rem]"
       : supportsImages
         ? "h-[22rem]"
         : "h-[14rem]";
