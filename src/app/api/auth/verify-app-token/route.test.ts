@@ -68,7 +68,11 @@ describe("exocorpse app token verification", () => {
     expect(calls).toHaveLength(1);
     expect(JSON.parse(calls[0]?.init?.body as string)).toMatchObject({
       appId: "exocorpse",
-      requestedScopes: ["external-projects:*"],
+      requestedScopes: [
+        "external-projects:*",
+        "users:profile:read",
+        "users:profile:write",
+      ],
       token: "cross-app-token",
       workspaceId: "ws-linked",
     });

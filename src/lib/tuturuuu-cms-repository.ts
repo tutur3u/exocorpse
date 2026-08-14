@@ -10,7 +10,11 @@ import {
   adminCmsStudioRequestSlugs,
   selectAdminCmsStudio,
 } from "@/lib/admin-cms-studio";
-import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
+import {
+  getExocorpseSessionFromCookies,
+  refreshExocorpseSession,
+  sessionCanRefresh,
+} from "@/lib/exocorpse-session";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import type {
   ExocorpseCmsBlock,
@@ -65,27 +69,36 @@ export async function authenticatedExocorpseFetch(
   path: string,
   init?: RequestInit,
 ) {
-  const session = await getExocorpseSessionFromCookies();
+  let session = await getExocorpseSessionFromCookies();
   if (!session) {
-    const error = new Error(
-      "A valid Tuturuuu CMS session is required.",
-    ) as Error & { status: number };
-    error.status = 401;
-    throw error;
+    return Response.json(
+      { error: "Your Tuturuuu session has expired. Please sign in again." },
+      { status: 401 },
+    );
   }
+  const tokenType = session.tokenType;
 
-  return fetch(apiUrl(path), {
-    ...init,
-    cache: "no-store",
-    headers: {
-      Accept: "application/json",
-      Authorization: `${session.tokenType} ${session.accessToken}`,
-      ...(init?.body && !(init.body instanceof FormData)
-        ? { "Content-Type": "application/json" }
-        : {}),
-      ...init?.headers,
-    },
-  });
+  const request = (accessToken: string) =>
+    fetch(apiUrl(path), {
+      ...init,
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        Authorization: `${tokenType} ${accessToken}`,
+        ...(init?.body && !(init.body instanceof FormData)
+          ? { "Content-Type": "application/json" }
+          : {}),
+        ...init?.headers,
+      },
+    });
+
+  let response = await request(session.accessToken);
+  if (response.status === 401 && sessionCanRefresh(session)) {
+    await response.body?.cancel().catch(() => undefined);
+    session = await refreshExocorpseSession(session);
+    response = await request(session.accessToken);
+  }
+  return response;
 }
 
 async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {

@@ -32,11 +32,17 @@ export async function verifyAuth() {
  * Redirects to login if not authenticated
  */
 export async function requireAuth() {
-  const user = await getCurrentUser();
+  const session = await getExocorpseSessionFromCookies();
 
-  if (!user) {
+  if (!session) {
     redirect(getExocorpseAdminLoginPath("dashboard"));
   }
 
-  return user;
+  return session.user;
+}
+
+export async function requireAdminSession() {
+  const session = await getExocorpseSessionFromCookies();
+  if (!session) redirect(getExocorpseAdminLoginPath("dashboard"));
+  return session;
 }

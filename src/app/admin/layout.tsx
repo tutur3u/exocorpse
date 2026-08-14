@@ -1,6 +1,7 @@
 import AdminNav from "@/components/admin/AdminNav";
-import LogoutButton from "@/components/admin/LogoutButton";
-import { requireAuth } from "@/lib/auth/utils";
+import AdminSessionKeeper from "@/components/admin/AdminSessionKeeper";
+import AdminUserMenu from "@/components/admin/AdminUserMenu";
+import { requireAdminSession } from "@/lib/auth/utils";
 import Link from "next/link";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
@@ -13,7 +14,7 @@ export default async function AdminLayout({
   children: ReactNode;
 }) {
   await connection();
-  const user = await requireAuth();
+  const session = await requireAdminSession();
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Admin Header */}
@@ -28,35 +29,23 @@ export default async function AdminLayout({
                 EXOCORPSE
               </Link>
               <AdminNav>
-                <div className="mb-4 px-4 text-sm text-gray-600 dark:text-gray-400">
-                  {user.email}
-                </div>
-                <div className="flex flex-col gap-2 px-4">
-                  <Link
-                    href="/"
-                    className="flex items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                  >
-                    Back to Site
-                  </Link>
-                  <LogoutButton />
+                <div className="px-4">
+                  <AdminUserMenu initialUser={session.user} />
                 </div>
               </AdminNav>
             </div>
             <div className="hidden items-center gap-3 lg:flex">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {user.email}
-              </span>
-              <LogoutButton />
-              <Link
-                href="/"
-                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                Back to Site
-              </Link>
+              <AdminUserMenu initialUser={session.user} />
             </div>
           </div>
         </div>
       </header>
+      {session.refreshToken ? (
+        <AdminSessionKeeper
+          expiresAt={session.expiresAt}
+          refreshEarlySeconds={session.refreshEarlySeconds}
+        />
+      ) : null}
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">

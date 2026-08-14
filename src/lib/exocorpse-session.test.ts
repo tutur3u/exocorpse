@@ -38,6 +38,7 @@ describe("exocorpse session validation", () => {
   beforeEach(() => {
     process.env.TUTURUUU_API_BASE_URL = "https://platform.example.com/api/v1";
     process.env.TUTURUUU_EXOCORPSE_WORKSPACE_ID = "ws-linked";
+    process.env.EXOCORPSE_APP_SECRET = "app-secret";
     process.env.EXOCORPSE_SESSION_SECRET = "session-secret";
     sessionCookieValue = null;
   });
@@ -46,6 +47,7 @@ describe("exocorpse session validation", () => {
     globalThis.fetch = originalFetch;
     delete process.env.TUTURUUU_API_BASE_URL;
     delete process.env.TUTURUUU_EXOCORPSE_WORKSPACE_ID;
+    delete process.env.EXOCORPSE_APP_SECRET;
     delete process.env.EXOCORPSE_SESSION_SECRET;
     sessionCookieValue = null;
   });
@@ -75,4 +77,63 @@ describe("exocorpse session validation", () => {
       });
     });
   }
+
+  test("keeps a valid local session during a temporary platform failure", async () => {
+    const { getExocorpseSessionFromCookies, setExocorpseSessionCookie } =
+      await import("./exocorpse-session");
+    const response = NextResponse.json({});
+    setExocorpseSessionCookie(response, createSession());
+    sessionCookieValue = readSessionCookieValue(response);
+    globalThis.fetch = (async () =>
+      Response.json(
+        { error: "Unavailable" },
+        { status: 503 },
+      )) as unknown as typeof fetch;
+
+    await expect(getExocorpseSessionFromCookies()).resolves.toMatchObject({
+      accessToken: "app-token",
+      user: { id: "user-1" },
+    });
+  });
+
+  test("refreshes an expired access token before validating the admin session", async () => {
+    const { getExocorpseSessionFromCookies, setExocorpseSessionCookie } =
+      await import("./exocorpse-session");
+    const response = NextResponse.json({});
+    setExocorpseSessionCookie(response, {
+      ...createSession(),
+      expiresAt: new Date(Date.now() - 1_000).toISOString(),
+      refreshExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      refreshToken: "refresh-token",
+    });
+    sessionCookieValue = readSessionCookieValue(response);
+    const calls: Array<{ init?: RequestInit; input: RequestInfo | URL }> = [];
+    globalThis.fetch = (async (input, init) => {
+      calls.push({ input, init });
+      if (String(input).endsWith("/auth/app-token/exchange")) {
+        return Response.json({
+          accessToken: "refreshed-token",
+          app: { name: "exocorpse" },
+          expiresAt: new Date(Date.now() + 60_000).toISOString(),
+          refreshExpiresAt: new Date(Date.now() + 120_000).toISOString(),
+          refreshToken: "rotated-refresh-token",
+          user: { email: "admin@example.com", id: "user-1" },
+          workspaceId: "ws-linked",
+        });
+      }
+      return Response.json({ ok: true });
+    }) as typeof fetch;
+
+    await expect(getExocorpseSessionFromCookies()).resolves.toMatchObject({
+      accessToken: "refreshed-token",
+      refreshToken: "rotated-refresh-token",
+    });
+    expect(calls).toHaveLength(2);
+    expect(JSON.parse(calls[0]?.init?.body as string)).toMatchObject({
+      refreshToken: "refresh-token",
+    });
+    expect(calls[1]?.init?.headers).toMatchObject({
+      Authorization: "Bearer refreshed-token",
+    });
+  });
 });

@@ -1,16 +1,10 @@
 import {
-  getExocorpseApiBaseUrl,
-  getExocorpseWorkspaceId,
-} from "@/lib/exocorpse-config";
-import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
+  authenticatedExocorpseFetch,
+  externalProjectPath,
+} from "@/lib/tuturuuu-cms-repository";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const session = await getExocorpseSessionFromCookies();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body = (await request.json().catch(() => null)) as {
     contentType?: unknown;
     path?: unknown;
@@ -24,10 +18,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid upload path" }, { status: 400 });
   }
 
-  const response = await fetch(
-    `${getExocorpseApiBaseUrl().replace(/\/+$/, "")}/workspaces/${encodeURIComponent(
-      getExocorpseWorkspaceId(),
-    )}/external-projects/assets/upload-url`,
+  const response = await authenticatedExocorpseFetch(
+    externalProjectPath("/assets/upload-url"),
     {
       body: JSON.stringify({
         collectionType: segments[0],
@@ -39,10 +31,6 @@ export async function POST(request: NextRequest) {
         upsert: typeof body?.upsert === "boolean" ? body.upsert : true,
       }),
       cache: "no-store",
-      headers: {
-        Authorization: `${session.tokenType} ${session.accessToken}`,
-        "Content-Type": "application/json",
-      },
       method: "POST",
     },
   );

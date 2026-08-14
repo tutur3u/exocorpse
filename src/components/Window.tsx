@@ -191,7 +191,14 @@ export default function Window({ id, title, children }: WindowProps) {
     };
   }, []);
 
-  const handleClose = () => {
+  const stopWindowControlEvent = (
+    event: React.SyntheticEvent<HTMLButtonElement>,
+  ) => {
+    event.stopPropagation();
+  };
+
+  const handleClose = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     // Play window close sound
     playSound("window-off");
 
@@ -248,7 +255,8 @@ export default function Window({ id, title, children }: WindowProps) {
     }, 150);
   };
 
-  const handleMinimize = () => {
+  const handleMinimize = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setIsClosing(true);
     setTimeout(() => {
       minimizeWindow(id);
@@ -344,6 +352,9 @@ export default function Window({ id, title, children }: WindowProps) {
             <button
               type="button"
               onClick={handleMinimize}
+              onMouseDown={stopWindowControlEvent}
+              onPointerDown={stopWindowControlEvent}
+              onTouchStart={stopWindowControlEvent}
               className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "hover:bg-theme-primary text-theme-text"
@@ -364,13 +375,17 @@ export default function Window({ id, title, children }: WindowProps) {
             </button>
             <button
               type="button"
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 if (isMaximized) {
                   restoreWindow(id);
                 } else {
                   maximizeWindow(id);
                 }
               }}
+              onMouseDown={stopWindowControlEvent}
+              onPointerDown={stopWindowControlEvent}
+              onTouchStart={stopWindowControlEvent}
               className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "hover:bg-theme-primary text-theme-text"
@@ -400,6 +415,9 @@ export default function Window({ id, title, children }: WindowProps) {
             <button
               type="button"
               onClick={handleClose}
+              onMouseDown={stopWindowControlEvent}
+              onPointerDown={stopWindowControlEvent}
+              onTouchStart={stopWindowControlEvent}
               className={`window-control flex h-10 w-10 touch-manipulation items-center justify-center rounded-md transition-colors @md:h-8 @md:w-8 ${
                 theme
                   ? "text-theme-text hover:bg-red-500 hover:text-white"

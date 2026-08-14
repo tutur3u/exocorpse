@@ -1,108 +1,9 @@
 import {
-  getExocorpseApiBaseUrl,
-  getExocorpseAppId,
-  getExocorpseAppSecret,
-  getExocorpseWorkspaceId,
-} from "@/lib/exocorpse-config";
-import {
+  exchangeExocorpseSession,
+  ExocorpseAuthError,
   setExocorpseSessionCookie,
-  type ExocorpseAdminSession,
 } from "@/lib/exocorpse-session";
 import { type NextRequest, NextResponse } from "next/server";
-
-type AppTokenExchangeResponse = {
-  accessToken?: string;
-  app?: {
-    name?: string;
-  };
-  error?: string;
-  expiresAt?: string;
-  tokenType?: string;
-  workspaceId?: string | null;
-  user?: {
-    email?: string | null;
-    id?: string;
-  };
-};
-
-class TokenExchangeError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-  }
-}
-
-function normalizeApiBaseUrl() {
-  return getExocorpseApiBaseUrl().replace(/\/+$/, "");
-}
-
-async function readExchangeError(response: Response) {
-  const fallback = `Tuturuuu app token exchange failed with status ${response.status}`;
-  const payload = (await response
-    .json()
-    .catch(() => null)) as AppTokenExchangeResponse | null;
-
-  return payload?.error || fallback;
-}
-
-async function exchangeCrossAppToken(token: string) {
-  const response = await fetch(
-    `${normalizeApiBaseUrl()}/auth/app-token/exchange`,
-    {
-      body: JSON.stringify({
-        appId: getExocorpseAppId(),
-        appSecret: getExocorpseAppSecret(),
-        requestedScopes: ["external-projects:*"],
-        token,
-        workspaceId: getExocorpseWorkspaceId(),
-      }),
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    },
-  );
-
-  if (!response.ok) {
-    throw new TokenExchangeError(
-      await readExchangeError(response),
-      response.status,
-    );
-  }
-
-  return (await response.json()) as AppTokenExchangeResponse;
-}
-
-function toExocorpseSession(
-  payload: AppTokenExchangeResponse,
-): ExocorpseAdminSession {
-  if (
-    !payload.accessToken ||
-    !payload.expiresAt ||
-    !payload.user?.id ||
-    !payload.workspaceId
-  ) {
-    throw new Error("Invalid Tuturuuu app token exchange response.");
-  }
-
-  return {
-    accessToken: payload.accessToken,
-    app: {
-      name: payload.app?.name ?? getExocorpseAppId(),
-    },
-    expiresAt: payload.expiresAt,
-    tokenType: "Bearer",
-    workspaceId: payload.workspaceId,
-    user: {
-      email: payload.user.email ?? null,
-      id: payload.user.id,
-    },
-  };
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -118,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = toExocorpseSession(await exchangeCrossAppToken(token));
+    const session = await exchangeExocorpseSession({ token });
     const response = NextResponse.json({
       expiresAt: session.expiresAt,
       userId: session.user.id,
@@ -133,7 +34,7 @@ export async function POST(request: NextRequest) {
       {
         error: error instanceof Error ? error.message : "Internal server error",
       },
-      { status: error instanceof TokenExchangeError ? error.status : 500 },
+      { status: error instanceof ExocorpseAuthError ? error.status : 500 },
     );
   }
 }
