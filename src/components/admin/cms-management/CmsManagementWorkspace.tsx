@@ -119,6 +119,22 @@ export default function CmsManagementWorkspace({
           );
         });
 
+  const beginCreateEntry = () => {
+    createEntry();
+    if (relatedTarget) {
+      const relation = definitions.find(
+        (definition) => definition.key === relatedTarget.relationKey,
+      );
+      if (relation) {
+        setRelationSelections((current) => ({
+          ...current,
+          [relation.id]: [relatedTarget.id],
+        }));
+      }
+    }
+    setEditorOpen(true);
+  };
+
   const collectionButton = (
     item: (typeof visibleCollections)[number],
     variant: "pill" | "tab" = "pill",
@@ -162,22 +178,19 @@ export default function CmsManagementWorkspace({
       assets={studio.assets}
       collection={collection}
       entries={visibleEntries}
-      initialRelationTargetId={relatedTarget?.id}
+      initialRelationTargetId={
+        relatedTarget?.relationKey.startsWith("character")
+          ? relatedTarget.id
+          : undefined
+      }
       key={collection.id}
       onCreate={(profileData) => {
-        createEntry(profileData);
-        if (relatedTarget) {
-          const relation = definitions.find(
-            (definition) => definition.key === relatedTarget.relationKey,
-          );
-          if (relation) {
-            setRelationSelections((current) => ({
-              ...current,
-              [relation.id]: [relatedTarget.id],
-            }));
-          }
+        if (profileData && Object.keys(profileData).length) {
+          createEntry(profileData);
+          setEditorOpen(true);
+          return;
         }
-        setEditorOpen(true);
+        beginCreateEntry();
       }}
       onDelete={(entry) => setDeletingEntryId(entry.id)}
       onOpenCollection={(slug, targetId, relationKey) => {
@@ -248,10 +261,7 @@ export default function CmsManagementWorkspace({
             {canCreate ? (
               <button
                 className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
-                onClick={() => {
-                  createEntry();
-                  setEditorOpen(true);
-                }}
+                onClick={beginCreateEntry}
                 type="button"
               >
                 + {createActionLabel}

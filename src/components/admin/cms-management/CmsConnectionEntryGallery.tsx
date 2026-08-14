@@ -204,6 +204,7 @@ export default function CmsConnectionEntryGallery({
   assets,
   collection,
   entries,
+  initialCharacterId,
   onCreate,
   onDelete,
   onReorder,
@@ -213,6 +214,7 @@ export default function CmsConnectionEntryGallery({
   assets: ExocorpseCmsAsset[];
   collection: ExocorpseCmsCollection;
   entries: ExocorpseCmsEntry[];
+  initialCharacterId?: string;
   onCreate: () => void;
   onDelete: (entry: ExocorpseCmsEntry) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
@@ -220,7 +222,7 @@ export default function CmsConnectionEntryGallery({
   studio: ExocorpseCmsStudio;
 }) {
   const [query, setQuery] = useState("");
-  const [characterId, setCharacterId] = useState("all");
+  const [characterId, setCharacterId] = useState(initialCharacterId ?? "all");
   const presentations = useMemo(
     () =>
       new Map(

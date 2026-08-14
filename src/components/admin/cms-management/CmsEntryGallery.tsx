@@ -202,6 +202,7 @@ export default function CmsEntryGallery({
         assets={assets}
         collection={collection}
         entries={entries}
+        initialCharacterId={initialRelationTargetId}
         onCreate={() => onCreate()}
         onDelete={onDelete}
         onReorder={onReorder}
