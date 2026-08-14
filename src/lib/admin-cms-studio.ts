@@ -22,6 +22,24 @@ export function selectAdminCmsStudio(
   const relationDefinitions = (studio.relationDefinitions ?? []).filter(
     (definition) => sourceCollectionIds.has(definition.source_collection_id),
   );
+  const worldCollectionId = studio.collections.find(
+    (collection) => collection.slug === "worlds",
+  )?.id;
+  const storyContextDefinitions = (studio.relationDefinitions ?? []).filter(
+    (definition) =>
+      definition.source_collection_id === worldCollectionId &&
+      definition.key === "story" &&
+      relationDefinitions.some(
+        (candidate) =>
+          ["world", "worlds"].includes(candidate.key) &&
+          (studio.relationDefinitionTargets ?? []).some(
+            (target) =>
+              target.relation_definition_id === candidate.id &&
+              target.target_collection_id === worldCollectionId,
+          ),
+      ),
+  );
+  relationDefinitions.push(...storyContextDefinitions);
   const relationDefinitionIds = new Set(
     relationDefinitions.map((definition) => definition.id),
   );
@@ -38,6 +56,14 @@ export function selectAdminCmsStudio(
   const sourceEntryIds = new Set(
     studio.entries
       .filter((entry) => sourceCollectionIds.has(entry.collection_id))
+      .map((entry) => entry.id),
+  );
+  const relationSourceCollectionIds = new Set(
+    relationDefinitions.map((definition) => definition.source_collection_id),
+  );
+  const relationSourceEntryIds = new Set(
+    studio.entries
+      .filter((entry) => relationSourceCollectionIds.has(entry.collection_id))
       .map((entry) => entry.id),
   );
 
@@ -57,8 +83,11 @@ export function selectAdminCmsStudio(
         definition.collection_id !== null &&
         sourceCollectionIds.has(definition.collection_id),
     ),
-    relations: (studio.relations ?? []).filter((relation) =>
-      sourceEntryIds.has(relation.from_entry_id),
+    relations: (studio.relations ?? []).filter(
+      (relation) =>
+        relation.relation_definition_id !== null &&
+        relationDefinitionIds.has(relation.relation_definition_id) &&
+        relationSourceEntryIds.has(relation.from_entry_id),
     ),
     relationDefinitions,
     relationDefinitionTargets,

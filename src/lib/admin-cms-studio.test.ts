@@ -46,6 +46,16 @@ const studio = {
       id: "world-character",
       source_collection_id: "worlds",
     },
+    {
+      id: "character-world",
+      key: "worlds",
+      source_collection_id: "characters",
+    },
+    {
+      id: "world-story",
+      key: "story",
+      source_collection_id: "worlds",
+    },
   ],
   relationDefinitionTargets: [
     {
@@ -56,10 +66,38 @@ const studio = {
       relation_definition_id: "world-character",
       target_collection_id: "characters",
     },
+    {
+      relation_definition_id: "character-world",
+      target_collection_id: "worlds",
+    },
+    {
+      relation_definition_id: "world-story",
+      target_collection_id: "stories",
+    },
   ],
   relations: [
-    { from_entry_id: "story", id: "story-world-row" },
-    { from_entry_id: "world", id: "world-character-row" },
+    {
+      from_entry_id: "story",
+      id: "story-world-row",
+      relation_definition_id: "story-world",
+    },
+    {
+      from_entry_id: "world",
+      id: "world-character-row",
+      relation_definition_id: "world-character",
+    },
+    {
+      from_entry_id: "character",
+      id: "character-world-row",
+      relation_definition_id: "character-world",
+      to_entry_id: "world",
+    },
+    {
+      from_entry_id: "world",
+      id: "world-story-row",
+      relation_definition_id: "world-story",
+      to_entry_id: "story",
+    },
   ],
 } as unknown as ExocorpseCmsStudio;
 
@@ -85,6 +123,21 @@ describe("admin CMS studio selection", () => {
     expect(selected.relations?.map((item) => item.id)).toEqual([
       "story-world-row",
     ]);
+  });
+
+  test("keeps the world-to-story context needed for direct wiki previews", () => {
+    const selected = selectAdminCmsStudio(studio, {
+      ...section,
+      collectionSlugs: ["characters"],
+    });
+
+    expect(selected.relationDefinitions?.map((item) => item.key)).toContain(
+      "story",
+    );
+    expect(selected.collections.map((item) => item.slug)).toContain("stories");
+    expect(
+      selected.relations?.some((item) => item.from_entry_id === "world"),
+    ).toBe(true);
   });
 
   test("keeps the complete studio for the all-collections CMS workspace", () => {
