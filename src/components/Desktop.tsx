@@ -1,6 +1,7 @@
 "use client";
 
 import { useWindows } from "@/contexts/WindowContext";
+import { useWikiDesktopExperience } from "@/hooks/useWikiDesktopExperience";
 import type { AppId } from "@/types/window";
 import Image from "next/image";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import Window from "./Window";
 
 export default function Desktop() {
   const { windows, appConfigs } = useWindows();
+  const wikiExperience = useWikiDesktopExperience();
   const [selectedIconId, setSelectedIconId] = useState<AppId | null>(null);
   const shellAppConfigs = appConfigs.filter((app) => app.showInShell !== false);
 
@@ -18,15 +20,27 @@ export default function Desktop() {
       className="relative h-screen w-screen overflow-hidden bg-black text-slate-100"
       onClick={() => setSelectedIconId(null)}
     >
-      <Image
-        src="/background-image.webp"
-        alt="Background image"
-        fill
-        sizes="100vw"
-        className="object-cover object-center"
-        loading="eager"
-        priority
-      />
+      {wikiExperience.backgroundImage ? (
+        <div
+          aria-label={`${wikiExperience.storyTitle ?? "Story"} background`}
+          className="absolute inset-0 bg-cover bg-center transition-[background-image] duration-700"
+          role="img"
+          style={{
+            backgroundImage: `url(${JSON.stringify(wikiExperience.backgroundImage)})`,
+          }}
+        />
+      ) : (
+        <Image
+          src="/background-image.webp"
+          alt="Background image"
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
+          loading="eager"
+          priority
+        />
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-black/20" />
       {/* Desktop Icons - Logo at Top, Icons Centered */}
       <div className="absolute top-1/2 left-1/2 z-10 flex w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 transform flex-col items-center gap-7 px-6">
         {/* Logo - Top of screen */}

@@ -4,22 +4,13 @@ import {
   isJsonRecord,
   shouldBypassImageOptimization,
 } from "@/components/admin/cms-management/editor-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
-import {
-  ChevronDown,
-  Check,
-  Copy,
-  ExternalLink,
-  FilePenLine,
-  FileText,
-  Globe2,
-  Search,
-  Trash2,
-  EyeOff,
-} from "lucide-react";
+import { ChevronDown, FileText, Globe2, Search, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
@@ -72,13 +63,11 @@ function formatShortDate(value: string | null) {
 export default function CmsBlogEntryGallery({
   assets,
   entries,
-  onDelete,
   onSelect,
   onSetVisibility,
 }: {
   assets: ExocorpseCmsAsset[];
   entries: ExocorpseCmsEntry[];
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
   onSetVisibility: (
     entryId: string,
@@ -87,7 +76,6 @@ export default function CmsBlogEntryGallery({
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | BlogVisibility>("all");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const mediaByEntry = useMemo(
     () =>
       new Map(
@@ -196,10 +184,24 @@ export default function CmsBlogEntryGallery({
             const imageUrl = asset?.preview_url ?? asset?.asset_url;
             return (
               <article
-                className="overflow-hidden rounded-[1.5rem] border border-zinc-800 bg-zinc-950 shadow-[0_24px_80px_-50px_rgba(0,0,0,0.7)]"
+                aria-label={`Edit ${entry.title}`}
+                className="group relative cursor-pointer overflow-hidden rounded-[1.5rem] border border-zinc-800 bg-zinc-950 shadow-[0_24px_80px_-50px_rgba(0,0,0,0.7)] transition hover:border-cyan-500/45 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
                 key={entry.id}
+                onClick={() => onSelect(entry.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(entry.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
-                <div className="grid @lg:grid-cols-[15rem_minmax(0,1fr)_15rem]">
+                <CmsCardQuickActions
+                  className="absolute top-3 right-3 z-20"
+                  path={cmsEntryPublicPath("blog-posts", entry)}
+                />
+                <div className="grid @lg:grid-cols-[15rem_minmax(0,1fr)]">
                   <div className="relative min-h-48 overflow-hidden border-b border-zinc-800 @lg:border-r @lg:border-b-0">
                     {asset && imageUrl ? (
                       <Image
@@ -236,45 +238,11 @@ export default function CmsBlogEntryGallery({
                       {statusData.summary} Updated{" "}
                       {formatShortDate(entry.updated_at)}.
                     </p>
-                  </div>
-                  <div className="border-t border-zinc-800 bg-zinc-950/60 p-5 @lg:border-t-0 @lg:border-l @lg:p-6">
-                    <div className="flex flex-wrap gap-3 @lg:flex-col">
-                      <button
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-cyan-500"
-                        onClick={() => onSelect(entry.id)}
-                        type="button"
-                      >
-                        <FilePenLine className="h-4 w-4" /> Edit
-                      </button>
-                      <button
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-cyan-500/60 hover:bg-cyan-500/10 hover:text-cyan-100"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(
-                            `${window.location.origin}/?blog-post=${encodeURIComponent(entry.slug)}`,
-                          );
-                          setCopiedId(entry.id);
-                          window.setTimeout(() => setCopiedId(null), 1800);
-                        }}
-                        type="button"
-                      >
-                        {copiedId === entry.id ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                        {copiedId === entry.id ? "Copied" : "Copy link"}
-                      </button>
-                      {visibility === "published" ||
-                      visibility === "unlisted" ? (
-                        <a
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-zinc-900"
-                          href={`/?blog-post=${encodeURIComponent(entry.slug)}`}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          <ExternalLink className="h-4 w-4" /> Open post
-                        </a>
-                      ) : null}
+                    <div
+                      className="flex"
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                    >
                       <details className="group relative">
                         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-200 marker:content-none hover:bg-zinc-900">
                           {visibility === "unlisted" ? (
@@ -307,13 +275,6 @@ export default function CmsBlogEntryGallery({
                           ))}
                         </div>
                       </details>
-                      <button
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-900/70 bg-red-500/8 px-4 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/15"
-                        onClick={() => onDelete(entry)}
-                        type="button"
-                      >
-                        <Trash2 className="h-4 w-4" /> Delete
-                      </button>
                     </div>
                   </div>
                 </div>

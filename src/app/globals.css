@@ -22,6 +22,15 @@
   --tuturuuu-editor-toolbar-background: rgb(248 250 252 / 0.92);
 }
 
+@keyframes wiki-load {
+  from {
+    transform: scaleX(0.04);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 .admin-markdown-editor .tuturuuu-editor-toolbar {
   min-height: 3.0625rem;
   flex-wrap: nowrap;

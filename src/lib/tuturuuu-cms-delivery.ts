@@ -17,6 +17,7 @@ import type {
   Character,
   ExocorpseJson as Json,
   ExocorpseTable as Tables,
+  Story,
 } from "@/types/exocorpse-content";
 
 type CmsAsset = {
@@ -568,7 +569,7 @@ export async function getCmsAboutPageData(): Promise<AboutPageData | null> {
   return { faqs, items, settings };
 }
 
-function mapCmsStory(entry: CmsEntry): Tables<"stories"> {
+function mapCmsStory(entry: CmsEntry): Story {
   const profile = entry.profileData;
 
   return {
@@ -584,6 +585,7 @@ function mapCmsStory(entry: CmsEntry): Tables<"stories"> {
     theme_background_image: firstAssetUrl(entry),
     theme_primary_color: stringValue(profile, "themePrimaryColor"),
     theme_secondary_color: stringValue(profile, "themeSecondaryColor"),
+    theme_soundtrack_url: stringValue(profile, "themeSoundtrackUrl"),
     theme_text_color: stringValue(profile, "themeTextColor"),
     title: entry.title,
     updated_at: EPOCH,
@@ -1376,9 +1378,19 @@ export type CmsCharacterGalleryItem = {
   thumbnail_url: string | null;
   title: string;
   is_sensitive: boolean;
+  sensitive_type: "gore" | "nsfw" | null;
   sensitive_label: string | null;
   is_reference_sheet: boolean;
 };
+
+function sensitiveTypeValue(
+  profileData: Record<string, unknown>,
+): "gore" | "nsfw" | null {
+  return profileData.sensitiveType === "gore" ||
+    profileData.sensitiveType === "nsfw"
+    ? profileData.sensitiveType
+    : null;
+}
 
 export type CmsCharacterOutfit = {
   character_id: string;
@@ -1389,6 +1401,7 @@ export type CmsCharacterOutfit = {
   name: string;
   outfit_types: { id: string; name: string } | null;
   is_sensitive: boolean;
+  sensitive_type: "gore" | "nsfw" | null;
   sensitive_label: string | null;
   is_reference_sheet: boolean;
 };
@@ -1489,6 +1502,7 @@ export async function getCmsCharacterGallery(characterId: string) {
         thumbnail_url: secondAssetUrl(entry),
         title: entry.title,
         is_sensitive: entry.profileData.sensitiveContent === true,
+        sensitive_type: sensitiveTypeValue(entry.profileData),
         sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
         is_reference_sheet: entry.profileData.referenceSheet === true,
       };
@@ -1519,6 +1533,7 @@ export async function getCmsCharacterOutfits(characterId: string) {
       name: entry.title,
       outfit_types: null,
       is_sensitive: entry.profileData.sensitiveContent === true,
+      sensitive_type: sensitiveTypeValue(entry.profileData),
       sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
       is_reference_sheet: entry.profileData.referenceSheet === true,
     })),

@@ -1,6 +1,8 @@
 "use client";
 
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type {
   ExocorpseCmsEntry,
   ExocorpseCmsStudio,
@@ -19,7 +21,6 @@ export default function CmsCommissionEntryGallery({
   entries,
   kind,
   onCreate,
-  onDelete,
   onReorder,
   onSelect,
   studio,
@@ -27,7 +28,6 @@ export default function CmsCommissionEntryGallery({
   entries: ExocorpseCmsEntry[];
   kind: "addons" | "services";
   onCreate: () => void;
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
   studio: ExocorpseCmsStudio;
@@ -137,13 +137,31 @@ export default function CmsCommissionEntryGallery({
             const active = profileValue(entry, "isActive") !== false;
             return (
               <article
+                aria-label={`Edit ${entry.title}`}
                 className={
                   kind === "addons"
-                    ? "rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
-                    : "group rounded-lg border border-gray-300 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:border-gray-600 dark:bg-gray-800"
+                    ? "group relative cursor-pointer rounded-lg border border-gray-300 bg-white p-4 transition hover:border-cyan-300/60 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-600 dark:bg-gray-800"
+                    : "group relative cursor-pointer rounded-lg border border-gray-300 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-600 dark:bg-gray-800"
                 }
                 key={entry.id}
+                onClick={() => onSelect(entry.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(entry.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
+                <CmsCardQuickActions
+                  className="absolute top-3 left-3 z-20"
+                  path={
+                    kind === "services"
+                      ? cmsEntryPublicPath("commission-services", entry)
+                      : undefined
+                  }
+                />
                 <div className={kind === "services" ? "p-4" : ""}>
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -187,28 +205,6 @@ export default function CmsCommissionEntryGallery({
                       {linkedServiceCount(entry.id) === 1 ? "" : "s"}
                     </p>
                   ) : null}
-                </div>
-                <div
-                  className={`flex gap-2 ${
-                    kind === "services"
-                      ? "border-t border-gray-200 p-4 dark:border-gray-700"
-                      : "mt-4"
-                  }`}
-                >
-                  <button
-                    className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
-                    onClick={() => onSelect(entry.id)}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-                    onClick={() => onDelete(entry)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
                 </div>
               </article>
             );

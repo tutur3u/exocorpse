@@ -3,6 +3,8 @@
 import SortableList, {
   mergeVisibleOrder,
 } from "@/components/admin/SortableList";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import {
   connectionPresentation,
   type CmsConnectionPresentation,
@@ -24,9 +26,7 @@ import {
   Building2,
   CalendarDays,
   HeartHandshake,
-  Pencil,
   Search,
-  Trash2,
   UserRound,
   UsersRound,
 } from "lucide-react";
@@ -80,16 +80,16 @@ function ConnectionCard({
   assets,
   collectionSlug,
   entry,
-  onDelete,
   onEdit,
   presentation,
+  studio,
 }: {
   assets: ExocorpseCmsAsset[];
   collectionSlug: string;
   entry: ExocorpseCmsEntry;
-  onDelete: () => void;
   onEdit: () => void;
   presentation: CmsConnectionPresentation;
+  studio: ExocorpseCmsStudio;
 }) {
   const profile = isJsonRecord(entry.profile_data) ? entry.profile_data : {};
   const role = typeof profile.role === "string" ? profile.role : "";
@@ -99,14 +99,29 @@ function ConnectionCard({
     entry.summary ?? (typeof profile.notes === "string" ? profile.notes : null);
 
   return (
-    <article className="group relative h-full overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] shadow-[0_14px_36px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-cyan-400/45 hover:shadow-[0_22px_52px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.1),transparent_34%),radial-gradient(circle_at_88%_14%,rgba(217,70,239,0.08),transparent_26%),linear-gradient(180deg,rgba(12,16,28,0.98),rgba(7,10,18,0.98))] dark:shadow-[0_18px_48px_rgba(2,6,23,0.34)] dark:hover:border-cyan-300/35">
+    <article
+      aria-label={`Edit ${presentation.primary}`}
+      className="group relative h-full cursor-pointer overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] shadow-[0_14px_36px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-cyan-400/45 hover:shadow-[0_22px_52px_rgba(15,23,42,0.14)] focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.1),transparent_34%),radial-gradient(circle_at_88%_14%,rgba(217,70,239,0.08),transparent_26%),linear-gradient(180deg,rgba(12,16,28,0.98),rgba(7,10,18,0.98))] dark:shadow-[0_18px_48px_rgba(2,6,23,0.34)] dark:hover:border-cyan-300/35"
+      onClick={onEdit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onEdit();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-cyan-300/70 to-fuchsia-300/40 opacity-50 transition group-hover:opacity-100" />
-      <button
-        aria-label={`Edit ${presentation.primary}`}
-        className="w-full px-5 pt-5 pb-4 text-left focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:outline-none focus-visible:ring-inset"
-        onClick={onEdit}
-        type="button"
-      >
+      <CmsCardQuickActions
+        className="absolute top-3 left-3 z-30"
+        path={
+          presentation.characterA
+            ? cmsEntryPublicPath("characters", presentation.characterA, studio)
+            : undefined
+        }
+      />
+      <div className="w-full px-5 pt-5 pb-4 text-left focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:outline-none focus-visible:ring-inset">
         {collectionSlug === "character-relationships" ? (
           <>
             <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 pt-11">
@@ -122,7 +137,7 @@ function ConnectionCard({
                 entry={presentation.characterB}
               />
             </div>
-            <div className="mt-5 flex items-center gap-2 border-t border-slate-200/70 pt-4 dark:border-white/8">
+            <div className="mt-4 flex items-center gap-2">
               <span className="rounded-full border border-rose-200/70 bg-rose-50 px-3 py-1 text-xs font-semibold tracking-wide text-rose-800 dark:border-rose-300/20 dark:bg-rose-400/10 dark:text-rose-100">
                 {presentation.secondary}
               </span>
@@ -147,7 +162,7 @@ function ConnectionCard({
                 </span>
               </div>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200/70 pt-4 dark:border-white/8">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${presentation.isCurrent ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"}`}
               >
@@ -174,27 +189,6 @@ function ConnectionCard({
             {description}
           </p>
         ) : null}
-      </button>
-      <div className="flex items-center justify-end gap-1.5 border-t border-slate-200/70 bg-white/35 px-4 py-3 dark:border-white/8 dark:bg-white/[0.015]">
-        <Button
-          className="border-slate-300 bg-white/70 text-slate-700 shadow-sm hover:border-cyan-400/60 hover:bg-cyan-50 hover:text-cyan-800 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-cyan-300/45 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-100"
-          onClick={onEdit}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <Pencil className="h-3.5 w-3.5" /> Edit
-        </Button>
-        <Button
-          aria-label={`Delete ${presentation.primary}`}
-          className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-400/10"
-          onClick={onDelete}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
       </div>
     </article>
   );
@@ -206,7 +200,6 @@ export default function CmsConnectionEntryGallery({
   entries,
   initialCharacterId,
   onCreate,
-  onDelete,
   onReorder,
   onSelect,
   studio,
@@ -216,7 +209,6 @@ export default function CmsConnectionEntryGallery({
   entries: ExocorpseCmsEntry[];
   initialCharacterId?: string;
   onCreate: () => void;
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
   studio: ExocorpseCmsStudio;
@@ -320,9 +312,9 @@ export default function CmsConnectionEntryGallery({
               assets={assets}
               collectionSlug={collection.slug}
               entry={entry}
-              onDelete={() => onDelete(entry)}
               onEdit={() => onSelect(entry.id)}
               presentation={presentations.get(entry.id)!}
+              studio={studio}
             />
           )}
         </SortableList>

@@ -1,6 +1,7 @@
 "use client";
 
 import CmsEntryCard from "@/components/admin/cms-management/CmsEntryCard";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import SortableList, {
   mergeVisibleOrder,
 } from "@/components/admin/SortableList";
@@ -36,7 +37,6 @@ export default function CmsEntryGallery({
   initialRelationTargetId,
   relationFilter,
   onCreate,
-  onDelete,
   onOpenCollection,
   onReorder,
   onSelect,
@@ -53,7 +53,6 @@ export default function CmsEntryGallery({
   initialRelationTargetId?: string;
   relationFilter?: CmsEntryGalleryFilter;
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onOpenCollection: (
     slug: string,
     targetId?: string,
@@ -151,7 +150,6 @@ export default function CmsEntryGallery({
       <CmsBlogEntryGallery
         assets={assets}
         entries={entries}
-        onDelete={onDelete}
         onSelect={onSelect}
         onSetVisibility={onSetVisibility}
       />
@@ -165,7 +163,6 @@ export default function CmsEntryGallery({
         collection={collection}
         entries={entries}
         onCreate={onCreate}
-        onDelete={onDelete}
         onSelect={onSelect}
       />
     );
@@ -178,7 +175,6 @@ export default function CmsEntryGallery({
         collection={collection}
         entries={entries}
         onCreate={onCreate}
-        onDelete={onDelete}
         onReorder={onReorder}
         onSelect={onSelect}
       />
@@ -194,7 +190,6 @@ export default function CmsEntryGallery({
         entries={entries}
         kind={collection.slug === "commission-addons" ? "addons" : "services"}
         onCreate={onCreate}
-        onDelete={onDelete}
         onReorder={onReorder}
         onSelect={onSelect}
         studio={studio}
@@ -210,7 +205,6 @@ export default function CmsEntryGallery({
         entries={entries}
         initialCharacterId={initialRelationTargetId}
         onCreate={() => onCreate()}
-        onDelete={onDelete}
         onReorder={onReorder}
         onSelect={onSelect}
         studio={studio}
@@ -361,8 +355,8 @@ export default function CmsEntryGallery({
                 eager={index < 3}
                 entry={entry}
                 key={entry.id}
-                onDelete={() => onDelete(entry)}
                 onEdit={() => onSelect(entry.id)}
+                publicPath={cmsEntryPublicPath(collection.slug, entry, studio)}
                 previewAsset={media?.preview}
                 secondaryActions={secondaryActions}
                 supportsImages={supportsImages}

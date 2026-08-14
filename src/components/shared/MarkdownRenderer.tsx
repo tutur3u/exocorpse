@@ -29,6 +29,16 @@ export default function MarkdownRenderer({
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
           ...markdownComponents,
+          details: ({ children }) => (
+            <details className="group my-4 overflow-hidden rounded-xl border border-current/15 bg-black/10 open:pb-3">
+              {children}
+            </details>
+          ),
+          summary: ({ children }) => (
+            <summary className="cursor-pointer list-none px-4 py-3 font-semibold marker:content-none hover:bg-white/5 [&::after]:float-right [&::after]:content-['+'] group-open:[&::after]:content-['−']">
+              {children}
+            </summary>
+          ),
           p: ({ children }) => renderMarkdownParagraph(children),
           img: ({ src, alt }) => {
             const imageSrc = typeof src === "string" ? src : undefined;

@@ -1,12 +1,13 @@
 "use client";
 
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
 import type {
   ExocorpseCmsCollection,
   ExocorpseCmsEntry,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const groupCopy: Record<string, { description: string; title: string }> = {
   about_use_card: {
@@ -50,34 +51,37 @@ export default function CmsAboutEntryGallery({
   collection,
   entries,
   onCreate,
-  onDelete,
   onSelect,
 }: {
   aboutTab?: "about" | "dni" | "faq" | "profile" | "socials";
   collection: ExocorpseCmsCollection;
   entries: ExocorpseCmsEntry[];
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onSelect: (entryId: string) => void;
 }) {
   if (collection.slug === "about") {
     const profile = entries[0];
     return (
-      <section className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-950">
+      <section
+        aria-label="Edit About profile"
+        className="group relative cursor-pointer rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm transition hover:border-cyan-300/60 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-800 dark:bg-gray-950"
+        onClick={() => (profile ? onSelect(profile.id) : onCreate())}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            profile ? onSelect(profile.id) : onCreate();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <CmsCardQuickActions className="absolute top-4 right-4" path="/" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Profile
             </h2>
           </div>
-          <button
-            className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
-            onClick={() => (profile ? onSelect(profile.id) : onCreate())}
-            type="button"
-          >
-            <Pencil className="h-4 w-4" />
-            Edit Profile
-          </button>
         </div>
       </section>
     );
@@ -103,9 +107,20 @@ export default function CmsAboutEntryGallery({
         <div className="mt-6 space-y-3">
           {entries.map((entry) => (
             <article
-              className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
+              aria-label={`Edit ${entry.title}`}
+              className="cursor-pointer rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-cyan-300/60 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-900"
               key={entry.id}
+              onClick={() => onSelect(entry.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(entry.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
+              <CmsCardQuickActions className="float-right ml-3" path="/" />
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -116,22 +131,6 @@ export default function CmsAboutEntryGallery({
                       {entry.summary ?? entry.subtitle}
                     </p>
                   ) : null}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400"
-                    onClick={() => onSelect(entry.id)}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                    onClick={() => onDelete(entry)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             </article>
@@ -194,9 +193,20 @@ export default function CmsAboutEntryGallery({
               ) : null}
               {sectionEntries.map((entry) => (
                 <article
-                  className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
+                  aria-label={`Edit ${entry.title}`}
+                  className="cursor-pointer rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-cyan-300/60 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-900"
                   key={entry.id}
+                  onClick={() => onSelect(entry.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelect(entry.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
+                  <CmsCardQuickActions className="float-right ml-3" path="/" />
                   <h3 className="font-semibold text-gray-900 dark:text-white">
                     {entry.title}
                   </h3>
@@ -205,22 +215,6 @@ export default function CmsAboutEntryGallery({
                       {entry.summary ?? entry.subtitle}
                     </p>
                   ) : null}
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400"
-                      onClick={() => onSelect(entry.id)}
-                      type="button"
-                    >
-                      <Pencil className="h-3.5 w-3.5" /> Edit
-                    </button>
-                    <button
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                      onClick={() => onDelete(entry)}
-                      type="button"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Delete
-                    </button>
-                  </div>
                 </article>
               ))}
             </div>

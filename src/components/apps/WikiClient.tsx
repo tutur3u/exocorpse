@@ -16,6 +16,7 @@ import {
   type Story,
   type World,
 } from "@/lib/actions/wiki";
+import { publishWikiDesktopExperience } from "@/lib/wiki-desktop-experience";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useMemo } from "react";
@@ -422,6 +423,14 @@ export default function WikiClient({
     }
   }, [currentTheme, setTheme]);
 
+  useEffect(() => {
+    publishWikiDesktopExperience({
+      backgroundImage: selectedStory?.theme_background_image ?? null,
+      soundtrackUrl: selectedStory?.theme_soundtrack_url ?? null,
+      storyTitle: selectedStory?.title ?? null,
+    });
+  }, [selectedStory]);
+
   // Render main content based on view mode
   const renderContent = () => {
     if (loading) {
@@ -566,13 +575,15 @@ export default function WikiClient({
 
   return (
     <div
-      className={`@container h-full overflow-auto ${currentTheme ? "bg-theme-primary" : "bg-linear-to-br from-gray-900 to-gray-950"}`}
+      className={`@container h-full overflow-auto ${currentTheme ? "" : "bg-linear-to-br from-gray-900 to-gray-950"}`}
       style={
         currentTheme
           ? ({
               "--theme_primary_color": currentTheme.primary,
               "--theme_secondary_color": currentTheme.secondary,
               "--theme_text_color": currentTheme.text,
+              backgroundImage: `radial-gradient(circle at 18% 12%, color-mix(in srgb, ${currentTheme.secondary ?? currentTheme.primary} 86%, transparent), transparent 38%), linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary ?? currentTheme.primary})`,
+              backgroundAttachment: "local",
             } as React.CSSProperties)
           : undefined
       }

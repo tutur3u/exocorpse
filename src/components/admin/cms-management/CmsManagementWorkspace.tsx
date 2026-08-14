@@ -12,7 +12,6 @@ import {
 import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/gallery-utils";
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
-import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
@@ -29,7 +28,6 @@ export default function CmsManagementWorkspace({
   section: AdminCmsSection;
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
-  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
   const [relatedTarget, setRelatedTarget] = useState<{
     id: string;
     relationKey: string;
@@ -97,7 +95,10 @@ export default function CmsManagementWorkspace({
     "character-factions",
     "character-gallery",
     "character-locations",
+    "character-outfits",
     "character-relationships",
+    "outfit-types",
+    "relationship-types",
   ]);
   const visibleSupportingCollections =
     section.key === "characters"
@@ -206,7 +207,6 @@ export default function CmsManagementWorkspace({
         }
         beginCreateEntry();
       }}
-      onDelete={(entry) => setDeletingEntryId(entry.id)}
       onSetVisibility={setEntryVisibility}
       onOpenCollection={(slug, targetId, relationKey) => {
         const target = visibleCollections.find((item) => item.slug === slug);
@@ -245,23 +245,6 @@ export default function CmsManagementWorkspace({
       </div>
     </details>
   ) : null;
-  const relatedContentNavigation =
-    section.key === "characters" ? (
-      <nav
-        aria-label="Character content"
-        className="flex gap-6 overflow-x-auto rounded-xl border border-slate-200 bg-white px-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
-      >
-        {["characters", "character-outfits"]
-          .map((slug) =>
-            [...primaryCollections, ...supportingCollections].find(
-              (item) => item.slug === slug,
-            ),
-          )
-          .filter((item) => item !== undefined)
-          .map((item) => collectionButton(item, "tab"))}
-      </nav>
-    ) : null;
-
   return (
     <div className="@container space-y-6">
       <AdminPageHeader
@@ -368,8 +351,7 @@ export default function CmsManagementWorkspace({
         </div>
       ) : (
         <div className="space-y-6">
-          {relatedContentNavigation}
-          {!relatedContentNavigation && primaryCollections.length > 1 ? (
+          {primaryCollections.length > 1 && section.key !== "characters" ? (
             <nav
               aria-label={`${section.title} content`}
               className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -438,18 +420,6 @@ export default function CmsManagementWorkspace({
           />
         </CmsEntryEditorDialog>
       ) : null}
-
-      <ConfirmDeleteDialog
-        isOpen={Boolean(deletingEntryId)}
-        loading={pending}
-        message="This item and everything attached to it will be permanently removed."
-        onCancel={() => setDeletingEntryId(null)}
-        onConfirm={() => {
-          if (deletingEntryId) deleteEntry(deletingEntryId);
-          setDeletingEntryId(null);
-        }}
-        title="Delete this item?"
-      />
 
       {pending ? (
         <div className="fixed right-5 bottom-5 z-50 flex items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white shadow-xl dark:bg-white dark:text-zinc-950">

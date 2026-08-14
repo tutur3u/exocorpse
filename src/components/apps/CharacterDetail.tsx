@@ -647,6 +647,7 @@ export default function CharacterDetail({
                         {outfit.image_url && (
                           <SensitiveImageButton
                             sensitive={outfit.is_sensitive}
+                            type={outfit.sensitive_type}
                             label={outfit.sensitive_label}
                             onOpen={() =>
                               setLightboxContent({
@@ -936,6 +937,7 @@ export default function CharacterDetail({
                       <SensitiveImageButton
                         key={image.id}
                         sensitive={image.is_sensitive}
+                        type={image.sensitive_type}
                         label={image.sensitive_label}
                         onOpen={() =>
                           setLightboxContent({

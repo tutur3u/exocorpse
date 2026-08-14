@@ -82,6 +82,7 @@ export interface Story extends AuditFields {
   theme_background_image: string | null;
   theme_primary_color: string | null;
   theme_secondary_color: string | null;
+  theme_soundtrack_url: string | null;
   theme_text_color: string | null;
   title: string;
   updated_by: string | null;

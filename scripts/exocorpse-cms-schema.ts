@@ -331,6 +331,7 @@ export const EXOCORPSE_CMS_SCHEMA = {
     ].map((key) => field("about-faqs", key, key)),
     field("stories", "isPublished", "Published", "boolean"),
     field("stories", "visibility", "Visibility"),
+    field("stories", "themeSoundtrackUrl", "Story soundtrack URL"),
     ...["themePrimaryColor", "themeSecondaryColor", "themeTextColor"].flatMap(
       (key) => [
         field("stories", key, key),
@@ -406,6 +407,7 @@ export const EXOCORPSE_CMS_SCHEMA = {
     field("character-gallery", "tags", "Tags", "string-array"),
     ...["character-gallery", "character-outfits"].flatMap((slug) => [
       field(slug, "sensitiveContent", "Sensitive content", "boolean"),
+      field(slug, "sensitiveType", "Content warning type"),
       field(slug, "sensitiveLabel", "Spoiler warning"),
       field(slug, "referenceSheet", "Character reference sheet", "boolean"),
     ]),

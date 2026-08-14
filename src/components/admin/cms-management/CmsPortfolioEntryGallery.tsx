@@ -1,12 +1,14 @@
 "use client";
 
 import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsCollection,
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
-import { FilePenLine, Gamepad2, ImageIcon, Plus, Trash2 } from "lucide-react";
+import { FilePenLine, Gamepad2, ImageIcon, Plus } from "lucide-react";
 import Image from "next/image";
 import SortableList from "@/components/admin/SortableList";
 
@@ -33,7 +35,6 @@ export default function CmsPortfolioEntryGallery({
   collection,
   entries,
   onCreate,
-  onDelete,
   onReorder,
   onSelect,
 }: {
@@ -41,7 +42,6 @@ export default function CmsPortfolioEntryGallery({
   collection: ExocorpseCmsCollection;
   entries: ExocorpseCmsEntry[];
   onCreate: () => void;
-  onDelete: (entry: ExocorpseCmsEntry) => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
 }) {
@@ -101,9 +101,23 @@ export default function CmsPortfolioEntryGallery({
             const imageUrl = asset?.preview_url ?? asset?.asset_url;
             return (
               <article
-                className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                aria-label={`Edit ${entry.title}`}
+                className="group relative cursor-pointer rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-cyan-300/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800"
                 key={entry.id}
+                onClick={() => onSelect(entry.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(entry.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
+                <CmsCardQuickActions
+                  className="absolute top-3 left-3 z-20"
+                  path={cmsEntryPublicPath(collection.slug, entry)}
+                />
                 <div className="flex items-start gap-4 p-4">
                   {asset && imageUrl ? (
                     <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded bg-gray-100 dark:bg-gray-700">
@@ -126,22 +140,6 @@ export default function CmsPortfolioEntryGallery({
                         {entry.summary ?? entry.subtitle}
                       </p>
                     ) : null}
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        className="rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400"
-                        onClick={() => onSelect(entry.id)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                        onClick={() => onDelete(entry)}
-                        type="button"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               </article>
@@ -162,9 +160,23 @@ export default function CmsPortfolioEntryGallery({
             const isArt = collection.slug === "portfolio-art";
             return (
               <article
-                className="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                aria-label={`Edit ${entry.title}`}
+                className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-cyan-300/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800"
                 key={entry.id}
+                onClick={() => onSelect(entry.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(entry.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
+                <CmsCardQuickActions
+                  className="absolute top-3 left-3 z-20"
+                  path={cmsEntryPublicPath(collection.slug, entry)}
+                />
                 {isArt || (asset && imageUrl) ? (
                   <div
                     className={`relative overflow-hidden bg-gray-100 dark:bg-gray-700 ${isArt ? "aspect-square" : "aspect-video"}`}
@@ -190,22 +202,6 @@ export default function CmsPortfolioEntryGallery({
                       {entry.summary ?? entry.subtitle}
                     </p>
                   ) : null}
-                  <div className="mt-auto flex gap-2 pt-4">
-                    <button
-                      className="flex-1 rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400"
-                      onClick={() => onSelect(entry.id)}
-                      type="button"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                      onClick={() => onDelete(entry)}
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  </div>
                 </div>
               </article>
             );

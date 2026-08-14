@@ -2,13 +2,13 @@
 
 import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
 import { entryCardDescription } from "@/components/admin/cms-management/gallery-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsCollection,
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
-import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 
 export default function CmsEntryCard({
@@ -16,8 +16,8 @@ export default function CmsEntryCard({
   collection,
   eager = false,
   entry,
-  onDelete,
   onEdit,
+  publicPath,
   secondaryActions = [],
   previewAsset,
   supportsImages,
@@ -27,8 +27,8 @@ export default function CmsEntryCard({
   collection: ExocorpseCmsCollection;
   eager?: boolean;
   entry: ExocorpseCmsEntry;
-  onDelete: () => void;
   onEdit: () => void;
+  publicPath?: string;
   secondaryActions?: Array<{
     label: string;
     onClick: () => void;
@@ -49,17 +49,27 @@ export default function CmsEntryCard({
         ? "h-32"
         : "h-48";
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30">
+    <article
+      aria-label={`Edit ${entry.title}`}
+      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30"
+      onClick={onEdit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onEdit();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
+      <CmsCardQuickActions
+        className="absolute top-3 left-3 z-30"
+        path={publicPath}
+      />
       {supportsImages ? (
         <div
           className={`relative overflow-hidden rounded-t-xl ${previewSize} ${theme.media}`}
         >
-          <button
-            aria-label={`Edit ${entry.title}`}
-            className="absolute inset-0 z-10"
-            onClick={onEdit}
-            type="button"
-          />
           {hasPreview && imageUrl && previewAsset ? (
             <Image
               alt={previewAsset.alt_text ?? `${entry.title} preview`}
@@ -113,7 +123,10 @@ export default function CmsEntryCard({
                       : "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
                 }`}
                 key={action.label}
-                onClick={action.onClick}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  action.onClick();
+                }}
                 type="button"
               >
                 {action.label}
@@ -121,26 +134,6 @@ export default function CmsEntryCard({
             ))}
           </div>
         ) : null}
-        <div className="mt-auto flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
-          <button
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-            onClick={onEdit}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </button>
-          <button
-            aria-label={`Delete ${entry.title}`}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-            onClick={onDelete}
-            title="Delete"
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </button>
-        </div>
       </div>
     </article>
   );

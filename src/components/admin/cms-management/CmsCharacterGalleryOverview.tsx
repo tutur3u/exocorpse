@@ -4,9 +4,11 @@ import {
   isJsonRecord,
   shouldBypassImageOptimization,
 } from "@/components/admin/cms-management/editor-utils";
+import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
-import { ImageIcon, Loader2, Pencil, Upload } from "lucide-react";
+import { ImageIcon, Loader2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
@@ -91,6 +93,10 @@ export default function CmsCharacterGalleryOverview({
     ]),
   );
   const busy = pending || uploading;
+  const character = studio.entries.find((entry) => entry.id === characterId);
+  const publicPath = character
+    ? cmsEntryPublicPath("characters", character, studio)
+    : undefined;
 
   return (
     <section className="space-y-5">
@@ -163,12 +169,24 @@ export default function CmsCharacterGalleryOverview({
               ? entry.profile_data
               : {};
             return (
-              <button
-                className="group overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 text-left transition hover:border-cyan-400 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+              <article
+                aria-label={`Edit ${entry.title}`}
+                className="group relative cursor-pointer overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 text-left transition hover:border-cyan-400 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-zinc-700 dark:bg-zinc-900"
                 key={entry.id}
                 onClick={() => onEdit(entry.id)}
-                type="button"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onEdit(entry.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
+                <CmsCardQuickActions
+                  className="absolute top-2 right-2 z-20"
+                  path={publicPath}
+                />
                 <div className="relative aspect-[4/3] bg-zinc-200 dark:bg-zinc-950">
                   {asset?.asset_type === "image" && imageUrl ? (
                     <Image
@@ -190,16 +208,12 @@ export default function CmsCharacterGalleryOverview({
                     </span>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-3 p-3">
-                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                <div className="p-3">
+                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
                     {entry.title}
                   </p>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-cyan-700 dark:text-cyan-300">
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit
-                  </span>
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>

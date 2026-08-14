@@ -84,6 +84,14 @@ describe("canonical Exocorpse CMS schema", () => {
           fieldType: "boolean",
         }),
         expect.objectContaining({
+          collectionSlug: "character-gallery",
+          key: "sensitiveType",
+        }),
+        expect.objectContaining({
+          collectionSlug: "stories",
+          key: "themeSoundtrackUrl",
+        }),
+        expect.objectContaining({
           collectionSlug: "character-outfits",
           key: "referenceSheet",
           fieldType: "boolean",

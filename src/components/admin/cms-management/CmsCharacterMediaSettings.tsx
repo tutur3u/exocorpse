@@ -20,6 +20,7 @@ const customKeys = new Set([
   "bannerImagePositionY",
   "bannerImageZoom",
   "sensitiveContent",
+  "sensitiveType",
   "sensitiveLabel",
   "referenceSheet",
 ]);
@@ -178,20 +179,60 @@ export default function CmsCharacterMediaSettings({
         </span>
       </label>
       {profile.sensitiveContent === true ? (
-        <label className="block space-y-2 text-sm">
-          <span>Spoiler warning</span>
-          <Input
-            onChange={(event) =>
-              setProfile("sensitiveLabel", event.target.value)
-            }
-            placeholder="Sensitive image — click to reveal"
-            value={
-              typeof profile.sensitiveLabel === "string"
-                ? profile.sensitiveLabel
-                : ""
-            }
-          />
-        </label>
+        <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+          <div>
+            <p className="text-sm font-medium">Content warning</p>
+            <p className="text-xs text-gray-500">
+              Choose the cover visitors see before revealing the image.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ["nsfw", "Adult / NSFW"],
+                ["gore", "Gore / violence"],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                onClick={() => {
+                  onChange({
+                    ...draft,
+                    profile_data: {
+                      ...profile,
+                      sensitiveType: value,
+                      sensitiveLabel:
+                        profile.sensitiveLabel ||
+                        (value === "nsfw"
+                          ? "Adult content — click to reveal"
+                          : "Graphic content — click to reveal"),
+                    },
+                  });
+                }}
+                type="button"
+                variant={
+                  profile.sensitiveType === value ? "default" : "outline"
+                }
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          <label className="block space-y-2 text-sm">
+            <span>Custom warning (optional)</span>
+            <Input
+              onChange={(event) =>
+                setProfile("sensitiveLabel", event.target.value)
+              }
+              placeholder="Sensitive image — click to reveal"
+              value={
+                typeof profile.sensitiveLabel === "string"
+                  ? profile.sensitiveLabel
+                  : ""
+              }
+            />
+          </label>
+        </div>
       ) : null}
       <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
         <Checkbox

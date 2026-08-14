@@ -1,6 +1,7 @@
 "use client";
 
 import { Howl } from "howler"; // Make sure you have 'howler' installed
+import { useWikiDesktopExperience } from "@/hooks/useWikiDesktopExperience";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./shared/Icon";
 
@@ -11,6 +12,8 @@ export default function MusicPlayer({
 }) {
   // A ref to hold the Howl instance
   const soundRef = useRef<Howl | null>(null);
+  const wikiExperience = useWikiDesktopExperience();
+  const source = wikiExperience.soundtrackUrl ?? "/audio/bgm.mp3";
 
   // A ref to store the volume before muting
   const lastVolumeRef = useRef(0.5);
@@ -26,7 +29,7 @@ export default function MusicPlayer({
   // Initialize Howler on component mount
   useEffect(() => {
     const sound = new Howl({
-      src: ["/audio/bgm.mp3"], // Howler accepts an array of sources
+      src: [source],
       loop: true,
       volume: volume,
       html5: true, // Use HTML5 Audio for streaming BGM
@@ -57,7 +60,7 @@ export default function MusicPlayer({
       sound.unload();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty array ensures this runs only once
+  }, [source]);
 
   // Update Howler's volume when the state changes
   useEffect(() => {
@@ -167,7 +170,7 @@ export default function MusicPlayer({
             ? "flex h-12 w-12 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
             : "flex h-10 w-10 items-center justify-center rounded transition-colors hover:bg-gray-300 dark:hover:bg-gray-700"
         }
-        title={isPlaying ? "Pause" : "Play"}
+        title={`${isPlaying ? "Pause" : "Play"}${wikiExperience.storyTitle ? ` ${wikiExperience.storyTitle} soundtrack` : ""}`}
       >
         <Icon
           name={isPlaying ? "Pause" : "Play"}
