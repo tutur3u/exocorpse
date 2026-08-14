@@ -15,6 +15,7 @@ export default function CmsAssetManager({
   onDelete,
   onUpload,
   onReorder,
+  previewSize = "default",
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -22,6 +23,7 @@ export default function CmsAssetManager({
   onDelete: (assetId: string) => void;
   onUpload: (file: File) => void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
+  previewSize?: "compact" | "default";
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedFile, setSelectedFile] = useState("");
@@ -97,7 +99,11 @@ export default function CmsAssetManager({
       </div>
 
       <SortableList
-        className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3"
+        className={
+          previewSize === "compact"
+            ? "grid max-w-3xl gap-3 sm:grid-cols-2"
+            : "grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3"
+        }
         getId={(asset) => asset.id}
         items={[...assets].sort(
           (left, right) => left.sort_order - right.sort_order,
@@ -113,7 +119,11 @@ export default function CmsAssetManager({
               key={asset.id}
             >
               {asset.asset_type === "image" && imageUrl ? (
-                <div className="relative aspect-video overflow-hidden bg-zinc-200 dark:bg-zinc-900">
+                <div
+                  className={`relative overflow-hidden bg-zinc-200 dark:bg-zinc-900 ${
+                    previewSize === "compact" ? "aspect-[16/7]" : "aspect-video"
+                  }`}
+                >
                   <Image
                     alt={asset.alt_text ?? "Media preview"}
                     className="object-cover"

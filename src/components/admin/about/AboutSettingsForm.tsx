@@ -134,6 +134,7 @@ export default function AboutSettingsForm({
               onDelete={onDeleteAsset}
               onUpload={onUploadAsset}
               onReorder={onReorderAssets}
+              previewSize="compact"
             />
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
               The first image is shown on your About page.

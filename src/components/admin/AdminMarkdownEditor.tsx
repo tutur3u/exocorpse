@@ -2,8 +2,9 @@
 
 import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { RichTextEditor } from "@tuturuuu/editor/react";
+import { MoreHorizontal, X } from "lucide-react";
 import type { CSSProperties } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function AdminMarkdownEditor({
   compact = false,
@@ -20,17 +21,44 @@ export default function AdminMarkdownEditor({
   placeholder: string;
   value: string;
 }) {
+  const [showMoreTools, setShowMoreTools] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
   const style = {
     "--tuturuuu-editor-min-height": minHeight,
   } as CSSProperties;
 
+  useEffect(() => {
+    if (!showMoreTools) return;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent && event.key !== "Escape") return;
+      if (
+        event instanceof MouseEvent &&
+        editorRef.current?.contains(event.target as Node)
+      ) {
+        return;
+      }
+      setShowMoreTools(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [showMoreTools]);
+
   return (
-    <div className="admin-markdown-editor" style={style}>
+    <div
+      className="admin-markdown-editor"
+      data-tools-expanded={showMoreTools || undefined}
+      ref={editorRef}
+      style={style}
+    >
       <RichTextEditor
         content={content}
         enablePreview
-        featurePreset={compact ? "compact" : "full"}
+        featurePreset={showMoreTools ? "full" : "compact"}
         onChange={(nextContent) => {
           const markdown = jsonToMarkdown(nextContent);
           if (maxLength && markdown.length > maxLength) return;
@@ -38,6 +66,26 @@ export default function AdminMarkdownEditor({
         }}
         placeholder={placeholder}
       />
+      <button
+        aria-expanded={showMoreTools}
+        aria-label={
+          showMoreTools
+            ? "Close more formatting tools"
+            : "More formatting tools"
+        }
+        className="admin-markdown-editor-tools-toggle"
+        onClick={() => setShowMoreTools((current) => !current)}
+        title={
+          showMoreTools ? "Close formatting tools" : "More formatting tools"
+        }
+        type="button"
+      >
+        {showMoreTools ? (
+          <X aria-hidden className="h-4 w-4" />
+        ) : (
+          <MoreHorizontal aria-hidden className="h-4 w-4" />
+        )}
+      </button>
       {maxLength ? (
         <p className="mt-1 text-right text-[0.68rem] text-slate-500 dark:text-slate-400">
           {value.length}/{maxLength}

@@ -28,10 +28,9 @@ export default function CmsEditorTabs({
   theme: AdminCmsTheme;
 }) {
   return (
-    <div
+    <nav
       aria-label="Editing sections"
       className="flex gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/80 p-2.5 sm:px-5 dark:border-slate-700 dark:bg-slate-950/45"
-      role="tablist"
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
@@ -39,7 +38,7 @@ export default function CmsEditorTabs({
         return (
           <button
             aria-controls={`cms-${tab.id}-panel`}
-            aria-selected={active}
+            aria-current={active ? "location" : undefined}
             className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
               active
                 ? theme.activeTab
@@ -48,7 +47,6 @@ export default function CmsEditorTabs({
             id={`cms-${tab.id}-tab`}
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            role="tab"
             type="button"
           >
             <Icon className="h-3.5 w-3.5" />
@@ -65,6 +63,6 @@ export default function CmsEditorTabs({
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

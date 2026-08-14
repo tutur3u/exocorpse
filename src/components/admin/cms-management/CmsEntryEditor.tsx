@@ -40,7 +40,7 @@ import type {
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
 import { Save, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   allowedAssetTypes: string[];
@@ -96,7 +96,9 @@ export default function CmsEntryEditor({
   theme,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [activeTab, setActiveTab] = useState<CmsEditorTab>("basic");
+  const [activeTab, setActiveTab] = useState<CmsEditorTab>(() =>
+    collection.slug === "portfolio-art" ? "media" : "basic",
+  );
   const isConnectionEntry = CONNECTION_COLLECTION_SLUGS.has(collection.slug);
   const duplicateConnection = isConnectionEntry
     ? hasDuplicateConnection({
@@ -147,8 +149,188 @@ export default function CmsEntryEditor({
   const relationInBasics =
     definitions.length > 0 &&
     ["stories", "worlds", "factions", "locations"].includes(collection.slug);
-  const singlePageLayout = isConnectionEntry;
   const isBlog = collection.slug === "blog-posts";
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setActiveTab(collection.slug === "portfolio-art" ? "media" : "basic");
+  }, [collection.id, collection.slug]);
+
+  const scrollToSection = (tab: CmsEditorTab) => {
+    setActiveTab(tab);
+    scrollAreaRef.current
+      ?.querySelector<HTMLElement>(`#cms-${tab}-panel`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const updateActiveSection = () => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+    const marker = scrollArea.getBoundingClientRect().top + 48;
+    let next = tabs[0]?.id ?? "basic";
+    for (const tab of tabs) {
+      const panel = scrollArea.querySelector<HTMLElement>(
+        `#cms-${tab.id}-panel`,
+      );
+      if (panel && panel.getBoundingClientRect().top <= marker) next = tab.id;
+    }
+    setActiveTab((current) => (current === next ? current : next));
+  };
+
+  const renderSection = (tab: CmsEditorTab) => {
+    if (tab === "basic") {
+      return (
+        <>
+          <CmsEntryBasics
+            draft={draft}
+            onChange={onDraftChange}
+            onTitleChange={onTitleChange}
+          />
+          <CmsStructuredFields
+            definitions={
+              isCharacter ? characterFields.basic : groupedFields.basic
+            }
+            draft={draft}
+            onChange={onDraftChange}
+            title="Basic Details"
+          />
+          {relationInBasics ? (
+            <CmsRelationEditor
+              definitions={definitions}
+              entryId={selectedEntryId}
+              onChange={onRelationsChange}
+              selections={relationSelections}
+              studio={studio}
+            />
+          ) : null}
+        </>
+      );
+    }
+    if (tab === "details") {
+      return (
+        <CmsStructuredFields
+          definitions={groupedFields.details}
+          draft={draft}
+          onChange={onDraftChange}
+        />
+      );
+    }
+    if (tab === "physical") {
+      return (
+        <CmsStructuredFields
+          definitions={characterFields.physical}
+          draft={draft}
+          onChange={onDraftChange}
+          title="Physical Details"
+        />
+      );
+    }
+    if (tab === "personality") {
+      return (
+        <CmsStructuredFields
+          definitions={characterFields.personality}
+          draft={draft}
+          onChange={onDraftChange}
+          title="Personality Summary"
+        />
+      );
+    }
+    if (tab === "abilities") {
+      return (
+        <CmsStructuredFields
+          definitions={characterFields.abilities}
+          draft={draft}
+          onChange={onDraftChange}
+          title="Abilities & Skills"
+        />
+      );
+    }
+    if (tab === "fanwork") {
+      return (
+        <CmsStructuredFields
+          definitions={characterFields.fanwork}
+          draft={draft}
+          onChange={onDraftChange}
+          title="Fanwork Policy"
+        />
+      );
+    }
+    if (tab === "gallery") {
+      return (
+        <CmsCharacterGalleryOverview
+          characterId={selectedEntryId}
+          onManage={() => onOpenCollection("character-gallery")}
+          studio={studio}
+        />
+      );
+    }
+    if (tab === "content") {
+      return (
+        <CmsBlockEditor
+          allowedBlockTypes={allowedBlockTypes}
+          blocks={blocks}
+          onChange={onBlocksChange}
+        />
+      );
+    }
+    if (tab === "connections") {
+      return (
+        <CmsRelationEditor
+          definitions={definitions}
+          entryId={selectedEntryId}
+          onChange={onRelationsChange}
+          selections={relationSelections}
+          studio={studio}
+        />
+      );
+    }
+    if (tab === "media") {
+      return (
+        <>
+          <CmsCharacterMediaSettings
+            assets={assets}
+            collectionSlug={collection.slug}
+            draft={draft}
+            onChange={onDraftChange}
+          />
+          <CmsStructuredFields
+            definitions={groupedFields.visuals}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Visual Style"
+          />
+          <CmsMediaPanel
+            allowedAssetTypes={allowedAssetTypes}
+            assets={assets}
+            canSave={canSave}
+            onDelete={onDeleteAsset}
+            onSave={onSave}
+            onUpload={onUploadAsset}
+            onReorder={onReorderAssets}
+            pending={pending}
+            previewSize={
+              collection.slug === "portfolio-art" ? "compact" : "default"
+            }
+            saved={Boolean(selectedEntryId)}
+          />
+        </>
+      );
+    }
+    if (tab === "settings") {
+      return (
+        <>
+          <CmsStructuredFields
+            definitions={groupedFields.publishing}
+            draft={draft}
+            onChange={onDraftChange}
+            title="Publishing Options"
+          />
+          <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+        </>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
@@ -170,20 +352,19 @@ export default function CmsEntryEditor({
         ) : null}
       </div>
 
-      {!singlePageLayout ? (
+      {!isConnectionEntry ? (
         <CmsEditorTabs
           activeTab={activeTab}
-          onChange={setActiveTab}
+          onChange={scrollToSection}
           tabs={tabs}
           theme={theme}
         />
       ) : null}
 
       <div
-        aria-labelledby={`cms-${activeTab}-tab`}
         className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6"
-        id={`cms-${activeTab}-panel`}
-        role="tabpanel"
+        onScroll={updateActiveSection}
+        ref={scrollAreaRef}
       >
         {isConnectionEntry ? (
           <CmsConnectionEntryEditor
@@ -208,189 +389,18 @@ export default function CmsEntryEditor({
             relationSelections={relationSelections}
             studio={studio}
           />
-        ) : singlePageLayout ? (
-          <div className="grid gap-6 @3xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.8fr)]">
-            <div className="space-y-5">
-              <CmsEntryBasics
-                draft={draft}
-                onChange={onDraftChange}
-                onTitleChange={onTitleChange}
-              />
-              <CmsBlockEditor
-                allowedBlockTypes={allowedBlockTypes}
-                blocks={blocks}
-                onChange={onBlocksChange}
-              />
-            </div>
-            <div className="space-y-5">
-              <CmsStructuredFields
-                definitions={fields}
-                draft={draft}
-                onChange={onDraftChange}
-              />
-              {definitions.length ? (
-                <CmsRelationEditor
-                  definitions={definitions}
-                  entryId={selectedEntryId}
-                  onChange={onRelationsChange}
-                  selections={relationSelections}
-                  studio={studio}
-                />
-              ) : null}
-              {allowedAssetTypes.length ? (
-                <CmsMediaPanel
-                  allowedAssetTypes={allowedAssetTypes}
-                  assets={assets}
-                  canSave={canSave}
-                  onDelete={onDeleteAsset}
-                  onSave={onSave}
-                  onUpload={onUploadAsset}
-                  onReorder={onReorderAssets}
-                  pending={pending}
-                  saved={Boolean(selectedEntryId)}
-                />
-              ) : null}
-              <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
-            </div>
-          </div>
-        ) : activeTab === "basic" ? (
-          <>
-            <CmsEntryBasics
-              draft={draft}
-              onChange={onDraftChange}
-              onTitleChange={onTitleChange}
-            />
-            <CmsStructuredFields
-              definitions={
-                isCharacter ? characterFields.basic : groupedFields.basic
-              }
-              draft={draft}
-              onChange={onDraftChange}
-              title="Basic Details"
-            />
-            {relationInBasics ? (
-              <CmsRelationEditor
-                definitions={definitions}
-                entryId={selectedEntryId}
-                onChange={onRelationsChange}
-                selections={relationSelections}
-                studio={studio}
-              />
-            ) : null}
-          </>
-        ) : null}
-
-        {activeTab === "details" ? (
-          <CmsStructuredFields
-            definitions={groupedFields.details}
-            draft={draft}
-            onChange={onDraftChange}
-          />
-        ) : null}
-
-        {isCharacter && activeTab === "physical" ? (
-          <CmsStructuredFields
-            definitions={characterFields.physical}
-            draft={draft}
-            onChange={onDraftChange}
-            title="Physical Details"
-          />
-        ) : null}
-
-        {isCharacter && activeTab === "personality" ? (
-          <CmsStructuredFields
-            definitions={characterFields.personality}
-            draft={draft}
-            onChange={onDraftChange}
-            title="Personality Summary"
-          />
-        ) : null}
-
-        {isCharacter && activeTab === "abilities" ? (
-          <CmsStructuredFields
-            definitions={characterFields.abilities}
-            draft={draft}
-            onChange={onDraftChange}
-            title="Abilities & Skills"
-          />
-        ) : null}
-
-        {isCharacter && activeTab === "fanwork" ? (
-          <CmsStructuredFields
-            definitions={characterFields.fanwork}
-            draft={draft}
-            onChange={onDraftChange}
-            title="Fanwork Policy"
-          />
-        ) : null}
-
-        {isCharacter && activeTab === "gallery" ? (
-          <CmsCharacterGalleryOverview
-            characterId={selectedEntryId}
-            onManage={() => onOpenCollection("character-gallery")}
-            studio={studio}
-          />
-        ) : null}
-
-        {activeTab === "content" ? (
-          <>
-            <CmsBlockEditor
-              allowedBlockTypes={allowedBlockTypes}
-              blocks={blocks}
-              onChange={onBlocksChange}
-            />
-          </>
-        ) : null}
-
-        {activeTab === "connections" ? (
-          <CmsRelationEditor
-            definitions={definitions}
-            entryId={selectedEntryId}
-            onChange={onRelationsChange}
-            selections={relationSelections}
-            studio={studio}
-          />
-        ) : null}
-
-        {activeTab === "media" ? (
-          <>
-            <CmsCharacterMediaSettings
-              assets={assets}
-              collectionSlug={collection.slug}
-              draft={draft}
-              onChange={onDraftChange}
-            />
-            <CmsStructuredFields
-              definitions={groupedFields.visuals}
-              draft={draft}
-              onChange={onDraftChange}
-              title="Visual Style"
-            />
-            <CmsMediaPanel
-              allowedAssetTypes={allowedAssetTypes}
-              assets={assets}
-              canSave={canSave}
-              onDelete={onDeleteAsset}
-              onSave={onSave}
-              onUpload={onUploadAsset}
-              onReorder={onReorderAssets}
-              pending={pending}
-              saved={Boolean(selectedEntryId)}
-            />
-          </>
-        ) : null}
-
-        {activeTab === "settings" ? (
-          <>
-            <CmsStructuredFields
-              definitions={groupedFields.publishing}
-              draft={draft}
-              onChange={onDraftChange}
-              title="Publishing Options"
-            />
-            <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
-          </>
-        ) : null}
+        ) : (
+          tabs.map((tab) => (
+            <section
+              aria-labelledby={`cms-${tab.id}-tab`}
+              className="scroll-mt-4 space-y-4 rounded-2xl border border-slate-200/80 bg-white/45 p-4 sm:p-5 dark:border-slate-700/70 dark:bg-slate-950/20"
+              id={`cms-${tab.id}-panel`}
+              key={tab.id}
+            >
+              {renderSection(tab.id)}
+            </section>
+          ))
+        )}
       </div>
 
       <div

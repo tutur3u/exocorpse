@@ -213,5 +213,12 @@ export function legacyEditorTabs({
     });
   }
   tabs.push({ icon: Settings2, id: "settings", label: "Publishing" });
+  if (collection.slug === "portfolio-art") {
+    const mediaIndex = tabs.findIndex((tab) => tab.id === "media");
+    if (mediaIndex > 0) {
+      const [mediaTab] = tabs.splice(mediaIndex, 1);
+      if (mediaTab) tabs.unshift(mediaTab);
+    }
+  }
   return tabs;
 }

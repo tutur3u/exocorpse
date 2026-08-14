@@ -121,4 +121,23 @@ describe("legacy CMS editor navigation", () => {
       ]);
     }
   });
+
+  test("puts artwork media first", () => {
+    const tabs = legacyEditorTabs({
+      assetCount: 1,
+      blockCount: 0,
+      collection: collection("portfolio-art"),
+      connectionCount: 0,
+      fields,
+      hasAssets: true,
+      hasBlocks: false,
+      hasConnections: false,
+    });
+
+    expect(tabs.map((tab) => tab.label)).toEqual([
+      "Media",
+      "Basic Info",
+      "Publishing",
+    ]);
+  });
 });

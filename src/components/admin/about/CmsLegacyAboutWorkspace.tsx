@@ -686,7 +686,7 @@ export default function CmsLegacyAboutWorkspace({
                 await deleteItem(id);
               }}
             />
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid items-start gap-6 xl:grid-cols-2">
               <AboutContentItemsEditor
                 title="Experiences"
                 section="experience"
@@ -768,7 +768,7 @@ export default function CmsLegacyAboutWorkspace({
         );
       case "dni":
         return (
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="grid items-start gap-6 xl:grid-cols-2">
             <AboutContentItemsEditor
               title="Soft DNI Rules"
               description="Preference-based boundaries shown in the yellow panel."

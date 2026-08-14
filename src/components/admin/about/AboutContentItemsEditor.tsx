@@ -1,6 +1,10 @@
 "use client";
 
 import type { AboutContentItem, AboutContentSection } from "@/lib/about";
+import {
+  aboutContentItemSummary,
+  aboutSectionName,
+} from "@/components/admin/about/about-content-item-copy";
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import SortableList from "@/components/admin/SortableList";
 import { Button } from "@tuturuuu/ui/button";
@@ -113,24 +117,7 @@ function ItemCard({
     [item, section],
   );
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
-  const itemSummary = useMemo(() => {
-    const title = draft.title.trim();
-    if (title) {
-      return title;
-    }
-
-    const subtitle = draft.subtitle.trim();
-    if (subtitle) {
-      return subtitle;
-    }
-
-    const body = draft.body.trim();
-    if (!body) {
-      return "Untitled item";
-    }
-
-    return body.length > 96 ? `${body.slice(0, 93).trimEnd()}...` : body;
-  }, [draft.body, draft.subtitle, draft.title]);
+  const itemSummary = useMemo(() => aboutContentItemSummary(draft), [draft]);
 
   useEffect(() => {
     setDraft(createDraft(section, item));
@@ -379,7 +366,7 @@ export default function AboutContentItemsEditor({
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
             <div>
               <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                Add new
+                Add {aboutSectionName(section).toLowerCase()}
               </h4>
             </div>
             <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
@@ -400,7 +387,7 @@ export default function AboutContentItemsEditor({
                 disabled={creating}
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
               >
-                {creating ? "Creating..." : "Add Item"}
+                {creating ? "Adding..." : `Add ${aboutSectionName(section)}`}
               </button>
             </div>
 

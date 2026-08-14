@@ -14,6 +14,7 @@ export default function CmsMediaPanel({
   onSave,
   onUpload,
   onReorder,
+  previewSize = "default",
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -24,6 +25,7 @@ export default function CmsMediaPanel({
   onSave: () => void;
   onUpload: (file: File) => void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
+  previewSize?: "compact" | "default";
 }) {
   if (saved) {
     return (
@@ -34,6 +36,7 @@ export default function CmsMediaPanel({
         onDelete={onDelete}
         onUpload={onUpload}
         onReorder={onReorder}
+        previewSize={previewSize}
       />
     );
   }
