@@ -278,7 +278,7 @@ export function useCmsManagementWorkspace({
     return normalizedDraft;
   }
 
-  function save() {
+  function save(onSuccess?: () => void) {
     let payload;
     try {
       const normalizedDraft = validate();
@@ -329,11 +329,15 @@ export function useCmsManagementWorkspace({
           ],
         }));
         setEntryId(bundle.entry.id);
+        onSuccess?.();
       },
     );
   }
 
-  function deleteEntry(targetEntryId = selectedEntry?.id) {
+  function deleteEntry(
+    targetEntryId = selectedEntry?.id,
+    onSuccess?: () => void,
+  ) {
     if (!targetEntryId || !collection) return;
     const deletedId = targetEntryId;
     run(
@@ -360,6 +364,7 @@ export function useCmsManagementWorkspace({
           ),
         }));
         setEntryId(remaining[0]?.id ?? "");
+        onSuccess?.();
       },
     );
   }

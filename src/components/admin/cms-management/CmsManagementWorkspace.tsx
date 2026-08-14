@@ -28,6 +28,9 @@ export default function CmsManagementWorkspace({
   section: AdminCmsSection;
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [characterEditorReturnId, setCharacterEditorReturnId] = useState<
+    string | null
+  >(null);
   const [relatedTarget, setRelatedTarget] = useState<{
     id: string;
     relationKey: string;
@@ -136,6 +139,7 @@ export default function CmsManagementWorkspace({
         });
 
   const beginCreateEntry = () => {
+    setCharacterEditorReturnId(null);
     const relation = relatedTarget
       ? definitions.find(
           (definition) => definition.key === relatedTarget.relationKey,
@@ -148,6 +152,19 @@ export default function CmsManagementWorkspace({
         : undefined,
     );
     setEditorOpen(true);
+  };
+
+  const returnToCharacterEditor = () => {
+    if (!characterEditorReturnId) return;
+    const characters = visibleCollections.find(
+      (item) => item.slug === "characters",
+    );
+    if (!characters) return;
+    const characterId = characterEditorReturnId;
+    setRelatedTarget(null);
+    selectCollection(characters.id);
+    setEntryId(characterId);
+    setCharacterEditorReturnId(null);
   };
 
   const collectionButton = (
@@ -219,6 +236,7 @@ export default function CmsManagementWorkspace({
       }}
       onReorder={reorderEntries}
       onSelect={(nextEntryId) => {
+        setCharacterEditorReturnId(null);
         setEntryId(nextEntryId);
         setEditorOpen(true);
       }}
@@ -388,15 +406,26 @@ export default function CmsManagementWorkspace({
             key={`${collection.id}:${entryId || "new"}`}
             onBlocksChange={setBlocks}
             onDelete={() => {
-              deleteEntry();
-              setEditorOpen(false);
+              if (characterEditorReturnId) {
+                deleteEntry(undefined, returnToCharacterEditor);
+              } else {
+                deleteEntry();
+                setEditorOpen(false);
+              }
             }}
             onDeleteAsset={deleteAsset}
             onDraftChange={setDraft}
             onRelationsChange={setRelationSelections}
             onReorderAssets={reorderAssets}
-            onSave={save}
-            onCancel={() => setEditorOpen(false)}
+            onSave={() =>
+              save(
+                characterEditorReturnId ? returnToCharacterEditor : undefined,
+              )
+            }
+            onCancel={() => {
+              if (characterEditorReturnId) returnToCharacterEditor();
+              else setEditorOpen(false);
+            }}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
             onUploadGalleryAsset={(file) =>
@@ -408,6 +437,9 @@ export default function CmsManagementWorkspace({
                 (item) => item.slug === "character-gallery",
               );
               if (!target) return;
+              if (collection.slug === "characters" && entryId) {
+                setCharacterEditorReturnId(entryId);
+              }
               setRelatedTarget(null);
               selectCollection(target.id);
               setEntryId(galleryEntryId);

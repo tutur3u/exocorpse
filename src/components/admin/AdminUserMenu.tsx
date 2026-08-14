@@ -49,10 +49,20 @@ function initials(value: string) {
     .join("");
 }
 
-function UserAvatar({ user, src }: { user: User; src?: string | null }) {
+function UserAvatar({
+  compact = false,
+  user,
+  src,
+}: {
+  compact?: boolean;
+  user: User;
+  src?: string | null;
+}) {
   const name = user.displayName?.trim() || user.email || "Account";
   return (
-    <Avatar className="size-9 border border-slate-700 bg-slate-900">
+    <Avatar
+      className={`${compact ? "size-7" : "size-9"} border border-slate-700 bg-slate-900`}
+    >
       {src || user.avatarUrl ? (
         <AvatarImage
           alt=""
@@ -87,6 +97,41 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
     [previewUrl],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/auth/profile", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return (await response.json()) as {
+          avatar_url?: string | null;
+          display_name?: string | null;
+          email?: string | null;
+        };
+      })
+      .then((profile) => {
+        if (!profile || cancelled) return;
+        setUser((current) => ({
+          ...current,
+          avatarUrl:
+            profile.avatar_url !== undefined
+              ? profile.avatar_url
+              : current.avatarUrl,
+          displayName:
+            profile.display_name !== undefined
+              ? profile.display_name
+              : current.displayName,
+          email: profile.email !== undefined ? profile.email : current.email,
+        }));
+        setDisplayName(profile.display_name ?? "");
+      })
+      .catch(() => {
+        // Keep the encrypted-session identity as a resilient fallback.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const primary = user.displayName?.trim() || user.email || "Account";
   const secondary = user.displayName?.trim() ? user.email : null;
 
@@ -98,11 +143,19 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
       const profile = (await response.json()) as {
         avatar_url?: string | null;
         display_name?: string | null;
+        email?: string | null;
       };
       setUser((current) => ({
         ...current,
-        avatarUrl: profile.avatar_url ?? current.avatarUrl,
-        displayName: profile.display_name ?? current.displayName,
+        avatarUrl:
+          profile.avatar_url !== undefined
+            ? profile.avatar_url
+            : current.avatarUrl,
+        displayName:
+          profile.display_name !== undefined
+            ? profile.display_name
+            : current.displayName,
+        email: profile.email !== undefined ? profile.email : current.email,
       }));
       setDisplayName(profile.display_name ?? "");
     } catch {
@@ -201,29 +254,24 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="flex max-w-64 items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-2 py-1.5 text-left transition hover:border-cyan-900 hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
+            className="flex max-w-52 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/70 px-1.5 py-1 text-left transition hover:border-cyan-900 hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
             type="button"
           >
-            <UserAvatar user={user} />
+            <UserAvatar compact user={user} />
             <span className="hidden min-w-0 flex-1 sm:block">
-              <span className="block truncate text-sm font-semibold text-slate-100">
+              <span className="block max-w-32 truncate text-xs font-semibold text-slate-100">
                 {primary}
               </span>
-              {secondary ? (
-                <span className="block truncate text-xs text-slate-500">
-                  {secondary}
-                </span>
-              ) : null}
             </span>
-            <ChevronDown className="size-4 text-slate-500" />
+            <ChevronDown className="size-3.5 text-slate-500" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-[min(21rem,calc(100vw-2rem))] border-slate-800 bg-slate-950 text-slate-100 shadow-2xl"
+          className="w-[min(17rem,calc(100vw-1rem))] border-slate-800 bg-slate-950 text-slate-100 shadow-2xl"
         >
-          <DropdownMenuLabel className="flex items-center gap-3 p-3">
-            <UserAvatar user={user} />
+          <DropdownMenuLabel className="flex items-center gap-2 p-2">
+            <UserAvatar compact user={user} />
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">
                 {primary}
@@ -236,17 +284,20 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-slate-800" />
-          <DropdownMenuItem onSelect={() => void openProfile()}>
+          <DropdownMenuItem
+            className="gap-2 py-1.5 text-sm"
+            onSelect={() => void openProfile()}
+          >
             <UserRound className="size-4" /> Edit profile
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
+          <DropdownMenuItem asChild className="gap-2 py-1.5 text-sm">
             <a href="/" target="_blank" rel="noreferrer">
               <ExternalLink className="size-4" /> Open site
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-slate-800" />
           <DropdownMenuItem
-            className="text-red-400 focus:bg-red-950 focus:text-red-300"
+            className="gap-2 py-1.5 text-sm text-red-400 focus:bg-red-950 focus:text-red-300"
             disabled={loggingOut}
             onSelect={() => void logout()}
           >
