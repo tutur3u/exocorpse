@@ -120,18 +120,17 @@ export default function CmsManagementWorkspace({
         });
 
   const beginCreateEntry = () => {
-    createEntry();
-    if (relatedTarget) {
-      const relation = definitions.find(
-        (definition) => definition.key === relatedTarget.relationKey,
-      );
-      if (relation) {
-        setRelationSelections((current) => ({
-          ...current,
-          [relation.id]: [relatedTarget.id],
-        }));
-      }
-    }
+    const relation = relatedTarget
+      ? definitions.find(
+          (definition) => definition.key === relatedTarget.relationKey,
+        )
+      : undefined;
+    createEntry(
+      {},
+      relation && relatedTarget
+        ? { [relation.id]: [relatedTarget.id] }
+        : undefined,
+    );
     setEditorOpen(true);
   };
 

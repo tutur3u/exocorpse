@@ -174,7 +174,10 @@ export function useCmsManagementWorkspace({
     setEntryId(firstEntryId(studio, nextCollectionId));
   }
 
-  function createEntry(initialProfileData: Record<string, ExocorpseJson> = {}) {
+  function createEntry(
+    initialProfileData: Record<string, ExocorpseJson> = {},
+    initialRelations: CmsRelationSelections = {},
+  ) {
     if (!collection) return;
     setEntryId("");
     const nextDraft = applyFieldDefaults(emptyEntry(collection.id), fields);
@@ -190,7 +193,12 @@ export function useCmsManagementWorkspace({
     });
     setBlocks([]);
     setRelationSelections(
-      Object.fromEntries(definitions.map((definition) => [definition.id, []])),
+      Object.fromEntries(
+        definitions.map((definition) => [
+          definition.id,
+          initialRelations[definition.id] ?? [],
+        ]),
+      ),
     );
     setMessage(null);
   }
