@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import type { AdminCmsSection } from "./admin-cms-sections";
-import { selectAdminCmsStudio } from "./admin-cms-studio";
+import {
+  adminCmsStudioRequestSlugs,
+  selectAdminCmsStudio,
+} from "./admin-cms-studio";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 
 const section: AdminCmsSection = {
@@ -102,6 +105,18 @@ const studio = {
 } as unknown as ExocorpseCmsStudio;
 
 describe("admin CMS studio selection", () => {
+  test("requests the story context needed by direct wiki links", () => {
+    expect(
+      adminCmsStudioRequestSlugs({
+        ...section,
+        collectionSlugs: ["characters", "character-gallery"],
+      }),
+    ).toEqual(["characters", "character-gallery", "worlds", "stories"]);
+    expect(adminCmsStudioRequestSlugs(section)).toEqual(
+      section.collectionSlugs,
+    );
+  });
+
   test("keeps source content and relation targets without unrelated studio data", () => {
     const selected = selectAdminCmsStudio(studio, section);
 

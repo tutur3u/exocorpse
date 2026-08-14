@@ -6,7 +6,10 @@ import {
 } from "@/lib/exocorpse-config";
 import { withAdminCmsAssetPreview } from "@/lib/admin-cms-assets";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
-import { selectAdminCmsStudio } from "@/lib/admin-cms-studio";
+import {
+  adminCmsStudioRequestSlugs,
+  selectAdminCmsStudio,
+} from "@/lib/admin-cms-studio";
 import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
 import { EXOCORPSE_CMS_CACHE_TAG } from "@/lib/tuturuuu-cms-delivery";
 import type {
@@ -119,7 +122,7 @@ async function getPrivateExocorpseCmsStudio(collectionSlugs: string[]) {
 
 export async function getExocorpseCmsStudio(section?: AdminCmsSection) {
   const studio = await getPrivateExocorpseCmsStudio(
-    section?.collectionSlugs ?? [],
+    adminCmsStudioRequestSlugs(section),
   );
   const selectedStudio = section
     ? selectAdminCmsStudio(studio, section)

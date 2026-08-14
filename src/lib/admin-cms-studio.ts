@@ -1,6 +1,19 @@
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 
+const WIKI_CONTEXT_SOURCE_SLUGS = new Set([
+  "characters",
+  "factions",
+  "locations",
+  "worlds",
+]);
+
+export function adminCmsStudioRequestSlugs(section?: AdminCmsSection) {
+  const slugs = section?.collectionSlugs ?? [];
+  if (!slugs.some((slug) => WIKI_CONTEXT_SOURCE_SLUGS.has(slug))) return slugs;
+  return [...new Set([...slugs, "worlds", "stories"])];
+}
+
 /**
  * Keep the legacy admin workspace focused on the collections it is editing.
  * Relation target entries remain available so the editor can render its
