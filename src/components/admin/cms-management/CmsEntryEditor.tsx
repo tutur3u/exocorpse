@@ -166,6 +166,16 @@ export default function CmsEntryEditor({
   const updateActiveSection = () => {
     const scrollArea = scrollAreaRef.current;
     if (!scrollArea) return;
+    if (
+      scrollArea.scrollTop + scrollArea.clientHeight >=
+      scrollArea.scrollHeight - 8
+    ) {
+      const finalTab = tabs.at(-1)?.id;
+      if (finalTab) {
+        setActiveTab(finalTab);
+        return;
+      }
+    }
     const marker = scrollArea.getBoundingClientRect().top + 48;
     let next = tabs[0]?.id ?? "basic";
     for (const tab of tabs) {

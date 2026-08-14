@@ -173,7 +173,7 @@ export default function CmsRelationEditor({
       <div>
         <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
           <Link2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          Connections
+          Related items
         </h3>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           Help visitors discover related people, places, stories, and work.
