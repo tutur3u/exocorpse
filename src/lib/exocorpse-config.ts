@@ -1,11 +1,7 @@
 export const EXOCORPSE_APP_NAME = "exocorpse";
 
 export type ExocorpseAdminTargetKey =
-  | "dashboard"
-  | "library"
-  | "preview"
-  | "members"
-  | "settings";
+  "dashboard" | "library" | "preview" | "members" | "settings";
 
 type ExocorpseAdminTarget = {
   actionLabel: string;

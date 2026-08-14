@@ -42,8 +42,7 @@ type DriveUpload = {
 async function jsonRequest<T>(url: string, init?: RequestInit) {
   const response = await fetch(url, { cache: "no-store", ...init });
   const payload = (await response.json().catch(() => null)) as
-    | ({ error?: string } & T)
-    | null;
+    ({ error?: string } & T) | null;
   if (!response.ok)
     throw new Error(payload?.error || "Tuturuuu Drive request failed.");
   return payload as T;

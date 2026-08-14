@@ -1,12 +1,7 @@
 import { Howl } from "howler";
 
 export type SoundType =
-  | "boot"
-  | "click"
-  | "hover"
-  | "window-off"
-  | "error"
-  | "bgm";
+  "boot" | "click" | "hover" | "window-off" | "error" | "bgm";
 
 class SoundManager {
   private sounds: Map<SoundType, Howl> = new Map();

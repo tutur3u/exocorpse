@@ -19,8 +19,7 @@ type RotatingGalleryProps = {
   className?: string;
   imageClassName?: string;
   overlay?:
-    | React.ReactNode
-    | ((image: RotatingGalleryImage) => React.ReactNode);
+    React.ReactNode | ((image: RotatingGalleryImage) => React.ReactNode);
   showDots?: boolean;
   openOnClick?: boolean;
   allowFullscreen?: boolean;

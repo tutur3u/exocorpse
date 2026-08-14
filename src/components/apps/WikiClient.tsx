@@ -28,12 +28,7 @@ import StoryView from "./wiki/StoryView";
 import WorldView from "./wiki/WorldView";
 
 type ViewMode =
-  | "stories"
-  | "story"
-  | "world"
-  | "character"
-  | "faction"
-  | "location";
+  "stories" | "story" | "world" | "character" | "faction" | "location";
 
 type WikiClientProps = {
   stories: Story[];

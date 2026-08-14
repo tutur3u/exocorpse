@@ -1,12 +1,7 @@
 export type WindowState = "normal" | "minimized" | "maximized";
 export type RestorableWindowState = Exclude<WindowState, "minimized">;
 export type AppId =
-  | "about"
-  | "portfolio"
-  | "commission"
-  | "wiki"
-  | "blog"
-  | "heaven-space";
+  "about" | "portfolio" | "commission" | "wiki" | "blog" | "heaven-space";
 
 export interface WindowConfig {
   id: AppId;

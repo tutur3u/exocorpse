@@ -10,12 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 
 type ViewMode =
-  | "stories"
-  | "story"
-  | "world"
-  | "character"
-  | "faction"
-  | "location";
+  "stories" | "story" | "world" | "character" | "faction" | "location";
 
 type BreadcrumbsProps = {
   viewMode: ViewMode;

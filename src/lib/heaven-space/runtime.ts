@@ -7,12 +7,7 @@ export type HeavenSpacePassage = {
 export const HEAVEN_SPACE_STORAGE_KEY = "heaven-space-save-v1";
 
 type HeavenSpaceVariableKey =
-  | "memory"
-  | "sleep"
-  | "annoyed"
-  | "beach"
-  | "city"
-  | "forest";
+  "memory" | "sleep" | "annoyed" | "beach" | "city" | "forest";
 
 export type HeavenSpaceState = {
   memory: number;
@@ -34,12 +29,7 @@ export type HeavenSpaceChoice = {
 };
 
 export type HeavenSpaceEnding =
-  | "sleep"
-  | "bad"
-  | "neutral"
-  | "true"
-  | "weird"
-  | null;
+  "sleep" | "bad" | "neutral" | "true" | "weird" | null;
 
 export type HeavenSpaceResolvedPassage = {
   passage: string;
