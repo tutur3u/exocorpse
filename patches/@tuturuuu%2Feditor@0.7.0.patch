@@ -1,0 +1,258 @@
+diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
+index 2df95bee716d24c8b9b7ebeaad37f58728b402da..51b0dec38a271b2f1362425c4e31685925ea4e2e 100644
+--- a/dist/editor-toolbar.js
++++ b/dist/editor-toolbar.js
+@@ -10,6 +10,7 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+     const action = (label, icon, run, active) => (_jsx(ToolbarAction, { active: active, icon: icon, label: label, run: run }, label));
+     const headingActions = preset === 'full'
+         ? [
++            [1, messages.heading1 ?? `${messages.heading} 1`, Heading1],
+             [2, messages.heading2 ?? `${messages.heading} 2`, Heading2],
+             [3, messages.heading3 ?? `${messages.heading} 3`, Heading3],
+             [4, messages.heading4 ?? `${messages.heading} 4`, Heading4],
+diff --git a/dist/html-source-panel.d.ts b/dist/html-source-panel.d.ts
+index acbe551474dbb7fcf62811569e892608dbf9afff..990e41e67e558a44f7bce90299c2eff5c676a922 100644
+--- a/dist/html-source-panel.d.ts
++++ b/dist/html-source-panel.d.ts
+@@ -1,13 +1,11 @@
+ import type { EditorMessages } from './types.js';
+-export type EditorMode = 'editor' | 'html' | 'preview';
+-export declare function EditorModeSwitch({ enableHTMLSource, enablePreview, messages, mode, onEditor, onHTML, onPreview, }: {
++export type EditorMode = 'editor' | 'html';
++export declare function EditorModeSwitch({ enableHTMLSource, messages, mode, onEditor, onHTML, }: {
+     enableHTMLSource: boolean;
+-    enablePreview: boolean;
+     messages: EditorMessages;
+     mode: EditorMode;
+     onEditor: () => void;
+     onHTML: () => void;
+-    onPreview: () => void;
+ }): import("react").JSX.Element;
+ export declare function HTMLSourcePanel({ feedbackId, messages, onApply, onChange, onDiscard, source, sourceDirty, sourceError, sourceId, sourceNotice, }: {
+     feedbackId: string;
+diff --git a/dist/html-source-panel.js b/dist/html-source-panel.js
+index c14a6801db8467e8e1e0f8996318971afc582493..2e32ecca633d630614d52f2d8e12aebff163ee44 100644
+--- a/dist/html-source-panel.js
++++ b/dist/html-source-panel.js
+@@ -1,8 +1,8 @@
+ 'use client';
+ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+-import { Code2, Eye, PencilLine } from 'lucide-react';
+-export function EditorModeSwitch({ enableHTMLSource, enablePreview, messages, mode, onEditor, onHTML, onPreview, }) {
+-    return (_jsxs("fieldset", { "aria-label": messages.mode ?? messages.htmlSource, className: "tuturuuu-editor-mode-switch", children: [_jsxs("button", { "aria-pressed": mode === 'editor', onClick: onEditor, type: "button", children: [_jsx(PencilLine, { "aria-hidden": "true" }), messages.editor ?? messages.visual] }), enableHTMLSource ? (_jsxs("button", { "aria-pressed": mode === 'html', onClick: onHTML, type: "button", children: [_jsx(Code2, { "aria-hidden": "true" }), messages.html] })) : null, enablePreview ? (_jsxs("button", { "aria-pressed": mode === 'preview', onClick: onPreview, type: "button", children: [_jsx(Eye, { "aria-hidden": "true" }), messages.preview] })) : null] }));
++import { Code2, PencilLine } from 'lucide-react';
++export function EditorModeSwitch({ enableHTMLSource, messages, mode, onEditor, onHTML, }) {
++    return (_jsxs("fieldset", { "aria-label": messages.mode ?? messages.htmlSource, className: "tuturuuu-editor-mode-switch", children: [_jsxs("button", { "aria-pressed": mode === 'editor', onClick: onEditor, type: "button", children: [_jsx(PencilLine, { "aria-hidden": "true" }), messages.editor ?? messages.visual] }), enableHTMLSource ? (_jsxs("button", { "aria-pressed": mode === 'html', onClick: onHTML, type: "button", children: [_jsx(Code2, { "aria-hidden": "true" }), messages.html] })) : null] }));
+ }
+ export function HTMLSourcePanel({ feedbackId, messages, onApply, onChange, onDiscard, source, sourceDirty, sourceError, sourceId, sourceNotice, }) {
+     return (_jsxs("div", { className: "tuturuuu-editor-source-panel", children: [_jsxs("div", { className: "tuturuuu-editor-source-heading", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: sourceId, children: messages.htmlSource }), _jsx("p", { children: messages.htmlSourceHelp })] }), _jsxs("div", { className: "tuturuuu-editor-source-actions", children: [_jsx("button", { disabled: !sourceDirty, onClick: onDiscard, type: "button", children: messages.discardHTML }), _jsx("button", { "data-primary": "true", disabled: !sourceDirty, onClick: onApply, type: "button", children: messages.applyHTML })] })] }), _jsx("textarea", { "aria-describedby": feedbackId, id: sourceId, onChange: (event) => onChange(event.target.value), spellCheck: false, value: source }), _jsx("div", { className: "tuturuuu-editor-source-feedback", id: feedbackId, role: sourceError ? 'alert' : 'status', children: sourceError ? (_jsx("p", { "data-error": "true", children: sourceError })) : sourceNotice ? (_jsx("p", { "data-notice": "true", children: sourceNotice })) : null })] }));
+diff --git a/dist/react.d.ts b/dist/react.d.ts
+index 636fc84e4cdcb366d073e5113eee40ed07569450..d55092d052a159eb5c4cecda32adf0b314f90a7f 100644
+--- a/dist/react.d.ts
++++ b/dist/react.d.ts
+@@ -1,7 +1,8 @@
+ import type { EditorLocale, EditorMessages, JSONContent, RichTextFeaturePreset, RichTextStylePolicy } from './types.js';
+-export declare function RichTextEditor({ content, enableHTMLSource, enablePreview, featurePreset, locale, messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly, stylePolicy, }: {
++export declare function RichTextEditor({ content, enableHTMLSource, featurePreset, locale, messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly, stylePolicy, }: {
+     content: JSONContent | null;
+     enableHTMLSource?: boolean;
++    /** @deprecated Editing is now always a live WYSIWYG experience. */
+     enablePreview?: boolean;
+     featurePreset?: RichTextFeaturePreset;
+     locale?: EditorLocale;
+diff --git a/dist/react.js b/dist/react.js
+index ed62b513661b062b5b8e6b70c3d2e5fcbafc761f..f972b4b1552aa37f55ac49c004cf4d15411d7314 100644
+--- a/dist/react.js
++++ b/dist/react.js
+@@ -16,7 +16,7 @@ import { inspectRichTextHTML } from './html-source.js';
+ import { EditorModeSwitch, HTMLSourcePanel, } from './html-source-panel.js';
+ import { editorMessages } from './messages.js';
+ import { sanitizeRichTextContent } from './render.js';
+-export function RichTextEditor({ content, enableHTMLSource = false, enablePreview = false, featurePreset, locale = 'en', messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly = false, stylePolicy, }) {
++export function RichTextEditor({ content, enableHTMLSource = false, featurePreset, locale = 'en', messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly = false, stylePolicy, }) {
+     const messages = useMemo(() => ({ ...editorMessages[locale], ...messageOverrides }), [locale, messageOverrides]);
+     const preset = featurePreset ?? (enableHTMLSource ? 'full' : 'legacy');
+     const enhanced = preset !== 'legacy';
+@@ -39,7 +39,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, enablePrevie
+     const resolvedPlaceholder = placeholder ?? messages.placeholder;
+     const extensions = useMemo(() => {
+         const full = preset !== 'compact';
+-        const headingLevels = preset === 'full' ? [2, 3, 4] : preset === 'legacy' ? [1, 2, 3] : [];
++        const headingLevels = preset === 'full' ? [1, 2, 3, 4] : preset === 'legacy' ? [1, 2, 3] : [];
+         return [
+             StarterKit.configure({
+                 blockquote: full ? undefined : false,
+@@ -95,9 +95,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, enablePrevie
+         onSourceModeDirtyChangeRef.current?.(sourceDirty);
+     }, [sourceDirty]);
+     useEffect(() => {
+-        const modeUnavailable = readOnly ||
+-            (mode === 'html' && !enableHTMLSource) ||
+-            (mode === 'preview' && !enablePreview);
++        const modeUnavailable = readOnly || (mode === 'html' && !enableHTMLSource);
+         if (!editor || mode === 'editor' || !modeUnavailable)
+             return;
+         const html = editor.getHTML();
+@@ -106,7 +104,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, enablePrevie
+         setSourceError(null);
+         setSourceNotice(null);
+         setMode('editor');
+-    }, [editor, enableHTMLSource, enablePreview, mode, readOnly]);
++    }, [editor, enableHTMLSource, mode, readOnly]);
+     useEffect(() => {
+         if (!editor || sourceDirty)
+             return;
+@@ -157,15 +155,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, enablePrevie
+         setSourceError(null);
+         setMode('editor');
+     };
+-    const enterPreviewMode = () => {
+-        if (sourceDirty) {
+-            setSourceError(messages.htmlChangesPending);
+-            return;
+-        }
+-        setSourceError(null);
+-        setSourceNotice(null);
+-        setMode('preview');
+-    };
+     const discardSource = () => {
+         const html = editor.getHTML();
+         sourceBaseline.current = html;
+@@ -209,7 +198,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, enablePrevie
+             setSourceNotice(null);
+         }
+     };
+-    return (_jsxs("div", { className: "tuturuuu-editor", "data-mode": mode, "data-read-only": readOnly || undefined, children: [!readOnly && (enableHTMLSource || enablePreview) ? (_jsx(EditorModeSwitch, { enableHTMLSource: enableHTMLSource, enablePreview: enablePreview, messages: messages, mode: mode, onEditor: enterEditorMode, onHTML: enterHTMLMode, onPreview: enterPreviewMode })) : null, mode !== 'html' || readOnly || !enableHTMLSource ? (_jsxs(_Fragment, { children: [!readOnly && mode === 'editor' ? (_jsx(EditorToolbar, { editor: editor, messages: messages, onImageUpload: onImageUpload, onImageUploadError: onImageUploadError, preset: preset, stylePolicy: stylePolicy })) : null, _jsx(EditorContent, { editor: editor })] })) : (_jsx(HTMLSourcePanel, { feedbackId: sourceFeedbackId, messages: messages, onApply: applySource, onChange: (value) => {
++    return (_jsxs("div", { className: "tuturuuu-editor", "data-mode": mode, "data-read-only": readOnly || undefined, children: [!readOnly && enableHTMLSource ? (_jsx(EditorModeSwitch, { enableHTMLSource: enableHTMLSource, messages: messages, mode: mode, onEditor: enterEditorMode, onHTML: enterHTMLMode })) : null, mode !== 'html' || readOnly || !enableHTMLSource ? (_jsxs(_Fragment, { children: [!readOnly && mode === 'editor' ? (_jsx(EditorToolbar, { editor: editor, messages: messages, onImageUpload: onImageUpload, onImageUploadError: onImageUploadError, preset: preset, stylePolicy: stylePolicy })) : null, _jsx(EditorContent, { editor: editor })] })) : (_jsx(HTMLSourcePanel, { feedbackId: sourceFeedbackId, messages: messages, onApply: applySource, onChange: (value) => {
+                     setSource(value);
+                     setSourceError(null);
+                     setSourceNotice(null);
+diff --git a/dist/render.js b/dist/render.js
+index 6667a2ebd410ef28bae8f314a567bbdb37069496..e0751a64715690bead7a5f06f3d14270265037c8 100644
+--- a/dist/render.js
++++ b/dist/render.js
+@@ -73,7 +73,7 @@ function sanitizeNode(node, preset, policy) {
+         };
+     if (node.type === 'heading') {
+         const level = Number(node.attrs?.level ?? 2);
+-        const allowed = preset === 'full' ? [2, 3, 4] : preset === 'legacy' ? [1, 2, 3] : [];
++        const allowed = preset === 'full' ? [1, 2, 3, 4] : preset === 'legacy' ? [1, 2, 3] : [];
+         return allowed.includes(level)
+             ? {
+                 attrs: { level, ...(alignmentAttrs ?? {}) },
+diff --git a/styles.css b/styles.css
+index 3778e55da67c014906d0d2e769355fc228180082..c59a7e0b5626b3860e1cd58104a6e62268faa121 100644
+--- a/styles.css
++++ b/styles.css
+@@ -62,6 +62,110 @@
+   margin-bottom: 0;
+ }
+-
++
++.tuturuuu-editor .tiptap h1,
++.tuturuuu-editor .tiptap h2,
++.tuturuuu-editor .tiptap h3,
++.tuturuuu-editor .tiptap h4 {
++  margin: 1.5em 0 0.5em;
++  color: inherit;
++  font-weight: 750;
++  line-height: 1.2;
++  text-wrap: balance;
++}
++
++.tuturuuu-editor .tiptap h1 {
++  font-size: clamp(1.875rem, 4vw, 2.5rem);
++  letter-spacing: -0.035em;
++}
++
++.tuturuuu-editor .tiptap h2 {
++  font-size: clamp(1.5rem, 3vw, 2rem);
++  letter-spacing: -0.025em;
++}
++
++.tuturuuu-editor .tiptap h3 {
++  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
++  letter-spacing: -0.015em;
++}
++
++.tuturuuu-editor .tiptap h4 {
++  font-size: 1.125rem;
++}
++
++.tuturuuu-editor :where(.tiptap) p {
++  margin: 0.75rem 0;
++}
++
++.tuturuuu-editor .tiptap ul,
++.tuturuuu-editor .tiptap ol {
++  padding-inline-start: 1.625rem;
++  margin: 0.875rem 0;
++}
++
++.tuturuuu-editor .tiptap ul {
++  list-style: disc;
++}
++
++.tuturuuu-editor .tiptap ol {
++  list-style: decimal;
++}
++
++.tuturuuu-editor .tiptap li {
++  margin: 0.25rem 0;
++}
++
++.tuturuuu-editor .tiptap li > p {
++  margin: 0;
++}
++
++.tuturuuu-editor .tiptap blockquote {
++  padding: 0.125rem 0 0.125rem 1rem;
++  margin: 1.25rem 0;
++  border-inline-start: 0.25rem solid
++    var(--tuturuuu-editor-quote-border, rgb(127 127 127 / 0.35));
++  color: var(--tuturuuu-editor-quote-foreground, inherit);
++  font-style: italic;
++}
++
++.tuturuuu-editor .tiptap hr {
++  height: 1px;
++  margin: 1.75rem 0;
++  border: 0;
++  background: var(--tuturuuu-editor-border, #d1d5db);
++}
++
++.tuturuuu-editor .tiptap a {
++  color: var(--tuturuuu-editor-link, #2563eb);
++  text-decoration: underline;
++  text-decoration-thickness: 0.08em;
++  text-underline-offset: 0.16em;
++}
++
++.tuturuuu-editor .tiptap code {
++  padding: 0.125em 0.35em;
++  border-radius: 0.3rem;
++  background: var(
++    --tuturuuu-editor-code-inline-background,
++    rgb(127 127 127 / 0.12)
++  );
++  font-size: 0.875em;
++}
++
++.tuturuuu-editor .tiptap pre {
++  overflow-x: auto;
++  padding: 1rem;
++  margin: 1rem 0;
++  border-radius: 0.625rem;
++  background: var(--tuturuuu-editor-code-background, #111827);
++  color: var(--tuturuuu-editor-code-foreground, #f9fafb);
++}
++
++.tuturuuu-editor .tiptap pre code {
++  padding: 0;
++  background: transparent;
++  color: inherit;
++}
++
+ .tuturuuu-editor .tiptap img {
+   display: block;
+   max-width: 100%;

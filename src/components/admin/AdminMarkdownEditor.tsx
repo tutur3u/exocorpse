@@ -60,7 +60,6 @@ export default function AdminMarkdownEditor({
     >
       <RichTextEditor
         content={content}
-        enablePreview
         featurePreset="full"
         onChange={(nextContent) => {
           const markdown = jsonToMarkdown(nextContent);

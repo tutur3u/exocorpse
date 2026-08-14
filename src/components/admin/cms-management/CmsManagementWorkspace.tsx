@@ -93,6 +93,18 @@ export default function CmsManagementWorkspace({
         (item) => !primaryCollectionSlugs.has(item.slug),
       )
     : [];
+  const inlineCharacterCollections = new Set([
+    "character-factions",
+    "character-gallery",
+    "character-locations",
+    "character-relationships",
+  ]);
+  const visibleSupportingCollections =
+    section.key === "characters"
+      ? supportingCollections.filter(
+          (item) => !inlineCharacterCollections.has(item.slug),
+        )
+      : supportingCollections;
   const relationFilter = buildCmsEntryGalleryFilter(studio, collection.id);
   const itemLabel = collectionItemLabel(collection);
   const theme = adminCmsTheme(section.key);
@@ -218,18 +230,18 @@ export default function CmsManagementWorkspace({
     />
   );
 
-  const supportingNavigation = supportingCollections.length ? (
+  const supportingNavigation = visibleSupportingCollections.length ? (
     <details className="group rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 marker:content-none dark:text-gray-300">
         <Settings2 className="h-4 w-4 text-gray-400" />
         <span className="flex-1">More content</span>
         <span className="text-xs font-normal text-gray-500">
-          {supportingCollections.length} types
+          {visibleSupportingCollections.length} types
         </span>
         <ChevronDown className="h-4 w-4 text-gray-400 transition group-open:rotate-180" />
       </summary>
       <div className="flex flex-wrap gap-1 border-t border-gray-200 p-2 dark:border-gray-800">
-        {supportingCollections.map((item) => collectionButton(item))}
+        {visibleSupportingCollections.map((item) => collectionButton(item))}
       </div>
     </details>
   ) : null;
@@ -239,12 +251,7 @@ export default function CmsManagementWorkspace({
         aria-label="Character content"
         className="flex gap-6 overflow-x-auto rounded-xl border border-slate-200 bg-white px-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
-        {[
-          "characters",
-          "character-outfits",
-          "character-relationships",
-          "character-factions",
-        ]
+        {["characters", "character-outfits"]
           .map((slug) =>
             [...primaryCollections, ...supportingCollections].find(
               (item) => item.slug === slug,

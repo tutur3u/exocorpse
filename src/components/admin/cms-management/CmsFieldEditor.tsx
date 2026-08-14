@@ -6,9 +6,11 @@ import type {
   ExocorpseCmsFieldDefinition,
   ExocorpseJson,
 } from "@/types/exocorpse-cms";
+import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
 import { Input } from "@tuturuuu/ui/input";
 import { Textarea } from "@tuturuuu/ui/textarea";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -29,6 +31,90 @@ const spaciousFieldKeys = new Set([
 ]);
 
 const multilineFieldKeys = new Set([...spaciousFieldKeys, "notes", "quote"]);
+
+const isHexColor = (value: string) => /^#[0-9a-f]{6}$/i.test(value);
+
+function ColorPaletteInput({
+  onChange,
+  value,
+}: {
+  onChange: Props["onChange"];
+  value: ExocorpseJson | undefined;
+}) {
+  const colors = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+  const updateColor = (index: number, next: string) =>
+    onChange(
+      colors.map((color, position) => (position === index ? next : color)),
+    );
+
+  return (
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+      {colors.length ? (
+        <div
+          className="flex flex-wrap gap-2"
+          aria-label="Color palette preview"
+        >
+          {colors.map((color, index) => (
+            <span
+              className="h-8 w-8 rounded-lg border border-black/15 shadow-sm"
+              key={`${color}-${index}`}
+              style={{
+                backgroundColor: isHexColor(color) ? color : "transparent",
+              }}
+              title={color}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-zinc-500">
+          Add the first color in this palette.
+        </p>
+      )}
+      <div className="space-y-2">
+        {colors.map((color, index) => (
+          <div className="flex items-center gap-2" key={index}>
+            <Input
+              aria-label={`Choose palette color ${index + 1}`}
+              className="h-10 w-12 shrink-0 cursor-pointer p-1"
+              onChange={(event) => updateColor(index, event.target.value)}
+              type="color"
+              value={isHexColor(color) ? color : "#000000"}
+            />
+            <Input
+              aria-label={`Palette color ${index + 1}`}
+              className={inputClassName}
+              onChange={(event) => updateColor(index, event.target.value)}
+              placeholder="#000000"
+              value={color}
+            />
+            <Button
+              aria-label={`Remove palette color ${index + 1}`}
+              onClick={() =>
+                onChange(colors.filter((_, position) => position !== index))
+              }
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+      <Button
+        onClick={() => onChange([...colors, "#000000"])}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        <Plus className="h-4 w-4" />
+        Add color
+      </Button>
+    </div>
+  );
+}
 
 function labelFor(definition: ExocorpseCmsFieldDefinition) {
   return definition.label && definition.label !== definition.key
@@ -102,13 +188,20 @@ export default function CmsFieldEditor({
 
   const stringValue =
     typeof value === "string" || typeof value === "number" ? String(value) : "";
-  const isColor =
-    /color/i.test(definition.key) && /^#[0-9a-f]{6}$/i.test(stringValue);
+  const isColorField =
+    definition.field_type === "string" &&
+    /colou?r/i.test(`${definition.key} ${definition.label ?? ""}`);
+  const isColorPalette =
+    definition.field_type === "string-array" &&
+    /colou?r.*palette|palette.*colou?r/i.test(
+      `${definition.key} ${definition.label ?? ""}`,
+    );
   const isMultiline =
     definition.field_type === "markdown" ||
     multilineFieldKeys.has(definition.key);
 
-  const Wrapper = isMultiline ? "div" : "label";
+  const Wrapper =
+    isMultiline || isColorField || isColorPalette ? "div" : "label";
 
   return (
     <Wrapper
@@ -119,7 +212,7 @@ export default function CmsFieldEditor({
         {definition.is_required ? (
           <span className="text-rose-500">*</span>
         ) : null}
-        {isColor ? (
+        {isColorField && isHexColor(stringValue) ? (
           <span
             aria-hidden="true"
             className="h-3.5 w-3.5 rounded-full border border-black/15"
@@ -128,7 +221,9 @@ export default function CmsFieldEditor({
         ) : null}
       </span>
 
-      {definition.options.length ? (
+      {isColorPalette ? (
+        <ColorPaletteInput onChange={onChange} value={value} />
+      ) : definition.options.length ? (
         <select
           className={inputClassName}
           onChange={(event) => onChange(event.target.value || undefined)}
@@ -149,6 +244,22 @@ export default function CmsFieldEditor({
           placeholder={`Write ${label.toLowerCase()}…`}
           value={stringValue}
         />
+      ) : isColorField ? (
+        <div className="flex items-center gap-2">
+          <Input
+            aria-label={`Choose ${label.toLowerCase()}`}
+            className="h-10 w-12 shrink-0 cursor-pointer p-1"
+            onChange={(event) => onChange(event.target.value)}
+            type="color"
+            value={isHexColor(stringValue) ? stringValue : "#000000"}
+          />
+          <Input
+            className={inputClassName}
+            onChange={(event) => onChange(event.target.value || undefined)}
+            placeholder="#000000"
+            value={stringValue}
+          />
+        </div>
       ) : definition.field_type === "json" ? (
         <JsonInput onChange={onChange} value={value} />
       ) : definition.field_type === "string-array" ? (
