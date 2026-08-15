@@ -39,7 +39,8 @@ describe("Tuturuuu CMS raw delivery", () => {
                 {
                   block_type: "markdown",
                   content: {
-                    markdown: "Loaded biography\n\n![Inline](blog/example.png)",
+                    markdown:
+                      "Loaded biography\n\n![Inline](blog/example.png)\n\n![Managed inline](/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)",
                   },
                   sort_order: 0,
                   title: null,
@@ -91,7 +92,7 @@ describe("Tuturuuu CMS raw delivery", () => {
 
     const entry = result.collections.characters?.entries[0];
     expect(entry?.bodyMarkdown).toBe(
-      "## Introduction\n\nFirst by display order\n\nLoaded biography\n\n![Inline](https://tuturuuu.com/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)\n\n## Further reading\n\nA second section with ![Inline](https://tuturuuu.com/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)",
+      "## Introduction\n\nFirst by display order\n\nLoaded biography\n\n![Inline](https://tuturuuu.com/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)\n\n![Managed inline](https://tuturuuu.com/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)\n\n## Further reading\n\nA second section with ![Inline](https://tuturuuu.com/api/v1/workspaces/workspace/external-projects/assets/inline?v=revision-2)",
     );
     expect(entry?.blocks.map((block) => block.title)).toEqual([
       "Introduction",

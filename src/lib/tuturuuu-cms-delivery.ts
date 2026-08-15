@@ -109,7 +109,11 @@ function asRecord(value: unknown): Record<string, unknown> {
 const MARKDOWN_IMAGE_DESTINATION_PATTERN =
   /(!\[[^\]]*\]\()([^)\s]+)((?:\s+["'][^"']*["'])?\))/g;
 
-function rewriteMarkdownAssetUrls(markdown: string, assets: CmsAsset[]) {
+function rewriteMarkdownAssetUrls(
+  markdown: string,
+  assets: CmsAsset[],
+  apiBaseUrl: string,
+) {
   const urlByLegacySource = new Map<string, string>();
   for (const asset of assets) {
     if (!asset.assetUrl || asset.assetType !== "inline-image") continue;
@@ -123,7 +127,15 @@ function rewriteMarkdownAssetUrls(markdown: string, assets: CmsAsset[]) {
     MARKDOWN_IMAGE_DESTINATION_PATTERN,
     (match, prefix: string, source: string, suffix: string) => {
       const assetUrl = urlByLegacySource.get(source);
-      return assetUrl ? `${prefix}${assetUrl}${suffix}` : match;
+      if (assetUrl) return `${prefix}${assetUrl}${suffix}`;
+
+      // Tuturuuu delivery may already persist its public API path in Markdown.
+      // It is absolute to the platform, not to the branded satellite site.
+      if (source.startsWith("/api/v1/workspaces/")) {
+        return `${prefix}${new URL(source, apiBaseUrl).toString()}${suffix}`;
+      }
+
+      return match;
     },
   );
 }
@@ -205,7 +217,11 @@ export function normalizeDeliveryCollections(
               ...block,
               content: {
                 ...block.content,
-                markdown: rewriteMarkdownAssetUrls(markdown, entry.assets),
+                markdown: rewriteMarkdownAssetUrls(
+                  markdown,
+                  entry.assets,
+                  apiBaseUrl,
+                ),
               },
             }
           : block;
