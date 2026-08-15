@@ -31,6 +31,7 @@ import {
   registerAdminCmsAsset,
   setAdminCmsEntryVisibility,
 } from "@/lib/actions/cms";
+import { publishCmsContentChanged } from "@/lib/cms-content-events";
 import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type {
@@ -375,6 +376,7 @@ export function useCmsManagementWorkspace({
       try {
         const result = await operation();
         onSuccess(result);
+        publishCmsContentChanged();
         setMessage({ kind: "success", text: success });
       } catch (error) {
         setMessage({
@@ -634,6 +636,7 @@ export function useCmsManagementWorkspace({
           asset,
         ],
       }));
+      publishCmsContentChanged();
       setMessage({ kind: "success", text: "Media uploaded." });
     } catch (error) {
       if (createdEntryId) {
@@ -714,6 +717,7 @@ export function useCmsManagementWorkspace({
           asset,
         ],
       }));
+      publishCmsContentChanged();
       setMessage({ kind: "success", text: "Image added to the text." });
       return asset.asset_url;
     } catch (error) {
@@ -847,6 +851,7 @@ export function useCmsManagementWorkspace({
           ...bundle.relations,
         ],
       }));
+      publishCmsContentChanged();
       setMessage({ kind: "success", text: "Gallery image added." });
     } catch (error) {
       if (createdEntryId) {

@@ -754,29 +754,45 @@ export default function CharacterDetail({
                         <MarkdownRenderer content={character.lore} />
                       </div>
                     )}
-                    {!character.backstory && !character.lore && (
-                      <div className="py-16 text-center">
-                        <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                          <svg
-                            className="text-theme-text h-8 w-8"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <title>No lore icon</title>
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-theme-text font-medium">
-                          No lore or backstory added yet.
-                        </p>
+                    {character.content_sections.map((section, index) => (
+                      <div
+                        className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm"
+                        key={`${section.title ?? "section"}-${index}`}
+                      >
+                        {section.title ? (
+                          <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                            <span className="bg-theme-primary h-5 w-1 rounded-full" />
+                            {section.title}
+                          </h3>
+                        ) : null}
+                        <MarkdownRenderer content={section.content} />
                       </div>
-                    )}
+                    ))}
+                    {!character.backstory &&
+                      !character.lore &&
+                      character.content_sections.length === 0 && (
+                        <div className="py-16 text-center">
+                          <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                            <svg
+                              className="text-theme-text h-8 w-8"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <title>No lore icon</title>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-theme-text font-medium">
+                            No lore or backstory added yet.
+                          </p>
+                        </div>
+                      )}
                   </>
                 ) : null}
                 {activeTab === "relationships" ? (

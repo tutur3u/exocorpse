@@ -120,6 +120,7 @@ export interface Character extends AuditFields {
   birthday: string | null;
   build: string | null;
   color_palette: string[] | null;
+  content_sections: Array<{ content: string; title: string | null }>;
   created_by: string | null;
   deleted_at: string | null;
   description: string | null;

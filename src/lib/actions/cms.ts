@@ -16,6 +16,11 @@ import {
 import type { ExocorpseJson } from "@/types/exocorpse-cms";
 import { revalidatePath } from "next/cache";
 
+function revalidateCmsSurfaces() {
+  revalidatePath("/admin", "layout");
+  revalidatePath("/");
+}
+
 export async function getAdminCmsStudio() {
   await verifyAuth();
   return getExocorpseCmsStudio();
@@ -61,14 +66,14 @@ export async function saveAdminCmsEntry(payload: {
         bundlePayload,
       )
     : await createExocorpseCmsEntryBundle(bundlePayload);
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
   return result;
 }
 
 export async function deleteAdminCmsEntry(entryId: string) {
   await verifyAuth();
   await deleteExocorpseCmsEntry(entryId);
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
 }
 
 export async function reorderAdminCmsEntries(
@@ -76,7 +81,7 @@ export async function reorderAdminCmsEntries(
 ) {
   await verifyAuth();
   const entries = await reorderExocorpseCmsEntries(order);
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
   return entries;
 }
 
@@ -85,7 +90,7 @@ export async function reorderAdminCmsAssets(
 ) {
   await verifyAuth();
   const assets = await reorderExocorpseCmsAssets(order);
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
   return assets;
 }
 
@@ -95,8 +100,7 @@ export async function setAdminCmsEntryVisibility(
 ) {
   await verifyAuth();
   const result = await setExocorpseCmsEntryVisibility(entryId, visibility);
-  revalidatePath("/admin", "layout");
-  revalidatePath("/");
+  revalidateCmsSurfaces();
   return result;
 }
 
@@ -128,12 +132,12 @@ export async function registerAdminCmsAsset(input: {
     metadata: input.metadata,
     storage_path: input.storagePath,
   });
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
   return asset;
 }
 
 export async function deleteAdminCmsAsset(assetId: string) {
   await verifyAuth();
   await deleteExocorpseCmsAsset(assetId);
-  revalidatePath("/admin", "layout");
+  revalidateCmsSurfaces();
 }

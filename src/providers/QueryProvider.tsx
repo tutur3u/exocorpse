@@ -2,7 +2,14 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
+import { subscribeToCmsContentChanges } from "@/lib/cms-content-events";
+import { useEffect, useState } from "react";
+
+export const PUBLIC_QUERY_DEFAULTS = {
+  staleTime: 60 * 1000,
+  refetchOnWindowFocus: true,
+  refetchOnMount: "always" as const,
+};
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -10,12 +17,18 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 60 * 1000, // Data is fresh for 1 hour
-            refetchOnWindowFocus: false, // Prevent refetch when window gains focus
-            refetchOnMount: false, // Prevent refetch on component mount if data exists
+            ...PUBLIC_QUERY_DEFAULTS,
           },
         },
       }),
+  );
+
+  useEffect(
+    () =>
+      subscribeToCmsContentChanges(() => {
+        void queryClient.invalidateQueries();
+      }),
+    [queryClient],
   );
 
   return (

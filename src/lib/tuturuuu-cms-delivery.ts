@@ -196,13 +196,35 @@ export function normalizeDeliveryCollections(
       : [];
 
     for (const entry of entries) {
-      const bodyMarkdown =
-        entry.blocks
-          .filter((block) => block.blockType === "markdown")
-          .map((block) => asString(block.content.markdown))
-          .find(Boolean) ?? null;
-      entry.bodyMarkdown = bodyMarkdown
-        ? rewriteMarkdownAssetUrls(bodyMarkdown, entry.assets)
+      entry.assets.sort((left, right) => left.sortOrder - right.sortOrder);
+      entry.blocks.sort((left, right) => left.sortOrder - right.sortOrder);
+      entry.blocks = entry.blocks.map((block) => {
+        const markdown = asString(block.content.markdown);
+        return block.blockType === "markdown" && markdown
+          ? {
+              ...block,
+              content: {
+                ...block.content,
+                markdown: rewriteMarkdownAssetUrls(markdown, entry.assets),
+              },
+            }
+          : block;
+      });
+      const markdownSections = entry.blocks
+        .filter((block) => block.blockType === "markdown")
+        .flatMap((block) => {
+          const markdown = asString(block.content.markdown);
+          if (!markdown) return [];
+          return [{ markdown, title: block.title?.trim() ?? null }];
+        });
+      entry.bodyMarkdown = markdownSections.length
+        ? markdownSections
+            .map(({ markdown, title }) =>
+              markdownSections.length > 1 && title
+                ? `## ${title}\n\n${markdown}`
+                : markdown,
+            )
+            .join("\n\n")
         : null;
     }
 
@@ -323,6 +345,20 @@ function markdownBlock(entry: CmsEntry, title: string) {
   );
 
   return asString(block?.content.markdown);
+}
+
+function additionalMarkdownSections(entry: CmsEntry, excludedTitles: string[]) {
+  const excluded = new Set(excludedTitles.map((title) => title.toLowerCase()));
+  return entry.blocks.flatMap((block) => {
+    if (
+      block.blockType !== "markdown" ||
+      (block.title && excluded.has(block.title.toLowerCase()))
+    ) {
+      return [];
+    }
+    const content = asString(block.content.markdown);
+    return content ? [{ content, title: block.title }] : [];
+  });
 }
 
 function secondAssetUrl(entry: CmsEntry, assetType = "image") {
@@ -620,7 +656,7 @@ function mapCmsWorld(entry: CmsEntry): Tables<"worlds"> {
   };
 }
 
-function mapCmsCharacter(entry: CmsEntry): Character {
+export function mapCmsCharacter(entry: CmsEntry): Character {
   const profile = entry.profileData;
 
   return {
@@ -634,10 +670,15 @@ function mapCmsCharacter(entry: CmsEntry): Character {
     birthday: stringValue(profile, "birthday"),
     build: stringValue(profile, "build"),
     color_palette: stringArrayValue(profile, "colorPalette"),
+    content_sections: additionalMarkdownSections(entry, [
+      "Description",
+      "Backstory",
+      "Lore",
+    ]),
     created_at: EPOCH,
     created_by: null,
     deleted_at: null,
-    description: markdownBlock(entry, "Description") ?? entry.bodyMarkdown,
+    description: markdownBlock(entry, "Description") ?? entry.summary,
     distinguishing_features: stringValue(profile, "distinguishingFeatures"),
     eye_color: stringValue(profile, "eyeColor"),
     fanwork_policy: stringValue(profile, "fanworkPolicy"),

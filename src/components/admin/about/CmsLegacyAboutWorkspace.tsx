@@ -17,6 +17,7 @@ import {
   reorderAdminCmsAssets,
   registerAdminCmsAsset,
 } from "@/lib/actions/cms";
+import { publishCmsContentChanged } from "@/lib/cms-content-events";
 import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import {
   ABOUT_SOCIAL_COLOR_KEYS,
@@ -366,6 +367,7 @@ export default function CmsLegacyAboutWorkspace({
   ) => {
     try {
       const bundle = await saveAdminCmsEntry(payload);
+      publishCmsContentChanged();
       replaceBundle(bundle);
       toastWithSound.success(success);
     } catch (error) {
@@ -552,6 +554,7 @@ export default function CmsLegacyAboutWorkspace({
   const deleteItem = async (id: string) => {
     try {
       await deleteAdminCmsEntry(id);
+      publishCmsContentChanged();
       setStudio((current) => ({
         ...current,
         assets: current.assets.filter((asset) => asset.entry_id !== id),
@@ -595,6 +598,7 @@ export default function CmsLegacyAboutWorkspace({
         storagePath,
       });
       await Promise.all(replacedAssetIds.map(deleteAdminCmsAsset));
+      publishCmsContentChanged();
       setStudio((current) => ({
         ...current,
         assets: [
@@ -622,6 +626,7 @@ export default function CmsLegacyAboutWorkspace({
     setMediaPending(true);
     void deleteAdminCmsAsset(assetId)
       .then(() => {
+        publishCmsContentChanged();
         setStudio((current) => ({
           ...current,
           assets: current.assets.filter((asset) => asset.id !== assetId),
@@ -654,14 +659,15 @@ export default function CmsLegacyAboutWorkspace({
         sortOrder: asset.sort_order,
       })),
     )
-      .then((updated) =>
+      .then((updated) => {
+        publishCmsContentChanged();
         setStudio((current) => ({
           ...current,
           assets: current.assets.map(
             (asset) => updated.find((item) => item.id === asset.id) ?? asset,
           ),
-        })),
-      )
+        }));
+      })
       .catch((error: unknown) =>
         toastWithSound.error(
           error instanceof Error ? error.message : "Failed to reorder images",
