@@ -137,6 +137,19 @@ export function getExocorpseWebAppUrl() {
   });
 }
 
+export function buildExocorpseTasksUrl({
+  webAppUrl = getExocorpseWebAppUrl(),
+  workspaceId = getExocorpseWorkspaceId(),
+}: {
+  webAppUrl?: string;
+  workspaceId?: string;
+} = {}) {
+  return new URL(
+    `/${encodeURIComponent(workspaceId)}/tasks`,
+    `${trimTrailingSlash(webAppUrl)}/`,
+  ).toString();
+}
+
 export function getExocorpseAppBaseUrl(requestOrigin?: string) {
   const configured =
     process.env.EXOCORPSE_APP_URL ??

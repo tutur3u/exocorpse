@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, ListTodo, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -48,7 +48,13 @@ const navSections: NavSection[] = [
   },
 ];
 
-export default function AdminNav({ children }: { children?: React.ReactNode }) {
+export default function AdminNav({
+  children,
+  tasksHref,
+}: {
+  children?: React.ReactNode;
+  tasksHref: string;
+}) {
   const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -129,6 +135,16 @@ export default function AdminNav({ children }: { children?: React.ReactNode }) {
         >
           Dashboard
         </Link>
+
+        <a
+          href={tasksHref}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+        >
+          <ListTodo className="size-4" aria-hidden="true" />
+          Tasks
+        </a>
 
         {/* Dropdown Sections */}
         {navSections.map((section) => {
@@ -218,6 +234,17 @@ export default function AdminNav({ children }: { children?: React.ReactNode }) {
               >
                 Dashboard
               </Link>
+
+              <a
+                href={tasksHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+              >
+                <ListTodo className="size-5" aria-hidden="true" />
+                Tasks
+              </a>
 
               {navSections.map((section) => {
                 const isExpanded = expandedMobileSections.includes(

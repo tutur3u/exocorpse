@@ -2,6 +2,7 @@ import AdminNav from "@/components/admin/AdminNav";
 import AdminSessionKeeper from "@/components/admin/AdminSessionKeeper";
 import AdminUserMenu from "@/components/admin/AdminUserMenu";
 import { requireAdminSession } from "@/lib/auth/utils";
+import { buildExocorpseTasksUrl } from "@/lib/exocorpse-config";
 import Link from "next/link";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
@@ -15,6 +16,9 @@ export default async function AdminLayout({
 }) {
   await connection();
   const session = await requireAdminSession();
+  const tasksHref = buildExocorpseTasksUrl({
+    workspaceId: session.workspaceId,
+  });
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
       {/* Admin Header */}
@@ -28,7 +32,7 @@ export default async function AdminLayout({
               >
                 EXOCORPSE
               </Link>
-              <AdminNav>
+              <AdminNav tasksHref={tasksHref}>
                 <div className="px-4">
                   <AdminUserMenu initialUser={session.user} />
                 </div>

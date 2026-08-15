@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "bun:test";
 
 import {
+  buildExocorpseTasksUrl,
   EXOCORPSE_PRODUCTION_ORIGIN,
   getExocorpseAppBaseUrl,
 } from "./exocorpse-config";
@@ -43,5 +44,16 @@ describe("getExocorpseAppBaseUrl", () => {
     expect(getExocorpseAppBaseUrl("http://localhost:3000/")).toBe(
       "http://localhost:3000",
     );
+  });
+});
+
+describe("buildExocorpseTasksUrl", () => {
+  it("opens the linked workspace Tasks entrypoint", () => {
+    expect(
+      buildExocorpseTasksUrl({
+        webAppUrl: "https://tuturuuu.com/",
+        workspaceId: "exocorpse workspace",
+      }),
+    ).toBe("https://tuturuuu.com/exocorpse%20workspace/tasks");
   });
 });
