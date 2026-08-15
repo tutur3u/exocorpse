@@ -128,18 +128,25 @@ export default function CharacterDetail({
 
   const { signedUrls: imageUrls } = useBatchMediaUrls(imagePaths);
 
-  // Only show loading if we're fetching AND don't have any data yet
+  // Keep the profile and navigation usable while only the selected section loads.
   const loading =
-    (galleryLoading && gallery.length === 0) ||
-    (outfitsLoading && outfits.length === 0) ||
-    (factionsLoading && factions.length === 0) ||
-    (worldsLoading && characterWorlds.length === 0) ||
-    (relationshipsLoading && relationships.length === 0);
+    (activeTab === "gallery" && galleryLoading && gallery.length === 0) ||
+    (activeTab === "outfits" && outfitsLoading && outfits.length === 0) ||
+    (activeTab === "relationships" &&
+      relationshipsLoading &&
+      relationships.length === 0) ||
+    (activeTab === "overview" &&
+      ((factionsLoading && factions.length === 0) ||
+        (worldsLoading && characterWorlds.length === 0)));
 
   const tabs = [
     { id: "overview", label: "Overview" },
+    {
+      id: "relationships",
+      label: `Relationships (${relationships.length})`,
+    },
     { id: "outfits", label: `Outfits (${outfits.length})` },
-    { id: "lore", label: "Story & Relationships" },
+    { id: "lore", label: "Backstory & Lore" },
     { id: "gallery", label: `Gallery (${gallery.length})` },
   ];
 
@@ -724,185 +731,192 @@ export default function CharacterDetail({
               </div>
             )}
 
-            {/* Lore Tab */}
-            {activeTab === "lore" && (
+            {/* Lore and Relationships Tabs */}
+            {(activeTab === "lore" || activeTab === "relationships") && (
               <div className="animate-fadeIn space-y-4">
-                {character.backstory && (
-                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
-                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
-                      Backstory
-                    </h3>
-                    <MarkdownRenderer content={character.backstory} />
-                  </div>
-                )}
-                {character.lore && (
-                  <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
-                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                      <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
-                      Additional Lore
-                    </h3>
-                    <MarkdownRenderer content={character.lore} />
-                  </div>
-                )}
-                {!character.backstory && !character.lore && (
-                  <div className="py-16 text-center">
-                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                      <svg
-                        className="text-theme-text h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <title>No lore icon</title>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-theme-text font-medium">
-                      No lore or backstory added yet.
-                    </p>
-                  </div>
-                )}
-                {relationships.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                      <svg
-                        className="text-theme-text h-8 w-8"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <title>No relationships icon</title>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-theme-text font-medium">
-                      No relationships documented yet.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
-                      <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
-                        <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
-                        Relationships{" "}
-                        {relationships.length > 0 &&
-                          `(${relationships.length})`}
-                      </h3>
-                      {relationships.map((relationship) => {
-                        const relatedCharacter = relationship.related_character;
-                        const relType = relationship.relationship_type;
-
-                        return (
-                          <button
-                            key={relationship.id}
-                            onClick={() =>
-                              onCharacterClick?.(relatedCharacter?.slug || "")
-                            }
-                            className="text-theme-text bg-theme-primary w-full cursor-pointer overflow-hidden rounded-xl text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                {activeTab === "lore" ? (
+                  <>
+                    {character.backstory && (
+                      <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
+                        <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                          <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
+                          Backstory
+                        </h3>
+                        <MarkdownRenderer content={character.backstory} />
+                      </div>
+                    )}
+                    {character.lore && (
+                      <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
+                        <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                          <span className="bg-theme-secondary h-5 w-1 rounded-full"></span>
+                          Additional Lore
+                        </h3>
+                        <MarkdownRenderer content={character.lore} />
+                      </div>
+                    )}
+                    {!character.backstory && !character.lore && (
+                      <div className="py-16 text-center">
+                        <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                          <svg
+                            className="text-theme-text h-8 w-8"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <div className="flex items-start gap-4 p-4">
-                              {/* Character Profile Image */}
-                              <div className="text-theme-text bg-theme-secondary relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
-                                {relatedCharacter?.profile_image ? (
-                                  <StorageImage
-                                    src={relatedCharacter.profile_image}
-                                    alt={relatedCharacter.name}
-                                    fill
-                                    sizes="64px"
-                                    className="object-cover"
-                                    fallback={
-                                      <div className="text-theme-text flex h-full w-full items-center justify-center text-2xl font-bold">
-                                        {relatedCharacter.name.charAt(0)}
-                                      </div>
-                                    }
-                                  />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center">
-                                    <svg
-                                      className="text-theme-text h-8 w-8"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <title>Character icon</title>
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                      />
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
+                            <title>No lore icon</title>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-theme-text font-medium">
+                          No lore or backstory added yet.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : null}
+                {activeTab === "relationships" ? (
+                  relationships.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <div className="text-theme-text bg-theme-secondary mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                        <svg
+                          className="text-theme-text h-8 w-8"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <title>No relationships icon</title>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-theme-text font-medium">
+                        No relationships documented yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="text-theme-text bg-theme-secondary rounded-xl p-4 shadow-sm">
+                        <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+                          <span className="bg-theme-primary h-5 w-1 rounded-full"></span>
+                          Relationships{" "}
+                          {relationships.length > 0 &&
+                            `(${relationships.length})`}
+                        </h3>
+                        {relationships.map((relationship) => {
+                          const relatedCharacter =
+                            relationship.related_character;
+                          const relType = relationship.relationship_type;
 
-                              {/* Relationship Info */}
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="min-w-0 flex-1">
-                                    <h4 className="text-theme-text font-bold">
-                                      {relatedCharacter.name}
-                                    </h4>
-                                    {relatedCharacter.nickname && (
-                                      <p className="text-theme-text text-xs">
-                                        {relatedCharacter.nickname}
-                                      </p>
-                                    )}
-                                  </div>
-                                  {/* Character metadata badges */}
-                                  <div className="flex shrink-0 gap-1.5 text-xs">
-                                    {relatedCharacter.age && (
-                                      <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
-                                        {relatedCharacter.age}
-                                      </span>
-                                    )}
-                                    {relatedCharacter.species && (
-                                      <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
-                                        {relatedCharacter.species}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>{" "}
-                                <div className="mt-1.5 flex items-center gap-2">
-                                  <span className="text-theme-text inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
-                                    {relType.name}
-                                  </span>
-                                  {relType.is_mutual && (
-                                    <span className="text-theme-text text-xs">
-                                      (mutual)
-                                    </span>
+                          return (
+                            <button
+                              key={relationship.id}
+                              onClick={() =>
+                                onCharacterClick?.(relatedCharacter?.slug || "")
+                              }
+                              className="text-theme-text bg-theme-primary w-full cursor-pointer overflow-hidden rounded-xl text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                            >
+                              <div className="flex items-start gap-4 p-4">
+                                {/* Character Profile Image */}
+                                <div className="text-theme-text bg-theme-secondary relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
+                                  {relatedCharacter?.profile_image ? (
+                                    <StorageImage
+                                      src={relatedCharacter.profile_image}
+                                      alt={relatedCharacter.name}
+                                      fill
+                                      sizes="64px"
+                                      className="object-cover"
+                                      fallback={
+                                        <div className="text-theme-text flex h-full w-full items-center justify-center text-2xl font-bold">
+                                          {relatedCharacter.name.charAt(0)}
+                                        </div>
+                                      }
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center">
+                                      <svg
+                                        className="text-theme-text h-8 w-8"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <title>Character icon</title>
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                        />
+                                      </svg>
+                                    </div>
                                   )}
                                 </div>
-                                {relationship.description && (
-                                  <MarkdownRenderer
-                                    content={relationship.description}
-                                    className="text-theme-text prose prose-sm mt-2 max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                                  />
-                                )}
-                                {relatedCharacter.personality_summary && (
-                                  <p className="text-theme-text mt-2 line-clamp-2 text-xs italic">
-                                    {relatedCharacter.personality_summary}
-                                  </p>
-                                )}
+
+                                {/* Relationship Info */}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className="text-theme-text font-bold">
+                                        {relatedCharacter.name}
+                                      </h4>
+                                      {relatedCharacter.nickname && (
+                                        <p className="text-theme-text text-xs">
+                                          {relatedCharacter.nickname}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {/* Character metadata badges */}
+                                    <div className="flex shrink-0 gap-1.5 text-xs">
+                                      {relatedCharacter.age && (
+                                        <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
+                                          {relatedCharacter.age}
+                                        </span>
+                                      )}
+                                      {relatedCharacter.species && (
+                                        <span className="text-theme-text bg-theme-secondary flex items-center justify-center rounded-full px-2 py-0.5">
+                                          {relatedCharacter.species}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>{" "}
+                                  <div className="mt-1.5 flex items-center gap-2">
+                                    <span className="text-theme-text inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium">
+                                      {relType.name}
+                                    </span>
+                                    {relType.is_mutual && (
+                                      <span className="text-theme-text text-xs">
+                                        (mutual)
+                                      </span>
+                                    )}
+                                  </div>
+                                  {relationship.description && (
+                                    <MarkdownRenderer
+                                      content={relationship.description}
+                                      className="text-theme-text prose prose-sm mt-2 max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                    />
+                                  )}
+                                  {relatedCharacter.personality_summary && (
+                                    <p className="text-theme-text mt-2 line-clamp-2 text-xs italic">
+                                      {relatedCharacter.personality_summary}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                ) : null}
               </div>
             )}
 

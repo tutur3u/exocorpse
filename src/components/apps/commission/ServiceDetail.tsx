@@ -81,21 +81,21 @@ export default function ServiceDetail({
       </div>
 
       <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-6 @4xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
           {/* Left Column: Gallery - using shared MasonryGallery with 2 columns */}
-          <div className="h-full lg:col-span-2">
+          <div className="min-w-0">
             <MasonryGallery
               images={galleryImages}
               isLoading={loading}
-              maxWidth="max-w-3xl"
+              maxWidth="max-w-none"
             />
           </div>
 
           {/* Right Column: Details - Fixed width */}
-          <div className="space-y-6 lg:overflow-auto">
+          <div className="space-y-5 rounded-xl border border-gray-200 bg-white/70 p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800/70">
             {/* Service Title and Price */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 uppercase dark:text-white">
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                 {service.name}
               </h1>
               <p className="mt-2 text-xl text-gray-700 dark:text-gray-300">

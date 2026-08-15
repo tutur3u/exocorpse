@@ -161,10 +161,19 @@ export function useCmsManagementWorkspace({
         .filter(
           (definition) =>
             definition.collection_id === collection?.id &&
-            definition.is_enabled,
+            definition.is_enabled &&
+            !(
+              definition.key === "tags" &&
+              [
+                "blog-posts",
+                "character-gallery",
+                "portfolio-art",
+                "portfolio-writing",
+              ].includes(collection?.slug ?? "")
+            ),
         )
         .sort((left, right) => left.sort_order - right.sort_order),
-    [collection?.id, studio.fieldDefinitions],
+    [collection?.id, collection?.slug, studio.fieldDefinitions],
   );
   const assets = studio.assets.filter((asset) => asset.entry_id === entryId);
   const config = collectionConfig(collection);
@@ -252,6 +261,60 @@ export function useCmsManagementWorkspace({
         initialRelations[definition.id] ?? [],
       ]),
     );
+    setDraft(initialDraft);
+    setBlocks([]);
+    setRelationSelections(initialSelections);
+    setSavedEditorState(
+      cmsEditorStateFingerprint({
+        blocks: [],
+        draft: initialDraft,
+        relationSelections: initialSelections,
+      }),
+    );
+    setMessage(null);
+  }
+
+  function createEntryForCollection(
+    nextCollectionId: string,
+    initialRelationsByKey: Record<string, string[]> = {},
+  ) {
+    const nextCollection = visibleCollections.find(
+      (item) => item.id === nextCollectionId,
+    );
+    if (!nextCollection) return;
+    const nextFields = (studio.fieldDefinitions ?? [])
+      .filter(
+        (definition) =>
+          definition.collection_id === nextCollectionId &&
+          definition.is_enabled,
+      )
+      .sort((left, right) => left.sort_order - right.sort_order);
+    const nextDefinitions = (studio.relationDefinitions ?? [])
+      .filter(
+        (definition) => definition.source_collection_id === nextCollectionId,
+      )
+      .sort((left, right) => left.label.localeCompare(right.label));
+    const nextDraft = applyFieldDefaults(
+      emptyEntry(nextCollectionId),
+      nextFields,
+    );
+    const initialDraft = {
+      ...nextDraft,
+      status: CONNECTION_COLLECTION_SLUGS.has(nextCollection.slug)
+        ? "published"
+        : nextDraft.status,
+    } satisfies CmsEntryDraft;
+    const initialSelections = Object.fromEntries(
+      nextDefinitions.map((definition) => [
+        definition.id,
+        initialRelationsByKey[definition.key] ?? [],
+      ]),
+    );
+
+    hydratedEditorSourceRef.current = "";
+    setCollectionId(nextCollectionId);
+    setCreatingEntry(true);
+    setEntryIdState("");
     setDraft(initialDraft);
     setBlocks([]);
     setRelationSelections(initialSelections);
@@ -904,6 +967,7 @@ export function useCmsManagementWorkspace({
     collection,
     config,
     createEntry,
+    createEntryForCollection,
     definitions,
     deleteAsset,
     deleteEntry,

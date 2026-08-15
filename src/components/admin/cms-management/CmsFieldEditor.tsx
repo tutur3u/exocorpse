@@ -10,7 +10,7 @@ import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
 import { Input } from "@tuturuuu/ui/input";
 import { Textarea } from "@tuturuuu/ui/textarea";
-import { Plus, Trash2 } from "lucide-react";
+import { Music2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -199,6 +199,7 @@ export default function CmsFieldEditor({
   const isMultiline =
     definition.field_type === "markdown" ||
     multilineFieldKeys.has(definition.key);
+  const isSoundtrackField = definition.key === "themeSoundtrackUrl";
 
   const Wrapper =
     isMultiline || isColorField || isColorPalette ? "div" : "label";
@@ -219,7 +220,52 @@ export default function CmsFieldEditor({
         ) : null}
       </span>
 
-      {isColorPalette ? (
+      {isSoundtrackField ? (
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-200">
+              <Music2 className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-slate-950 dark:text-white">
+                {stringValue
+                  ? "Custom story soundtrack"
+                  : "Default site soundtrack"}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Switch to a custom hosted audio track, or keep the site default.
+              </p>
+            </div>
+            {stringValue ? (
+              <Button
+                onClick={() => onChange(undefined)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Use default
+              </Button>
+            ) : null}
+          </div>
+          <Input
+            className={inputClassName}
+            onChange={(event) => onChange(event.target.value || undefined)}
+            placeholder="Paste a direct MP3, OGG, or WAV link"
+            type="url"
+            value={stringValue}
+          />
+          {stringValue ? (
+            <audio
+              className="h-10 w-full"
+              controls
+              preload="metadata"
+              src={stringValue}
+            >
+              <track kind="captions" />
+            </audio>
+          ) : null}
+        </div>
+      ) : isColorPalette ? (
         <ColorPaletteInput onChange={onChange} value={value} />
       ) : definition.options.length ? (
         <select
@@ -236,7 +282,7 @@ export default function CmsFieldEditor({
         </select>
       ) : isMultiline ? (
         <AdminMarkdownEditor
-          minHeight={spaciousFieldKeys.has(definition.key) ? "18rem" : "11rem"}
+          minHeight={spaciousFieldKeys.has(definition.key) ? "13rem" : "9rem"}
           onChange={onChange}
           onImageUpload={onImageUpload}
           placeholder={`Write ${label.toLowerCase()}…`}

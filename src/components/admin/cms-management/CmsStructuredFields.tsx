@@ -29,6 +29,9 @@ export default function CmsStructuredFields({
   const advancedDefinitions = definitions.filter(
     (definition) => definition.field_type === "json",
   );
+  const isWide = (definition: ExocorpseCmsFieldDefinition) =>
+    ["json", "markdown", "string-array"].includes(definition.field_type) ||
+    Boolean(definition.description);
 
   function update(
     definition: ExocorpseCmsFieldDefinition,
@@ -56,18 +59,26 @@ export default function CmsStructuredFields({
           Add the information visitors need for this item.
         </p>
       </div>
-      <div className="grid gap-4">
+      <div className="grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
         {standardDefinitions.map((definition) => {
           const scopeValue = draft[definition.field_scope];
           const record = isJsonRecord(scopeValue) ? scopeValue : {};
           return (
-            <CmsFieldEditor
-              definition={definition}
+            <div
+              className={
+                isWide(definition)
+                  ? "@2xl:col-span-2 @5xl:col-span-3"
+                  : "min-w-0"
+              }
               key={`${draft.id || "new"}:${definition.id}`}
-              onChange={(value) => update(definition, value)}
-              onImageUpload={onImageUpload}
-              value={record[definition.key]}
-            />
+            >
+              <CmsFieldEditor
+                definition={definition}
+                onChange={(value) => update(definition, value)}
+                onImageUpload={onImageUpload}
+                value={record[definition.key]}
+              />
+            </div>
           );
         })}
       </div>

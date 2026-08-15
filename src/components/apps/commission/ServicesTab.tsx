@@ -88,7 +88,7 @@ export default function ServicesTab({ services }: ServicesTabProps) {
       </div>
 
       {/* Services Grid */}
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-5 @4xl:grid-cols-2">
         {services.map((service) => {
           const previewImages = Array.from(
             new Map(
@@ -124,12 +124,12 @@ export default function ServicesTab({ services }: ServicesTabProps) {
                   handleServiceClick(service.slug);
                 }
               }}
-              className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg bg-white shadow-lg transition-all hover:shadow-xl md:flex-row dark:bg-gray-800"
+              className="group relative grid min-h-0 cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-xl @xl:grid-cols-[minmax(15rem,42%)_minmax(0,1fr)] dark:border-gray-700 dark:bg-gray-800"
               role="button"
               tabIndex={0}
             >
               {/* Service Image */}
-              <div className="relative aspect-4/3 h-[225px] w-[400px] overflow-hidden bg-gray-200 dark:bg-gray-700">
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-200 @xl:aspect-auto @xl:min-h-56 dark:bg-gray-700">
                 {previewImages.length > 0 ? (
                   <RotatingGallery
                     images={previewImages}
@@ -144,11 +144,11 @@ export default function ServicesTab({ services }: ServicesTabProps) {
               </div>
 
               {/* Service Info */}
-              <div className="px-8 py-6 text-left">
-                <h3 className="text-md font-bold text-gray-900 md:text-4xl dark:text-white">
+              <div className="flex min-w-0 flex-col justify-center px-5 py-5 text-left @xl:px-7">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 @2xl:text-2xl dark:text-white">
                   {service.name.toUpperCase()}
                 </h3>
-                <p className="mt-1 text-sm text-gray-600 md:text-2xl dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-600 @2xl:text-lg dark:text-gray-400">
                   starting from: {service.base_price}€
                 </p>
 

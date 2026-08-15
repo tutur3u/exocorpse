@@ -57,7 +57,7 @@ export default function CmsPortfolioEntryGallery({
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-950 dark:text-[#fff6e8]">
           {sectionCopy.title}
         </h2>
         <button
@@ -194,7 +194,7 @@ export default function CmsPortfolioEntryGallery({
                   </div>
                 ) : null}
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-serif text-lg font-semibold text-slate-950 dark:text-[#fff6e8]">
+                  <h3 className="line-clamp-2 text-sm leading-5 font-medium text-slate-950 dark:text-[#fff6e8]">
                     {entry.title}
                   </h3>
                   {(entry.summary ?? entry.subtitle) ? (

@@ -50,6 +50,7 @@ export default function CmsManagementWorkspace({
     collection,
     config,
     createEntry,
+    createEntryForCollection,
     definitions,
     deleteAsset,
     deleteEntry,
@@ -487,6 +488,29 @@ export default function CmsManagementWorkspace({
               setRelatedTarget(null);
               selectCollection(target.id);
               setEntryId(galleryEntryId);
+            }}
+            onEditRelationshipEntry={(relationshipEntryId) => {
+              const target = visibleCollections.find(
+                (item) => item.slug === "character-relationships",
+              );
+              if (!target || collection.slug !== "characters" || !entryId)
+                return;
+              setCharacterEditorReturnId(entryId);
+              setRelatedTarget(null);
+              selectCollection(target.id);
+              setEntryId(relationshipEntryId);
+            }}
+            onCreateRelationshipEntry={() => {
+              const target = visibleCollections.find(
+                (item) => item.slug === "character-relationships",
+              );
+              if (!target || collection.slug !== "characters" || !entryId)
+                return;
+              setCharacterEditorReturnId(entryId);
+              setRelatedTarget(null);
+              createEntryForCollection(target.id, {
+                "character-a": [entryId],
+              });
             }}
             isDirty={isDirty}
             onPendingMediaChange={handlePendingMediaChange}

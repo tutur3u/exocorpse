@@ -17,6 +17,7 @@ type Props = {
   blocks: CmsBlockDraft[];
   onChange: (blocks: CmsBlockDraft[]) => void;
   onImageUpload?: (file: File) => Promise<string>;
+  singleDocument?: boolean;
 };
 
 const inputClassName =
@@ -27,6 +28,7 @@ export default function CmsBlockEditor({
   blocks,
   onChange,
   onImageUpload,
+  singleDocument = false,
 }: Props) {
   const blockTypes = allowedBlockTypes.length
     ? allowedBlockTypes
@@ -37,6 +39,49 @@ export default function CmsBlockEditor({
       blocks.map((block, blockIndex) =>
         blockIndex === index ? { ...block, ...patch } : block,
       ),
+    );
+  }
+
+  if (singleDocument) {
+    const content = blocks
+      .map((block, index) => {
+        const heading =
+          index > 0 && block.title.trim() ? `## ${block.title.trim()}\n\n` : "";
+        return `${heading}${block.contentText}`.trim();
+      })
+      .filter(Boolean)
+      .join("\n\n");
+
+    return (
+      <section className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-700">
+        <div>
+          <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
+            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            Post content
+          </h3>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Write the whole post in one continuous document. Images can be
+            placed directly between paragraphs.
+          </p>
+        </div>
+        <AdminMarkdownEditor
+          minHeight="30rem"
+          onChange={(value) =>
+            onChange([
+              {
+                ...(blocks[0] ?? newBlock("markdown", 0)),
+                blockType: "markdown",
+                contentText: value,
+                sortOrder: 0,
+                title: "Post content",
+              },
+            ])
+          }
+          onImageUpload={onImageUpload}
+          placeholder="Write your post…"
+          value={content}
+        />
+      </section>
     );
   }
 

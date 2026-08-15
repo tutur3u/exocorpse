@@ -434,9 +434,32 @@ export default function WikiClient({
   // Render main content based on view mode
   const renderContent = () => {
     if (loading) {
+      const destination =
+        viewMode === "character"
+          ? "character"
+          : viewMode === "faction"
+            ? "faction"
+            : viewMode === "location"
+              ? "location"
+              : viewMode === "world"
+                ? "world"
+                : "story";
+
       return (
-        <div className="flex h-full items-center justify-center">
-          <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+        <div className="bg-theme-primary flex min-h-full flex-col">
+          <div className="bg-theme-secondary border-theme-primary border-b px-6 py-4">
+            <p className="text-theme-text text-sm font-medium">
+              Opening {destination}…
+            </p>
+          </div>
+          <div className="grid animate-pulse gap-4 p-6 @lg:grid-cols-[11rem_1fr]">
+            <div className="bg-theme-secondary aspect-square rounded-2xl" />
+            <div className="space-y-3 py-2">
+              <div className="bg-theme-secondary h-7 w-2/5 rounded-lg" />
+              <div className="bg-theme-secondary h-4 w-3/4 rounded-lg" />
+              <div className="bg-theme-secondary h-4 w-1/2 rounded-lg" />
+            </div>
+          </div>
         </div>
       );
     }

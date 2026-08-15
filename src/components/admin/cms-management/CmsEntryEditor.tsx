@@ -13,6 +13,7 @@ import CmsCharacterMediaSettings, {
   isCharacterMediaField,
 } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
 import CmsCharacterGalleryOverview from "@/components/admin/cms-management/CmsCharacterGalleryOverview";
+import CmsCharacterRelationshipsOverview from "@/components/admin/cms-management/CmsCharacterRelationshipsOverview";
 import CmsGalleryCharacterTagger from "@/components/admin/cms-management/CmsGalleryCharacterTagger";
 import CmsConnectionEntryEditor from "@/components/admin/cms-management/CmsConnectionEntryEditor";
 import {
@@ -151,6 +152,8 @@ type Props = {
   onUploadGalleryAsset: (file: File) => Promise<void>;
   onUploadInlineAsset: (file: File) => Promise<string>;
   onEditGalleryEntry: (entryId: string) => void;
+  onCreateRelationshipEntry: () => void;
+  onEditRelationshipEntry: (entryId: string) => void;
   onPendingMediaChange: (pending: boolean) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
@@ -185,6 +188,8 @@ export default function CmsEntryEditor({
   onUploadGalleryAsset,
   onUploadInlineAsset,
   onEditGalleryEntry,
+  onCreateRelationshipEntry,
+  onEditRelationshipEntry,
   onPendingMediaChange,
   pending,
   relationSelections,
@@ -272,10 +277,27 @@ export default function CmsEntryEditor({
   const itemName = collectionItemLabel(collection).replace(/^./, (letter) =>
     letter.toUpperCase(),
   );
-  const relationInBasics =
-    definitions.length > 0 &&
-    ["stories", "worlds", "factions", "locations"].includes(collection.slug);
   const isBlog = collection.slug === "blog-posts";
+  const visibleDefinitions = definitions.filter(
+    (definition) =>
+      !(
+        definition.key === "tags" &&
+        [
+          "blog-posts",
+          "characters",
+          "portfolio-art",
+          "portfolio-games",
+          "portfolio-writing",
+          "stories",
+        ].includes(collection.slug)
+      ),
+  );
+  const characterWorldDefinitions = visibleDefinitions.filter(
+    (definition) => definition.key === "worlds",
+  );
+  const relationInBasics =
+    visibleDefinitions.length > 0 &&
+    ["stories", "worlds", "factions", "locations"].includes(collection.slug);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -387,7 +409,7 @@ export default function CmsEntryEditor({
           />
           {relationInBasics ? (
             <CmsRelationEditor
-              definitions={definitions}
+              definitions={visibleDefinitions}
               entryId={selectedEntryId}
               onChange={onRelationsChange}
               selections={relationSelections}
@@ -468,13 +490,14 @@ export default function CmsEntryEditor({
           blocks={blocks}
           onChange={onBlocksChange}
           onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+          singleDocument={isBlog}
         />
       );
     }
     if (tab === "connections") {
       return (
         <CmsRelationEditor
-          definitions={definitions}
+          definitions={visibleDefinitions}
           entryId={selectedEntryId}
           onChange={onRelationsChange}
           selections={relationSelections}
@@ -587,6 +610,13 @@ export default function CmsEntryEditor({
               onChange={onDraftChange}
               onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             />
+            <CmsRelationEditor
+              definitions={characterWorldDefinitions}
+              entryId={selectedEntryId}
+              onChange={onRelationsChange}
+              selections={relationSelections}
+              studio={studio}
+            />
           </CharacterEditorSection>
           <CharacterEditorSection
             description="Profile picture, banner, and the character's visual presentation."
@@ -676,11 +706,10 @@ export default function CmsEntryEditor({
             id="character-relationships"
             title="Relationships"
           >
-            <CmsRelationEditor
-              definitions={definitions}
-              entryId={selectedEntryId}
-              onChange={onRelationsChange}
-              selections={relationSelections}
+            <CmsCharacterRelationshipsOverview
+              characterId={selectedEntryId}
+              onCreate={onCreateRelationshipEntry}
+              onEdit={onEditRelationshipEntry}
               studio={studio}
             />
           </CharacterEditorSection>

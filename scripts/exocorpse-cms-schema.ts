@@ -92,7 +92,7 @@ export const EXOCORPSE_CMS_SCHEMA = {
       "Stories",
       "Story universe records.",
       ["markdown"],
-      ["image"],
+      ["image", "audio"],
     ),
     collection("worlds", "Worlds", "World records.", ["markdown"], ["image"]),
     collection(
