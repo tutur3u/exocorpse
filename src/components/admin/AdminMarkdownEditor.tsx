@@ -204,6 +204,7 @@ export default function AdminMarkdownEditor({
                 : "More formatting tools"
             }
             className="admin-markdown-editor-tools-toggle"
+            data-tooltip="More formatting tools"
             onClick={() => setShowMoreTools((current) => !current)}
             title="More formatting tools"
             type="button"
