@@ -92,7 +92,10 @@ describe("CMS management editor helpers", () => {
       [
         {
           block_type: "markdown",
-          content: { markdown: "Before\n\n![Sketch](blog/sketch.png)" },
+          content: {
+            markdown:
+              "Before\n\n![Sketch](blog/sketch.png)\n\n![Managed](/api/v1/workspaces/ws/external-projects/assets/image?v=2)",
+          },
           id: "block-id",
           sort_order: 0,
           stable_source_id: null,
@@ -117,7 +120,10 @@ describe("CMS management editor helpers", () => {
     );
 
     expect(block?.contentText).toContain(
-      "![Sketch](/api/v1/workspaces/ws/external-projects/assets/image?v=2)",
+      "![Sketch](https://tuturuuu.com/api/v1/workspaces/ws/external-projects/assets/image?v=2)",
+    );
+    expect(block?.contentText).toContain(
+      "![Managed](https://tuturuuu.com/api/v1/workspaces/ws/external-projects/assets/image?v=2)",
     );
   });
 

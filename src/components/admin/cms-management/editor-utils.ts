@@ -116,6 +116,10 @@ export function rewriteAdminMarkdownAssetUrls(
   markdown: string,
   assets: ExocorpseCmsAsset[],
 ) {
+  const canonicalAssetUrl = (value: string) =>
+    value.startsWith("/api/v1/workspaces/")
+      ? new URL(value, "https://tuturuuu.com").toString()
+      : value;
   const urlByLegacySource = new Map<string, string>();
   for (const asset of assets) {
     if (!asset.asset_url || asset.asset_type !== "inline-image") continue;
@@ -123,7 +127,7 @@ export function rewriteAdminMarkdownAssetUrls(
     for (const key of ["legacyMarkdownSource", "legacyStoragePath"]) {
       const source = metadata[key];
       if (typeof source === "string" && source) {
-        urlByLegacySource.set(source, asset.asset_url);
+        urlByLegacySource.set(source, canonicalAssetUrl(asset.asset_url));
       }
     }
   }
@@ -131,7 +135,10 @@ export function rewriteAdminMarkdownAssetUrls(
     MARKDOWN_IMAGE_DESTINATION_PATTERN,
     (match, prefix: string, source: string, suffix: string) => {
       const assetUrl = urlByLegacySource.get(source);
-      return assetUrl ? `${prefix}${assetUrl}${suffix}` : match;
+      if (assetUrl) return `${prefix}${assetUrl}${suffix}`;
+      return source.startsWith("/api/v1/workspaces/")
+        ? `${prefix}${canonicalAssetUrl(source)}${suffix}`
+        : match;
     },
   );
 }
