@@ -32,6 +32,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toastWithSound from "@/lib/toast";
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 
 type User = {
   avatarUrl?: string | null;
@@ -81,6 +82,8 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [confirmingProfileDiscard, setConfirmingProfileDiscard] =
+    useState(false);
   const [displayName, setDisplayName] = useState(initialUser.displayName ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
@@ -134,6 +137,37 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
 
   const primary = user.displayName?.trim() || user.email || "Account";
   const secondary = user.displayName?.trim() ? user.email : null;
+  const profileDirty =
+    displayName !== (user.displayName ?? "") ||
+    Boolean(avatarFile) ||
+    removeAvatar;
+
+  const discardProfileDraft = () => {
+    setDisplayName(user.displayName ?? "");
+    setAvatarFile(null);
+    setRemoveAvatar(false);
+    setConfirmingProfileDiscard(false);
+    setProfileOpen(false);
+  };
+
+  const requestProfileClose = () => {
+    if (saving) return;
+    if (profileDirty) {
+      setConfirmingProfileDiscard(true);
+      return;
+    }
+    discardProfileDraft();
+  };
+
+  useEffect(() => {
+    if (!profileOpen || !profileDirty) return;
+    const preventAccidentalNavigation = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", preventAccidentalNavigation);
+    return () =>
+      window.removeEventListener("beforeunload", preventAccidentalNavigation);
+  }, [profileDirty, profileOpen]);
 
   const openProfile = async () => {
     setProfileOpen(true);
@@ -311,7 +345,13 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+      <Dialog
+        open={profileOpen}
+        onOpenChange={(open) => {
+          if (open) setProfileOpen(true);
+          else requestProfileClose();
+        }}
+      >
         <DialogContent className="border-slate-800 bg-slate-950 text-slate-100 sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit profile</DialogTitle>
@@ -376,14 +416,14 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
           <DialogFooter>
             <Button
               disabled={saving}
-              onClick={() => setProfileOpen(false)}
+              onClick={requestProfileClose}
               type="button"
               variant="ghost"
             >
               Cancel
             </Button>
             <Button
-              disabled={saving || !displayName.trim()}
+              disabled={saving || !displayName.trim() || !profileDirty}
               onClick={saveProfile}
             >
               {saving ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -392,6 +432,14 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDeleteDialog
+        confirmText="Discard changes"
+        isOpen={confirmingProfileDiscard}
+        message="Your unsaved profile changes will be discarded."
+        onCancel={() => setConfirmingProfileDiscard(false)}
+        onConfirm={discardProfileDraft}
+        title="Discard profile changes?"
+      />
     </>
   );
 }

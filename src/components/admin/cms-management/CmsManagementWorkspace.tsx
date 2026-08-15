@@ -13,10 +13,11 @@ import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/ga
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { ChevronDown, Library, RefreshCw, Settings2, X } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function CmsManagementWorkspace({
   cmsHref,
@@ -28,6 +29,8 @@ export default function CmsManagementWorkspace({
   section: AdminCmsSection;
 }) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const [hasPendingMedia, setHasPendingMedia] = useState(false);
   const [characterEditorReturnId, setCharacterEditorReturnId] = useState<
     string | null
   >(null);
@@ -42,6 +45,7 @@ export default function CmsManagementWorkspace({
   const {
     assets,
     blocks,
+    cancelUploads,
     changeTitle,
     collection,
     config,
@@ -49,10 +53,12 @@ export default function CmsManagementWorkspace({
     definitions,
     deleteAsset,
     deleteEntry,
+    discardChanges,
     draft,
     entries,
     entryId,
     fields,
+    isDirty,
     message,
     pending,
     relationSelections,
@@ -71,8 +77,25 @@ export default function CmsManagementWorkspace({
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
     uploadStatus,
+    uploading,
     visibleCollections,
   } = workspace;
+
+  const hasUnsavedEditorWork = isDirty || hasPendingMedia || uploading;
+  const handlePendingMediaChange = useCallback(
+    (hasPendingFile: boolean) => setHasPendingMedia(hasPendingFile),
+    [],
+  );
+
+  useEffect(() => {
+    if (!editorOpen || !hasUnsavedEditorWork) return;
+    const preventAccidentalNavigation = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", preventAccidentalNavigation);
+    return () =>
+      window.removeEventListener("beforeunload", preventAccidentalNavigation);
+  }, [editorOpen, hasUnsavedEditorWork]);
 
   if (!collection) {
     return (
@@ -166,6 +189,27 @@ export default function CmsManagementWorkspace({
     selectCollection(characters.id);
     setEntryId(characterId);
     setCharacterEditorReturnId(null);
+  };
+
+  const finishEditorExit = () => {
+    setConfirmingDiscard(false);
+    setHasPendingMedia(false);
+    if (characterEditorReturnId) returnToCharacterEditor();
+    else setEditorOpen(false);
+  };
+
+  const requestEditorExit = () => {
+    if (hasUnsavedEditorWork) {
+      setConfirmingDiscard(true);
+      return;
+    }
+    finishEditorExit();
+  };
+
+  const discardAndExitEditor = () => {
+    cancelUploads();
+    discardChanges();
+    finishEditorExit();
   };
 
   const collectionButton = (
@@ -385,7 +429,7 @@ export default function CmsManagementWorkspace({
 
       {editorOpen ? (
         <CmsEntryEditorDialog
-          onClose={() => setEditorOpen(false)}
+          onClose={requestEditorExit}
           title={
             entryId
               ? CONNECTION_COLLECTION_SLUGS.has(collection.slug)
@@ -424,8 +468,7 @@ export default function CmsManagementWorkspace({
               )
             }
             onCancel={() => {
-              if (characterEditorReturnId) returnToCharacterEditor();
-              else setEditorOpen(false);
+              requestEditorExit();
             }}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
@@ -445,6 +488,8 @@ export default function CmsManagementWorkspace({
               selectCollection(target.id);
               setEntryId(galleryEntryId);
             }}
+            isDirty={isDirty}
+            onPendingMediaChange={handlePendingMediaChange}
             pending={pending}
             relationSelections={relationSelections}
             selectedEntryId={entryId}
@@ -454,6 +499,21 @@ export default function CmsManagementWorkspace({
           />
         </CmsEntryEditorDialog>
       ) : null}
+
+      <ConfirmDeleteDialog
+        confirmText="Discard changes"
+        isOpen={confirmingDiscard}
+        message={
+          uploading
+            ? "A media upload is still in progress. Leaving now will cancel it and discard every unsaved change."
+            : hasPendingMedia
+              ? "The selected media has not been uploaded. Leaving now will clear it and discard every unsaved change."
+              : "Your unsaved changes will be discarded."
+        }
+        onCancel={() => setConfirmingDiscard(false)}
+        onConfirm={discardAndExitEditor}
+        title="Discard unsaved changes?"
+      />
 
       {pending ? (
         <div className="fixed right-5 bottom-5 z-50 flex items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white shadow-xl dark:bg-white dark:text-zinc-950">

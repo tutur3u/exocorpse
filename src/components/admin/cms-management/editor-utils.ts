@@ -242,3 +242,24 @@ export function buildSavePayload({
     ),
   };
 }
+
+export function cmsEditorStateFingerprint({
+  blocks,
+  draft,
+  relationSelections,
+}: {
+  blocks: CmsBlockDraft[];
+  draft: CmsEntryDraft;
+  relationSelections: CmsRelationSelections;
+}) {
+  const { updated_at: _updatedAt, ...entry } = draft;
+  return JSON.stringify({
+    blocks: blocks.map(({ key: _key, ...block }) => block),
+    draft: entry,
+    relationSelections: Object.fromEntries(
+      Object.entries(relationSelections)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([definitionId, entryIds]) => [definitionId, [...entryIds]]),
+    ),
+  });
+}

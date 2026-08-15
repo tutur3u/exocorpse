@@ -10,7 +10,7 @@ import {
 } from "@/components/admin/cms-management/cms-asset-display";
 import { FileImage, Trash2, UploadCloud } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@tuturuuu/ui/badge";
 import { Button } from "@tuturuuu/ui/button";
 import SortableList, {
@@ -24,6 +24,7 @@ export default function CmsAssetManager({
   onDelete,
   onUpload,
   onReorder,
+  onPendingFileChange,
   previewSize = "default",
   mode = "gallery",
   showHeader = true,
@@ -36,6 +37,7 @@ export default function CmsAssetManager({
   onDelete: (assetId: string) => void;
   onUpload: (file: File) => Promise<void> | void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
+  onPendingFileChange?: (pending: boolean) => void;
   previewSize?: "compact" | "default";
   mode?: "gallery" | "single";
   showHeader?: boolean;
@@ -43,6 +45,7 @@ export default function CmsAssetManager({
   description?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const pendingFileChangeRef = useRef(onPendingFileChange);
   const [selectedFile, setSelectedFile] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [activeMediaTab, setActiveMediaTab] = useState<CmsMediaTab>("linked");
@@ -60,6 +63,17 @@ export default function CmsAssetManager({
       ? partitionedAssets.linked
       : partitionedAssets[activeMediaTab];
   const showUpload = mode === "single" || activeMediaTab === "linked";
+
+  useEffect(() => {
+    pendingFileChangeRef.current = onPendingFileChange;
+  }, [onPendingFileChange]);
+
+  useEffect(() => () => pendingFileChangeRef.current?.(false), []);
+
+  const updateSelectedFile = (fileName: string) => {
+    setSelectedFile(fileName);
+    pendingFileChangeRef.current?.(Boolean(fileName));
+  };
 
   return (
     <section className="space-y-4">
@@ -133,7 +147,7 @@ export default function CmsAssetManager({
               try {
                 await onUpload(file);
                 formRef.current?.reset();
-                setSelectedFile("");
+                updateSelectedFile("");
               } catch {
                 // The parent owns the user-facing error and keeps the selected
                 // file available so the upload can be retried.
@@ -150,7 +164,7 @@ export default function CmsAssetManager({
                 disabled={disabled}
                 name="file"
                 onChange={(event) =>
-                  setSelectedFile(event.target.files?.[0]?.name ?? "")
+                  updateSelectedFile(event.target.files?.[0]?.name ?? "")
                 }
                 required
                 type="file"

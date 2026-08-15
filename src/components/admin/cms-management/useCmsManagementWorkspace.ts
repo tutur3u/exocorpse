@@ -3,6 +3,7 @@
 import {
   blocksToDrafts,
   buildSavePayload,
+  cmsEditorStateFingerprint,
   collectionConfig,
   emptyEntry,
   entryDraft,
@@ -74,6 +75,8 @@ export function useCmsManagementWorkspace({
   section: AdminCmsSection;
 }) {
   const galleryUploadSequenceRef = useRef(0);
+  const hydratedEditorSourceRef = useRef("");
+  const uploadAbortControllerRef = useRef<AbortController | null>(null);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<CmsUploadStatus>(null);
@@ -113,6 +116,16 @@ export function useCmsManagementWorkspace({
   const [blocks, setBlocks] = useState<CmsBlockDraft[]>([]);
   const [relationSelections, setRelationSelections] =
     useState<CmsRelationSelections>({});
+  const [savedEditorState, setSavedEditorState] = useState(() =>
+    cmsEditorStateFingerprint({
+      blocks: [],
+      draft: entryDraft(
+        initialStudio.entries.find((entry) => entry.id === entryId) ?? null,
+        defaultCollection?.id ?? "",
+      ),
+      relationSelections: {},
+    }),
+  );
   const [message, setMessage] = useState<CmsEditorMessage>(null);
 
   useEffect(() => setStudio(initialStudio), [initialStudio]);
@@ -163,28 +176,51 @@ export function useCmsManagementWorkspace({
     // contextual relations are initialized by createEntry(), so do not replace
     // them with another blank draft after that state transition.
     if (creatingEntry) return;
-    setDraft(
-      entry
-        ? entryDraft(entry, collection.id)
-        : applyFieldDefaults(emptyEntry(collection.id), fields),
-    );
-    setBlocks(
-      blocksToDrafts(
-        studio.blocks.filter((block) => block.entry_id === entry?.id),
-        studio.assets.filter((asset) => asset.entry_id === entry?.id),
+    const editorSource = JSON.stringify({
+      blocks: studio.blocks.filter((block) => block.entry_id === entry?.id),
+      collectionId: collection.id,
+      definitions,
+      entry,
+      entryId,
+      fields,
+      relations: (studio.relations ?? []).filter(
+        (relation) => relation.from_entry_id === entry?.id,
       ),
+    });
+    if (hydratedEditorSourceRef.current === editorSource) return;
+    hydratedEditorSourceRef.current = editorSource;
+    const nextDraft = entry
+      ? entryDraft(entry, collection.id)
+      : applyFieldDefaults(emptyEntry(collection.id), fields);
+    const nextBlocks = blocksToDrafts(
+      studio.blocks.filter((block) => block.entry_id === entry?.id),
+      studio.assets.filter((asset) => asset.entry_id === entry?.id),
     );
-    setRelationSelections(
-      initialRelationSelections(studio, entry?.id ?? "", definitions),
+    const nextRelations = initialRelationSelections(
+      studio,
+      entry?.id ?? "",
+      definitions,
+    );
+    setDraft(nextDraft);
+    setBlocks(nextBlocks);
+    setRelationSelections(nextRelations);
+    setSavedEditorState(
+      cmsEditorStateFingerprint({
+        blocks: nextBlocks,
+        draft: nextDraft,
+        relationSelections: nextRelations,
+      }),
     );
   }, [collection, creatingEntry, definitions, entryId, fields, studio]);
 
   function setEntryId(nextEntryId: string) {
+    hydratedEditorSourceRef.current = "";
     setCreatingEntry(false);
     setEntryIdState(nextEntryId);
   }
 
   function selectCollection(nextCollectionId: string) {
+    hydratedEditorSourceRef.current = "";
     setMessage(null);
     setCreatingEntry(false);
     setCollectionId(nextCollectionId);
@@ -196,27 +232,35 @@ export function useCmsManagementWorkspace({
     initialRelations: CmsRelationSelections = {},
   ) {
     if (!collection) return;
+    hydratedEditorSourceRef.current = "";
     setCreatingEntry(true);
     setEntryIdState("");
     const nextDraft = applyFieldDefaults(emptyEntry(collection.id), fields);
     const profileData = isJsonRecord(nextDraft.profile_data)
       ? nextDraft.profile_data
       : {};
-    setDraft({
+    const initialDraft = {
       ...nextDraft,
       profile_data: { ...profileData, ...initialProfileData },
       status: CONNECTION_COLLECTION_SLUGS.has(collection.slug)
         ? "published"
         : nextDraft.status,
-    });
+    } satisfies CmsEntryDraft;
+    const initialSelections = Object.fromEntries(
+      definitions.map((definition) => [
+        definition.id,
+        initialRelations[definition.id] ?? [],
+      ]),
+    );
+    setDraft(initialDraft);
     setBlocks([]);
-    setRelationSelections(
-      Object.fromEntries(
-        definitions.map((definition) => [
-          definition.id,
-          initialRelations[definition.id] ?? [],
-        ]),
-      ),
+    setRelationSelections(initialSelections);
+    setSavedEditorState(
+      cmsEditorStateFingerprint({
+        blocks: [],
+        draft: initialDraft,
+        relationSelections: initialSelections,
+      }),
     );
     setMessage(null);
   }
@@ -420,6 +464,8 @@ export function useCmsManagementWorkspace({
       ? assets.map((asset) => asset.id)
       : [];
     setUploading(true);
+    const abortController = new AbortController();
+    uploadAbortControllerRef.current = abortController;
     setMessage(null);
     setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     let uploadEntry = selectedEntry;
@@ -462,6 +508,7 @@ export function useCmsManagementWorkspace({
         collectionType: collection.collection_type,
         entrySlug: uploadEntry.slug,
         file,
+        signal: abortController.signal,
         onProgress: (percentage) =>
           setUploadStatus({
             fileName: file.name,
@@ -506,14 +553,19 @@ export function useCmsManagementWorkspace({
         setEntryIdState("");
         setCreatingEntry(true);
       }
-      setMessage({
-        kind: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "That media could not be uploaded. Please try again.",
-      });
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "That media could not be uploaded. Please try again.",
+        });
+      }
     } finally {
+      if (uploadAbortControllerRef.current === abortController) {
+        uploadAbortControllerRef.current = null;
+      }
       setUploading(false);
       setUploadStatus(null);
     }
@@ -524,6 +576,8 @@ export function useCmsManagementWorkspace({
       throw new Error("Save this item before adding an image to its text.");
     }
     setUploading(true);
+    const abortController = new AbortController();
+    uploadAbortControllerRef.current = abortController;
     setMessage(null);
     setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     try {
@@ -531,6 +585,7 @@ export function useCmsManagementWorkspace({
         collectionType: collection.collection_type,
         entrySlug: selectedEntry.slug,
         file,
+        signal: abortController.signal,
         onProgress: (percentage) =>
           setUploadStatus({
             fileName: file.name,
@@ -562,15 +617,20 @@ export function useCmsManagementWorkspace({
       setMessage({ kind: "success", text: "Image added to the text." });
       return asset.asset_url;
     } catch (error) {
-      setMessage({
-        kind: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "That image could not be added. Please try again.",
-      });
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "That image could not be added. Please try again.",
+        });
+      }
       throw error;
     } finally {
+      if (uploadAbortControllerRef.current === abortController) {
+        uploadAbortControllerRef.current = null;
+      }
       setUploading(false);
       setUploadStatus(null);
     }
@@ -591,6 +651,8 @@ export function useCmsManagementWorkspace({
     }
 
     setUploading(true);
+    const abortController = new AbortController();
+    uploadAbortControllerRef.current = abortController;
     setMessage(null);
     setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     let createdEntryId: string | null = null;
@@ -647,6 +709,7 @@ export function useCmsManagementWorkspace({
         collectionType: galleryCollection.collection_type,
         entrySlug: bundle.entry.slug,
         file,
+        signal: abortController.signal,
         onProgress: (percentage) =>
           setUploadStatus({
             fileName: file.name,
@@ -689,15 +752,20 @@ export function useCmsManagementWorkspace({
       if (createdEntryId) {
         await deleteAdminCmsEntry(createdEntryId).catch(() => undefined);
       }
-      setMessage({
-        kind: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "That gallery image could not be added. Please try again.",
-      });
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "That gallery image could not be added. Please try again.",
+        });
+      }
       throw error;
     } finally {
+      if (uploadAbortControllerRef.current === abortController) {
+        uploadAbortControllerRef.current = null;
+      }
       setUploading(false);
       setUploadStatus(null);
     }
@@ -790,9 +858,48 @@ export function useCmsManagementWorkspace({
     );
   }
 
+  function cancelUploads() {
+    uploadAbortControllerRef.current?.abort();
+    uploadAbortControllerRef.current = null;
+    setUploading(false);
+    setUploadStatus(null);
+  }
+
+  function discardChanges() {
+    if (!collection) return;
+    const entry = studio.entries.find((item) => item.id === entryId) ?? null;
+    const nextDraft = entry
+      ? entryDraft(entry, collection.id)
+      : applyFieldDefaults(emptyEntry(collection.id), fields);
+    const nextBlocks = blocksToDrafts(
+      studio.blocks.filter((block) => block.entry_id === entry?.id),
+      studio.assets.filter((asset) => asset.entry_id === entry?.id),
+    );
+    const nextRelations = initialRelationSelections(
+      studio,
+      entry?.id ?? "",
+      definitions,
+    );
+    setDraft(nextDraft);
+    setBlocks(nextBlocks);
+    setRelationSelections(nextRelations);
+    setSavedEditorState(
+      cmsEditorStateFingerprint({
+        blocks: nextBlocks,
+        draft: nextDraft,
+        relationSelections: nextRelations,
+      }),
+    );
+  }
+
+  const isDirty =
+    savedEditorState !==
+    cmsEditorStateFingerprint({ blocks, draft, relationSelections });
+
   return {
     assets,
     blocks,
+    cancelUploads,
     changeTitle,
     collection,
     config,
@@ -800,10 +907,12 @@ export function useCmsManagementWorkspace({
     definitions,
     deleteAsset,
     deleteEntry,
+    discardChanges,
     draft,
     entries,
     entryId,
     fields,
+    isDirty,
     message,
     pending: pending || uploading,
     relationSelections,
@@ -822,6 +931,7 @@ export function useCmsManagementWorkspace({
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
     uploadStatus,
+    uploading,
     visibleCollections,
   };
 }

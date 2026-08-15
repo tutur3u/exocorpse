@@ -12,6 +12,7 @@
   width: 100%;
   min-width: 0;
   position: relative;
+  --tuturuuu-editor-radius: 0.75rem;
   --tuturuuu-editor-active-background: rgb(6 182 212 / 0.12);
   --tuturuuu-editor-active-border: rgb(34 211 238 / 0.42);
   --tuturuuu-editor-background: rgb(255 255 255 / 0.82);
@@ -35,6 +36,8 @@
   min-height: 3.0625rem;
   flex-wrap: nowrap;
   overflow: visible;
+  border-radius: calc(var(--tuturuuu-editor-radius) - 1px)
+    calc(var(--tuturuuu-editor-radius) - 1px) 0 0;
 }
 
 .admin-markdown-editor .tuturuuu-editor-toolbar > [data-admin-overflow="true"] {
@@ -45,6 +48,13 @@
   width: 100%;
   min-width: 0;
   overflow: visible;
+}
+
+.admin-markdown-editor .tuturuuu-editor .tiptap,
+.admin-markdown-editor .tuturuuu-editor-source-panel,
+.admin-markdown-editor .tuturuuu-editor-word-count {
+  border-radius: 0 0 calc(var(--tuturuuu-editor-radius) - 1px)
+    calc(var(--tuturuuu-editor-radius) - 1px);
 }
 
 .admin-markdown-editor-tools-toggle {

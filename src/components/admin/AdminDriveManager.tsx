@@ -125,6 +125,7 @@ export default function AdminDriveManager({
     item?: AdminDriveItem;
     mode: "folder" | "rename";
   } | null>(null);
+  const [confirmingEditDiscard, setConfirmingEditDiscard] = useState(false);
   const [entryName, setEntryName] = useState("");
   const [deleting, setDeleting] = useState<AdminDriveItem | null>(null);
   const [preview, setPreview] = useState<{
@@ -167,6 +168,45 @@ export default function AdminDriveManager({
   const listing = query.data ?? initialData.listing;
   const analytics = analyticsQuery.data;
   const managedPath = path === "drive/root" || path.startsWith("drive/root/");
+  const editDirty = Boolean(
+    editing && entryName !== (editing.item?.name ?? ""),
+  );
+
+  const discardEdit = () => {
+    setEditing(null);
+    setEntryName("");
+    setConfirmingEditDiscard(false);
+  };
+
+  const requestEditClose = () => {
+    if (busy) return;
+    if (editDirty) {
+      setConfirmingEditDiscard(true);
+      return;
+    }
+    discardEdit();
+  };
+
+  useEffect(() => {
+    if (!editing) return;
+    const guardEdit = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || confirmingEditDiscard || busy) return;
+      if (editDirty) setConfirmingEditDiscard(true);
+      else {
+        setEditing(null);
+        setEntryName("");
+      }
+    };
+    const guardNavigation = (event: BeforeUnloadEvent) => {
+      if (editDirty) event.preventDefault();
+    };
+    window.addEventListener("keydown", guardEdit);
+    window.addEventListener("beforeunload", guardNavigation);
+    return () => {
+      window.removeEventListener("keydown", guardEdit);
+      window.removeEventListener("beforeunload", guardNavigation);
+    };
+  }, [busy, confirmingEditDiscard, editDirty, editing]);
 
   const crumbs = useMemo(() => {
     const segments = path.split("/").filter(Boolean);
@@ -609,7 +649,7 @@ export default function AdminDriveManager({
               <button
                 aria-label="Close"
                 className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setEditing(null)}
+                onClick={requestEditClose}
                 type="button"
               >
                 <X className="h-4 w-4" />
@@ -627,14 +667,14 @@ export default function AdminDriveManager({
             <div className="mt-5 flex justify-end gap-2">
               <button
                 className="h-10 rounded-lg px-4 text-sm font-bold text-gray-600 dark:text-gray-300"
-                onClick={() => setEditing(null)}
+                onClick={requestEditClose}
                 type="button"
               >
                 Cancel
               </button>
               <button
                 className="h-10 rounded-lg bg-cyan-600 px-4 text-sm font-bold text-white disabled:opacity-50"
-                disabled={busy || !entryName.trim()}
+                disabled={busy || !entryName.trim() || !editDirty}
                 onClick={() => void saveEntry()}
                 type="button"
               >
@@ -644,6 +684,15 @@ export default function AdminDriveManager({
           </div>
         </div>
       ) : null}
+
+      <ConfirmDeleteDialog
+        confirmText="Discard changes"
+        isOpen={confirmingEditDiscard}
+        message="The name you entered has not been saved."
+        onCancel={() => setConfirmingEditDiscard(false)}
+        onConfirm={discardEdit}
+        title="Discard this change?"
+      />
 
       <ConfirmDeleteDialog
         confirmText="Delete"

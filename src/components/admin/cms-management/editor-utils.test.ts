@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildSavePayload,
   blocksToDrafts,
+  cmsEditorStateFingerprint,
   shouldBypassImageOptimization,
   slugify,
 } from "./editor-utils";
@@ -62,6 +63,28 @@ describe("CMS management editor helpers", () => {
     expect(slugify("Áster's World — Volume II")).toBe(
       "aster-s-world-volume-ii",
     );
+  });
+
+  test("detects meaningful editor changes without treating server timestamps as edits", () => {
+    const initial = cmsEditorStateFingerprint({
+      blocks: [],
+      draft,
+      relationSelections: { "definition-id": ["tag-a"] },
+    });
+    expect(
+      cmsEditorStateFingerprint({
+        blocks: [],
+        draft: { ...draft, updated_at: "2026-08-15T00:00:00.000Z" },
+        relationSelections: { "definition-id": ["tag-a"] },
+      }),
+    ).toBe(initial);
+    expect(
+      cmsEditorStateFingerprint({
+        blocks: [],
+        draft: { ...draft, title: "Changed title" },
+        relationSelections: { "definition-id": ["tag-a"] },
+      }),
+    ).not.toBe(initial);
   });
 
   test("uses versioned CMS URLs for inline images in the editor", () => {

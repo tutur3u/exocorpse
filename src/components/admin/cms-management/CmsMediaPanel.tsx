@@ -14,6 +14,7 @@ export default function CmsMediaPanel({
   onSave,
   onUpload,
   onReorder,
+  onPendingFileChange,
   previewSize = "default",
   mode = "gallery",
   title,
@@ -29,6 +30,7 @@ export default function CmsMediaPanel({
   onSave: () => void;
   onUpload: (file: File) => Promise<void> | void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
+  onPendingFileChange?: (pending: boolean) => void;
   previewSize?: "compact" | "default";
   mode?: "gallery" | "single";
   title?: string;
@@ -44,6 +46,7 @@ export default function CmsMediaPanel({
         onDelete={onDelete}
         onUpload={onUpload}
         onReorder={onReorder}
+        onPendingFileChange={onPendingFileChange}
         previewSize={previewSize}
         mode={mode}
         title={title}

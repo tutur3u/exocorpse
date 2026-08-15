@@ -44,7 +44,7 @@ import type {
 } from "@/types/exocorpse-cms";
 import { ChevronDown, Save, Trash2, UploadCloud } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function CharacterEditorSection({
   children,
@@ -151,10 +151,12 @@ type Props = {
   onUploadGalleryAsset: (file: File) => Promise<void>;
   onUploadInlineAsset: (file: File) => Promise<string>;
   onEditGalleryEntry: (entryId: string) => void;
+  onPendingMediaChange: (pending: boolean) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
   onReorderAssets: (assets: ExocorpseCmsAsset[]) => void;
   pending: boolean;
   relationSelections: CmsRelationSelections;
+  isDirty: boolean;
   selectedEntryId: string;
   studio: ExocorpseCmsStudio;
   theme: AdminCmsTheme;
@@ -183,14 +185,19 @@ export default function CmsEntryEditor({
   onUploadGalleryAsset,
   onUploadInlineAsset,
   onEditGalleryEntry,
+  onPendingMediaChange,
   pending,
   relationSelections,
+  isDirty,
   selectedEntryId,
   studio,
   theme,
   uploadStatus,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [pendingMediaSections, setPendingMediaSections] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [activeTab, setActiveTab] = useState<CmsEditorTab>(() =>
     ["character-gallery", "portfolio-art"].includes(collection.slug)
       ? "media"
@@ -210,8 +217,26 @@ export default function CmsEntryEditor({
   const canSave = isConnectionEntry
     ? isConnectionDraftReady(definitions, relationSelections) &&
       !duplicateConnection &&
-      !pending
-    : Boolean(draft.title.trim() && draft.slug.trim() && !pending);
+      !pending &&
+      isDirty
+    : Boolean(draft.title.trim() && draft.slug.trim() && !pending && isDirty);
+  const updatePendingMedia = useCallback(
+    (section: string, hasPendingFile: boolean) => {
+      setPendingMediaSections((current) => {
+        const next = new Set(current);
+        if (hasPendingFile) next.add(section);
+        else next.delete(section);
+        return next;
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    onPendingMediaChange(pendingMediaSections.size > 0);
+  }, [onPendingMediaChange, pendingMediaSections]);
+
+  useEffect(() => () => onPendingMediaChange(false), [onPendingMediaChange]);
   const connectionCount = Object.values(relationSelections).reduce(
     (count, selections) => count + selections.length,
     0,
@@ -474,6 +499,9 @@ export default function CmsEntryEditor({
             onSave={onSave}
             onUpload={onUploadAsset}
             onReorder={onReorderAssets}
+            onPendingFileChange={(hasPendingFile) =>
+              updatePendingMedia("media", hasPendingFile)
+            }
             pending={pending}
             previewSize={usesSingleArtwork ? "compact" : "default"}
             mode={usesSingleArtwork ? "single" : "gallery"}
@@ -584,6 +612,9 @@ export default function CmsEntryEditor({
               mode="gallery"
               onDelete={onDeleteAsset}
               onReorder={onReorderAssets}
+              onPendingFileChange={(hasPendingFile) =>
+                updatePendingMedia("character-profile", hasPendingFile)
+              }
               onSave={onSave}
               onUpload={onUploadAsset}
               pending={pending}

@@ -18,12 +18,15 @@ export async function uploadCmsAssetDirect({
   entrySlug,
   file,
   onProgress,
+  signal,
 }: {
   collectionType: string;
   entrySlug: string;
   file: File;
   onProgress?: (percentage: number) => void;
+  signal?: AbortSignal;
 }) {
+  signal?.throwIfAborted();
   onProgress?.(2);
   const path = `${collectionType}/${entrySlug}/${file.name}`;
   const metadataResponse = await fetch("/api/storage/signed-upload-url", {
@@ -35,6 +38,7 @@ export async function uploadCmsAssetDirect({
     }),
     headers: { "Content-Type": "application/json" },
     method: "POST",
+    signal,
   });
   if (!metadataResponse.ok) {
     throw new Error(
@@ -58,6 +62,7 @@ export async function uploadCmsAssetDirect({
     if (onProgress && typeof XMLHttpRequest !== "undefined") {
       await new Promise<void>((resolve, reject) => {
         const request = new XMLHttpRequest();
+        const abortUpload = () => request.abort();
         request.open("PUT", upload.signedUrl!);
         Object.entries(requestHeaders).forEach(([key, value]) =>
           request.setRequestHeader(key, value),
@@ -73,6 +78,8 @@ export async function uploadCmsAssetDirect({
         };
         request.onerror = () =>
           reject(new Error("The upload was interrupted. Please try again."));
+        request.onabort = () =>
+          reject(new DOMException("The upload was cancelled.", "AbortError"));
         request.onload = () => {
           if (request.status >= 200 && request.status < 300) resolve();
           else
@@ -85,6 +92,10 @@ export async function uploadCmsAssetDirect({
               ),
             );
         };
+        signal?.addEventListener("abort", abortUpload, { once: true });
+        request.onloadend = () =>
+          signal?.removeEventListener("abort", abortUpload);
+        signal?.throwIfAborted();
         request.send(file);
       });
       return;
@@ -95,6 +106,7 @@ export async function uploadCmsAssetDirect({
       cache: "no-store",
       headers: requestHeaders,
       method: "PUT",
+      signal,
     });
     if (!response.ok) {
       throw Object.assign(
@@ -107,6 +119,7 @@ export async function uploadCmsAssetDirect({
   try {
     await uploadFile(headers);
   } catch (error) {
+    if (signal?.aborted) throw error;
     const status =
       typeof error === "object" && error && "status" in error
         ? Number(error.status)

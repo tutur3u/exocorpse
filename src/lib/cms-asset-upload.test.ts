@@ -94,4 +94,28 @@ describe("direct CMS asset uploads", () => {
 
     expect(progress).toEqual([2, 96]);
   });
+
+  test("cancels an upload when its editor is discarded", async () => {
+    const controller = new AbortController();
+    globalThis.fetch = (async (input, init) => {
+      if (String(input) === "/api/storage/signed-upload-url") {
+        return Response.json({
+          path: "external-projects/exocorpse/content/hero/test.png",
+          signedUrl: "https://uploads.example.test/file",
+        });
+      }
+      controller.abort();
+      init?.signal?.throwIfAborted();
+      return new Response(null, { status: 200 });
+    }) as typeof fetch;
+
+    await expect(
+      uploadCmsAssetDirect({
+        collectionType: "content",
+        entrySlug: "hero",
+        file: new File(["image"], "test.png", { type: "image/png" }),
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
 });
