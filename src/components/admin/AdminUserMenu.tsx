@@ -433,16 +433,16 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
               Save profile
             </Button>
           </DialogFooter>
+          <ConfirmDeleteDialog
+            confirmText="Discard changes"
+            isOpen={confirmingProfileDiscard}
+            message="Your unsaved profile changes will be discarded."
+            onCancel={() => setConfirmingProfileDiscard(false)}
+            onConfirm={discardProfileDraft}
+            title="Discard profile changes?"
+          />
         </DialogContent>
       </Dialog>
-      <ConfirmDeleteDialog
-        confirmText="Discard changes"
-        isOpen={confirmingProfileDiscard}
-        message="Your unsaved profile changes will be discarded."
-        onCancel={() => setConfirmingProfileDiscard(false)}
-        onConfirm={discardProfileDraft}
-        title="Discard profile changes?"
-      />
     </>
   );
 }
