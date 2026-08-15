@@ -13,6 +13,8 @@ bun build
 
 Public content is read from Tuturuuu delivery. The branded `/admin` surface uses the current Tuturuuu session for entry bundles, relations, publication state, blacklist moderation, and managed media.
 
+Admin media uploads request signed Tuturuuu upload metadata and send bytes directly from the browser. Upload lifecycle state lives at the editor-dialog level so switching accordion sections or quick-navigation tabs never cancels an upload or hides its progress. Artwork editors are media-first; supporting copy and publishing controls are optional refinements.
+
 ## Hard-cutover importer
 
 The operator-only importer accepts a secured canonical JSON export and performs idempotent collection, typed-field, relation-definition, entry, relation, and asset upserts before managed-storage ingestion and parity checks. The export addresses entries with `collectionSlug`, relations with `definitionKey`, and all records with stable source IDs; environment-specific CMS UUIDs are resolved during the run.

@@ -312,6 +312,10 @@ export default function CmsLegacyAboutWorkspace({
   const [activeTab, setActiveTab] = useState<AdminAboutTab>("profile");
   const [studio, setStudio] = useState(initialStudio);
   const [mediaPending, setMediaPending] = useState(false);
+  const [mediaProgress, setMediaProgress] = useState<{
+    fileName: string;
+    percentage: number;
+  } | null>(null);
   const data = useMemo(() => aboutPageData(studio), [studio]);
 
   const itemsBySection = useMemo(
@@ -574,12 +578,16 @@ export default function CmsLegacyAboutWorkspace({
     if (!file.size) return;
     const replacedAssetIds = heroAssets.map((asset) => asset.id);
     setMediaPending(true);
+    setMediaProgress({ fileName: file.name, percentage: 2 });
     try {
       const storagePath = await uploadCmsAssetDirect({
         collectionType: settingsCollection.collection_type,
         entrySlug: settingsEntry.slug,
         file,
+        onProgress: (percentage) =>
+          setMediaProgress({ fileName: file.name, percentage }),
       });
+      setMediaProgress({ fileName: file.name, percentage: 97 });
       const asset = await registerAdminCmsAsset({
         entryId: settingsEntry.id,
         fileName: file.name,
@@ -606,6 +614,7 @@ export default function CmsLegacyAboutWorkspace({
       );
     } finally {
       setMediaPending(false);
+      setMediaProgress(null);
     }
   };
 
@@ -850,6 +859,24 @@ export default function CmsLegacyAboutWorkspace({
   return (
     <div className="space-y-6">
       <AdminPageHeader title="About" />
+
+      {mediaProgress ? (
+        <div
+          aria-live="polite"
+          className="sticky top-3 z-30 rounded-xl border border-cyan-200 bg-cyan-50/95 px-4 py-3 shadow-lg backdrop-blur dark:border-cyan-900/70 dark:bg-cyan-950/80"
+        >
+          <div className="flex items-center justify-between gap-3 text-sm font-semibold text-cyan-950 dark:text-cyan-100">
+            <span className="truncate">Uploading {mediaProgress.fileName}</span>
+            <span>{mediaProgress.percentage}%</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cyan-950/10 dark:bg-white/10">
+            <div
+              className="h-full rounded-full bg-linear-to-r from-cyan-500 to-blue-500 transition-[width] duration-200"
+              style={{ width: `${mediaProgress.percentage}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-5">
         <nav

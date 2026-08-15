@@ -19,6 +19,7 @@ import type {
   CmsEditorMessage,
   CmsEntryDraft,
   CmsRelationSelections,
+  CmsUploadStatus,
 } from "@/components/admin/cms-management/editor-types";
 import {
   deleteAdminCmsAsset,
@@ -75,6 +76,7 @@ export function useCmsManagementWorkspace({
   const galleryUploadSequenceRef = useRef(0);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<CmsUploadStatus>(null);
   const [studio, setStudio] = useState(initialStudio);
   const visibleCollections = useMemo(() => {
     const selectedSlugs = new Set(section.collectionSlugs);
@@ -402,8 +404,14 @@ export function useCmsManagementWorkspace({
     );
   }
 
-  function uploadAsset(file: File) {
-    if (!selectedEntry || !collection) return;
+  async function uploadAsset(file: File) {
+    if (!collection) return;
+    const canCreateFromMedia = [
+      "character-gallery",
+      "location-gallery",
+      "portfolio-art",
+    ].includes(collection.slug);
+    if (!selectedEntry && !canCreateFromMedia) return;
     const replacedAssetIds = [
       "character-gallery",
       "location-gallery",
@@ -411,35 +419,104 @@ export function useCmsManagementWorkspace({
     ].includes(collection.slug)
       ? assets.map((asset) => asset.id)
       : [];
-    run(
-      async () => {
-        const storagePath = await uploadCmsAssetDirect({
-          collectionType: collection.collection_type,
-          entrySlug: selectedEntry.slug,
-          file,
+    setUploading(true);
+    setMessage(null);
+    setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
+    let uploadEntry = selectedEntry;
+    let createdEntryId: string | null = null;
+    try {
+      if (!uploadEntry) {
+        const fileTitle =
+          draft.title.trim() ||
+          file.name.replace(/\.[^.]+$/, "").trim() ||
+          "Artwork";
+        const preparedDraft = {
+          ...draft,
+          slug:
+            draft.slug.trim() ||
+            slugify(`${fileTitle}-${crypto.randomUUID().slice(0, 8)}`),
+          title: fileTitle,
+        };
+        const bundle = await saveAdminCmsEntry({
+          ...buildSavePayload({
+            blocks,
+            definitions,
+            draft: preparedDraft,
+            relationSelections,
+          }),
+          collectionSlug: collection.slug,
         });
-        const asset = await registerAdminCmsAsset({
-          entryId: selectedEntry.id,
-          fileName: file.name,
-          fileType: file.type,
-          storagePath,
-        });
-        await Promise.all(replacedAssetIds.map(deleteAdminCmsAsset));
-        return asset;
-      },
-      "Media uploaded.",
-      (asset) =>
+        createdEntryId = bundle.entry.id;
+        uploadEntry = bundle.entry;
+        setDraft(entryDraft(bundle.entry, collection.id));
+        setEntryIdState(bundle.entry.id);
+        setCreatingEntry(false);
         setStudio((current) => ({
           ...current,
-          assets: [
-            ...current.assets.filter(
-              (item) =>
-                item.id !== asset.id && !replacedAssetIds.includes(item.id),
-            ),
-            asset,
-          ],
-        })),
-    );
+          blocks: [...current.blocks, ...bundle.blocks],
+          entries: [...current.entries, bundle.entry],
+          relations: [...(current.relations ?? []), ...bundle.relations],
+        }));
+      }
+      const storagePath = await uploadCmsAssetDirect({
+        collectionType: collection.collection_type,
+        entrySlug: uploadEntry.slug,
+        file,
+        onProgress: (percentage) =>
+          setUploadStatus({
+            fileName: file.name,
+            percentage,
+            stage: percentage < 5 ? "preparing" : "uploading",
+          }),
+      });
+      setUploadStatus({ fileName: file.name, percentage: 97, stage: "saving" });
+      const asset = await registerAdminCmsAsset({
+        entryId: uploadEntry.id,
+        fileName: file.name,
+        fileType: file.type,
+        storagePath,
+      });
+      await Promise.all(replacedAssetIds.map(deleteAdminCmsAsset));
+      setStudio((current) => ({
+        ...current,
+        assets: [
+          ...current.assets.filter(
+            (item) =>
+              item.id !== asset.id && !replacedAssetIds.includes(item.id),
+          ),
+          asset,
+        ],
+      }));
+      setMessage({ kind: "success", text: "Media uploaded." });
+    } catch (error) {
+      if (createdEntryId) {
+        await deleteAdminCmsEntry(createdEntryId).catch(() => undefined);
+        setStudio((current) => ({
+          ...current,
+          blocks: current.blocks.filter(
+            (block) => block.entry_id !== createdEntryId,
+          ),
+          entries: current.entries.filter(
+            (entry) => entry.id !== createdEntryId,
+          ),
+          relations: (current.relations ?? []).filter(
+            (relation) => relation.from_entry_id !== createdEntryId,
+          ),
+        }));
+        setEntryIdState("");
+        setCreatingEntry(true);
+      }
+      setMessage({
+        kind: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "That media could not be uploaded. Please try again.",
+      });
+    } finally {
+      setUploading(false);
+      setUploadStatus(null);
+    }
   }
 
   async function uploadInlineAsset(file: File) {
@@ -448,12 +525,20 @@ export function useCmsManagementWorkspace({
     }
     setUploading(true);
     setMessage(null);
+    setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     try {
       const storagePath = await uploadCmsAssetDirect({
         collectionType: collection.collection_type,
         entrySlug: selectedEntry.slug,
         file,
+        onProgress: (percentage) =>
+          setUploadStatus({
+            fileName: file.name,
+            percentage,
+            stage: percentage < 5 ? "preparing" : "uploading",
+          }),
       });
+      setUploadStatus({ fileName: file.name, percentage: 97, stage: "saving" });
       const asset = await registerAdminCmsAsset({
         assetType: "inline-image",
         entryId: selectedEntry.id,
@@ -487,6 +572,7 @@ export function useCmsManagementWorkspace({
       throw error;
     } finally {
       setUploading(false);
+      setUploadStatus(null);
     }
   }
 
@@ -506,6 +592,7 @@ export function useCmsManagementWorkspace({
 
     setUploading(true);
     setMessage(null);
+    setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     let createdEntryId: string | null = null;
     try {
       const fileTitle = file.name.replace(/\.[^.]+$/, "").trim() || "Artwork";
@@ -560,7 +647,14 @@ export function useCmsManagementWorkspace({
         collectionType: galleryCollection.collection_type,
         entrySlug: bundle.entry.slug,
         file,
+        onProgress: (percentage) =>
+          setUploadStatus({
+            fileName: file.name,
+            percentage,
+            stage: percentage < 5 ? "preparing" : "uploading",
+          }),
       });
+      setUploadStatus({ fileName: file.name, percentage: 97, stage: "saving" });
       const asset = await registerAdminCmsAsset({
         entryId: bundle.entry.id,
         fileName: file.name,
@@ -605,6 +699,7 @@ export function useCmsManagementWorkspace({
       throw error;
     } finally {
       setUploading(false);
+      setUploadStatus(null);
     }
   }
 
@@ -726,6 +821,7 @@ export function useCmsManagementWorkspace({
     uploadAsset,
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
+    uploadStatus,
     visibleCollections,
   };
 }

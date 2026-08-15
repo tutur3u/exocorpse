@@ -17,6 +17,7 @@ export default function CmsAssetManager({
   onReorder,
   previewSize = "default",
   mode = "gallery",
+  showHeader = true,
   title,
   description,
 }: {
@@ -28,6 +29,7 @@ export default function CmsAssetManager({
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
   previewSize?: "compact" | "default";
   mode?: "gallery" | "single";
+  showHeader?: boolean;
   title?: string;
   description?: string;
 }) {
@@ -60,28 +62,35 @@ export default function CmsAssetManager({
           void onUpload(file);
         }}
       >
-        <div>
-          <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-            <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            {title ?? (mode === "single" ? "Image" : "Media")}
-          </h3>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            {description ??
-              (hasSingleAsset
-                ? "Choose another image to replace the current one, or remove it."
-                : mode === "single"
-                  ? "Choose one image. You can replace or remove it at any time."
-                  : "Add and arrange the images visitors will see.")}
-          </p>
-        </div>
+        {showHeader ? (
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
+              <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              {title ?? (mode === "single" ? "Image" : "Media")}
+            </h3>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              {description ??
+                (hasSingleAsset
+                  ? "Choose another image to replace the current one, or remove it."
+                  : mode === "single"
+                    ? "Choose one image. You can replace or remove it at any time."
+                    : "Add and arrange the images visitors will see.")}
+            </p>
+          </div>
+        ) : null}
         <form
           onSubmit={async (event) => {
             event.preventDefault();
             const file = new FormData(event.currentTarget).get("file");
             if (!(file instanceof File) || !file.size) return;
-            await onUpload(file);
-            formRef.current?.reset();
-            setSelectedFile("");
+            try {
+              await onUpload(file);
+              formRef.current?.reset();
+              setSelectedFile("");
+            } catch {
+              // The parent owns the user-facing error and keeps the selected
+              // file available so the upload can be retried.
+            }
           }}
           className="flex flex-wrap items-center gap-2"
           ref={formRef}
@@ -155,9 +164,6 @@ export default function CmsAssetManager({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium text-zinc-800 dark:text-zinc-200">
                     {asset.alt_text ?? `${asset.asset_type} file`}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
-                    {asset.storage_path ? "Ready to use" : "Linked media"}
                   </p>
                 </div>
                 <Button

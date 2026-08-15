@@ -94,9 +94,7 @@ export default function AdminMarkdownEditor({
         }
         className="admin-markdown-editor-tools-toggle"
         onClick={() => setShowMoreTools((current) => !current)}
-        title={
-          showMoreTools ? "Close formatting tools" : "More formatting tools"
-        }
+        title={showMoreTools ? "Use one toolbar row" : "Show every tool"}
         type="button"
       >
         {showMoreTools ? (

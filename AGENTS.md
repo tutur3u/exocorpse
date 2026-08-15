@@ -22,6 +22,11 @@ Exocorpse is a Next.js 16 desktop-style portfolio, commission site, blog, and fa
 - Preserve the desktop/window metaphor and anatomical terminal aesthetic.
 - Prefer container query variants (`@sm:`, `@md:`, and larger) inside window content.
 - Use Next Image with dimensions or `fill`, and verify that placeholders disappear after load.
+- Keep admin editors single-page and sectioned with compact accordions; navigation tabs are quick-scroll aids, not separate forms. Titles and their introductions stack vertically and use the full available width.
+- Treat media as first-class content: artwork and gallery editors start with the upload/preview surface, while descriptive and publishing fields remain optional follow-up details.
+- Own upload state above tab panels. Direct uploads must continue when an editor switches sections, and visible filename, stage, and byte progress must remain available until registration finishes or an actionable error is shown.
+- Show reorder handles only when a collection contains at least two items. Do not add status filler such as "Ready to use" to media cards.
+- Rich-text formatting stays on one toolbar row. Keep the overflow control inside the toolbar and expose every additional formatting action through that control.
 
 ## Shipping
 

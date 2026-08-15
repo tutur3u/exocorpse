@@ -43,24 +43,10 @@
   min-width: 0;
 }
 
-.admin-markdown-editor:not([data-tools-expanded="true"])
-  .tuturuuu-editor-toolbar
-  :is(
-    [aria-label="Heading 2"],
-    [aria-label="Heading 3"],
-    [aria-label="Heading 4"],
-    [aria-label="Bulleted list"],
-    [aria-label="Numbered list"],
-    [aria-label="Quote"],
-    [aria-label="Divider"]
-  ) {
-  display: none;
-}
-
 .admin-markdown-editor-tools-toggle {
   position: absolute;
   z-index: 35;
-  top: 3.65rem;
+  top: 0.53rem;
   right: 0.72rem;
   display: inline-flex;
   width: 2rem;

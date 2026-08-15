@@ -204,9 +204,7 @@ export default function CmsFieldEditor({
     isMultiline || isColorField || isColorPalette ? "div" : "label";
 
   return (
-    <Wrapper
-      className={`block space-y-1.5 text-sm ${isMultiline ? "@3xl:col-span-2" : ""}`}
-    >
+    <Wrapper className="block w-full min-w-0 space-y-1.5 text-sm">
       <span className="flex items-center gap-2 font-medium text-zinc-800 dark:text-zinc-200">
         {label}
         {definition.is_required ? (

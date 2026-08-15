@@ -4,9 +4,10 @@ import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import type { AboutPageSettings } from "@/lib/about";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Input } from "@tuturuuu/ui/input";
 import { Button } from "@tuturuuu/ui/button";
+import { ChevronDown } from "lucide-react";
 
 type AboutSettingsFormProps = {
   assets: ExocorpseCmsAsset[];
@@ -58,6 +59,44 @@ function toDraft(settings: AboutPageSettings): SettingsDraft {
     socials_primary_username: settings.socials_primary_username,
     socials_secondary_username: settings.socials_secondary_username,
   };
+}
+
+function SettingsSection({
+  children,
+  description,
+  open = false,
+  title,
+}: {
+  children: ReactNode;
+  description?: string;
+  open?: boolean;
+  title: string;
+}) {
+  const [expanded, setExpanded] = useState(open);
+  return (
+    <details
+      className="group overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/55 dark:border-gray-800 dark:bg-gray-900/30"
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+      open={expanded}
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg font-semibold text-gray-950 dark:text-white">
+            {title}
+          </h3>
+          {description ? (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition group-open:rotate-180" />
+      </summary>
+      <div className="space-y-5 border-t border-gray-200 p-5 dark:border-gray-800">
+        {children}
+      </div>
+    </details>
+  );
 }
 
 export default function AboutSettingsForm({
@@ -126,7 +165,11 @@ export default function AboutSettingsForm({
 
       {section === "hero" ? (
         <div className="space-y-5 p-5">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-900/40">
+          <SettingsSection
+            description="Replace or remove the image shown at the top of About Me."
+            open
+            title="About image"
+          >
             <CmsAssetManager
               allowedAssetTypes={["image"]}
               assets={assets}
@@ -135,12 +178,17 @@ export default function AboutSettingsForm({
               onUpload={onUploadAsset}
               onReorder={onReorderAssets}
               previewSize="compact"
+              showHeader={false}
               mode="single"
               title="About image"
             />
-          </div>
+          </SettingsSection>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <SettingsSection
+            description="Name, subtitle, image description, and introduction."
+            open
+            title="Profile text"
+          >
             <label className="flex flex-col gap-2 text-sm">
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 Hero Name
@@ -163,75 +211,105 @@ export default function AboutSettingsForm({
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
             </label>
-          </div>
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Hero Subtitle
+              </span>
+              <Input
+                value={draft.hero_subtitle}
+                onChange={(event) =>
+                  setField("hero_subtitle", event.target.value)
+                }
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              />
+            </label>
 
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Hero Subtitle
-            </span>
-            <Input
-              value={draft.hero_subtitle}
-              onChange={(event) =>
-                setField("hero_subtitle", event.target.value)
-              }
-              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-            />
-          </label>
-
-          <div className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Hero Bio
-            </span>
-            <AdminMarkdownEditor
-              minHeight="14rem"
-              onChange={(value) => setField("hero_bio", value)}
-              placeholder="Introduce yourself…"
-              value={draft.hero_bio}
-            />
-          </div>
+            <div className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Hero Bio
+              </span>
+              <AdminMarkdownEditor
+                minHeight="14rem"
+                onChange={(value) => setField("hero_bio", value)}
+                placeholder="Introduce yourself…"
+                value={draft.hero_bio}
+              />
+            </div>
+          </SettingsSection>
         </div>
       ) : (
-        <div className="grid gap-4 p-5 md:grid-cols-2">
+        <div className="space-y-4 p-5">
           {[
-            ["about_use_heading", "About Use Heading"],
-            ["experiences_heading", "Experiences Heading"],
-            ["more_info_heading", "More Info Heading"],
-            ["favorites_heading", "Favorites Heading"],
-            ["faq_title", "FAQ Title"],
-            ["faq_intro", "FAQ Intro"],
-            ["dni_title", "DNI Title"],
-            ["dni_intro", "DNI Intro"],
-            ["socials_title", "Socials Title"],
-            ["socials_intro", "Socials Intro"],
-            ["socials_primary_username", "Primary Username"],
-            ["socials_secondary_username", "Secondary Username"],
-          ].map(([key, label]) => {
-            const fieldKey = key as keyof SettingsDraft;
-            const isLongText = key.endsWith("_intro");
-
-            return (
-              <div key={key} className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {label}
-                </span>
-                {isLongText ? (
-                  <AdminMarkdownEditor
-                    compact
-                    minHeight="8rem"
-                    onChange={(value) => setField(fieldKey, value)}
-                    placeholder={`Write ${label.toLowerCase()}…`}
-                    value={draft[fieldKey]}
-                  />
-                ) : (
-                  <Input
-                    value={draft[fieldKey]}
-                    onChange={(event) => setField(fieldKey, event.target.value)}
-                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                  />
-                )}
-              </div>
-            );
-          })}
+            {
+              title: "About tab",
+              description: "Headings used for the About cards and lists.",
+              fields: [
+                ["about_use_heading", "What I Use Heading"],
+                ["experiences_heading", "Experiences Heading"],
+                ["more_info_heading", "More Information Heading"],
+                ["favorites_heading", "Favorites Heading"],
+              ],
+            },
+            {
+              title: "FAQ tab",
+              fields: [
+                ["faq_title", "Title"],
+                ["faq_intro", "Introduction"],
+              ],
+            },
+            {
+              title: "DNI tab",
+              fields: [
+                ["dni_title", "Title"],
+                ["dni_intro", "Introduction"],
+              ],
+            },
+            {
+              title: "Socials tab",
+              fields: [
+                ["socials_title", "Title"],
+                ["socials_intro", "Introduction"],
+                ["socials_primary_username", "Primary Username"],
+                ["socials_secondary_username", "Secondary Username"],
+              ],
+            },
+          ].map((group, index) => (
+            <SettingsSection
+              description={group.description}
+              key={group.title}
+              open={index === 0}
+              title={group.title}
+            >
+              {group.fields.map(([key, label]) => {
+                const fieldKey = key as keyof SettingsDraft;
+                const isLongText = key.endsWith("_intro");
+                return (
+                  <div key={key} className="flex w-full flex-col gap-2 text-sm">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      {label}
+                    </span>
+                    {isLongText ? (
+                      <AdminMarkdownEditor
+                        compact
+                        minHeight="8rem"
+                        onChange={(value) => setField(fieldKey, value)}
+                        placeholder={`Write ${label.toLowerCase()}…`}
+                        value={draft[fieldKey]}
+                      />
+                    ) : (
+                      <Input
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                        onChange={(event) =>
+                          setField(fieldKey, event.target.value)
+                        }
+                        value={draft[fieldKey]}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </SettingsSection>
+          ))}
         </div>
       )}
     </section>

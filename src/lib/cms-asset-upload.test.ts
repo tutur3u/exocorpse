@@ -72,4 +72,26 @@ describe("direct CMS asset uploads", () => {
     });
     expect(uploadAttempts).toBe(2);
   });
+
+  test("reports preparation and completion progress in fetch environments", async () => {
+    const progress: number[] = [];
+    globalThis.fetch = (async (input) => {
+      if (String(input) === "/api/storage/signed-upload-url") {
+        return Response.json({
+          path: "external-projects/exocorpse/content/hero/test.png",
+          signedUrl: "https://uploads.example.test/file",
+        });
+      }
+      return new Response(null, { status: 200 });
+    }) as typeof fetch;
+
+    await uploadCmsAssetDirect({
+      collectionType: "content",
+      entrySlug: "hero",
+      file: new File(["image"], "test.png", { type: "image/png" }),
+      onProgress: (percentage) => progress.push(percentage),
+    });
+
+    expect(progress).toEqual([2, 96]);
+  });
 });

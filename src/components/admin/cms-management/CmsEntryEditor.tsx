@@ -26,6 +26,7 @@ import type {
   CmsBlockDraft,
   CmsEntryDraft,
   CmsRelationSelections,
+  CmsUploadStatus,
 } from "@/components/admin/cms-management/editor-types";
 import { galleryCharacterDefinition } from "@/components/admin/cms-management/gallery-character-tagging";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
@@ -41,7 +42,7 @@ import type {
   ExocorpseCmsRelationDefinition,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
-import { ChevronDown, Save, Trash2 } from "lucide-react";
+import { ChevronDown, Save, Trash2, UploadCloud } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -58,11 +59,13 @@ function CharacterEditorSection({
   open?: boolean;
   title: string;
 }) {
+  const [expanded, setExpanded] = useState(open);
   return (
     <details
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
       id={id}
-      open={open}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+      open={expanded}
     >
       <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
         <div className="min-w-0 flex-1">
@@ -78,6 +81,50 @@ function CharacterEditorSection({
         <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" />
       </summary>
       <div className="space-y-5 border-t border-slate-200 p-5 sm:p-6 dark:border-slate-800">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+function EditorTabSection({
+  active,
+  children,
+  id,
+  initialOpen,
+  label,
+  labelledBy,
+}: {
+  active: boolean;
+  children: ReactNode;
+  id: string;
+  initialOpen: boolean;
+  label: string;
+  labelledBy: string;
+}) {
+  const [expanded, setExpanded] = useState(initialOpen);
+
+  useEffect(() => {
+    if (active) setExpanded(true);
+  }, [active]);
+
+  return (
+    <details
+      aria-labelledby={labelledBy}
+      className="group scroll-mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/60 shadow-sm dark:border-slate-700/70 dark:bg-slate-950/25"
+      id={id}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+      open={expanded}
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">
+            {label}
+          </h3>
+        </div>
+        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" />
+      </summary>
+      <div className="space-y-4 border-t border-slate-200 p-4 sm:p-6 dark:border-slate-800">
         {children}
       </div>
     </details>
@@ -111,6 +158,7 @@ type Props = {
   selectedEntryId: string;
   studio: ExocorpseCmsStudio;
   theme: AdminCmsTheme;
+  uploadStatus: CmsUploadStatus;
 };
 
 export default function CmsEntryEditor({
@@ -140,6 +188,7 @@ export default function CmsEntryEditor({
   selectedEntryId,
   studio,
   theme,
+  uploadStatus,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState<CmsEditorTab>(() =>
@@ -221,6 +270,7 @@ export default function CmsEntryEditor({
     }
     const panel = scrollArea?.querySelector<HTMLElement>(`#cms-${tab}-panel`);
     if (!scrollArea || !panel) return;
+    if (panel instanceof HTMLDetailsElement) panel.open = true;
     const top =
       scrollArea.scrollTop +
       panel.getBoundingClientRect().top -
@@ -415,20 +465,8 @@ export default function CmsEntryEditor({
       ].includes(collection.slug);
       return (
         <>
-          <CmsCharacterMediaSettings
-            assets={assets}
-            collectionSlug={collection.slug}
-            draft={draft}
-            onChange={onDraftChange}
-          />
-          <CmsStructuredFields
-            definitions={groupedFields.visuals}
-            draft={draft}
-            onChange={onDraftChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            title="Visual Style"
-          />
           <CmsMediaPanel
+            allowUploadBeforeSave={usesSingleArtwork}
             allowedAssetTypes={allowedAssetTypes}
             assets={assets}
             canSave={canSave}
@@ -468,6 +506,19 @@ export default function CmsEntryEditor({
               value={relationSelections[taggedCharactersDefinition.id] ?? []}
             />
           ) : null}
+          <CmsCharacterMediaSettings
+            assets={assets}
+            collectionSlug={collection.slug}
+            draft={draft}
+            onChange={onDraftChange}
+          />
+          <CmsStructuredFields
+            definitions={groupedFields.visuals}
+            draft={draft}
+            onChange={onDraftChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            title="Visual Style"
+          />
         </>
       );
     }
@@ -689,6 +740,36 @@ export default function CmsEntryEditor({
         />
       ) : null}
 
+      {uploadStatus ? (
+        <div
+          aria-live="polite"
+          className="mx-4 mt-3 rounded-xl border border-cyan-200 bg-cyan-50/95 px-4 py-3 shadow-sm sm:mx-6 dark:border-cyan-900/70 dark:bg-cyan-950/55"
+        >
+          <div className="flex items-center gap-3">
+            <UploadCloud className="h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-300" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3 text-xs font-semibold text-cyan-950 dark:text-cyan-100">
+                <span className="truncate">
+                  {uploadStatus.stage === "preparing"
+                    ? "Preparing"
+                    : uploadStatus.stage === "saving"
+                      ? "Finishing"
+                      : "Uploading"}{" "}
+                  {uploadStatus.fileName}
+                </span>
+                <span>{uploadStatus.percentage}%</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cyan-950/10 dark:bg-white/10">
+                <div
+                  className="h-full rounded-full bg-linear-to-r from-cyan-500 to-blue-500 transition-[width] duration-200"
+                  style={{ width: `${uploadStatus.percentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6"
         onScroll={isCharacter ? undefined : updateActiveSection}
@@ -743,15 +824,17 @@ export default function CmsEntryEditor({
             {renderCharacterSection()}
           </section>
         ) : (
-          tabs.map((tab) => (
-            <section
-              aria-labelledby={`cms-${tab.id}-tab`}
-              className="scroll-mt-4 space-y-4 rounded-2xl border border-slate-200/80 bg-white/45 p-4 sm:p-5 dark:border-slate-700/70 dark:bg-slate-950/20"
+          tabs.map((tab, index) => (
+            <EditorTabSection
+              active={activeTab === tab.id}
               id={`cms-${tab.id}-panel`}
+              initialOpen={index === 0}
               key={tab.id}
+              label={tab.label}
+              labelledBy={`cms-${tab.id}-tab`}
             >
               {renderSection(tab.id)}
-            </section>
+            </EditorTabSection>
           ))
         )}
       </div>

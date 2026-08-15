@@ -34,6 +34,10 @@ export function mergeVisibleOrder<T>(
   );
 }
 
+export function canReorderItems(itemCount: number) {
+  return itemCount > 1;
+}
+
 function SortableItem<T>({
   children,
   handleClassName,
@@ -103,6 +107,21 @@ export default function SortableList<T>({
   );
 
   useEffect(() => setOrderedItems(items), [items]);
+
+  // A drag affordance is only useful when there is somewhere to move an item.
+  // Rendering a plain list for empty/singleton collections also avoids making
+  // one-image fields look like reorderable galleries.
+  if (!canReorderItems(orderedItems.length)) {
+    return (
+      <div className={className}>
+        {orderedItems.map((item) => (
+          <div className="relative h-full min-w-0" key={getId(item)}>
+            {children(item)}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (!event.over || event.active.id === event.over.id) return;

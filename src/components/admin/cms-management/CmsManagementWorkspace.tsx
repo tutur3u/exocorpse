@@ -70,6 +70,7 @@ export default function CmsManagementWorkspace({
     uploadAsset,
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
+    uploadStatus,
     visibleCollections,
   } = workspace;
 
@@ -449,6 +450,7 @@ export default function CmsManagementWorkspace({
             selectedEntryId={entryId}
             studio={studio}
             theme={theme}
+            uploadStatus={uploadStatus}
           />
         </CmsEntryEditorDialog>
       ) : null}

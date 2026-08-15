@@ -120,14 +120,6 @@ export default function CmsBlockEditor({
                       ),
                     )}
                   </select>
-                  <Input
-                    className="min-w-40 flex-1 bg-white text-xs dark:bg-zinc-900"
-                    onChange={(event) =>
-                      update(index, { title: event.target.value })
-                    }
-                    placeholder="Optional section title"
-                    value={block.title}
-                  />
                   <div className="ml-auto flex items-center gap-1">
                     <Button
                       aria-label="Delete block"
@@ -143,6 +135,14 @@ export default function CmsBlockEditor({
                     </Button>
                   </div>
                 </div>
+                <Input
+                  className="w-full bg-white text-sm dark:bg-zinc-900"
+                  onChange={(event) =>
+                    update(index, { title: event.target.value })
+                  }
+                  placeholder="Optional section title"
+                  value={block.title}
+                />
                 {block.blockType === "markdown" ? (
                   <AdminMarkdownEditor
                     minHeight="18rem"

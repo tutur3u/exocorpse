@@ -145,11 +145,11 @@ function ItemCard({
       </summary>
 
       <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-800">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           {fields.map((field) => (
             <div
               key={field.key}
-              className={`flex min-w-0 flex-col gap-2 text-sm ${field.type === "textarea" ? "md:col-span-2" : ""}`}
+              className="flex min-w-0 flex-col gap-2 text-sm"
             >
               {field.label ? (
                 <span className="font-medium text-gray-700 dark:text-gray-300">
@@ -396,7 +396,7 @@ export default function AboutContentItemsEditor({
               </button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4">
               {visibleFields.map((field) => (
                 <div key={field.key} className="flex flex-col gap-2 text-sm">
                   <span className="font-medium text-gray-700 dark:text-gray-300">

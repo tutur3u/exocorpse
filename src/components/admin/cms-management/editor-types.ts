@@ -65,6 +65,12 @@ export type CmsEditorMessage = {
   text: string;
 } | null;
 
+export type CmsUploadStatus = {
+  fileName: string;
+  percentage: number;
+  stage: "preparing" | "uploading" | "saving";
+} | null;
+
 export type CmsBlockSource = Pick<
   ExocorpseCmsBlock,
   "block_type" | "content" | "id" | "sort_order" | "stable_source_id" | "title"

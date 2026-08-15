@@ -56,7 +56,7 @@ export default function CmsStructuredFields({
           Add the information visitors need for this item.
         </p>
       </div>
-      <div className="grid gap-4 @3xl:grid-cols-2">
+      <div className="grid gap-4">
         {standardDefinitions.map((definition) => {
           const scopeValue = draft[definition.field_scope];
           const record = isJsonRecord(scopeValue) ? scopeValue : {};
@@ -82,7 +82,7 @@ export default function CmsStructuredFields({
             </span>
             <ChevronDown className="h-4 w-4 text-zinc-400 transition group-open:rotate-180" />
           </summary>
-          <div className="grid gap-4 border-t border-zinc-200/80 p-3 @3xl:grid-cols-2 dark:border-zinc-800">
+          <div className="grid gap-4 border-t border-zinc-200/80 p-3 dark:border-zinc-800">
             {advancedDefinitions.map((definition) => {
               const scopeValue = draft[definition.field_scope];
               const record = isJsonRecord(scopeValue) ? scopeValue : {};

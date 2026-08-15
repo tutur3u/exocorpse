@@ -17,11 +17,14 @@ export async function uploadCmsAssetDirect({
   collectionType,
   entrySlug,
   file,
+  onProgress,
 }: {
   collectionType: string;
   entrySlug: string;
   file: File;
+  onProgress?: (percentage: number) => void;
 }) {
+  onProgress?.(2);
   const path = `${collectionType}/${entrySlug}/${file.name}`;
   const metadataResponse = await fetch("/api/storage/signed-upload-url", {
     body: JSON.stringify({
@@ -51,25 +54,71 @@ export async function uploadCmsAssetDirect({
   }
   if (upload.token) headers.Authorization = `Bearer ${upload.token}`;
 
-  let response = await fetch(upload.signedUrl, {
-    body: file,
-    cache: "no-store",
-    headers,
-    method: "PUT",
-  });
-  if (!response.ok && headers["Content-Type"]) {
-    const fallbackHeaders = { ...headers };
-    delete fallbackHeaders["Content-Type"];
-    response = await fetch(upload.signedUrl, {
+  const uploadFile = async (requestHeaders: Record<string, string>) => {
+    if (onProgress && typeof XMLHttpRequest !== "undefined") {
+      await new Promise<void>((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("PUT", upload.signedUrl!);
+        Object.entries(requestHeaders).forEach(([key, value]) =>
+          request.setRequestHeader(key, value),
+        );
+        request.upload.onprogress = (event) => {
+          if (!event.lengthComputable) return;
+          onProgress(
+            Math.max(
+              5,
+              Math.min(95, Math.round((event.loaded / event.total) * 90) + 5),
+            ),
+          );
+        };
+        request.onerror = () =>
+          reject(new Error("The upload was interrupted. Please try again."));
+        request.onload = () => {
+          if (request.status >= 200 && request.status < 300) resolve();
+          else
+            reject(
+              Object.assign(
+                new Error(
+                  `Upload failed (${request.status}). Please try again.`,
+                ),
+                { status: request.status },
+              ),
+            );
+        };
+        request.send(file);
+      });
+      return;
+    }
+
+    const response = await fetch(upload.signedUrl!, {
       body: file,
       cache: "no-store",
-      headers: fallbackHeaders,
+      headers: requestHeaders,
       method: "PUT",
     });
-  }
-  if (!response.ok) {
-    throw new Error(`Upload failed (${response.status}). Please try again.`);
+    if (!response.ok) {
+      throw Object.assign(
+        new Error(`Upload failed (${response.status}). Please try again.`),
+        { status: response.status },
+      );
+    }
+  };
+
+  try {
+    await uploadFile(headers);
+  } catch (error) {
+    const status =
+      typeof error === "object" && error && "status" in error
+        ? Number(error.status)
+        : 0;
+    if (!headers["Content-Type"] || (status !== 400 && status !== 403)) {
+      throw error;
+    }
+    const fallbackHeaders = { ...headers };
+    delete fallbackHeaders["Content-Type"];
+    await uploadFile(fallbackHeaders);
   }
 
+  onProgress?.(96);
   return upload.path;
 }

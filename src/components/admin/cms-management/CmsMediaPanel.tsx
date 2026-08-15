@@ -18,6 +18,7 @@ export default function CmsMediaPanel({
   mode = "gallery",
   title,
   description,
+  allowUploadBeforeSave = false,
 }: {
   allowedAssetTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -32,8 +33,9 @@ export default function CmsMediaPanel({
   mode?: "gallery" | "single";
   title?: string;
   description?: string;
+  allowUploadBeforeSave?: boolean;
 }) {
-  if (saved) {
+  if (saved || allowUploadBeforeSave) {
     return (
       <CmsAssetManager
         allowedAssetTypes={allowedAssetTypes}

@@ -55,13 +55,13 @@ export default function CmsPortfolioEntryGallery({
       .sort((left, right) => left.sort_order - right.sort_order)[0];
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+    <section className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
           {sectionCopy.title}
         </h2>
         <button
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-cyan-500 hover:to-blue-500 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
           onClick={onCreate}
           type="button"
         >
@@ -70,7 +70,7 @@ export default function CmsPortfolioEntryGallery({
       </div>
 
       {!entries.length ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
+        <div className="rounded-[1.35rem] border-2 border-dashed border-slate-300 bg-white/60 py-12 text-center dark:border-white/10 dark:bg-slate-950/40">
           {collection.slug === "portfolio-games" ? (
             <Gamepad2 className="mx-auto h-12 w-12 text-gray-400" />
           ) : collection.slug === "portfolio-writing" ? (
@@ -102,7 +102,7 @@ export default function CmsPortfolioEntryGallery({
             return (
               <article
                 aria-label={`Edit ${entry.title}`}
-                className="group relative cursor-pointer rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-cyan-300/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800"
+                className="group relative cursor-pointer overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/90 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(10,18,32,0.96),rgba(14,8,24,0.96))]"
                 key={entry.id}
                 onClick={() => onSelect(entry.id)}
                 onKeyDown={(event) => {
@@ -161,7 +161,7 @@ export default function CmsPortfolioEntryGallery({
             return (
               <article
                 aria-label={`Edit ${entry.title}`}
-                className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-cyan-300/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800"
+                className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/90 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(10,18,32,0.96),rgba(14,8,24,0.96))]"
                 key={entry.id}
                 onClick={() => onSelect(entry.id)}
                 onKeyDown={(event) => {
@@ -194,7 +194,7 @@ export default function CmsPortfolioEntryGallery({
                   </div>
                 ) : null}
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                  <h3 className="font-serif text-lg font-semibold text-slate-950 dark:text-[#fff6e8]">
                     {entry.title}
                   </h3>
                   {(entry.summary ?? entry.subtitle) ? (
@@ -208,6 +208,6 @@ export default function CmsPortfolioEntryGallery({
           }}
         </SortableList>
       )}
-    </div>
+    </section>
   );
 }
