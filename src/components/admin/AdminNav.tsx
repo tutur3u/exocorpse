@@ -38,10 +38,6 @@ const navSections: NavSection[] = [
       { href: "/admin/blacklist", label: "Blacklist" },
     ],
   },
-  {
-    label: "Tools",
-    items: [{ href: "/admin/cofi", label: "COFI Search" }],
-  },
 ];
 
 export default function AdminNav({ children }: { children?: React.ReactNode }) {

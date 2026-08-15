@@ -1,7 +1,6 @@
 "use client";
 
 import { soundManager, type SoundType } from "@/lib/sounds";
-import { usePathname } from "next/navigation";
 import React, {
   createContext,
   useCallback,
@@ -29,61 +28,29 @@ const SOUND_CONTEXT_FALLBACK: SoundContextType = {
   setBootComplete: () => undefined,
 };
 
-const SOUND_TYPES: SoundType[] = [
-  "boot",
-  "click",
-  "hover",
-  "window-off",
-  "error",
-  "bgm",
-];
-
 const SoundContext = createContext<SoundContextType>(SOUND_CONTEXT_FALLBACK);
 
 export function SoundProvider({ children }: { children: React.ReactNode }) {
   const [isBootComplete, setBootComplete] = useState(false);
-  const pathname = usePathname();
-  const soundEnabled = !pathname.startsWith("/cofi/samples");
 
   const playSound = useCallback(
     (type: SoundType, options?: { volume?: number; onend?: () => void }) => {
-      if (!soundEnabled) {
-        return;
-      }
-
       soundManager.play(type, options);
     },
-    [soundEnabled],
+    [],
   );
 
   const stopSound = useCallback((type: SoundType) => {
     soundManager.stop(type);
   }, []);
 
-  const setVolumeCallback = useCallback(
-    (type: SoundType, volume: number) => {
-      if (!soundEnabled) {
-        return;
-      }
-
-      soundManager.setVolume(type, volume);
-    },
-    [soundEnabled],
-  );
-
-  useEffect(() => {
-    if (soundEnabled) {
-      return;
-    }
-
-    for (const type of SOUND_TYPES) {
-      soundManager.stop(type);
-    }
-  }, [soundEnabled]);
+  const setVolumeCallback = useCallback((type: SoundType, volume: number) => {
+    soundManager.setVolume(type, volume);
+  }, []);
 
   // Add global click listener
   useEffect(() => {
-    if (!isBootComplete || !soundEnabled) return;
+    if (!isBootComplete) return;
 
     const handleClick = () => {
       playSound("click");
@@ -91,11 +58,11 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, [playSound, isBootComplete, soundEnabled]);
+  }, [playSound, isBootComplete]);
 
   // Add global hover listener (only for desktop)
   useEffect(() => {
-    if (!isBootComplete || !soundEnabled) return;
+    if (!isBootComplete) return;
 
     // Throttle hover sound to avoid overwhelming audio
     let lastHoverTime = 0;
@@ -126,11 +93,11 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
     document.addEventListener("mouseover", handleMouseOver);
     return () => document.removeEventListener("mouseover", handleMouseOver);
-  }, [playSound, isBootComplete, soundEnabled]);
+  }, [playSound, isBootComplete]);
 
   // Add global error handler
   useEffect(() => {
-    if (!isBootComplete || !soundEnabled) return;
+    if (!isBootComplete) return;
 
     const handleError = () => {
       playSound("error");
@@ -143,7 +110,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("error", handleError);
       window.removeEventListener("unhandledrejection", handleError);
     };
-  }, [playSound, isBootComplete, soundEnabled]);
+  }, [playSound, isBootComplete]);
 
   return (
     <SoundContext.Provider
