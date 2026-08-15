@@ -42,15 +42,16 @@ export default function AdminMarkdownEditor({
 
   useEffect(() => {
     const wrapper = editorRef.current;
-    const toolbar = wrapper?.querySelector<HTMLElement>(
-      ".tuturuuu-editor-toolbar",
-    );
-    if (!toolbar) return;
+    if (!wrapper) return;
 
+    let toolbar: HTMLElement | null = null;
+    let resizeObserver: ResizeObserver | null = null;
     let animationFrame = 0;
     const measure = () => {
+      if (!toolbar) return;
       cancelAnimationFrame(animationFrame);
       animationFrame = requestAnimationFrame(() => {
+        if (!toolbar) return;
         const items = Array.from(toolbar.children).filter(
           (item): item is HTMLElement => item instanceof HTMLElement,
         );
@@ -107,15 +108,32 @@ export default function AdminMarkdownEditor({
       });
     };
 
-    const observer = new ResizeObserver(measure);
-    observer.observe(toolbar);
+    const attachToolbar = () => {
+      const nextToolbar = wrapper.querySelector<HTMLElement>(
+        ".tuturuuu-editor-toolbar",
+      );
+      if (!nextToolbar) return;
+      if (nextToolbar === toolbar) {
+        measure();
+        return;
+      }
+      resizeObserver?.disconnect();
+      toolbar = nextToolbar;
+      resizeObserver = new ResizeObserver(measure);
+      resizeObserver.observe(toolbar);
+      measure();
+    };
+
+    const mountObserver = new MutationObserver(attachToolbar);
+    mountObserver.observe(wrapper, { childList: true, subtree: true });
     window.addEventListener("resize", measure);
-    measure();
+    attachToolbar();
     return () => {
       cancelAnimationFrame(animationFrame);
-      observer.disconnect();
+      mountObserver.disconnect();
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", measure);
-      for (const item of Array.from(toolbar.children)) {
+      for (const item of Array.from(toolbar?.children ?? [])) {
         if (item instanceof HTMLElement) delete item.dataset.adminOverflow;
       }
     };
