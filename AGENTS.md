@@ -27,6 +27,8 @@ Exocorpse is a Next.js 16 desktop-style portfolio, commission site, blog, and fa
 - Own upload state above tab panels. Direct uploads must continue when an editor switches sections, and visible filename, stage, and byte progress must remain available until registration finishes or an actionable error is shown.
 - Show reorder handles only when a collection contains at least two items. Do not add status filler such as "Ready to use" to media cards.
 - Rich-text formatting stays on one toolbar row. Keep the overflow control inside the toolbar and expose every additional formatting action through that control.
+- Show the rich-text overflow control only when measured tools do not fit. Its menu must not resize the editor, and word counts remain opt-in through code.
+- Keep linked gallery media and inline rich-text media in separate views. Linked media is the default; both views render image previews and friendly type badges.
 
 ## Shipping
 

@@ -2,9 +2,15 @@
 
 import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { RichTextEditor } from "@tuturuuu/editor/react";
+import { toolbarOverflowStartIndex } from "@/components/admin/admin-markdown-toolbar";
 import { MoreHorizontal, X } from "lucide-react";
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+
+type OverflowTool = {
+  label: string;
+  pressed: boolean;
+};
 
 export default function AdminMarkdownEditor({
   compact = false,
@@ -13,6 +19,7 @@ export default function AdminMarkdownEditor({
   onChange,
   onImageUpload,
   placeholder,
+  showWordCount = false,
   value,
 }: {
   compact?: boolean;
@@ -21,15 +28,96 @@ export default function AdminMarkdownEditor({
   onChange: (value: string) => void;
   onImageUpload?: (file: File) => Promise<string>;
   placeholder: string;
+  showWordCount?: boolean;
   value: string;
 }) {
   const [showMoreTools, setShowMoreTools] = useState(false);
+  const [overflowTools, setOverflowTools] = useState<OverflowTool[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
   const style = {
     "--tuturuuu-editor-min-height": minHeight,
   } as CSSProperties;
+
+  useLayoutEffect(() => {
+    const wrapper = editorRef.current;
+    const toolbar = wrapper?.querySelector<HTMLElement>(
+      ".tuturuuu-editor-toolbar",
+    );
+    if (!toolbar) return;
+
+    let animationFrame = 0;
+    const measure = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(() => {
+        const items = Array.from(toolbar.children).filter(
+          (item): item is HTMLElement => item instanceof HTMLElement,
+        );
+        for (const item of items) delete item.dataset.adminOverflow;
+
+        const styles = getComputedStyle(toolbar);
+        const horizontalPadding =
+          Number.parseFloat(styles.paddingLeft) +
+          Number.parseFloat(styles.paddingRight);
+        const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+        const availableWidth = Math.max(
+          0,
+          toolbar.clientWidth - horizontalPadding,
+        );
+        const overflowStartIndex = toolbarOverflowStartIndex({
+          availableWidth,
+          gap,
+          itemWidths: items.map((item) => item.offsetWidth),
+        });
+
+        if (overflowStartIndex === null) {
+          setOverflowTools((current) => (current.length === 0 ? current : []));
+          setShowMoreTools(false);
+          return;
+        }
+
+        const nextOverflowTools: OverflowTool[] = [];
+
+        items.forEach((item, index) => {
+          if (index < overflowStartIndex) return;
+
+          item.dataset.adminOverflow = "true";
+          const button =
+            item.querySelector<HTMLButtonElement>("button[aria-label]");
+          const label = button?.getAttribute("aria-label");
+          if (button && label) {
+            nextOverflowTools.push({
+              label,
+              pressed: button.getAttribute("aria-pressed") === "true",
+            });
+          }
+        });
+
+        setOverflowTools((current) => {
+          const unchanged =
+            current.length === nextOverflowTools.length &&
+            current.every(
+              (tool, index) =>
+                tool.label === nextOverflowTools[index]?.label &&
+                tool.pressed === nextOverflowTools[index]?.pressed,
+            );
+          return unchanged ? current : nextOverflowTools;
+        });
+      });
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(toolbar);
+    measure();
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      observer.disconnect();
+      for (const item of Array.from(toolbar.children)) {
+        if (item instanceof HTMLElement) delete item.dataset.adminOverflow;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!showMoreTools) return;
@@ -54,7 +142,8 @@ export default function AdminMarkdownEditor({
   return (
     <div
       className="admin-markdown-editor"
-      data-tools-expanded={showMoreTools || undefined}
+      data-has-tool-overflow={overflowTools.length > 0 || undefined}
+      data-show-word-count={showWordCount || undefined}
       ref={editorRef}
       style={style}
     >
@@ -85,24 +174,61 @@ export default function AdminMarkdownEditor({
         }
         placeholder={placeholder}
       />
-      <button
-        aria-expanded={showMoreTools}
-        aria-label={
-          showMoreTools
-            ? "Close more formatting tools"
-            : "More formatting tools"
-        }
-        className="admin-markdown-editor-tools-toggle"
-        onClick={() => setShowMoreTools((current) => !current)}
-        title={showMoreTools ? "Use one toolbar row" : "Show every tool"}
-        type="button"
-      >
-        {showMoreTools ? (
-          <X aria-hidden className="h-4 w-4" />
-        ) : (
-          <MoreHorizontal aria-hidden className="h-4 w-4" />
-        )}
-      </button>
+      {overflowTools.length > 0 ? (
+        <>
+          <button
+            aria-expanded={showMoreTools}
+            aria-label={
+              showMoreTools
+                ? "Close more formatting tools"
+                : "More formatting tools"
+            }
+            className="admin-markdown-editor-tools-toggle"
+            onClick={() => setShowMoreTools((current) => !current)}
+            title="More formatting tools"
+            type="button"
+          >
+            {showMoreTools ? (
+              <X aria-hidden className="h-4 w-4" />
+            ) : (
+              <MoreHorizontal aria-hidden className="h-4 w-4" />
+            )}
+          </button>
+          {showMoreTools ? (
+            <div
+              aria-label="More formatting tools"
+              className="admin-markdown-editor-tools-menu"
+              role="menu"
+            >
+              {overflowTools.map((tool) => (
+                <button
+                  className="admin-markdown-editor-tools-menu-item"
+                  data-active={tool.pressed || undefined}
+                  key={tool.label}
+                  onClick={() => {
+                    const buttons = Array.from(
+                      editorRef.current?.querySelectorAll<HTMLButtonElement>(
+                        ".tuturuuu-editor-toolbar button[aria-label]",
+                      ) ?? [],
+                    );
+                    buttons
+                      .find(
+                        (button) =>
+                          button.getAttribute("aria-label") === tool.label,
+                      )
+                      ?.click();
+                    setShowMoreTools(false);
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  {tool.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </>
+      ) : null}
       {maxLength ? (
         <p className="mt-1 text-right text-[0.68rem] text-slate-500 dark:text-slate-400">
           {value.length}/{maxLength}
