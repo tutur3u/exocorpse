@@ -28,6 +28,7 @@ const visualFieldKeys = new Set([
   "themePrimaryColor",
   "themeSecondaryColor",
   "themeTextColor",
+  "themeSoundtrackUrl",
 ]);
 
 const publishingFieldKeys = new Set([
