@@ -5,7 +5,7 @@ import { RichTextEditor } from "@tuturuuu/editor/react";
 import { toolbarOverflowStartIndex } from "@/components/admin/admin-markdown-toolbar";
 import { MoreHorizontal, X } from "lucide-react";
 import type { CSSProperties } from "react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type OverflowTool = {
   label: string;
@@ -40,7 +40,7 @@ export default function AdminMarkdownEditor({
     "--tuturuuu-editor-min-height": minHeight,
   } as CSSProperties;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const wrapper = editorRef.current;
     const toolbar = wrapper?.querySelector<HTMLElement>(
       ".tuturuuu-editor-toolbar",
@@ -109,10 +109,12 @@ export default function AdminMarkdownEditor({
 
     const observer = new ResizeObserver(measure);
     observer.observe(toolbar);
+    window.addEventListener("resize", measure);
     measure();
     return () => {
       cancelAnimationFrame(animationFrame);
       observer.disconnect();
+      window.removeEventListener("resize", measure);
       for (const item of Array.from(toolbar.children)) {
         if (item instanceof HTMLElement) delete item.dataset.adminOverflow;
       }
