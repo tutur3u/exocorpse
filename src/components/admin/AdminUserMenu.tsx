@@ -125,7 +125,6 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
               : current.displayName,
           email: profile.email !== undefined ? profile.email : current.email,
         }));
-        setDisplayName(profile.display_name ?? "");
       })
       .catch(() => {
         // Keep the encrypted-session identity as a resilient fallback.
@@ -170,7 +169,8 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
   }, [profileDirty, profileOpen]);
 
   const openProfile = async () => {
-    setProfileOpen(true);
+    setAvatarFile(null);
+    setRemoveAvatar(false);
     try {
       const response = await fetch("/api/auth/profile", { cache: "no-store" });
       if (!response.ok) return;
@@ -194,6 +194,9 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
       setDisplayName(profile.display_name ?? "");
     } catch {
       // The encrypted session already contains a usable profile fallback.
+      setDisplayName(user.displayName ?? "");
+    } finally {
+      setProfileOpen(true);
     }
   };
 
