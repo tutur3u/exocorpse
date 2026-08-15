@@ -67,6 +67,39 @@ function applyFieldDefaults(
   }, draft);
 }
 
+function ensureStorySoundtrackField(
+  collectionId: string,
+  collectionSlug: string | undefined,
+  fields: ExocorpseCmsFieldDefinition[],
+) {
+  if (
+    collectionSlug !== "stories" ||
+    fields.some((definition) => definition.key === "themeSoundtrackUrl")
+  ) {
+    return fields;
+  }
+
+  return [
+    ...fields,
+    {
+      collection_id: collectionId,
+      default_value: null,
+      description:
+        "Choose a soundtrack for this story, or keep the site default.",
+      field_scope: "profile_data" as const,
+      field_type: "string" as const,
+      id: `exocorpse:${collectionId}:themeSoundtrackUrl`,
+      is_enabled: true,
+      is_required: false,
+      key: "themeSoundtrackUrl",
+      label: "Story soundtrack",
+      options: [],
+      sort_order: Number.MAX_SAFE_INTEGER,
+      source: "exocorpse",
+    },
+  ];
+}
+
 export function useCmsManagementWorkspace({
   initialStudio,
   section,
@@ -155,26 +188,30 @@ export function useCmsManagementWorkspace({
         .sort((left, right) => left.label.localeCompare(right.label)),
     [collection?.id, studio.relationDefinitions],
   );
-  const fields = useMemo(
-    () =>
-      (studio.fieldDefinitions ?? [])
-        .filter(
-          (definition) =>
-            definition.collection_id === collection?.id &&
-            definition.is_enabled &&
-            !(
-              definition.key === "tags" &&
-              [
-                "blog-posts",
-                "character-gallery",
-                "portfolio-art",
-                "portfolio-writing",
-              ].includes(collection?.slug ?? "")
-            ),
-        )
-        .sort((left, right) => left.sort_order - right.sort_order),
-    [collection?.id, collection?.slug, studio.fieldDefinitions],
-  );
+  const fields = useMemo(() => {
+    const configuredFields = (studio.fieldDefinitions ?? [])
+      .filter(
+        (definition) =>
+          definition.collection_id === collection?.id &&
+          definition.is_enabled &&
+          !(
+            definition.key === "tags" &&
+            [
+              "blog-posts",
+              "character-gallery",
+              "portfolio-art",
+              "portfolio-writing",
+            ].includes(collection?.slug ?? "")
+          ),
+      )
+      .sort((left, right) => left.sort_order - right.sort_order);
+
+    return ensureStorySoundtrackField(
+      collection?.id ?? "",
+      collection?.slug,
+      configuredFields,
+    );
+  }, [collection?.id, collection?.slug, studio.fieldDefinitions]);
   const assets = studio.assets.filter((asset) => asset.entry_id === entryId);
   const config = collectionConfig(collection);
 
