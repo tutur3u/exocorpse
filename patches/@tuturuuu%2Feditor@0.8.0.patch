@@ -8,7 +8,7 @@ index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..25512449d9c9f1c9b58c2fe996fae703
 +{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAgK5D;AAsID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
 \ No newline at end of file
 diff --git a/dist/codec.js b/dist/codec.js
-index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..72c5392b2bc63023efe5e37f5148e611d78194ed 100644
+index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..3da85c289ebefcfd553ad50710b19e0127250fac 100644
 --- a/dist/codec.js
 +++ b/dist/codec.js
 @@ -322,6 +322,57 @@ export function markdownToJSON(markdown) {
@@ -62,7 +62,7 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..72c5392b2bc63023efe5e37f5148e611
 +                    ],
 +                    type: 'collapsible',
 +                });
-+                index = cursor + 1;
++                index = cursor;
 +                continue;
 +            }
 +        }
@@ -102,10 +102,10 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..72c5392b2bc63023efe5e37f5148e611
      };
      visit(content);
 diff --git a/dist/codec.test.js b/dist/codec.test.js
-index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..f88e76df63eaecd78ce51e05fbfd82aa30008cac 100644
+index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..7d636b748aa81b9e6fba9a14a39bb5b876c96e0d 100644
 --- a/dist/codec.test.js
 +++ b/dist/codec.test.js
-@@ -38,6 +38,48 @@ describe('rich text codecs', () => {
+@@ -38,6 +38,65 @@ describe('rich text codecs', () => {
          expect(roundTrip).toContain('---');
          expect(roundTrip).toContain('![A PNG](https://example.com/cover.png "Cover")');
      });
@@ -151,6 +151,23 @@ index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..f88e76df63eaecd78ce51e05fbfd82aa
 +        expect(content.content?.[0]?.content?.[2]?.type).toBe('collapsible');
 +        expect(jsonToMarkdown(content)).toBe(markdown);
 +    });
++    it('keeps content immediately following a collapsible section', () => {
++        const markdown = [
++            '<details>',
++            '<summary>Notes</summary>',
++            '',
++            'Hidden context.',
++            '',
++            '</details>',
++            'Visible afterward.',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        expect(content.content?.map((node) => node.type)).toEqual([
++            'collapsible',
++            'paragraph',
++        ]);
++        expect(extractPlainText(content)).toContain('Visible afterward.');
++    });
      it('preserves literal Markdown delimiters through compatibility mirrors', () => {
          const content = {
              content: [
@@ -167,18 +184,18 @@ index 0000000000000000000000000000000000000000..169f5c6f4bf02eff3d14f7f2c4b843b0
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..f6bdd217d8c5ed6b4cba5dc173b7dbbcb472bf5d
+index 0000000000000000000000000000000000000000..0f46757d05295b73f3ec4bfc838edd9c98f256b1
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAiC7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAqDtB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAiC7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBA2DtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..7c0addf9994786de978239c89dad04f16c918c6c
+index 0000000000000000000000000000000000000000..dd4a449d2a15b8fdda1420694248e89e4f4b4a7f
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,87 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
@@ -218,6 +235,13 @@ index 0000000000000000000000000000000000000000..7c0addf9994786de978239c89dad04f1
 +    group: 'block',
 +    content: 'collapsibleSummary block+',
 +    defining: true,
++    addNodeView() {
++        return () => {
++            const dom = document.createElement('details');
++            dom.open = this.editor.isEditable;
++            return { contentDOM: dom, dom };
++        };
++    },
 +    addKeyboardShortcuts() {
 +        const removeAtBoundary = (direction) => this.editor.commands.command(({ dispatch, state }) => {
 +            const { $from, empty } = state.selection;
@@ -256,8 +280,7 @@ index 0000000000000000000000000000000000000000..7c0addf9994786de978239c89dad04f1
 +        return [{ tag: 'details' }];
 +    },
 +    renderHTML({ HTMLAttributes }) {
-+        // Keep authoring blocks open so their content is always directly editable.
-+        return ['details', mergeAttributes(HTMLAttributes, { open: '' }), 0];
++        return ['details', mergeAttributes(HTMLAttributes), 0];
 +    },
 +});
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.d.ts b/dist/collapsible.test.d.ts
@@ -475,16 +498,16 @@ index d55092d052a159eb5c4cecda32adf0b314f90a7f..d099390d80d1bf104670cbac59fc2ee9
  export type { HTMLSourceInspection } from './html-source.js';
  export { inspectRichTextHTML } from './html-source.js';
 diff --git a/dist/react.d.ts.map b/dist/react.d.ts.map
-index d9c3f477f644a0fe976a316def8e36201e7779ca..740ca83284085255ebb1dc8e437eae086ffc1e27 100644
+index d9c3f477f644a0fe976a316def8e36201e7779ca..e874e057740cb036bfecc0bd1394a66c116caab6 100644
 --- a/dist/react.d.ts.map
 +++ b/dist/react.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAsBA,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAwB,EACxB,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,GACZ,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,+BA0QA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
 \ No newline at end of file
-+{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAgB,EAAE,gBAAwB,EAC1C,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,EACX,UAAU,GACX,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,+DAA+D;IAC/D,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,oDAAoD;IACpD,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,8EAA8E;IAC9E,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BAuHA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
++{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAgB,EAAE,gBAAwB,EAC1C,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,EACX,UAAU,GACX,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,+DAA+D;IAC/D,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,oDAAoD;IACpD,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,8EAA8E;IAC9E,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BA2HA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
 \ No newline at end of file
 diff --git a/dist/react.js b/dist/react.js
-index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe8535fb57c4 100644
+index f972b4b1552aa37f55ac49c004cf4d15411d7314..9725f3cf0433b9d7b75382cf0b400c91fd7926ba 100644
 --- a/dist/react.js
 +++ b/dist/react.js
 @@ -1,5 +1,5 @@
@@ -541,15 +564,16 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe85
              ...(enhanced && stylePolicy?.alignments?.length
                  ? [TextAlign.configure({ types: ['heading', 'paragraph'] })]
                  : []),
-@@ -85,50 +73,20 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+@@ -85,50 +73,24 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
          immediatelyRender: false,
          onUpdate: ({ editor: current }) => onChangeRef.current?.(current.getJSON()),
      }, [schemaKey]);
 -    const sourceDirty = source !== sourceBaseline.current;
      useEffect(() => {
 -        const editable = !readOnly && mode === 'editor';
+-        if (editor && editor.isEditable !== editable)
 +        const editable = !readOnly;
-         if (editor && editor.isEditable !== editable)
++        if (editor && editor.isEditable !== editable) {
              editor.setEditable(editable, false);
 -    }, [editor, mode, readOnly]);
 -    useEffect(() => {
@@ -566,6 +590,10 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe85
 -        setSourceNotice(null);
 -        setMode('editor');
 -    }, [editor, enableHTMLSource, mode, readOnly]);
++            editor.view.dom.querySelectorAll('details').forEach((details) => {
++                details.open = editable;
++            });
++        }
 +    }, [editor, readOnly]);
      useEffect(() => {
 -        if (!editor || sourceDirty)
@@ -597,7 +625,7 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe85
      const words = useMemo(() => {
          if (!editor)
              return 0;
-@@ -137,71 +95,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+@@ -137,71 +99,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
      }, [editor, editor?.state.doc]);
      if (!editor)
          return _jsx("div", { "aria-busy": "true", className: "tuturuuu-editor-skeleton" });
@@ -671,7 +699,7 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe85
  }
  export { inspectRichTextHTML } from './html-source.js';
 diff --git a/dist/react.test.js b/dist/react.test.js
-index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..f94933541edeef36a5c1a08de5a8157ab2bbd017 100644
+index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..25c22a564d0aef97b8aa676cf735678ab13f8a59 100644
 --- a/dist/react.test.js
 +++ b/dist/react.test.js
 @@ -4,31 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, } from '@testing-library/r
@@ -707,7 +735,7 @@ index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..f94933541edeef36a5c1a08de5a8157a
      it('keeps the formatted document editable without a legacy preview switch', async () => {
          const onChange = vi.fn();
          const { container } = render(_jsx(RichTextEditor, { content: {
-@@ -57,23 +33,15 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
+@@ -57,26 +33,36 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
          expect(screen.getByRole('img', { name: 'Article detail' }).getAttribute('src')).toBe('https://example.com/article-detail.png');
          expect(onChange).not.toHaveBeenCalled();
      });
@@ -735,11 +763,33 @@ index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..f94933541edeef36a5c1a08de5a8157a
 +        expect(onSourceModeDirtyChange).toHaveBeenLastCalledWith(false);
      });
 -    it('keeps read-only editors free of HTML controls', async () => {
+-        render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full", readOnly: true }));
 +    it('keeps read-only editors free of authoring controls', async () => {
-         render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full", readOnly: true }));
++        const { container } = render(_jsx(RichTextEditor, { content: {
++                content: [
++                    {
++                        content: [
++                            {
++                                content: [{ text: 'Read-only toggle', type: 'text' }],
++                                type: 'collapsibleSummary',
++                            },
++                            {
++                                content: [{ text: 'Hidden details', type: 'text' }],
++                                type: 'paragraph',
++                            },
++                        ],
++                        type: 'collapsible',
++                    },
++                ],
++                type: 'doc',
++            }, enableHTMLSource: true, featurePreset: "full", readOnly: true }));
          await waitFor(() => expect(screen.queryByRole('button', { name: 'HTML' })).toBeNull());
          expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
-@@ -109,41 +77,33 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
++        expect(container.querySelector('details[open]')).toBeNull();
+     });
+     it('updates visual editing when read-only changes', async () => {
+         const { container, rerender } = render(_jsx(RichTextEditor, { content: {
+@@ -109,41 +95,33 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
              expect(current?.textContent).toBe('Live content');
          });
      });
