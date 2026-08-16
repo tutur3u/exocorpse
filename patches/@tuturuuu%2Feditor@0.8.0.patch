@@ -1,35 +1,54 @@
 diff --git a/dist/codec.d.ts.map b/dist/codec.d.ts.map
-index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..acf4e2e090d1c23e44a3acb1bbad45118da30856 100644
+index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..25512449d9c9f1c9b58c2fe996fae703bde6f3c0 100644
 --- a/dist/codec.d.ts.map
 +++ b/dist/codec.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAoG5D;AA6HD,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAoBpE"}
 \ No newline at end of file
-+{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAyI5D;AAsID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
++{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAgK5D;AAsID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
 \ No newline at end of file
 diff --git a/dist/codec.js b/dist/codec.js
-index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..f44060db0e6afa355d009c41e46a6bd068c9c2ef 100644
+index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..72c5392b2bc63023efe5e37f5148e611d78194ed 100644
 --- a/dist/codec.js
 +++ b/dist/codec.js
-@@ -322,6 +322,38 @@ export function markdownToJSON(markdown) {
+@@ -322,6 +322,57 @@ export function markdownToJSON(markdown) {
              index += 1;
              continue;
          }
 +        if (/^<details(?:\s+open)?\s*>$/u.test(line.trim())) {
 +            const detailLines = [];
 +            let cursor = index + 1;
-+            while (cursor < lines.length &&
-+                !/^<\/details>\s*$/u.test(lines[cursor] ?? '')) {
-+                detailLines.push(lines[cursor] ?? '');
++            let detailsDepth = 1;
++            while (cursor < lines.length && detailsDepth > 0) {
++                const detailLine = lines[cursor] ?? '';
++                if (/^<details(?:\s+open)?\s*>$/u.test(detailLine.trim())) {
++                    detailsDepth += 1;
++                    detailLines.push(detailLine);
++                }
++                else if (/^<\/details>\s*$/u.test(detailLine.trim())) {
++                    detailsDepth -= 1;
++                    if (detailsDepth > 0)
++                        detailLines.push(detailLine);
++                }
++                else {
++                    detailLines.push(detailLine);
++                }
 +                cursor += 1;
 +            }
-+            const summaryIndex = detailLines.findIndex((item) => item.trim());
-+            const summaryMatch = summaryIndex >= 0
-+                ? /^<summary>(.*)<\/summary>\s*$/u.exec(detailLines[summaryIndex]?.trim() ?? '')
-+                : null;
-+            if (summaryMatch && cursor < lines.length) {
++            const summaryStartIndex = detailLines.findIndex((item) => item.trimStart().startsWith('<summary>'));
++            const summaryEndIndex = summaryStartIndex >= 0
++                ? detailLines.findIndex((item, detailIndex) => detailIndex >= summaryStartIndex && item.includes('</summary>'))
++                : -1;
++            const summarySource = summaryStartIndex >= 0 && summaryEndIndex >= summaryStartIndex
++                ? detailLines
++                    .slice(summaryStartIndex, summaryEndIndex + 1)
++                    .join('\n')
++                    .trim()
++                : '';
++            const summaryMatch = /^<summary>([\s\S]*)<\/summary>\s*$/u.exec(summarySource);
++            if (summaryMatch && detailsDepth === 0) {
 +                const body = detailLines
-+                    .filter((_, detailIndex) => detailIndex !== summaryIndex)
++                    .filter((_, detailIndex) => detailIndex < summaryStartIndex || detailIndex > summaryEndIndex)
 +                    .join('\n')
 +                    .trim();
 +                const bodyContent = markdownToJSON(body).content ?? [];
@@ -50,7 +69,7 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..f44060db0e6afa355d009c41e46a6bd0
          const alignedBlock = line.match(/^<(p|h([1-4])) style="text-align:\s*(left|center|right)">(.*)<\/\1>$/u);
          if (alignedBlock) {
              content.push({
-@@ -461,6 +493,16 @@ function nodeToMarkdown(node) {
+@@ -461,6 +512,16 @@ function nodeToMarkdown(node) {
          return `![${alt}](${escapeMarkdownDestination(src)}${title})`;
      }
      const children = (node.content ?? []).map(nodeToMarkdown).join('');
@@ -67,7 +86,7 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..f44060db0e6afa355d009c41e46a6bd0
      if (node.type === 'heading') {
          const level = Math.min(4, Math.max(1, Number(node.attrs?.level ?? 2)));
          const textAlign = String(node.attrs?.textAlign ?? '');
-@@ -522,7 +564,13 @@ export function extractPlainText(content) {
+@@ -522,7 +583,13 @@ export function extractPlainText(content) {
              parts.push(String(node.attrs.alt));
          for (const child of node.content ?? [])
              visit(child);
@@ -83,10 +102,10 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..f44060db0e6afa355d009c41e46a6bd0
      };
      visit(content);
 diff --git a/dist/codec.test.js b/dist/codec.test.js
-index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..097f2e8925e38a8f106ae4d6fa075c1c5f78c4db 100644
+index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..f88e76df63eaecd78ce51e05fbfd82aa30008cac 100644
 --- a/dist/codec.test.js
 +++ b/dist/codec.test.js
-@@ -38,6 +38,24 @@ describe('rich text codecs', () => {
+@@ -38,6 +38,48 @@ describe('rich text codecs', () => {
          expect(roundTrip).toContain('---');
          expect(roundTrip).toContain('![A PNG](https://example.com/cover.png "Cover")');
      });
@@ -108,6 +127,30 @@ index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..097f2e8925e38a8f106ae4d6fa075c1c
 +        expect(renderRichTextToHTML(content, { featurePreset: 'full' })).toContain('<details><summary>Background details</summary><p>A <strong>formatted</strong> secret.</p><ul>');
 +        expect(extractPlainText(content)).toContain('Background details');
 +    });
++    it('round-trips nested collapsibles and multiline summaries', () => {
++        const markdown = [
++            '<details>',
++            '<summary>Outer line  ',
++            'continued</summary>',
++            '',
++            'Before the nested section.',
++            '',
++            '<details>',
++            '<summary>Inner details</summary>',
++            '',
++            'Nested body.',
++            '',
++            '</details>',
++            '',
++            'After the nested section.',
++            '',
++            '</details>',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        expect(content.content?.[0]?.type).toBe('collapsible');
++        expect(content.content?.[0]?.content?.[2]?.type).toBe('collapsible');
++        expect(jsonToMarkdown(content)).toBe(markdown);
++    });
      it('preserves literal Markdown delimiters through compatibility mirrors', () => {
          const content = {
              content: [
@@ -124,23 +167,45 @@ index 0000000000000000000000000000000000000000..169f5c6f4bf02eff3d14f7f2c4b843b0
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..0c8d47215edab3f0127bbcb4ebbb4ced2d42d399
+index 0000000000000000000000000000000000000000..f6bdd217d8c5ed6b4cba5dc173b7dbbcb472bf5d
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAU7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAatB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAiC7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAqDtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..bd8161ab26ba72fdbf4d0248693ba77d6ffa2988
+index 0000000000000000000000000000000000000000..7c0addf9994786de978239c89dad04f16c918c6c
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,81 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
 +    content: 'inline*',
 +    defining: true,
++    addNodeView() {
++        return () => {
++            const dom = document.createElement('summary');
++            const disclosure = document.createElement('button');
++            const contentDOM = document.createElement('span');
++            disclosure.type = 'button';
++            disclosure.className = 'tuturuuu-editor-collapsible-toggle';
++            disclosure.contentEditable = 'false';
++            disclosure.setAttribute('aria-label', 'Expand or collapse section');
++            disclosure.setAttribute('title', 'Expand or collapse section');
++            disclosure.addEventListener('click', (event) => {
++                event.preventDefault();
++                event.stopPropagation();
++                const details = dom.closest('details');
++                if (details)
++                    details.open = !details.open;
++            });
++            contentDOM.className = 'tuturuuu-editor-collapsible-summary-content';
++            dom.append(disclosure, contentDOM);
++            return { contentDOM, dom };
++        };
++    },
 +    parseHTML() {
 +        return [{ tag: 'summary' }];
 +    },
@@ -153,7 +218,40 @@ index 0000000000000000000000000000000000000000..bd8161ab26ba72fdbf4d0248693ba77d
 +    group: 'block',
 +    content: 'collapsibleSummary block+',
 +    defining: true,
-+    isolating: true,
++    addKeyboardShortcuts() {
++        const removeAtBoundary = (direction) => this.editor.commands.command(({ dispatch, state }) => {
++            const { $from, empty } = state.selection;
++            if (!empty)
++                return false;
++            let collapsibleDepth = -1;
++            for (let depth = $from.depth; depth > 0; depth -= 1) {
++                if ($from.node(depth).type.name === this.name) {
++                    collapsibleDepth = depth;
++                    break;
++                }
++            }
++            if (collapsibleDepth < 0)
++                return false;
++            const node = $from.node(collapsibleDepth);
++            const nodeStart = $from.before(collapsibleDepth);
++            const atSummaryStart = $from.parent.type.name === 'collapsibleSummary' &&
++                $from.parentOffset === 0;
++            const atLastBlockEnd = $from.parentOffset === $from.parent.content.size &&
++                $from.pos === nodeStart + node.nodeSize - 2;
++            if ((direction === 'backward' && !atSummaryStart) ||
++                (direction === 'forward' && !atLastBlockEnd)) {
++                return false;
++            }
++            if (dispatch) {
++                dispatch(state.tr.delete(nodeStart, nodeStart + node.nodeSize));
++            }
++            return true;
++        });
++        return {
++            Backspace: () => removeAtBoundary('backward'),
++            Delete: () => removeAtBoundary('forward'),
++        };
++    },
 +    parseHTML() {
 +        return [{ tag: 'details' }];
 +    },
@@ -161,6 +259,74 @@ index 0000000000000000000000000000000000000000..bd8161ab26ba72fdbf4d0248693ba77d
 +        // Keep authoring blocks open so their content is always directly editable.
 +        return ['details', mergeAttributes(HTMLAttributes, { open: '' }), 0];
 +    },
++});
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.d.ts b/dist/collapsible.test.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..fc89fbbceeccd4a46a8e8a612c2989f9c1822eeb
+--- /dev/null
++++ b/dist/collapsible.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=collapsible.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.d.ts.map b/dist/collapsible.test.d.ts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec20c1761b4
+--- /dev/null
++++ b/dist/collapsible.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"collapsible.test.d.ts","sourceRoot":"","sources":["../src/collapsible.test.ts"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..de0246f1eca1c2c298423e4752f10e4b37bc2f50
+--- /dev/null
++++ b/dist/collapsible.test.js
+@@ -0,0 +1,45 @@
++// @vitest-environment jsdom
++import { Editor } from '@tiptap/core';
++import StarterKit from '@tiptap/starter-kit';
++import { describe, expect, it } from 'vitest';
++import { Collapsible, CollapsibleSummary } from './collapsible.js';
++const toggleContent = {
++    content: [
++        {
++            content: [
++                {
++                    content: [{ text: 'Section title', type: 'text' }],
++                    type: 'collapsibleSummary',
++                },
++                {
++                    content: [{ text: 'Section body', type: 'text' }],
++                    type: 'paragraph',
++                },
++            ],
++            type: 'collapsible',
++        },
++    ],
++    type: 'doc',
++};
++function createEditor() {
++    return new Editor({
++        content: toggleContent,
++        extensions: [StarterKit, CollapsibleSummary, Collapsible],
++    });
++}
++describe('collapsible editing', () => {
++    it('removes a toggle with Backspace from the start of its summary', () => {
++        const editor = createEditor();
++        editor.commands.setTextSelection(2);
++        expect(editor.commands.keyboardShortcut('Backspace')).toBe(true);
++        expect(editor.getJSON().content).toEqual([{ type: 'paragraph' }]);
++        editor.destroy();
++    });
++    it('removes a toggle with Delete from the end of its body', () => {
++        const editor = createEditor();
++        editor.commands.setTextSelection(editor.state.doc.content.size - 1);
++        expect(editor.commands.keyboardShortcut('Delete')).toBe(true);
++        expect(editor.getJSON().content).toEqual([{ type: 'paragraph' }]);
++        editor.destroy();
++    });
 +});
 diff --git a/dist/editor-toolbar.d.ts b/dist/editor-toolbar.d.ts
 index 2c804f0cb17a1a6cae972ee220c4f3790b658622..1a8466956ca1765f2e717f55fa94109cce4d309e 100644
@@ -194,7 +360,7 @@ index 57a926478291f00d27280825f0401c35d6ee917e..51b147cac02bfecf8bb69953840e3780
 +{"version":3,"file":"editor-toolbar.d.ts","sourceRoot":"","sources":["../src/editor-toolbar.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AAuB5C,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,cAAc,EACd,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAEpB,KAAK,cAAc,GAAG,qBAAqB,GAAG,QAAQ,CAAC;AAEvD,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,MAAM,EACN,WAAW,EACX,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,CAAC;IACf,QAAQ,EAAE,cAAc,CAAC;IACzB,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,MAAM,EAAE,cAAc,CAAC;IACvB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BA6MA"}
 \ No newline at end of file
 diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
-index 51b0dec38a271b2f1362425c4e31685925ea4e2e..f01b860a932a9a7151b8fc6fe96b69945de9a07c 100644
+index 51b0dec38a271b2f1362425c4e31685925ea4e2e..0b1e3536f8f55d148d460690a3317c7c27a6bbcb 100644
 --- a/dist/editor-toolbar.js
 +++ b/dist/editor-toolbar.js
 @@ -1,11 +1,11 @@
@@ -257,7 +423,7 @@ index 1ab55463363e6192d7bce89ae19f85494ca42fb9..6cd945a9d1f2fe7501b37be2a49c3dea
 +{"version":3,"file":"messages.d.ts","sourceRoot":"","sources":["../src/messages.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,YAAY,CAAC;AAE/D,eAAO,MAAM,cAAc,EAAE,MAAM,CAAC,YAAY,EAAE,cAAc,CA0G/D,CAAC"}
 \ No newline at end of file
 diff --git a/dist/messages.js b/dist/messages.js
-index 9024b14862c9542ef9b5beb77cf505ce7f260aac..341c6fd3547809735ddd239a061536e876eff896 100644
+index 9024b14862c9542ef9b5beb77cf505ce7f260aac..73750ea43ad30dffe81589097ff594ddaaa2a81a 100644
 --- a/dist/messages.js
 +++ b/dist/messages.js
 @@ -11,6 +11,9 @@ export const editorMessages = {
@@ -309,16 +475,16 @@ index d55092d052a159eb5c4cecda32adf0b314f90a7f..d099390d80d1bf104670cbac59fc2ee9
  export type { HTMLSourceInspection } from './html-source.js';
  export { inspectRichTextHTML } from './html-source.js';
 diff --git a/dist/react.d.ts.map b/dist/react.d.ts.map
-index d9c3f477f644a0fe976a316def8e36201e7779ca..1e6188d2694b0c0e1151689024c35d55751a4086 100644
+index d9c3f477f644a0fe976a316def8e36201e7779ca..740ca83284085255ebb1dc8e437eae086ffc1e27 100644
 --- a/dist/react.d.ts.map
 +++ b/dist/react.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAsBA,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAwB,EACxB,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,GACZ,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,+BA0QA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
 \ No newline at end of file
-+{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAgB,EAAE,gBAAwB,EAC1C,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,EACX,UAAU,GACX,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,+DAA+D;IAC/D,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,oDAAoD;IACpD,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,8EAA8E;IAC9E,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BAsHA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
++{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAgB,EAAE,gBAAwB,EAC1C,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,EACX,UAAU,GACX,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,+DAA+D;IAC/D,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,oDAAoD;IACpD,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,8EAA8E;IAC9E,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BAuHA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
 \ No newline at end of file
 diff --git a/dist/react.js b/dist/react.js
-index f972b4b1552aa37f55ac49c004cf4d15411d7314..f7ebb31537a56f405cf367a120eef1f754ee88ac 100644
+index f972b4b1552aa37f55ac49c004cf4d15411d7314..334a7fc32c4db1e24ad0c603162afe8535fb57c4 100644
 --- a/dist/react.js
 +++ b/dist/react.js
 @@ -1,5 +1,5 @@
@@ -367,16 +533,15 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..f7ebb31537a56f405cf367a120eef1f7
      const resolvedPlaceholder = placeholder ?? messages.placeholder;
      const extensions = useMemo(() => {
          const full = preset !== 'compact';
-@@ -51,7 +38,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
-                 orderedList: full ? undefined : false,
+@@ -52,6 +39,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
              }),
              Link.configure({ openOnClick: false }),
--            ...(full ? [Image] : []),
-+            ...(full ? [Image, CollapsibleSummary, Collapsible] : []),
+             ...(full ? [Image] : []),
++            ...(preset === 'full' ? [CollapsibleSummary, Collapsible] : []),
              ...(enhanced && stylePolicy?.alignments?.length
                  ? [TextAlign.configure({ types: ['heading', 'paragraph'] })]
                  : []),
-@@ -85,50 +72,20 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+@@ -85,50 +73,20 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
          immediatelyRender: false,
          onUpdate: ({ editor: current }) => onChangeRef.current?.(current.getJSON()),
      }, [schemaKey]);
@@ -432,7 +597,7 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..f7ebb31537a56f405cf367a120eef1f7
      const words = useMemo(() => {
          if (!editor)
              return 0;
-@@ -137,71 +94,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+@@ -137,71 +95,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
      }, [editor, editor?.state.doc]);
      if (!editor)
          return _jsx("div", { "aria-busy": "true", className: "tuturuuu-editor-skeleton" });
@@ -506,7 +671,7 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..f7ebb31537a56f405cf367a120eef1f7
  }
  export { inspectRichTextHTML } from './html-source.js';
 diff --git a/dist/react.test.js b/dist/react.test.js
-index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..d5f2d8c7b64b8fc60f4c9faa6d13b5fce6d06389 100644
+index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..f94933541edeef36a5c1a08de5a8157ab2bbd017 100644
 --- a/dist/react.test.js
 +++ b/dist/react.test.js
 @@ -4,31 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, } from '@testing-library/r
@@ -574,7 +739,7 @@ index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..d5f2d8c7b64b8fc60f4c9faa6d13b5fc
          render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full", readOnly: true }));
          await waitFor(() => expect(screen.queryByRole('button', { name: 'HTML' })).toBeNull());
          expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
-@@ -109,41 +77,25 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
+@@ -109,41 +77,33 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
              expect(current?.textContent).toBe('Live content');
          });
      });
@@ -619,6 +784,14 @@ index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..d5f2d8c7b64b8fc60f4c9faa6d13b5fc
 +                ]),
 +            }));
 +        });
++        const details = container.querySelector('details');
++        const disclosure = screen.getByRole('button', {
++            name: 'Expand or collapse section',
++        });
++        fireEvent.click(disclosure);
++        expect(details?.hasAttribute('open')).toBe(false);
++        fireEvent.click(disclosure);
++        expect(details?.hasAttribute('open')).toBe(true);
      });
 -    it('exits source mode when source editing becomes unavailable', async () => {
 -        const { rerender } = render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full" }));
@@ -734,10 +907,10 @@ index bd686c9969c9c57dfec3463964cfdfc374552345..95cdd5acb64c45f87017c6b395744a19
      "jsdom": "^30.0.1",
      "typescript": "7.0.2",
 diff --git a/styles.css b/styles.css
-index c59a7e0b5626b3860e1cd58104a6e62268faa121..a51b6fa406b3d2cf451b0c9eefe375237e8218b3 100644
+index c59a7e0b5626b3860e1cd58104a6e62268faa121..3cc912f2390e14209c687ed7f7a8d4b2c89812a2 100644
 --- a/styles.css
 +++ b/styles.css
-@@ -127,6 +127,26 @@
+@@ -127,6 +127,63 @@
    font-style: italic;
  }
  
@@ -753,8 +926,45 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..a51b6fa406b3d2cf451b0c9eefe37523
 +}
 +
 +.tuturuuu-editor .tiptap summary {
-+  cursor: text;
++  display: flex;
++  align-items: center;
++  gap: 0.375rem;
++  list-style: none;
 +  font-weight: 700;
++}
++
++.tuturuuu-editor .tiptap summary::-webkit-details-marker {
++  display: none;
++}
++
++.tuturuuu-editor-collapsible-toggle {
++  width: 1.5rem;
++  height: 1.5rem;
++  flex: 0 0 1.5rem;
++  padding: 0;
++  border: 0;
++  background: transparent;
++  color: currentColor;
++  cursor: pointer;
++}
++
++.tuturuuu-editor-collapsible-toggle::before {
++  display: block;
++  font-size: 0.75rem;
++  line-height: 1;
++  content: '▶';
++  transition: transform 120ms ease;
++}
++
++.tuturuuu-editor .tiptap details[open] > summary
++  > .tuturuuu-editor-collapsible-toggle::before {
++  transform: rotate(90deg);
++}
++
++.tuturuuu-editor-collapsible-summary-content {
++  min-width: 0;
++  flex: 1;
++  cursor: text;
 +}
 +
 +.tuturuuu-editor .tiptap details > :not(summary) {
