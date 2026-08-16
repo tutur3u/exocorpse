@@ -1,11 +1,11 @@
 diff --git a/dist/codec.d.ts.map b/dist/codec.d.ts.map
-index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..0acaea5b161f04fab967c672bcd73c5fee7f80fd 100644
+index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..5c35d018da969e48d6b9d62ccce61c743a33e666 100644
 --- a/dist/codec.d.ts.map
 +++ b/dist/codec.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAoG5D;AA6HD,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAoBpE"}
 \ No newline at end of file
-+{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA0a9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAgH5D;AAgID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
++{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA2a9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAgH5D;AAgID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AACD,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
 \ No newline at end of file
 diff --git a/dist/codec.js b/dist/codec.js
 index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..19f3f6a3788fced1ebcfe598fee89b0ba5b4d643 100644
@@ -407,18 +407,18 @@ index 0000000000000000000000000000000000000000..a557f7106a0389443b4221e9d4b142f7
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..be01dc92dd06e7ab97ccf8b763f8ba6becf69326
+index 0000000000000000000000000000000000000000..735981e1d2368bc953934b71ab380fb74b48d73d
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB;;OA+C7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB;;OAyD7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..4f438f79bd97244e1dad147efd0173f7798295d8
+index 0000000000000000000000000000000000000000..2e9e2bd54324aaf24bfdb2380f3133d99e98e4fb
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,110 @@
+@@ -0,0 +1,120 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
@@ -438,7 +438,7 @@ index 0000000000000000000000000000000000000000..4f438f79bd97244e1dad147efd0173f7
 +            disclosure.setAttribute('aria-label', this.options.disclosureLabel);
 +            disclosure.setAttribute('aria-expanded', String(this.editor.isEditable));
 +            disclosure.setAttribute('title', this.options.disclosureLabel);
-+            disclosure.addEventListener('click', (event) => {
++            const toggleDisclosure = (event) => {
 +                event.preventDefault();
 +                event.stopPropagation();
 +                const details = dom.closest('details');
@@ -446,11 +446,21 @@ index 0000000000000000000000000000000000000000..4f438f79bd97244e1dad147efd0173f7
 +                    details.open = !details.open;
 +                    disclosure.setAttribute('aria-expanded', String(details.open));
 +                }
-+            });
++            };
++            const keepSummaryEditable = (event) => {
++                if (this.editor.isEditable && event.target !== disclosure)
++                    event.preventDefault();
++            };
++            disclosure.addEventListener('click', toggleDisclosure);
++            dom.addEventListener('click', keepSummaryEditable);
 +            contentDOM.className = 'tuturuuu-editor-collapsible-summary-content';
 +            dom.append(disclosure, contentDOM);
 +            return {
 +                contentDOM,
++                destroy: () => {
++                    disclosure.removeEventListener('click', toggleDisclosure);
++                    dom.removeEventListener('click', keepSummaryEditable);
++                },
 +                dom,
 +                ignoreMutation: (mutation) => mutation.type === 'attributes' &&
 +                    mutation.target === disclosure &&
@@ -548,10 +558,10 @@ index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec2
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..df56b680814de2c33a4674ad52e5b1430a75086d
+index 0000000000000000000000000000000000000000..ec95601cf56a2618f117a1c7c9c4440d01d918f3
 --- /dev/null
 +++ b/dist/collapsible.test.js
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,76 @@
 +// @vitest-environment jsdom
 +import { Editor } from '@tiptap/core';
 +import StarterKit from '@tiptap/starter-kit';
@@ -603,6 +613,14 @@ index 0000000000000000000000000000000000000000..df56b680814de2c33a4674ad52e5b143
 +        details.open = true;
 +        details.dispatchEvent(new Event('toggle'));
 +        expect(disclosure?.getAttribute('aria-expanded')).toBe('true');
++        editor.destroy();
++    });
++    it('keeps summary text editable without disabling native read-only toggles', () => {
++        const editor = createEditor();
++        const summary = editor.view.dom.querySelector('summary');
++        expect(summary?.dispatchEvent(new MouseEvent('click', { cancelable: true }))).toBe(false);
++        editor.setEditable(false);
++        expect(summary?.dispatchEvent(new MouseEvent('click', { cancelable: true }))).toBe(true);
 +        editor.destroy();
 +    });
 +    it('removes a toggle with Backspace from the start of its summary', () => {
