@@ -1095,14 +1095,20 @@ index e0751a64715690bead7a5f06f3d14270265037c8..16addeb82712c55068082aeb986cd89e
          const level = Math.min(4, Math.max(1, Number(node.attrs?.level ?? 2)));
          return `<h${level}${styleAttribute(node, policy)}>${children}</h${level}>`;
 diff --git a/dist/toolbar-action.js b/dist/toolbar-action.js
-index a4056256274c6909737e896c10c98d8192eaf1c1..9da3406df79c4725436ad15c81586c46b8270c2a 100644
+index a4056256274c6909737e896c10c98d8192eaf1c1..d409f57e6f559d8bf9d6b32dcdba7c0ae793b993 100644
 --- a/dist/toolbar-action.js
 +++ b/dist/toolbar-action.js
-@@ -1,4 +1,4 @@
+@@ -1,4 +1,10 @@
  import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
  export function ToolbarAction({ active, buttonRef, controls, expanded, icon: Icon, label, run, type = 'button', }) {
 -    return (_jsxs("span", { className: "tuturuuu-editor-tool", children: [_jsx("button", { "aria-label": label, "aria-pressed": active, "aria-controls": controls, "aria-expanded": expanded, onClick: run, ref: buttonRef, type: type, children: _jsx(Icon, { "aria-hidden": "true" }) }), _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-tooltip", children: label })] }));
-+    return (_jsxs("span", { className: "tuturuuu-editor-tool", children: [_jsx("button", { "aria-label": label, "aria-pressed": active, "aria-controls": controls, "aria-expanded": expanded, onClick: run, onMouseDown: (event) => event.preventDefault(), ref: buttonRef, type: type, children: _jsx(Icon, { "aria-hidden": "true" }) }), _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-tooltip", children: label })] }));
++    return (_jsxs("span", { className: "tuturuuu-editor-tool", children: [_jsx("button", { "aria-label": label, "aria-pressed": active, "aria-controls": controls, "aria-expanded": expanded, onClick: (event) => {
++                    if (event.detail === 0)
++                        run?.();
++                }, onPointerDown: (event) => {
++                    event.preventDefault();
++                    run?.();
++                }, ref: buttonRef, type: type, children: _jsx(Icon, { "aria-hidden": "true" }) }), _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-tooltip", children: label })] }));
  }
 diff --git a/dist/types.d.ts b/dist/types.d.ts
 index 912d3e37fd019d73c6f260b90577f1e209acdd42..ec7d4fac39102ce9c045af51886a93795e6fce2f 100644
