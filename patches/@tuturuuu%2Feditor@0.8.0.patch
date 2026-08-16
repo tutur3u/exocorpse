@@ -8,10 +8,10 @@ index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..9941c6379de9e78ff9d5ea6749dcf88b
 +{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAoK5D;AAsID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
 \ No newline at end of file
 diff --git a/dist/codec.js b/dist/codec.js
-index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..001e77c9d2dedebe511db3b7c2bbaf5d98d6debd 100644
+index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..181232948920da5ca4a75e098083150e4738de9c 100644
 --- a/dist/codec.js
 +++ b/dist/codec.js
-@@ -322,6 +322,58 @@ export function markdownToJSON(markdown) {
+@@ -322,6 +322,64 @@ export function markdownToJSON(markdown) {
              index += 1;
              continue;
          }
@@ -47,7 +47,13 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..001e77c9d2dedebe511db3b7c2bbaf5d
 +                : '';
 +            const summaryMatch = /^<summary>([\s\S]*)<\/summary>\s*$/u.exec(summarySource);
 +            if (summaryMatch && detailsDepth === 0) {
-+                const summaryContent = markdownToJSON(summaryMatch[1] ?? '').content?.flatMap((summaryBlock) => summaryBlock.content ?? []) ?? [];
++                const summaryBlocks = markdownToJSON(summaryMatch[1] ?? '').content ?? [];
++                const summaryContent = summaryBlocks.flatMap((summaryBlock, summaryBlockIndex) => [
++                    ...(summaryBlockIndex > 0
++                        ? [{ text: ' ', type: 'text' }]
++                        : []),
++                    ...(summaryBlock.content ?? []),
++                ]);
 +                const body = detailLines
 +                    .filter((_, detailIndex) => detailIndex < summaryStartIndex || detailIndex > summaryEndIndex)
 +                    .join('\n')
@@ -70,7 +76,7 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..001e77c9d2dedebe511db3b7c2bbaf5d
          const alignedBlock = line.match(/^<(p|h([1-4])) style="text-align:\s*(left|center|right)">(.*)<\/\1>$/u);
          if (alignedBlock) {
              content.push({
-@@ -461,6 +513,16 @@ function nodeToMarkdown(node) {
+@@ -461,6 +519,16 @@ function nodeToMarkdown(node) {
          return `![${alt}](${escapeMarkdownDestination(src)}${title})`;
      }
      const children = (node.content ?? []).map(nodeToMarkdown).join('');
@@ -87,7 +93,7 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..001e77c9d2dedebe511db3b7c2bbaf5d
      if (node.type === 'heading') {
          const level = Math.min(4, Math.max(1, Number(node.attrs?.level ?? 2)));
          const textAlign = String(node.attrs?.textAlign ?? '');
-@@ -522,7 +584,13 @@ export function extractPlainText(content) {
+@@ -522,7 +590,13 @@ export function extractPlainText(content) {
              parts.push(String(node.attrs.alt));
          for (const child of node.content ?? [])
              visit(child);
@@ -103,10 +109,10 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..001e77c9d2dedebe511db3b7c2bbaf5d
      };
      visit(content);
 diff --git a/dist/codec.test.js b/dist/codec.test.js
-index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..fdbabcd1ef72666c2bcc817e0db588a2c320e2d6 100644
+index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..fd91740848608d6929c3dbdfacfde09014b3752e 100644
 --- a/dist/codec.test.js
 +++ b/dist/codec.test.js
-@@ -38,6 +38,66 @@ describe('rich text codecs', () => {
+@@ -38,6 +38,80 @@ describe('rich text codecs', () => {
          expect(roundTrip).toContain('---');
          expect(roundTrip).toContain('![A PNG](https://example.com/cover.png "Cover")');
      });
@@ -152,6 +158,20 @@ index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..fdbabcd1ef72666c2bcc817e0db588a2
 +        expect(content.content?.[0]?.content?.[2]?.type).toBe('collapsible');
 +        expect(content.content?.[0]?.content?.[0]?.content?.[1]?.type).toBe('hardBreak');
 +        expect(jsonToMarkdown(content)).toBe(markdown);
++    });
++    it('preserves whitespace in soft-wrapped collapsible summaries', () => {
++        const markdown = [
++            '<details>',
++            '<summary>First',
++            'Second</summary>',
++            '',
++            'Hidden context.',
++            '',
++            '</details>',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        expect(extractPlainText(content)).toContain('First Second');
++        expect(jsonToMarkdown(content)).toContain('<summary>First Second</summary>');
 +    });
 +    it('keeps content immediately following a collapsible section', () => {
 +        const markdown = [
@@ -1059,10 +1079,10 @@ index bd686c9969c9c57dfec3463964cfdfc374552345..ef70c0814b766203354e63f45e4ccdf5
      "jsdom": "^30.0.1",
      "typescript": "7.0.2",
 diff --git a/styles.css b/styles.css
-index c59a7e0b5626b3860e1cd58104a6e62268faa121..91f0390ec78aa12c47d1f1dd44c9e81a45fa390e 100644
+index c59a7e0b5626b3860e1cd58104a6e62268faa121..b8d275bbfa53b5335e91ec8a91455da9e1906f06 100644
 --- a/styles.css
 +++ b/styles.css
-@@ -127,6 +127,84 @@
+@@ -127,6 +127,89 @@
    font-style: italic;
  }
  
@@ -1093,10 +1113,12 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..91f0390ec78aa12c47d1f1dd44c9e81a
 +  .tiptap
 +  summary:not(:has(> .tuturuuu-editor-collapsible-toggle))::before {
 +  display: block;
++  width: 0;
++  height: 0;
 +  flex: 0 0 auto;
-+  font-size: 0.75rem;
-+  line-height: 1;
-+  content: "▶";
++  border-block: 0.3rem solid transparent;
++  border-inline-start: 0.45rem solid currentColor;
++  content: "";
 +  transition: transform 120ms ease;
 +}
 +
@@ -1120,9 +1142,12 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..91f0390ec78aa12c47d1f1dd44c9e81a
 +
 +.tuturuuu-editor-collapsible-toggle::before {
 +  display: block;
-+  font-size: 0.75rem;
-+  line-height: 1;
-+  content: "▶";
++  width: 0;
++  height: 0;
++  margin: auto;
++  border-block: 0.3rem solid transparent;
++  border-inline-start: 0.45rem solid currentColor;
++  content: "";
 +  transition: transform 120ms ease;
 +}
 +
@@ -1147,7 +1172,7 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..91f0390ec78aa12c47d1f1dd44c9e81a
  .tuturuuu-editor .tiptap hr {
    height: 1px;
    margin: 1.75rem 0;
-@@ -174,7 +252,8 @@
+@@ -174,7 +257,8 @@
    border-radius: 0.5rem;
  }
  
