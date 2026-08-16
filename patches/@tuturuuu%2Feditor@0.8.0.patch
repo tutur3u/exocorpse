@@ -1,0 +1,766 @@
+diff --git a/dist/codec.d.ts.map b/dist/codec.d.ts.map
+index bd59b8c50a171185a8cc725162e7e4e443d5e5c8..acf4e2e090d1c23e44a3acb1bbad45118da30856 100644
+--- a/dist/codec.d.ts.map
++++ b/dist/codec.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAoG5D;AA6HD,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAoBpE"}
+\ No newline at end of file
++{"version":3,"file":"codec.d.ts","sourceRoot":"","sources":["../src/codec.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AA4Z9C,wBAAgB,cAAc,CAAC,QAAQ,EAAE,MAAM,GAAG,WAAW,CAyI5D;AAsID,wBAAgB,cAAc,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAElE;AAED,wBAAgB,gBAAgB,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,GAAG,MAAM,CAwBpE"}
+\ No newline at end of file
+diff --git a/dist/codec.js b/dist/codec.js
+index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..f44060db0e6afa355d009c41e46a6bd068c9c2ef 100644
+--- a/dist/codec.js
++++ b/dist/codec.js
+@@ -322,6 +322,38 @@ export function markdownToJSON(markdown) {
+             index += 1;
+             continue;
+         }
++        if (/^<details(?:\s+open)?\s*>$/u.test(line.trim())) {
++            const detailLines = [];
++            let cursor = index + 1;
++            while (cursor < lines.length &&
++                !/^<\/details>\s*$/u.test(lines[cursor] ?? '')) {
++                detailLines.push(lines[cursor] ?? '');
++                cursor += 1;
++            }
++            const summaryIndex = detailLines.findIndex((item) => item.trim());
++            const summaryMatch = summaryIndex >= 0
++                ? /^<summary>(.*)<\/summary>\s*$/u.exec(detailLines[summaryIndex]?.trim() ?? '')
++                : null;
++            if (summaryMatch && cursor < lines.length) {
++                const body = detailLines
++                    .filter((_, detailIndex) => detailIndex !== summaryIndex)
++                    .join('\n')
++                    .trim();
++                const bodyContent = markdownToJSON(body).content ?? [];
++                content.push({
++                    content: [
++                        {
++                            content: parseInline(summaryMatch[1] ?? ''),
++                            type: 'collapsibleSummary',
++                        },
++                        ...(bodyContent.length ? bodyContent : [paragraph('')]),
++                    ],
++                    type: 'collapsible',
++                });
++                index = cursor + 1;
++                continue;
++            }
++        }
+         const alignedBlock = line.match(/^<(p|h([1-4])) style="text-align:\s*(left|center|right)">(.*)<\/\1>$/u);
+         if (alignedBlock) {
+             content.push({
+@@ -461,6 +493,16 @@ function nodeToMarkdown(node) {
+         return `![${alt}](${escapeMarkdownDestination(src)}${title})`;
+     }
+     const children = (node.content ?? []).map(nodeToMarkdown).join('');
++    if (node.type === 'collapsible') {
++        const [summary, ...body] = node.content ?? [];
++        const summaryMarkdown = (summary?.content ?? [])
++            .map(nodeToMarkdown)
++            .join('');
++        const bodyMarkdown = body.map(nodeToMarkdown).join('\n\n');
++        return `<details>\n<summary>${summaryMarkdown}</summary>\n\n${bodyMarkdown}\n\n</details>`;
++    }
++    if (node.type === 'collapsibleSummary')
++        return children;
+     if (node.type === 'heading') {
+         const level = Math.min(4, Math.max(1, Number(node.attrs?.level ?? 2)));
+         const textAlign = String(node.attrs?.textAlign ?? '');
+@@ -522,7 +564,13 @@ export function extractPlainText(content) {
+             parts.push(String(node.attrs.alt));
+         for (const child of node.content ?? [])
+             visit(child);
+-        if (['paragraph', 'heading', 'listItem', 'blockquote'].includes(node.type ?? ''))
++        if ([
++            'paragraph',
++            'heading',
++            'listItem',
++            'blockquote',
++            'collapsibleSummary',
++        ].includes(node.type ?? ''))
+             parts.push('\n');
+     };
+     visit(content);
+diff --git a/dist/codec.test.js b/dist/codec.test.js
+index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..097f2e8925e38a8f106ae4d6fa075c1c5f78c4db 100644
+--- a/dist/codec.test.js
++++ b/dist/codec.test.js
+@@ -38,6 +38,24 @@ describe('rich text codecs', () => {
+         expect(roundTrip).toContain('---');
+         expect(roundTrip).toContain('![A PNG](https://example.com/cover.png "Cover")');
+     });
++    it('round-trips and renders collapsible Markdown sections', () => {
++        const markdown = [
++            '<details>',
++            '<summary>Background details</summary>',
++            '',
++            'A **formatted** secret.',
++            '',
++            '- First clue',
++            '- Second clue',
++            '',
++            '</details>',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        expect(content.content?.[0]?.type).toBe('collapsible');
++        expect(jsonToMarkdown(content)).toBe(markdown);
++        expect(renderRichTextToHTML(content, { featurePreset: 'full' })).toContain('<details><summary>Background details</summary><p>A <strong>formatted</strong> secret.</p><ul>');
++        expect(extractPlainText(content)).toContain('Background details');
++    });
+     it('preserves literal Markdown delimiters through compatibility mirrors', () => {
+         const content = {
+             content: [
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts b/dist/collapsible.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..169f5c6f4bf02eff3d14f7f2c4b843b010695004
+--- /dev/null
++++ b/dist/collapsible.d.ts
+@@ -0,0 +1,4 @@
++import { Node } from '@tiptap/core';
++export declare const CollapsibleSummary: Node<any, any>;
++export declare const Collapsible: Node<any, any>;
++//# sourceMappingURL=collapsible.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..0c8d47215edab3f0127bbcb4ebbb4ced2d42d399
+--- /dev/null
++++ b/dist/collapsible.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAU7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAatB,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..bd8161ab26ba72fdbf4d0248693ba77d6ffa2988
+--- /dev/null
++++ b/dist/collapsible.js
+@@ -0,0 +1,26 @@
++import { mergeAttributes, Node } from '@tiptap/core';
++export const CollapsibleSummary = Node.create({
++    name: 'collapsibleSummary',
++    content: 'inline*',
++    defining: true,
++    parseHTML() {
++        return [{ tag: 'summary' }];
++    },
++    renderHTML({ HTMLAttributes }) {
++        return ['summary', mergeAttributes(HTMLAttributes), 0];
++    },
++});
++export const Collapsible = Node.create({
++    name: 'collapsible',
++    group: 'block',
++    content: 'collapsibleSummary block+',
++    defining: true,
++    isolating: true,
++    parseHTML() {
++        return [{ tag: 'details' }];
++    },
++    renderHTML({ HTMLAttributes }) {
++        // Keep authoring blocks open so their content is always directly editable.
++        return ['details', mergeAttributes(HTMLAttributes, { open: '' }), 0];
++    },
++});
+diff --git a/dist/editor-toolbar.d.ts b/dist/editor-toolbar.d.ts
+index 2c804f0cb17a1a6cae972ee220c4f3790b658622..1a8466956ca1765f2e717f55fa94109cce4d309e 100644
+--- a/dist/editor-toolbar.d.ts
++++ b/dist/editor-toolbar.d.ts
+@@ -1,13 +1,15 @@
+ import type { Editor } from '@tiptap/react';
++import type { ReactNode } from 'react';
+ import type { EditorMessages, RichTextFeaturePreset, RichTextStylePolicy } from './types.js';
+ type InternalPreset = RichTextFeaturePreset | 'legacy';
+-export declare function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }: {
++export declare function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, toolbarEnd, }: {
+     editor: Editor;
+     messages: EditorMessages;
+     onImageUpload?: (file: File) => Promise<string>;
+     onImageUploadError?: (error: unknown) => void;
+     preset: InternalPreset;
+     stylePolicy?: RichTextStylePolicy;
++    toolbarEnd?: ReactNode;
+ }): import("react").JSX.Element;
+ export {};
+ //# sourceMappingURL=editor-toolbar.d.ts.map
+\ No newline at end of file
+diff --git a/dist/editor-toolbar.d.ts.map b/dist/editor-toolbar.d.ts.map
+index 57a926478291f00d27280825f0401c35d6ee917e..51b147cac02bfecf8bb69953840e3780e97c6671 100644
+--- a/dist/editor-toolbar.d.ts.map
++++ b/dist/editor-toolbar.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"editor-toolbar.d.ts","sourceRoot":"","sources":["../src/editor-toolbar.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AA2B5C,OAAO,KAAK,EACV,cAAc,EACd,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAEpB,KAAK,cAAc,GAAG,qBAAqB,GAAG,QAAQ,CAAC;AAEvD,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,MAAM,EACN,WAAW,GACZ,EAAE;IACD,MAAM,EAAE,MAAM,CAAC;IACf,QAAQ,EAAE,cAAc,CAAC;IACzB,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,MAAM,EAAE,cAAc,CAAC;IACvB,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,+BAmLA"}
+\ No newline at end of file
++{"version":3,"file":"editor-toolbar.d.ts","sourceRoot":"","sources":["../src/editor-toolbar.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AAuB5C,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,cAAc,EACd,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAEpB,KAAK,cAAc,GAAG,qBAAqB,GAAG,QAAQ,CAAC;AAEvD,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,MAAM,EACN,WAAW,EACX,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,CAAC;IACf,QAAQ,EAAE,cAAc,CAAC;IACzB,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,MAAM,EAAE,cAAc,CAAC;IACvB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BA6MA"}
+\ No newline at end of file
+diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
+index 51b0dec38a271b2f1362425c4e31685925ea4e2e..f01b860a932a9a7151b8fc6fe96b69945de9a07c 100644
+--- a/dist/editor-toolbar.js
++++ b/dist/editor-toolbar.js
+@@ -1,11 +1,11 @@
+ 'use client';
+ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+-import { AlignCenter, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Heading4, Highlighter, Italic, List, ListOrdered, Minus, Palette, Quote, Redo2, Strikethrough, Underline, Undo2, } from 'lucide-react';
++import { AlignCenter, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Heading4, Highlighter, Italic, List, ListOrdered, ListTree, Minus, Palette, Quote, Redo2, Strikethrough, Underline, Undo2, } from 'lucide-react';
+ import { ImageUploadControl } from './image-upload-control.js';
+ import { LinkToolbarControl } from './link-toolbar-control.js';
+ import { StyleToolbarControl } from './style-toolbar-control.js';
+ import { ToolbarAction } from './toolbar-action.js';
+-export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }) {
++export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, toolbarEnd, }) {
+     const enhanced = preset !== 'legacy';
+     const action = (label, icon, run, active) => (_jsx(ToolbarAction, { active: active, icon: icon, label: label, run: run }, label));
+     const headingActions = preset === 'full'
+@@ -34,6 +34,28 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+                 ? action(messages.orderedList, ListOrdered, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'))
+                 : null, preset !== 'compact'
+                 ? action(messages.blockquote, Quote, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive('blockquote'))
++                : null, preset === 'full'
++                ? action(messages.collapsible, ListTree, () => editor
++                    .chain()
++                    .focus(undefined, { scrollIntoView: false })
++                    .insertContent({
++                    content: [
++                        {
++                            content: [
++                                { text: messages.collapsibleTitle, type: 'text' },
++                            ],
++                            type: 'collapsibleSummary',
++                        },
++                        {
++                            content: [
++                                { text: messages.collapsiblePlaceholder, type: 'text' },
++                            ],
++                            type: 'paragraph',
++                        },
++                    ],
++                    type: 'collapsible',
++                })
++                    .run())
+                 : null, preset !== 'compact'
+                 ? action(messages.horizontalRule, Minus, () => editor.chain().focus().setHorizontalRule().run())
+                 : null, _jsx(LinkToolbarControl, { active: editor.isActive('link'), currentHref: () => {
+@@ -51,5 +73,5 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+                 ? action(messages.alignCenter, AlignCenter, () => editor.chain().focus().setTextAlign('center').run(), editor.isActive({ textAlign: 'center' }))
+                 : null, enhanced && stylePolicy?.alignments?.includes('right')
+                 ? action(messages.alignRight, AlignRight, () => editor.chain().focus().setTextAlign('right').run(), editor.isActive({ textAlign: 'right' }))
+-                : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: textTone, clearLabel: messages.clearTextTone, icon: Palette, label: messages.textTone, onClear: () => editor.chain().focus().unsetColor().run(), onSelect: (color) => editor.chain().focus().setColor(color).run(), options: stylePolicy?.textTones ?? [] })) : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: highlight, clearLabel: messages.clearHighlight, icon: Highlighter, label: messages.highlight, onClear: () => editor.chain().focus().unsetHighlight().run(), onSelect: (color) => editor.chain().focus().setHighlight({ color }).run(), options: stylePolicy?.highlights ?? [] })) : null, _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-toolbar-separator" }), action(messages.undo, Undo2, () => editor.chain().focus().undo().run()), action(messages.redo, Redo2, () => editor.chain().focus().redo().run())] }));
++                : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: textTone, clearLabel: messages.clearTextTone, icon: Palette, label: messages.textTone, onClear: () => editor.chain().focus().unsetColor().run(), onSelect: (color) => editor.chain().focus().setColor(color).run(), options: stylePolicy?.textTones ?? [] })) : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: highlight, clearLabel: messages.clearHighlight, icon: Highlighter, label: messages.highlight, onClear: () => editor.chain().focus().unsetHighlight().run(), onSelect: (color) => editor.chain().focus().setHighlight({ color }).run(), options: stylePolicy?.highlights ?? [] })) : null, toolbarEnd, _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-toolbar-separator" }), action(messages.undo, Undo2, () => editor.chain().focus().undo().run()), action(messages.redo, Redo2, () => editor.chain().focus().redo().run())] }));
+ }
+diff --git a/dist/messages.d.ts.map b/dist/messages.d.ts.map
+index 1ab55463363e6192d7bce89ae19f85494ca42fb9..6cd945a9d1f2fe7501b37be2a49c3dea2bddb4c3 100644
+--- a/dist/messages.d.ts.map
++++ b/dist/messages.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"messages.d.ts","sourceRoot":"","sources":["../src/messages.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,YAAY,CAAC;AAE/D,eAAO,MAAM,cAAc,EAAE,MAAM,CAAC,YAAY,EAAE,cAAc,CAoG/D,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"messages.d.ts","sourceRoot":"","sources":["../src/messages.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,YAAY,CAAC;AAE/D,eAAO,MAAM,cAAc,EAAE,MAAM,CAAC,YAAY,EAAE,cAAc,CA0G/D,CAAC"}
+\ No newline at end of file
+diff --git a/dist/messages.js b/dist/messages.js
+index 9024b14862c9542ef9b5beb77cf505ce7f260aac..341c6fd3547809735ddd239a061536e876eff896 100644
+--- a/dist/messages.js
++++ b/dist/messages.js
+@@ -11,6 +11,9 @@ export const editorMessages = {
+         cancel: 'Cancel',
+         clearHighlight: 'Clear highlight',
+         clearTextTone: 'Use default text color',
++        collapsible: 'Toggle section',
++        collapsiblePlaceholder: 'Write the hidden details here…',
++        collapsibleTitle: 'Section title',
+         discardHTML: 'Discard changes',
+         editor: 'Editor',
+         heading: 'Heading',
+@@ -56,6 +59,9 @@ export const editorMessages = {
+         cancel: 'Hủy',
+         clearHighlight: 'Xóa màu đánh dấu',
+         clearTextTone: 'Dùng màu chữ mặc định',
++        collapsible: 'Mục thu gọn',
++        collapsiblePlaceholder: 'Viết nội dung ẩn tại đây…',
++        collapsibleTitle: 'Tiêu đề mục',
+         discardHTML: 'Hủy thay đổi',
+         editor: 'Soạn thảo',
+         heading: 'Tiêu đề',
+diff --git a/dist/react.d.ts b/dist/react.d.ts
+index d55092d052a159eb5c4cecda32adf0b314f90a7f..d099390d80d1bf104670cbac59fc2ee90bc923ed 100644
+--- a/dist/react.d.ts
++++ b/dist/react.d.ts
+@@ -1,6 +1,8 @@
++import type { ReactNode } from 'react';
+ import type { EditorLocale, EditorMessages, JSONContent, RichTextFeaturePreset, RichTextStylePolicy } from './types.js';
+-export declare function RichTextEditor({ content, enableHTMLSource, featurePreset, locale, messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly, stylePolicy, }: {
++export declare function RichTextEditor({ content, enableHTMLSource: legacyFullPreset, featurePreset, locale, messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly, stylePolicy, toolbarEnd, }: {
+     content: JSONContent | null;
++    /** @deprecated Editing is always a live WYSIWYG experience. */
+     enableHTMLSource?: boolean;
+     /** @deprecated Editing is now always a live WYSIWYG experience. */
+     enablePreview?: boolean;
+@@ -10,10 +12,13 @@ export declare function RichTextEditor({ content, enableHTMLSource, featurePrese
+     onChange?: (content: JSONContent | null) => void;
+     onImageUpload?: (file: File) => Promise<string>;
+     onImageUploadError?: (error: unknown) => void;
++    /** @deprecated There is no separate source mode. */
+     onSourceModeDirtyChange?: (dirty: boolean) => void;
+     placeholder?: string;
+     readOnly?: boolean;
+     stylePolicy?: RichTextStylePolicy;
++    /** Additional product actions rendered in the existing formatting toolbar. */
++    toolbarEnd?: ReactNode;
+ }): import("react").JSX.Element;
+ export type { HTMLSourceInspection } from './html-source.js';
+ export { inspectRichTextHTML } from './html-source.js';
+diff --git a/dist/react.d.ts.map b/dist/react.d.ts.map
+index d9c3f477f644a0fe976a316def8e36201e7779ca..1e6188d2694b0c0e1151689024c35d55751a4086 100644
+--- a/dist/react.d.ts.map
++++ b/dist/react.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAsBA,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAwB,EACxB,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,GACZ,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,+BA0QA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"react.d.ts","sourceRoot":"","sources":["../src/react.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,YAAY,EACZ,cAAc,EACd,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAIpB,wBAAgB,cAAc,CAAC,EAC7B,OAAO,EACP,gBAAgB,EAAE,gBAAwB,EAC1C,aAAa,EACb,MAAa,EACb,QAAQ,EAAE,gBAAgB,EAC1B,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,uBAAuB,EACvB,WAAW,EACX,QAAgB,EAChB,WAAW,EACX,UAAU,GACX,EAAE;IACD,OAAO,EAAE,WAAW,GAAG,IAAI,CAAC;IAC5B,+DAA+D;IAC/D,gBAAgB,CAAC,EAAE,OAAO,CAAC;IAC3B,mEAAmE;IACnE,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,MAAM,CAAC,EAAE,YAAY,CAAC;IACtB,QAAQ,CAAC,EAAE,OAAO,CAAC,IAAI,CAAC,cAAc,EAAE,OAAO,CAAC,CAAC,CAAC;IAClD,QAAQ,CAAC,EAAE,CAAC,OAAO,EAAE,WAAW,GAAG,IAAI,KAAK,IAAI,CAAC;IACjD,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,oDAAoD;IACpD,uBAAuB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IACnD,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,8EAA8E;IAC9E,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BAsHA;AAED,YAAY,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AACvD,YAAY,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,GACpB,MAAM,YAAY,CAAC"}
+\ No newline at end of file
+diff --git a/dist/react.js b/dist/react.js
+index f972b4b1552aa37f55ac49c004cf4d15411d7314..f7ebb31537a56f405cf367a120eef1f754ee88ac 100644
+--- a/dist/react.js
++++ b/dist/react.js
+@@ -1,5 +1,5 @@
+ 'use client';
+-import { Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
++import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+ import { Color } from '@tiptap/extension-color';
+ import Highlight from '@tiptap/extension-highlight';
+ import Image from '@tiptap/extension-image';
+@@ -9,33 +9,20 @@ import TextAlign from '@tiptap/extension-text-align';
+ import { TextStyle } from '@tiptap/extension-text-style';
+ import { EditorContent, useEditor } from '@tiptap/react';
+ import StarterKit from '@tiptap/starter-kit';
+-import { useEffect, useId, useMemo, useRef, useState } from 'react';
++import { useEffect, useMemo, useRef } from 'react';
+ import { extractPlainText } from './codec.js';
++import { Collapsible, CollapsibleSummary } from './collapsible.js';
+ import { EditorToolbar } from './editor-toolbar.js';
+-import { inspectRichTextHTML } from './html-source.js';
+-import { EditorModeSwitch, HTMLSourcePanel, } from './html-source-panel.js';
+ import { editorMessages } from './messages.js';
+-import { sanitizeRichTextContent } from './render.js';
+-export function RichTextEditor({ content, enableHTMLSource = false, featurePreset, locale = 'en', messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly = false, stylePolicy, }) {
++export function RichTextEditor({ content, enableHTMLSource: legacyFullPreset = false, featurePreset, locale = 'en', messages: messageOverrides, onChange, onImageUpload, onImageUploadError, onSourceModeDirtyChange, placeholder, readOnly = false, stylePolicy, toolbarEnd, }) {
+     const messages = useMemo(() => ({ ...editorMessages[locale], ...messageOverrides }), [locale, messageOverrides]);
+-    const preset = featurePreset ?? (enableHTMLSource ? 'full' : 'legacy');
++    const preset = featurePreset ?? (legacyFullPreset ? 'full' : 'legacy');
+     const enhanced = preset !== 'legacy';
+-    const [mode, setMode] = useState('editor');
+-    const [source, setSource] = useState('');
+-    const [sourceError, setSourceError] = useState(null);
+-    const [sourceNotice, setSourceNotice] = useState(null);
+-    const sourceBaseline = useRef('');
+-    const sourceId = useId();
+-    const sourceFeedbackId = `${sourceId}-feedback`;
+     const onChangeRef = useRef(onChange);
+-    const onSourceModeDirtyChangeRef = useRef(onSourceModeDirtyChange);
+-    const pendingAppliedContent = useRef(null);
+     useEffect(() => {
+         onChangeRef.current = onChange;
+     }, [onChange]);
+-    useEffect(() => {
+-        onSourceModeDirtyChangeRef.current = onSourceModeDirtyChange;
+-    }, [onSourceModeDirtyChange]);
++    useEffect(() => onSourceModeDirtyChange?.(false), [onSourceModeDirtyChange]);
+     const resolvedPlaceholder = placeholder ?? messages.placeholder;
+     const extensions = useMemo(() => {
+         const full = preset !== 'compact';
+@@ -51,7 +38,7 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+                 orderedList: full ? undefined : false,
+             }),
+             Link.configure({ openOnClick: false }),
+-            ...(full ? [Image] : []),
++            ...(full ? [Image, CollapsibleSummary, Collapsible] : []),
+             ...(enhanced && stylePolicy?.alignments?.length
+                 ? [TextAlign.configure({ types: ['heading', 'paragraph'] })]
+                 : []),
+@@ -85,50 +72,20 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+         immediatelyRender: false,
+         onUpdate: ({ editor: current }) => onChangeRef.current?.(current.getJSON()),
+     }, [schemaKey]);
+-    const sourceDirty = source !== sourceBaseline.current;
+     useEffect(() => {
+-        const editable = !readOnly && mode === 'editor';
++        const editable = !readOnly;
+         if (editor && editor.isEditable !== editable)
+             editor.setEditable(editable, false);
+-    }, [editor, mode, readOnly]);
+-    useEffect(() => {
+-        onSourceModeDirtyChangeRef.current?.(sourceDirty);
+-    }, [sourceDirty]);
+-    useEffect(() => {
+-        const modeUnavailable = readOnly || (mode === 'html' && !enableHTMLSource);
+-        if (!editor || mode === 'editor' || !modeUnavailable)
+-            return;
+-        const html = editor.getHTML();
+-        sourceBaseline.current = html;
+-        setSource(html);
+-        setSourceError(null);
+-        setSourceNotice(null);
+-        setMode('editor');
+-    }, [editor, enableHTMLSource, mode, readOnly]);
++    }, [editor, readOnly]);
+     useEffect(() => {
+-        if (!editor || sourceDirty)
++        if (!editor)
+             return;
+         const next = content ?? { content: [], type: 'doc' };
+         const incoming = JSON.stringify(next);
+         const current = JSON.stringify(editor.getJSON());
+-        const pending = pendingAppliedContent.current;
+-        if (pending) {
+-            if (incoming === pending.value)
+-                pendingAppliedContent.current = null;
+-            else if (incoming === pending.incoming && current === pending.value)
+-                return;
+-            else if (incoming !== pending.incoming)
+-                pendingAppliedContent.current = null;
+-        }
+-        if (current !== incoming) {
++        if (current !== incoming)
+             editor.commands.setContent(next, { emitUpdate: false });
+-            if (mode === 'html') {
+-                const nextSource = editor.getHTML();
+-                sourceBaseline.current = nextSource;
+-                setSource(nextSource);
+-            }
+-        }
+-    }, [content, editor, mode, sourceDirty]);
++    }, [content, editor]);
+     const words = useMemo(() => {
+         if (!editor)
+             return 0;
+@@ -137,71 +94,6 @@ export function RichTextEditor({ content, enableHTMLSource = false, featurePrese
+     }, [editor, editor?.state.doc]);
+     if (!editor)
+         return _jsx("div", { "aria-busy": "true", className: "tuturuuu-editor-skeleton" });
+-    const enterHTMLMode = () => {
+-        if (!sourceDirty) {
+-            const html = editor.getHTML();
+-            sourceBaseline.current = html;
+-            setSource(html);
+-        }
+-        setSourceError(null);
+-        setSourceNotice(null);
+-        setMode('html');
+-    };
+-    const enterEditorMode = () => {
+-        if (sourceDirty) {
+-            setSourceError(messages.htmlChangesPending);
+-            return;
+-        }
+-        setSourceError(null);
+-        setMode('editor');
+-    };
+-    const discardSource = () => {
+-        const html = editor.getHTML();
+-        sourceBaseline.current = html;
+-        setSource(html);
+-        setSourceError(null);
+-        setSourceNotice(null);
+-        setMode('editor');
+-    };
+-    const applySource = () => {
+-        try {
+-            const inspection = inspectRichTextHTML(source, document, {
+-                featurePreset: preset === 'legacy' ? 'full' : preset,
+-                stylePolicy,
+-            });
+-            if (inspection.unsafe) {
+-                setSourceError(messages.sourceUnsafe);
+-                setSourceNotice(null);
+-                return;
+-            }
+-            editor.commands.setContent(inspection.html, { emitUpdate: false });
+-            const safeContent = sanitizeRichTextContent(editor.getJSON(), {
+-                featurePreset: preset === 'legacy' ? 'full' : preset,
+-                stylePolicy,
+-            });
+-            editor.commands.setContent(safeContent, { emitUpdate: false });
+-            const normalizedHTML = editor.getHTML();
+-            pendingAppliedContent.current = {
+-                incoming: JSON.stringify(content ?? { content: [], type: 'doc' }),
+-                value: JSON.stringify(safeContent),
+-            };
+-            sourceBaseline.current = normalizedHTML;
+-            setSource(normalizedHTML);
+-            setSourceError(null);
+-            setSourceNotice(inspection.normalized || normalizedHTML !== inspection.html
+-                ? messages.htmlNormalized
+-                : null);
+-            onChangeRef.current?.(safeContent);
+-        }
+-        catch {
+-            setSourceError(messages.sourceUnsafe);
+-            setSourceNotice(null);
+-        }
+-    };
+-    return (_jsxs("div", { className: "tuturuuu-editor", "data-mode": mode, "data-read-only": readOnly || undefined, children: [!readOnly && enableHTMLSource ? (_jsx(EditorModeSwitch, { enableHTMLSource: enableHTMLSource, messages: messages, mode: mode, onEditor: enterEditorMode, onHTML: enterHTMLMode })) : null, mode !== 'html' || readOnly || !enableHTMLSource ? (_jsxs(_Fragment, { children: [!readOnly && mode === 'editor' ? (_jsx(EditorToolbar, { editor: editor, messages: messages, onImageUpload: onImageUpload, onImageUploadError: onImageUploadError, preset: preset, stylePolicy: stylePolicy })) : null, _jsx(EditorContent, { editor: editor })] })) : (_jsx(HTMLSourcePanel, { feedbackId: sourceFeedbackId, messages: messages, onApply: applySource, onChange: (value) => {
+-                    setSource(value);
+-                    setSourceError(null);
+-                    setSourceNotice(null);
+-                }, onDiscard: discardSource, source: source, sourceDirty: sourceDirty, sourceError: sourceError, sourceId: sourceId, sourceNotice: sourceNotice })), !readOnly ? (_jsx("output", { className: "tuturuuu-editor-word-count", children: editorMessages[locale].words(words) })) : null] }));
++    return (_jsxs("div", { className: "tuturuuu-editor", "data-read-only": readOnly || undefined, children: [!readOnly ? (_jsx(EditorToolbar, { editor: editor, messages: messages, onImageUpload: onImageUpload, onImageUploadError: onImageUploadError, preset: preset, stylePolicy: stylePolicy, toolbarEnd: toolbarEnd })) : null, _jsx(EditorContent, { editor: editor }), !readOnly ? (_jsx("output", { className: "tuturuuu-editor-word-count", children: editorMessages[locale].words(words) })) : null] }));
+ }
+ export { inspectRichTextHTML } from './html-source.js';
+diff --git a/dist/react.test.js b/dist/react.test.js
+index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..d5f2d8c7b64b8fc60f4c9faa6d13b5fce6d06389 100644
+--- a/dist/react.test.js
++++ b/dist/react.test.js
+@@ -4,31 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, } from '@testing-library/r
+ import { afterEach, describe, expect, it, vi } from 'vitest';
+ import { RichTextEditor } from './react.js';
+ afterEach(cleanup);
+-describe('RichTextEditor WYSIWYG and source modes', () => {
+-    it('preserves unapplied source and discards it explicitly', async () => {
+-        const onChange = vi.fn();
+-        const onSourceModeDirtyChange = vi.fn();
+-        render(_jsx(RichTextEditor, { content: {
+-                content: [
+-                    {
+-                        content: [{ text: 'Original', type: 'text' }],
+-                        type: 'paragraph',
+-                    },
+-                ],
+-                type: 'doc',
+-            }, enableHTMLSource: true, enablePreview: true, featurePreset: "full", onChange: onChange, onSourceModeDirtyChange: onSourceModeDirtyChange }));
+-        fireEvent.click(await screen.findByRole('button', { name: 'HTML' }));
+-        const source = screen.getByRole('textbox', { name: 'HTML source' });
+-        fireEvent.change(source, { target: { value: '<p>Changed</p>' } });
+-        await waitFor(() => expect(onSourceModeDirtyChange).toHaveBeenLastCalledWith(true));
+-        fireEvent.click(screen.getByRole('button', { name: 'Editor' }));
+-        expect(source.value).toBe('<p>Changed</p>');
+-        expect(screen.getByRole('alert').textContent).toContain('Apply or discard your HTML changes');
+-        fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+-        expect(screen.queryByRole('textbox', { name: 'HTML source' })).toBeNull();
+-        await waitFor(() => expect(onSourceModeDirtyChange).toHaveBeenLastCalledWith(false));
+-        expect(onChange).not.toHaveBeenCalled();
+-    });
++describe('RichTextEditor WYSIWYG', () => {
+     it('keeps the formatted document editable without a legacy preview switch', async () => {
+         const onChange = vi.fn();
+         const { container } = render(_jsx(RichTextEditor, { content: {
+@@ -57,23 +33,15 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
+         expect(screen.getByRole('img', { name: 'Article detail' }).getAttribute('src')).toBe('https://example.com/article-detail.png');
+         expect(onChange).not.toHaveBeenCalled();
+     });
+-    it('applies safe HTML as structured JSON and blocks unsafe source', async () => {
+-        const onChange = vi.fn();
+-        render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full", onChange: onChange }));
+-        fireEvent.click(await screen.findByRole('button', { name: 'HTML' }));
+-        const source = screen.getByRole('textbox', { name: 'HTML source' });
+-        fireEvent.change(source, { target: { value: '<p><u>Safe</u></p>' } });
+-        fireEvent.click(screen.getByRole('button', { name: 'Apply HTML' }));
+-        await waitFor(() => expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: 'doc' })));
+-        await waitFor(() => expect(source.value).toContain('Safe'));
+-        fireEvent.change(source, {
+-            target: { value: '<script>alert(1)</script>' },
+-        });
+-        fireEvent.click(screen.getByRole('button', { name: 'Apply HTML' }));
+-        expect(screen.getByRole('alert').textContent).toContain('contains unsafe or unsupported code');
+-        expect(onChange).toHaveBeenCalledTimes(1);
++    it('never exposes source or preview modes, even for legacy props', async () => {
++        const onSourceModeDirtyChange = vi.fn();
++        render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, enablePreview: true, featurePreset: "full", onSourceModeDirtyChange: onSourceModeDirtyChange }));
++        expect(await screen.findByRole('button', { name: 'Bold' })).toBeTruthy();
++        expect(screen.queryByRole('button', { name: 'HTML' })).toBeNull();
++        expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
++        expect(onSourceModeDirtyChange).toHaveBeenLastCalledWith(false);
+     });
+-    it('keeps read-only editors free of HTML controls', async () => {
++    it('keeps read-only editors free of authoring controls', async () => {
+         render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full", readOnly: true }));
+         await waitFor(() => expect(screen.queryByRole('button', { name: 'HTML' })).toBeNull());
+         expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
+@@ -109,41 +77,25 @@ describe('RichTextEditor WYSIWYG and source modes', () => {
+             expect(current?.textContent).toBe('Live content');
+         });
+     });
+-    it('refreshes a clean HTML projection when controlled content changes', async () => {
+-        const first = {
+-            content: [
+-                {
+-                    content: [{ text: 'First', type: 'text' }],
+-                    type: 'paragraph',
+-                },
+-            ],
+-            type: 'doc',
+-        };
+-        const second = {
+-            content: [
+-                {
+-                    content: [{ text: 'Second', type: 'text' }],
+-                    type: 'paragraph',
+-                },
+-            ],
+-            type: 'doc',
+-        };
+-        const { rerender } = render(_jsx(RichTextEditor, { content: first, enableHTMLSource: true, featurePreset: "full" }));
+-        fireEvent.click(await screen.findByRole('button', { name: 'HTML' }));
+-        expect(screen.getByRole('textbox', {
+-            name: 'HTML source',
+-        }).value).toContain('First');
+-        rerender(_jsx(RichTextEditor, { content: second, enableHTMLSource: true, featurePreset: "full" }));
+-        await waitFor(() => expect(screen.getByRole('textbox', {
+-            name: 'HTML source',
+-        }).value).toContain('Second'));
++    it('adds collapsible sections as visible structured content', async () => {
++        const onChange = vi.fn();
++        const { container } = render(_jsx(RichTextEditor, { content: null, featurePreset: "full", onChange: onChange }));
++        fireEvent.click(await screen.findByRole('button', { name: 'Toggle section' }));
++        await waitFor(() => {
++            expect(container.querySelector('details[open]')).toBeTruthy();
++            expect(container.querySelector('summary')?.textContent).toBe('Section title');
++            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
++                content: expect.arrayContaining([
++                    expect.objectContaining({ type: 'collapsible' }),
++                ]),
++            }));
++        });
+     });
+-    it('exits source mode when source editing becomes unavailable', async () => {
+-        const { rerender } = render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full" }));
+-        fireEvent.click(await screen.findByRole('button', { name: 'HTML' }));
+-        expect(screen.getByRole('textbox', { name: 'HTML source' })).toBeTruthy();
+-        rerender(_jsx(RichTextEditor, { content: null, enableHTMLSource: false, featurePreset: "full" }));
+-        await waitFor(() => expect(screen.queryByRole('textbox', { name: 'HTML source' })).toBeNull());
++    it('renders product actions inside the formatting toolbar', async () => {
++        render(_jsx(RichTextEditor, { content: null, featurePreset: "full", toolbarEnd: _jsx("button", { type: "button", children: "Expand editor" }) }));
++        const toolbar = await screen.findByRole('toolbar', { name: 'Formatting' });
++        expect(toolbar.querySelector('button[aria-label="Expand editor"]') ??
++            screen.getByRole('button', { name: 'Expand editor' })).toBeTruthy();
+     });
+     it('rebuilds its schema when the feature preset changes', async () => {
+         const { rerender } = render(_jsx(RichTextEditor, { content: null, featurePreset: "compact" }));
+diff --git a/dist/render.d.ts.map b/dist/render.d.ts.map
+index 2ec4eb154b64c3709a0ee0acd4894b186f801635..4168538807fe96c409a40b485843c011d4fd367d 100644
+--- a/dist/render.d.ts.map
++++ b/dist/render.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"render.d.ts","sourceRoot":"","sources":["../src/render.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAgBpB,MAAM,MAAM,qBAAqB,GAAG;IAClC,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,CAAC;AAgKF,wBAAgB,uBAAuB,CACrC,OAAO,EAAE,WAAW,GAAG,IAAI,EAC3B,OAAO,GAAE,qBAA0B,GAClC,WAAW,GAAG,IAAI,CAWpB;AAuFD,8DAA8D;AAC9D,wBAAgB,oBAAoB,CAClC,OAAO,EAAE,WAAW,GAAG,IAAI,EAC3B,OAAO,GAAE,qBAA0B,GAClC,MAAM,CASR"}
+\ No newline at end of file
++{"version":3,"file":"render.d.ts","sourceRoot":"","sources":["../src/render.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,WAAW,EACX,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAgBpB,MAAM,MAAM,qBAAqB,GAAG;IAClC,aAAa,CAAC,EAAE,qBAAqB,CAAC;IACtC,WAAW,CAAC,EAAE,mBAAmB,CAAC;CACnC,CAAC;AA2KF,wBAAgB,uBAAuB,CACrC,OAAO,EAAE,WAAW,GAAG,IAAI,EAC3B,OAAO,GAAE,qBAA0B,GAClC,WAAW,GAAG,IAAI,CAWpB;AA0FD,8DAA8D;AAC9D,wBAAgB,oBAAoB,CAClC,OAAO,EAAE,WAAW,GAAG,IAAI,EAC3B,OAAO,GAAE,qBAA0B,GAClC,MAAM,CASR"}
+\ No newline at end of file
+diff --git a/dist/render.js b/dist/render.js
+index e0751a64715690bead7a5f06f3d14270265037c8..16addeb82712c55068082aeb986cd89e40ac504c 100644
+--- a/dist/render.js
++++ b/dist/render.js
+@@ -71,6 +71,17 @@ function sanitizeNode(node, preset, policy) {
+             content: children,
+             type: 'paragraph',
+         };
++    if (preset === 'full' && node.type === 'collapsibleSummary')
++        return { content: children, type: 'collapsibleSummary' };
++    if (preset === 'full' && node.type === 'collapsible') {
++        const [summary, ...body] = children;
++        if (summary?.type !== 'collapsibleSummary')
++            return null;
++        return {
++            content: [summary, ...(body.length ? body : [{ type: 'paragraph' }])],
++            type: 'collapsible',
++        };
++    }
+     if (node.type === 'heading') {
+         const level = Number(node.attrs?.level ?? 2);
+         const allowed = preset === 'full' ? [1, 2, 3, 4] : preset === 'legacy' ? [1, 2, 3] : [];
+@@ -199,6 +210,10 @@ function renderNode(node, policy, sets) {
+         return '<br>';
+     if (node.type === 'paragraph')
+         return `<p${styleAttribute(node, policy)}>${children}</p>`;
++    if (node.type === 'collapsibleSummary')
++        return `<summary>${children}</summary>`;
++    if (node.type === 'collapsible')
++        return `<details>${children}</details>`;
+     if (node.type === 'heading') {
+         const level = Math.min(4, Math.max(1, Number(node.attrs?.level ?? 2)));
+         return `<h${level}${styleAttribute(node, policy)}>${children}</h${level}>`;
+diff --git a/dist/types.d.ts b/dist/types.d.ts
+index 912d3e37fd019d73c6f260b90577f1e209acdd42..3dad1baf43e99c6e56b7eafd662954c55738aa0f 100644
+--- a/dist/types.d.ts
++++ b/dist/types.d.ts
+@@ -32,6 +32,9 @@ export type EditorMessages = {
+     cancel: string;
+     clearHighlight: string;
+     clearTextTone: string;
++    collapsible: string;
++    collapsiblePlaceholder: string;
++    collapsibleTitle: string;
+     discardHTML: string;
+     editor?: string;
+     heading: string;
+diff --git a/dist/types.d.ts.map b/dist/types.d.ts.map
+index f15663ad96578c3fc7bef92ac1c15150a1765305..8c6a1c052bad4e0cfc2b1afcf2c8d9247b00e8f3 100644
+--- a/dist/types.d.ts.map
++++ b/dist/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../src/types.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,WAAW,GAAG;IACxB,KAAK,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;IAChC,OAAO,CAAC,EAAE,WAAW,EAAE,CAAC;IACxB,KAAK,CAAC,EAAE,KAAK,CAAC;QAAE,KAAK,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;QAAC,IAAI,EAAE,MAAM,CAAA;KAAE,CAAC,CAAC;IACjE,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,IAAI,CAAC,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG,IAAI,GAAG,IAAI,CAAC;AAEvC,MAAM,MAAM,qBAAqB,GAAG,SAAS,GAAG,MAAM,CAAC;AAEvD,MAAM,MAAM,iBAAiB,GAAG,QAAQ,GAAG,MAAM,GAAG,OAAO,CAAC;AAE5D,MAAM,MAAM,mBAAmB,GAAG;IAChC,KAAK,EAAE,MAAM,CAAC;IACd,KAAK,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,MAAM,MAAM,mBAAmB,GAAG;IAChC,UAAU,CAAC,EAAE,SAAS,iBAAiB,EAAE,CAAC;IAC1C,UAAU,CAAC,EAAE,SAAS,mBAAmB,EAAE,CAAC;IAC5C,SAAS,CAAC,EAAE,SAAS,mBAAmB,EAAE,CAAC;CAC5C,CAAC;AAEF,MAAM,MAAM,cAAc,GAAG;IAC3B,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,MAAM,CAAC;IAClB,UAAU,EAAE,MAAM,CAAC;IACnB,SAAS,EAAE,MAAM,CAAC;IAClB,SAAS,EAAE,MAAM,CAAC;IAClB,UAAU,EAAE,MAAM,CAAC;IACnB,IAAI,EAAE,MAAM,CAAC;IACb,UAAU,EAAE,MAAM,CAAC;IACnB,MAAM,EAAE,MAAM,CAAC;IACf,cAAc,EAAE,MAAM,CAAC;IACvB,aAAa,EAAE,MAAM,CAAC;IACtB,WAAW,EAAE,MAAM,CAAC;IACpB,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAC;IAChB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,SAAS,EAAE,MAAM,CAAC;IAClB,IAAI,EAAE,MAAM,CAAC;IACb,kBAAkB,EAAE,MAAM,CAAC;IAC3B,cAAc,EAAE,MAAM,CAAC;IACvB,UAAU,EAAE,MAAM,CAAC;IACnB,cAAc,EAAE,MAAM,CAAC;IACvB,cAAc,EAAE,MAAM,CAAC;IACvB,KAAK,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,MAAM,EAAE,MAAM,CAAC;IACf,IAAI,EAAE,MAAM,CAAC;IACb,eAAe,EAAE,MAAM,CAAC;IACxB,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,WAAW,EAAE,MAAM,CAAC;IACpB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,IAAI,EAAE,MAAM,CAAC;IACb,YAAY,EAAE,MAAM,CAAC;IACrB,aAAa,EAAE,MAAM,CAAC;IACtB,QAAQ,EAAE,MAAM,CAAC;IACjB,OAAO,EAAE,MAAM,CAAC;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,SAAS,EAAE,MAAM,CAAC;IAClB,6DAA6D;IAC7D,MAAM,EAAE,MAAM,CAAC;IACf,KAAK,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,MAAM,CAAC;CAClC,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../src/types.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,WAAW,GAAG;IACxB,KAAK,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;IAChC,OAAO,CAAC,EAAE,WAAW,EAAE,CAAC;IACxB,KAAK,CAAC,EAAE,KAAK,CAAC;QAAE,KAAK,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAC;QAAC,IAAI,EAAE,MAAM,CAAA;KAAE,CAAC,CAAC;IACjE,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,IAAI,CAAC,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG,IAAI,GAAG,IAAI,CAAC;AAEvC,MAAM,MAAM,qBAAqB,GAAG,SAAS,GAAG,MAAM,CAAC;AAEvD,MAAM,MAAM,iBAAiB,GAAG,QAAQ,GAAG,MAAM,GAAG,OAAO,CAAC;AAE5D,MAAM,MAAM,mBAAmB,GAAG;IAChC,KAAK,EAAE,MAAM,CAAC;IACd,KAAK,EAAE,MAAM,CAAC;CACf,CAAC;AAEF,MAAM,MAAM,mBAAmB,GAAG;IAChC,UAAU,CAAC,EAAE,SAAS,iBAAiB,EAAE,CAAC;IAC1C,UAAU,CAAC,EAAE,SAAS,mBAAmB,EAAE,CAAC;IAC5C,SAAS,CAAC,EAAE,SAAS,mBAAmB,EAAE,CAAC;CAC5C,CAAC;AAEF,MAAM,MAAM,cAAc,GAAG;IAC3B,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,MAAM,CAAC;IAClB,UAAU,EAAE,MAAM,CAAC;IACnB,SAAS,EAAE,MAAM,CAAC;IAClB,SAAS,EAAE,MAAM,CAAC;IAClB,UAAU,EAAE,MAAM,CAAC;IACnB,IAAI,EAAE,MAAM,CAAC;IACb,UAAU,EAAE,MAAM,CAAC;IACnB,MAAM,EAAE,MAAM,CAAC;IACf,cAAc,EAAE,MAAM,CAAC;IACvB,aAAa,EAAE,MAAM,CAAC;IACtB,WAAW,EAAE,MAAM,CAAC;IACpB,sBAAsB,EAAE,MAAM,CAAC;IAC/B,gBAAgB,EAAE,MAAM,CAAC;IACzB,WAAW,EAAE,MAAM,CAAC;IACpB,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAC;IAChB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,SAAS,EAAE,MAAM,CAAC;IAClB,IAAI,EAAE,MAAM,CAAC;IACb,kBAAkB,EAAE,MAAM,CAAC;IAC3B,cAAc,EAAE,MAAM,CAAC;IACvB,UAAU,EAAE,MAAM,CAAC;IACnB,cAAc,EAAE,MAAM,CAAC;IACvB,cAAc,EAAE,MAAM,CAAC;IACvB,KAAK,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,MAAM,EAAE,MAAM,CAAC;IACf,IAAI,EAAE,MAAM,CAAC;IACb,eAAe,EAAE,MAAM,CAAC;IACxB,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,WAAW,EAAE,MAAM,CAAC;IACpB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,IAAI,EAAE,MAAM,CAAC;IACb,YAAY,EAAE,MAAM,CAAC;IACrB,aAAa,EAAE,MAAM,CAAC;IACtB,QAAQ,EAAE,MAAM,CAAC;IACjB,OAAO,EAAE,MAAM,CAAC;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,SAAS,EAAE,MAAM,CAAC;IAClB,6DAA6D;IAC7D,MAAM,EAAE,MAAM,CAAC;IACf,KAAK,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,MAAM,CAAC;CAClC,CAAC"}
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index bd686c9969c9c57dfec3463964cfdfc374552345..95cdd5acb64c45f87017c6b395744a1967915290 100644
+--- a/package.json
++++ b/package.json
+@@ -9,11 +9,7 @@
+     "directory": "packages/editor"
+   },
+   "type": "module",
+-  "files": [
+-    "dist",
+-    "README.md",
+-    "styles.css"
+-  ],
++  "files": ["dist", "README.md", "styles.css"],
+   "publishConfig": {
+     "access": "public"
+   },
+@@ -34,6 +30,7 @@
+     "./styles.css": "./styles.css"
+   },
+   "dependencies": {
++    "@tiptap/core": "3.30.0",
+     "@tiptap/extension-color": "3.30.0",
+     "@tiptap/extension-highlight": "3.30.0",
+     "@tiptap/extension-image": "3.30.0",
+@@ -51,7 +48,7 @@
+   },
+   "devDependencies": {
+     "@testing-library/react": "^16.3.2",
+-    "@tuturuuu/typescript-config": "0.1.1",
++    "@tuturuuu/typescript-config": "workspace:*",
+     "@types/react": "^19.2.18",
+     "jsdom": "^30.0.1",
+     "typescript": "7.0.2",
+diff --git a/styles.css b/styles.css
+index c59a7e0b5626b3860e1cd58104a6e62268faa121..a51b6fa406b3d2cf451b0c9eefe375237e8218b3 100644
+--- a/styles.css
++++ b/styles.css
+@@ -127,6 +127,26 @@
+   font-style: italic;
+ }
+ 
++.tuturuuu-editor .tiptap details {
++  padding: 0.75rem 1rem;
++  margin: 1rem 0;
++  border: 1px solid var(--tuturuuu-editor-border, #d1d5db);
++  border-radius: 0.625rem;
++  background: var(
++    --tuturuuu-editor-collapsible-background,
++    rgb(127 127 127 / 0.035)
++  );
++}
++
++.tuturuuu-editor .tiptap summary {
++  cursor: text;
++  font-weight: 700;
++}
++
++.tuturuuu-editor .tiptap details > :not(summary) {
++  margin-inline-start: 1.25rem;
++}
++
+ .tuturuuu-editor .tiptap hr {
+   height: 1px;
+   margin: 1.75rem 0;

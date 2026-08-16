@@ -39,53 +39,9 @@
 }
 
 .admin-markdown-editor .tuturuuu-editor .tiptap,
-.admin-markdown-editor .tuturuuu-editor-source-panel,
 .admin-markdown-editor .tuturuuu-editor-word-count {
   border-radius: 0 0 calc(var(--tuturuuu-editor-radius) - 1px)
     calc(var(--tuturuuu-editor-radius) - 1px);
-}
-
-.admin-markdown-editor-view-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.35rem;
-  border: 1px solid var(--tuturuuu-editor-border);
-  border-bottom: 0;
-  border-radius: var(--tuturuuu-editor-radius) var(--tuturuuu-editor-radius) 0 0;
-  background: var(--tuturuuu-editor-toolbar-background);
-}
-
-.admin-markdown-editor-view-controls button {
-  display: inline-flex;
-  min-height: 2rem;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 0.5rem;
-  color: var(--tuturuuu-editor-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.admin-markdown-editor-view-controls button:hover,
-.admin-markdown-editor-view-controls button[aria-selected="true"] {
-  background: var(--tuturuuu-editor-active-background);
-  color: var(--tuturuuu-editor-foreground, inherit);
-}
-
-.admin-markdown-editor-preview {
-  overflow: auto;
-  padding: 1rem;
-  border: 1px solid var(--tuturuuu-editor-border);
-  border-radius: 0 0 var(--tuturuuu-editor-radius) var(--tuturuuu-editor-radius);
-  background: var(--tuturuuu-editor-background);
-  color: var(--tuturuuu-editor-foreground, inherit);
-}
-
-.admin-markdown-editor-preview > p:only-child {
-  color: var(--tuturuuu-editor-muted);
 }
 
 .admin-markdown-editor:not([data-show-word-count="true"])
