@@ -422,15 +422,16 @@ index 0000000000000000000000000000000000000000..df56b680814de2c33a4674ad52e5b143
 +    });
 +});
 diff --git a/dist/editor-toolbar.d.ts b/dist/editor-toolbar.d.ts
-index 2c804f0cb17a1a6cae972ee220c4f3790b658622..1a8466956ca1765f2e717f55fa94109cce4d309e 100644
+index 2c804f0cb17a1a6cae972ee220c4f3790b658622..25fd558c61892c30c0daa32d892522697424bf9c 100644
 --- a/dist/editor-toolbar.d.ts
 +++ b/dist/editor-toolbar.d.ts
-@@ -1,13 +1,15 @@
+@@ -1,13 +1,16 @@
  import type { Editor } from '@tiptap/react';
 +import type { ReactNode } from 'react';
  import type { EditorMessages, RichTextFeaturePreset, RichTextStylePolicy } from './types.js';
  type InternalPreset = RichTextFeaturePreset | 'legacy';
 -export declare function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }: {
++export declare function insertCollapsibleSection(editor: Editor, title: string): boolean;
 +export declare function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, toolbarEnd, }: {
      editor: Editor;
      messages: EditorMessages;
@@ -442,7 +443,6 @@ index 2c804f0cb17a1a6cae972ee220c4f3790b658622..1a8466956ca1765f2e717f55fa94109c
  }): import("react").JSX.Element;
  export {};
  //# sourceMappingURL=editor-toolbar.d.ts.map
-\ No newline at end of file
 diff --git a/dist/editor-toolbar.d.ts.map b/dist/editor-toolbar.d.ts.map
 index 57a926478291f00d27280825f0401c35d6ee917e..90b8bb9bde3b7e574a6a0a0cc1ea93180059ed7b 100644
 --- a/dist/editor-toolbar.d.ts.map
@@ -453,10 +453,10 @@ index 57a926478291f00d27280825f0401c35d6ee917e..90b8bb9bde3b7e574a6a0a0cc1ea9318
 +{"version":3,"file":"editor-toolbar.d.ts","sourceRoot":"","sources":["../src/editor-toolbar.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AAuB5C,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,cAAc,EACd,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAEpB,KAAK,cAAc,GAAG,qBAAqB,GAAG,QAAQ,CAAC;AAEvD,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,MAAM,EACN,WAAW,EACX,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,CAAC;IACf,QAAQ,EAAE,cAAc,CAAC;IACzB,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,MAAM,EAAE,cAAc,CAAC;IACvB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BA0MA"}
 \ No newline at end of file
 diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
-index 51b0dec38a271b2f1362425c4e31685925ea4e2e..73c38d70a5646dac8ba519d140023c8d40c24750 100644
+index 51b0dec38a271b2f1362425c4e31685925ea4e2e..571c4cd8e9390d5537dedf8f38b45c6ddd5807e7 100644
 --- a/dist/editor-toolbar.js
 +++ b/dist/editor-toolbar.js
-@@ -1,11 +1,11 @@
+@@ -1,11 +1,29 @@
  'use client';
  import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 -import { AlignCenter, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Heading4, Highlighter, Italic, List, ListOrdered, Minus, Palette, Quote, Redo2, Strikethrough, Underline, Undo2, } from 'lucide-react';
@@ -466,37 +466,40 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..73c38d70a5646dac8ba519d140023c8d
  import { StyleToolbarControl } from './style-toolbar-control.js';
  import { ToolbarAction } from './toolbar-action.js';
 -export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }) {
++export function insertCollapsibleSection(editor, title) {
++    const { empty, to } = editor.state.selection;
++    const chain = editor.chain().focus(undefined, { scrollIntoView: false });
++    if (!empty)
++        chain.setTextSelection(to);
++    return chain
++        .insertContent({
++        content: [
++            {
++                content: [{ text: title, type: 'text' }],
++                type: 'collapsibleSummary',
++            },
++            { type: 'paragraph' },
++        ],
++        type: 'collapsible',
++    })
++        .run();
++}
 +export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, toolbarEnd, }) {
      const enhanced = preset !== 'legacy';
      const action = (label, icon, run, active) => (_jsx(ToolbarAction, { active: active, icon: icon, label: label, run: run }, label));
      const headingActions = preset === 'full'
-@@ -34,6 +34,25 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+@@ -34,6 +52,10 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
                  ? action(messages.orderedList, ListOrdered, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'))
                  : null, preset !== 'compact'
                  ? action(messages.blockquote, Quote, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive('blockquote'))
 +                : null, preset === 'full'
-+                ? action(messages.collapsible, ListTree, () => editor
-+                    .chain()
-+                    .focus(undefined, { scrollIntoView: false })
-+                    .insertContent({
-+                    content: [
-+                        {
-+                            content: [
-+                                { text: messages.collapsibleTitle, type: 'text' },
-+                            ],
-+                            type: 'collapsibleSummary',
-+                        },
-+                        {
-+                            type: 'paragraph',
-+                        },
-+                    ],
-+                    type: 'collapsible',
++                ? action(messages.collapsible, ListTree, () => {
++                    insertCollapsibleSection(editor, messages.collapsibleTitle);
 +                })
-+                    .run())
                  : null, preset !== 'compact'
                  ? action(messages.horizontalRule, Minus, () => editor.chain().focus().setHorizontalRule().run())
                  : null, _jsx(LinkToolbarControl, { active: editor.isActive('link'), currentHref: () => {
-@@ -51,5 +70,5 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+@@ -51,5 +73,5 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
                  ? action(messages.alignCenter, AlignCenter, () => editor.chain().focus().setTextAlign('center').run(), editor.isActive({ textAlign: 'center' }))
                  : null, enhanced && stylePolicy?.alignments?.includes('right')
                  ? action(messages.alignRight, AlignRight, () => editor.chain().focus().setTextAlign('right').run(), editor.isActive({ textAlign: 'right' }))
