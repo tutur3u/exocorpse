@@ -407,19 +407,20 @@ index 0000000000000000000000000000000000000000..a557f7106a0389443b4221e9d4b142f7
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..735981e1d2368bc953934b71ab380fb74b48d73d
+index 0000000000000000000000000000000000000000..1032b363254ee7fe04fac200959891a3252ecc1b
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB;;OAyD7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAGrD,eAAO,MAAM,kBAAkB;;OAqF7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..2e9e2bd54324aaf24bfdb2380f3133d99e98e4fb
+index 0000000000000000000000000000000000000000..994df8463e6a2980189e1b3eece2fcedf84d63a1
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,142 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
++import { TextSelection } from '@tiptap/pm/state';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
 +    content: 'inline*',
@@ -428,7 +429,7 @@ index 0000000000000000000000000000000000000000..2e9e2bd54324aaf24bfdb2380f3133d9
 +        return { disclosureLabel: 'Expand or collapse section' };
 +    },
 +    addNodeView() {
-+        return () => {
++        return ({ getPos, view }) => {
 +            const dom = document.createElement('summary');
 +            const disclosure = document.createElement('button');
 +            const contentDOM = document.createElement('span');
@@ -448,8 +449,29 @@ index 0000000000000000000000000000000000000000..2e9e2bd54324aaf24bfdb2380f3133d9
 +                }
 +            };
 +            const keepSummaryEditable = (event) => {
-+                if (this.editor.isEditable && event.target !== disclosure)
-+                    event.preventDefault();
++                if (!this.editor.isEditable || event.target === disclosure)
++                    return;
++                // Native <summary> clicks toggle <details> instead of focusing the
++                // contenteditable ancestor. Preserve the browser's caret, cancel only
++                // that native toggle, then explicitly hand focus back to ProseMirror.
++                const domSelection = dom.ownerDocument.getSelection();
++                const anchorNode = domSelection?.anchorNode;
++                const nodePosition = getPos();
++                if (nodePosition === undefined)
++                    return;
++                let position = nodePosition + 1;
++                if (anchorNode && contentDOM.contains(anchorNode)) {
++                    try {
++                        position = view.posAtDOM(anchorNode, domSelection?.anchorOffset ?? 0);
++                    }
++                    catch {
++                        // Keep the safe start-of-summary fallback for unusual browser
++                        // selections (for example, clicking directly between elements).
++                    }
++                }
++                event.preventDefault();
++                view.focus();
++                view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
 +            };
 +            disclosure.addEventListener('click', toggleDisclosure);
 +            dom.addEventListener('click', keepSummaryEditable);
@@ -558,10 +580,10 @@ index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec2
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..ec95601cf56a2618f117a1c7c9c4440d01d918f3
+index 0000000000000000000000000000000000000000..7edd2f97f27448528e3c126937f8d190b668538e
 --- /dev/null
 +++ b/dist/collapsible.test.js
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,84 @@
 +// @vitest-environment jsdom
 +import { Editor } from '@tiptap/core';
 +import StarterKit from '@tiptap/starter-kit';
@@ -618,7 +640,15 @@ index 0000000000000000000000000000000000000000..ec95601cf56a2618f117a1c7c9c4440d
 +    it('keeps summary text editable without disabling native read-only toggles', () => {
 +        const editor = createEditor();
 +        const summary = editor.view.dom.querySelector('summary');
-+        expect(summary?.dispatchEvent(new MouseEvent('click', { cancelable: true }))).toBe(false);
++        const summaryContent = editor.view.dom.querySelector('.tuturuuu-editor-collapsible-summary-content');
++        const selection = window.getSelection();
++        const range = document.createRange();
++        range.setStart(summaryContent.firstChild, 4);
++        range.collapse(true);
++        selection?.removeAllRanges();
++        selection?.addRange(range);
++        expect(summaryContent?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))).toBe(false);
++        expect(editor.state.selection.from).toBe(2);
 +        editor.setEditable(false);
 +        expect(summary?.dispatchEvent(new MouseEvent('click', { cancelable: true }))).toBe(true);
 +        editor.destroy();
