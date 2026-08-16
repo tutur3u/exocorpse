@@ -1059,7 +1059,7 @@ index bd686c9969c9c57dfec3463964cfdfc374552345..ef70c0814b766203354e63f45e4ccdf5
      "jsdom": "^30.0.1",
      "typescript": "7.0.2",
 diff --git a/styles.css b/styles.css
-index c59a7e0b5626b3860e1cd58104a6e62268faa121..f4b29a1975495027e4021b590cf2d2460dda9324 100644
+index c59a7e0b5626b3860e1cd58104a6e62268faa121..91f0390ec78aa12c47d1f1dd44c9e81a45fa390e 100644
 --- a/styles.css
 +++ b/styles.css
 @@ -127,6 +127,84 @@
@@ -1147,3 +1147,13 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..f4b29a1975495027e4021b590cf2d246
  .tuturuuu-editor .tiptap hr {
    height: 1px;
    margin: 1.75rem 0;
+@@ -174,7 +252,8 @@
+   border-radius: 0.5rem;
+ }
+ 
+-.tuturuuu-editor .tiptap p.is-editor-empty:first-child::before {
++.tuturuuu-editor .tiptap p.is-editor-empty:first-child::before,
++.tuturuuu-editor .tiptap details > p.is-empty::before {
+   float: left;
+   height: 0;
+   color: var(--tuturuuu-editor-muted, #6b7280);
