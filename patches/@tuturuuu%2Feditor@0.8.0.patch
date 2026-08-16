@@ -216,10 +216,10 @@ index 0000000000000000000000000000000000000000..e1ee86bd3aef3c2f8e22da1ba92db68c
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..cd43ddc20db738afc17733a95750e4a202d5d511
+index 0000000000000000000000000000000000000000..aba4b0b82e77cc0970f7d2898019741a67946a0e
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,103 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
@@ -237,17 +237,26 @@ index 0000000000000000000000000000000000000000..cd43ddc20db738afc17733a95750e4a2
 +            disclosure.className = 'tuturuuu-editor-collapsible-toggle';
 +            disclosure.contentEditable = 'false';
 +            disclosure.setAttribute('aria-label', this.options.disclosureLabel);
++            disclosure.setAttribute('aria-expanded', String(this.editor.isEditable));
 +            disclosure.setAttribute('title', this.options.disclosureLabel);
 +            disclosure.addEventListener('click', (event) => {
 +                event.preventDefault();
 +                event.stopPropagation();
 +                const details = dom.closest('details');
-+                if (details)
++                if (details) {
 +                    details.open = !details.open;
++                    disclosure.setAttribute('aria-expanded', String(details.open));
++                }
 +            });
 +            contentDOM.className = 'tuturuuu-editor-collapsible-summary-content';
 +            dom.append(disclosure, contentDOM);
-+            return { contentDOM, dom };
++            return {
++                contentDOM,
++                dom,
++                ignoreMutation: (mutation) => mutation.type === 'attributes' &&
++                    mutation.target === disclosure &&
++                    mutation.attributeName === 'aria-expanded',
++            };
 +        };
 +    },
 +    parseHTML() {
@@ -333,10 +342,10 @@ index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec2
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..de0246f1eca1c2c298423e4752f10e4b37bc2f50
+index 0000000000000000000000000000000000000000..70895ad934eaa2408f12f1daf4ac288976e62247
 --- /dev/null
 +++ b/dist/collapsible.test.js
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,55 @@
 +// @vitest-environment jsdom
 +import { Editor } from '@tiptap/core';
 +import StarterKit from '@tiptap/starter-kit';
@@ -367,6 +376,16 @@ index 0000000000000000000000000000000000000000..de0246f1eca1c2c298423e4752f10e4b
 +    });
 +}
 +describe('collapsible editing', () => {
++    it('exposes and updates the disclosure state', () => {
++        const editor = createEditor();
++        const disclosure = editor.view.dom.querySelector('.tuturuuu-editor-collapsible-toggle');
++        expect(disclosure?.getAttribute('aria-expanded')).toBe('true');
++        disclosure?.click();
++        expect(disclosure?.getAttribute('aria-expanded')).toBe('false');
++        disclosure?.click();
++        expect(disclosure?.getAttribute('aria-expanded')).toBe('true');
++        editor.destroy();
++    });
 +    it('removes a toggle with Backspace from the start of its summary', () => {
 +        const editor = createEditor();
 +        editor.commands.setTextSelection(2);
@@ -464,6 +483,47 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..73c38d70a5646dac8ba519d140023c8d
 -                : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: textTone, clearLabel: messages.clearTextTone, icon: Palette, label: messages.textTone, onClear: () => editor.chain().focus().unsetColor().run(), onSelect: (color) => editor.chain().focus().setColor(color).run(), options: stylePolicy?.textTones ?? [] })) : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: highlight, clearLabel: messages.clearHighlight, icon: Highlighter, label: messages.highlight, onClear: () => editor.chain().focus().unsetHighlight().run(), onSelect: (color) => editor.chain().focus().setHighlight({ color }).run(), options: stylePolicy?.highlights ?? [] })) : null, _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-toolbar-separator" }), action(messages.undo, Undo2, () => editor.chain().focus().undo().run()), action(messages.redo, Redo2, () => editor.chain().focus().redo().run())] }));
 +                : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: textTone, clearLabel: messages.clearTextTone, icon: Palette, label: messages.textTone, onClear: () => editor.chain().focus().unsetColor().run(), onSelect: (color) => editor.chain().focus().setColor(color).run(), options: stylePolicy?.textTones ?? [] })) : null, enhanced ? (_jsx(StyleToolbarControl, { activeValue: highlight, clearLabel: messages.clearHighlight, icon: Highlighter, label: messages.highlight, onClear: () => editor.chain().focus().unsetHighlight().run(), onSelect: (color) => editor.chain().focus().setHighlight({ color }).run(), options: stylePolicy?.highlights ?? [] })) : null, toolbarEnd, _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-toolbar-separator" }), action(messages.undo, Undo2, () => editor.chain().focus().undo().run()), action(messages.redo, Redo2, () => editor.chain().focus().redo().run())] }));
  }
+diff --git a/dist/html-source.js b/dist/html-source.js
+index 5deef87264381769a43664fffe82c1368c45bf7d..8e8f41baa9346c4ddcf694982f968fc05f815d37 100644
+--- a/dist/html-source.js
++++ b/dist/html-source.js
+@@ -21,6 +21,7 @@ const FULL_TAGS = new Set([
+     'a',
+     'blockquote',
+     'br',
++    'details',
+     'em',
+     'h2',
+     'h3',
+@@ -34,6 +35,7 @@ const FULL_TAGS = new Set([
+     's',
+     'span',
+     'strong',
++    'summary',
+     'u',
+     'ul',
+ ]);
+diff --git a/dist/html-source.test.js b/dist/html-source.test.js
+index 26ee37d58bc7c7c597397da5d955d33848c1451d..9f5590f8275f03790b5c88f1f5d97cd44327b91b 100644
+--- a/dist/html-source.test.js
++++ b/dist/html-source.test.js
+@@ -78,4 +78,16 @@ describe('safe HTML source projection', () => {
+         expect(result).toMatchObject({ normalized: true, unsafe: false });
+         expect(result.html).toBe('<p>Term</p><p>Definition</p><p>More</p><p>Details</p>');
+     });
++    it('preserves disclosure structure for the full editor preset', () => {
++        const source = '<details><summary>More</summary><p>Hidden details</p></details>';
++        const result = inspectRichTextHTML(source, document, {
++            featurePreset: 'full',
++            stylePolicy,
++        });
++        expect(result).toEqual({
++            html: source,
++            normalized: false,
++            unsafe: false,
++        });
++    });
+ });
 diff --git a/dist/messages.d.ts.map b/dist/messages.d.ts.map
 index 1ab55463363e6192d7bce89ae19f85494ca42fb9..ebfb82d835678be6ae22aa8769ed0461b0beaeab 100644
 --- a/dist/messages.d.ts.map
