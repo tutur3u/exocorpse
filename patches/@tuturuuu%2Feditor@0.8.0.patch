@@ -216,10 +216,10 @@ index 0000000000000000000000000000000000000000..e1ee86bd3aef3c2f8e22da1ba92db68c
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..aba4b0b82e77cc0970f7d2898019741a67946a0e
+index 0000000000000000000000000000000000000000..4f438f79bd97244e1dad147efd0173f7798295d8
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,110 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
@@ -274,9 +274,16 @@ index 0000000000000000000000000000000000000000..aba4b0b82e77cc0970f7d2898019741a
 +    addNodeView() {
 +        return () => {
 +            const dom = document.createElement('details');
++            const syncDisclosureState = () => {
++                dom
++                    .querySelector('.tuturuuu-editor-collapsible-toggle')
++                    ?.setAttribute('aria-expanded', String(dom.open));
++            };
 +            dom.open = this.editor.isEditable;
++            dom.addEventListener('toggle', syncDisclosureState);
 +            return {
 +                contentDOM: dom,
++                destroy: () => dom.removeEventListener('toggle', syncDisclosureState),
 +                dom,
 +                ignoreMutation: (mutation) => mutation.type === 'attributes' && mutation.attributeName === 'open',
 +            };
@@ -342,10 +349,10 @@ index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec2
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..70895ad934eaa2408f12f1daf4ac288976e62247
+index 0000000000000000000000000000000000000000..df56b680814de2c33a4674ad52e5b1430a75086d
 --- /dev/null
 +++ b/dist/collapsible.test.js
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,68 @@
 +// @vitest-environment jsdom
 +import { Editor } from '@tiptap/core';
 +import StarterKit from '@tiptap/starter-kit';
@@ -383,6 +390,19 @@ index 0000000000000000000000000000000000000000..70895ad934eaa2408f12f1daf4ac2889
 +        disclosure?.click();
 +        expect(disclosure?.getAttribute('aria-expanded')).toBe('false');
 +        disclosure?.click();
++        expect(disclosure?.getAttribute('aria-expanded')).toBe('true');
++        editor.destroy();
++    });
++    it('synchronizes the disclosure state after native details toggles', () => {
++        const editor = createEditor();
++        const details = editor.view.dom.querySelector('details');
++        const disclosure = editor.view.dom.querySelector('.tuturuuu-editor-collapsible-toggle');
++        expect(details).not.toBeNull();
++        details.open = false;
++        details.dispatchEvent(new Event('toggle'));
++        expect(disclosure?.getAttribute('aria-expanded')).toBe('false');
++        details.open = true;
++        details.dispatchEvent(new Event('toggle'));
 +        expect(disclosure?.getAttribute('aria-expanded')).toBe('true');
 +        editor.destroy();
 +    });
@@ -1139,7 +1159,7 @@ index bd686c9969c9c57dfec3463964cfdfc374552345..ef70c0814b766203354e63f45e4ccdf5
      "jsdom": "^30.0.1",
      "typescript": "7.0.2",
 diff --git a/styles.css b/styles.css
-index c59a7e0b5626b3860e1cd58104a6e62268faa121..b8d275bbfa53b5335e91ec8a91455da9e1906f06 100644
+index c59a7e0b5626b3860e1cd58104a6e62268faa121..e95bf2314d8f28d4fcd2df5f4424f433402cab66 100644
 --- a/styles.css
 +++ b/styles.css
 @@ -127,6 +127,89 @@
@@ -1177,7 +1197,7 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..b8d275bbfa53b5335e91ec8a91455da9
 +  height: 0;
 +  flex: 0 0 auto;
 +  border-block: 0.3rem solid transparent;
-+  border-inline-start: 0.45rem solid currentColor;
++  border-inline-start: 0.45rem solid currentcolor;
 +  content: "";
 +  transition: transform 120ms ease;
 +}
@@ -1196,7 +1216,7 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..b8d275bbfa53b5335e91ec8a91455da9
 +  padding: 0;
 +  border: 0;
 +  background: transparent;
-+  color: currentColor;
++  color: currentcolor;
 +  cursor: pointer;
 +}
 +
@@ -1206,7 +1226,7 @@ index c59a7e0b5626b3860e1cd58104a6e62268faa121..b8d275bbfa53b5335e91ec8a91455da9
 +  height: 0;
 +  margin: auto;
 +  border-block: 0.3rem solid transparent;
-+  border-inline-start: 0.45rem solid currentColor;
++  border-inline-start: 0.45rem solid currentcolor;
 +  content: "";
 +  transition: transform 120ms ease;
 +}
