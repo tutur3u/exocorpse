@@ -453,10 +453,10 @@ index 57a926478291f00d27280825f0401c35d6ee917e..90b8bb9bde3b7e574a6a0a0cc1ea9318
 +{"version":3,"file":"editor-toolbar.d.ts","sourceRoot":"","sources":["../src/editor-toolbar.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AAuB5C,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AAMvC,OAAO,KAAK,EACV,cAAc,EACd,qBAAqB,EACrB,mBAAmB,EACpB,MAAM,YAAY,CAAC;AAEpB,KAAK,cAAc,GAAG,qBAAqB,GAAG,QAAQ,CAAC;AAEvD,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,QAAQ,EACR,aAAa,EACb,kBAAkB,EAClB,MAAM,EACN,WAAW,EACX,UAAU,GACX,EAAE;IACD,MAAM,EAAE,MAAM,CAAC;IACf,QAAQ,EAAE,cAAc,CAAC;IACzB,aAAa,CAAC,EAAE,CAAC,IAAI,EAAE,IAAI,KAAK,OAAO,CAAC,MAAM,CAAC,CAAC;IAChD,kBAAkB,CAAC,EAAE,CAAC,KAAK,EAAE,OAAO,KAAK,IAAI,CAAC;IAC9C,MAAM,EAAE,cAAc,CAAC;IACvB,WAAW,CAAC,EAAE,mBAAmB,CAAC;IAClC,UAAU,CAAC,EAAE,SAAS,CAAC;CACxB,+BA0MA"}
 \ No newline at end of file
 diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
-index 51b0dec38a271b2f1362425c4e31685925ea4e2e..571c4cd8e9390d5537dedf8f38b45c6ddd5807e7 100644
+index 51b0dec38a271b2f1362425c4e31685925ea4e2e..78b986fb0e6fd8a0cd727846fc4e3e2e788e9683 100644
 --- a/dist/editor-toolbar.js
 +++ b/dist/editor-toolbar.js
-@@ -1,11 +1,29 @@
+@@ -1,11 +1,28 @@
  'use client';
  import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 -import { AlignCenter, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Heading4, Highlighter, Italic, List, ListOrdered, Minus, Palette, Quote, Redo2, Strikethrough, Underline, Undo2, } from 'lucide-react';
@@ -467,12 +467,11 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..571c4cd8e9390d5537dedf8f38b45c6d
  import { ToolbarAction } from './toolbar-action.js';
 -export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }) {
 +export function insertCollapsibleSection(editor, title) {
-+    const { empty, to } = editor.state.selection;
-+    const chain = editor.chain().focus(undefined, { scrollIntoView: false });
-+    if (!empty)
-+        chain.setTextSelection(to);
-+    return chain
-+        .insertContent({
++    const insertionPosition = editor.state.selection.to;
++    return editor
++        .chain()
++        .focus(undefined, { scrollIntoView: false })
++        .insertContentAt(insertionPosition, {
 +        content: [
 +            {
 +                content: [{ text: title, type: 'text' }],
@@ -488,7 +487,7 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..571c4cd8e9390d5537dedf8f38b45c6d
      const enhanced = preset !== 'legacy';
      const action = (label, icon, run, active) => (_jsx(ToolbarAction, { active: active, icon: icon, label: label, run: run }, label));
      const headingActions = preset === 'full'
-@@ -34,6 +52,10 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+@@ -34,6 +51,10 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
                  ? action(messages.orderedList, ListOrdered, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'))
                  : null, preset !== 'compact'
                  ? action(messages.blockquote, Quote, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive('blockquote'))
@@ -499,7 +498,7 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..571c4cd8e9390d5537dedf8f38b45c6d
                  : null, preset !== 'compact'
                  ? action(messages.horizontalRule, Minus, () => editor.chain().focus().setHorizontalRule().run())
                  : null, _jsx(LinkToolbarControl, { active: editor.isActive('link'), currentHref: () => {
-@@ -51,5 +73,5 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
+@@ -51,5 +72,5 @@ export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadEr
                  ? action(messages.alignCenter, AlignCenter, () => editor.chain().focus().setTextAlign('center').run(), editor.isActive({ textAlign: 'center' }))
                  : null, enhanced && stylePolicy?.alignments?.includes('right')
                  ? action(messages.alignRight, AlignRight, () => editor.chain().focus().setTextAlign('right').run(), editor.isActive({ textAlign: 'right' }))
