@@ -456,7 +456,7 @@ diff --git a/dist/editor-toolbar.js b/dist/editor-toolbar.js
 index 51b0dec38a271b2f1362425c4e31685925ea4e2e..78b986fb0e6fd8a0cd727846fc4e3e2e788e9683 100644
 --- a/dist/editor-toolbar.js
 +++ b/dist/editor-toolbar.js
-@@ -1,11 +1,30 @@
+@@ -1,11 +1,31 @@
  'use client';
  import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 -import { AlignCenter, AlignLeft, AlignRight, Bold, Heading1, Heading2, Heading3, Heading4, Highlighter, Italic, List, ListOrdered, Minus, Palette, Quote, Redo2, Strikethrough, Underline, Undo2, } from 'lucide-react';
@@ -467,7 +467,8 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..78b986fb0e6fd8a0cd727846fc4e3e2e
  import { ToolbarAction } from './toolbar-action.js';
 -export function EditorToolbar({ editor, messages, onImageUpload, onImageUploadError, preset, stylePolicy, }) {
 +export function insertCollapsibleSection(editor, title) {
-+    const insertionPosition = editor.state.selection.to;
++    const { $to } = editor.state.selection;
++    const insertionPosition = $to.depth > 0 ? $to.after(1) : $to.pos;
 +    const collapsible = editor.schema.nodeFromJSON({
 +        content: [
 +            {
@@ -478,9 +479,9 @@ index 51b0dec38a271b2f1362425c4e31685925ea4e2e..78b986fb0e6fd8a0cd727846fc4e3e2e
 +        ],
 +        type: 'collapsible',
 +    });
-+    // Dispatch against the captured endpoint directly. Chained focus/insert
-+    // commands can restore a stale DOM range after the toolbar receives focus,
-+    // causing the selected prose to be replaced instead of inserting beside it.
++    // Insert after the current top-level block. Putting a block node at an inline
++    // selection endpoint splits the paragraph and controlled Markdown consumers
++    // can then interpret the selected fragment as replaced content.
 +    editor.view.dispatch(editor.state.tr.insert(insertionPosition, collapsible));
 +    editor.view.focus();
 +    return true;
