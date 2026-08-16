@@ -11,6 +11,7 @@ import {
   getPublishedBlogPostsPaginated,
 } from "@/lib/actions/blog";
 import { generatePaginationRange } from "@/lib/pagination";
+import { markdownOutline } from "@/lib/markdown-outline";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
@@ -210,6 +211,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
   }
 
   if (selectedPost) {
+    const outline = markdownOutline(selectedPost.content);
     return (
       <div className="@container relative flex h-full flex-col overflow-hidden bg-[#07090f] text-[#f6efe3]">
         <div className="pointer-events-none absolute inset-0 opacity-95">
@@ -270,7 +272,7 @@ export default function BlogClient({ initialData }: BlogClientProps) {
             </div>
           </div>
 
-          <article className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 @md:px-6 @lg:px-8 @xl:py-8">
+          <article className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 @md:px-6 @lg:px-8 @xl:py-8">
             {selectedPost.cover_url && (
               <button
                 type="button"
@@ -305,21 +307,50 @@ export default function BlogClient({ initialData }: BlogClientProps) {
               </button>
             )}
 
-            <div
-              ref={markdownContentRef}
-              className="mx-auto w-full max-w-[46rem] rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,15,24,0.94),rgba(8,10,16,0.98))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.32)] @md:p-8"
-            >
-              <MarkdownRenderer
-                content={selectedPost.content}
-                className="text-[#ece3d1]"
-                onImageClick={({ src, alt }) =>
-                  setFullscreenImage({
-                    src,
-                    alt: alt || selectedPost.title,
-                    title: alt || selectedPost.title,
-                  })
-                }
-              />
+            <div className="grid w-full items-start gap-5 @3xl:grid-cols-[minmax(0,46rem)_15rem] @3xl:justify-center">
+              <div
+                ref={markdownContentRef}
+                className="w-full rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,15,24,0.94),rgba(8,10,16,0.98))] p-6 shadow-[0_26px_70px_rgba(0,0,0,0.32)] @md:p-8"
+              >
+                <MarkdownRenderer
+                  content={selectedPost.content}
+                  className="text-[#ece3d1] [&_:is(h1,h2,h3,h4)]:scroll-mt-6"
+                  onImageClick={({ src, alt }) =>
+                    setFullscreenImage({
+                      src,
+                      alt: alt || selectedPost.title,
+                      title: alt || selectedPost.title,
+                    })
+                  }
+                />
+              </div>
+              {outline.length > 1 ? (
+                <nav
+                  aria-label="On this page"
+                  className="sticky top-5 hidden rounded-2xl border border-white/8 bg-[rgba(12,16,28,0.86)] p-4 @3xl:block"
+                >
+                  <p className="text-xs font-semibold tracking-[0.2em] text-[#d1ba93] uppercase">
+                    On this page
+                  </p>
+                  <ol className="mt-3 space-y-1.5">
+                    {outline.map((item) => (
+                      <li
+                        key={item.id}
+                        style={{
+                          paddingLeft: `${Math.max(0, item.depth - 1) * 0.65}rem`,
+                        }}
+                      >
+                        <a
+                          className="block rounded-lg px-2 py-1.5 text-sm leading-5 text-[#bdb3a3] transition hover:bg-white/5 hover:text-white"
+                          href={`#${item.id}`}
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              ) : null}
             </div>
           </article>
         </div>

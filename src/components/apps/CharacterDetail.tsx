@@ -978,13 +978,34 @@ export default function CharacterDetail({
                             download: image.is_reference_sheet
                               ? { filename: `${image.title}-reference-sheet` }
                               : undefined,
-                            footer: image.artist_name && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className="text-theme-text bg-theme-primary rounded-full px-3 py-1 font-medium">
-                                  Artist: {image.artist_name}
-                                </span>
-                              </div>
-                            ),
+                            footer:
+                              image.artist_name ||
+                              image.tagged_characters.length > 1 ? (
+                                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                                  {image.artist_name ? (
+                                    <span className="text-theme-text bg-theme-primary rounded-full px-3 py-1 font-medium">
+                                      Artist: {image.artist_name}
+                                    </span>
+                                  ) : null}
+                                  {image.tagged_characters
+                                    .filter(
+                                      (tagged) => tagged.id !== character.id,
+                                    )
+                                    .map((tagged) => (
+                                      <button
+                                        className="text-theme-text bg-theme-secondary rounded-full px-3 py-1 font-medium transition hover:brightness-110"
+                                        key={tagged.id}
+                                        onClick={() => {
+                                          setLightboxContent(null);
+                                          onCharacterClick?.(tagged.slug);
+                                        }}
+                                        type="button"
+                                      >
+                                        Also features {tagged.name}
+                                      </button>
+                                    ))}
+                                </div>
+                              ) : undefined,
                           })
                         }
                         className="text-theme-text group hover:ring-theme-primary aspect-square overflow-hidden rounded-xl ring-2 ring-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"

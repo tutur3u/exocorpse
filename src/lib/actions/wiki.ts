@@ -7,6 +7,7 @@ import {
   type CmsCharacterRelationship,
   type CmsCharacterWorld,
   type CmsLocationGalleryItem,
+  type CmsWikiEvent,
   getCmsCharacterBySlug,
   getCmsCharacterBySlugInStory,
   getCmsCharacterFactions,
@@ -23,6 +24,7 @@ import {
   getCmsLocationBySlug,
   getCmsLocationGallery,
   getCmsLocationsByWorldSlug,
+  getCmsEventsByWorldId,
   getCmsPublishedStories,
   getCmsPublicStories,
   getCmsStoryBySlug,
@@ -41,6 +43,7 @@ import type {
 export type { Character, CharacterDetail, Faction, Location, Story, World };
 export type CharacterRelationshipEnhanced = CmsCharacterRelationship;
 export type LocationGalleryImage = CmsLocationGalleryItem;
+export type WikiEvent = CmsWikiEvent;
 
 export async function getPublicStories(): Promise<Story[]> {
   return (await getCmsPublicStories()) ?? [];
@@ -58,6 +61,11 @@ export async function getWorldsByStorySlug(
 }
 export async function getWorldBySlug(storySlug: string, worldSlug: string) {
   return getCmsWorldBySlug(storySlug, worldSlug);
+}
+export async function getEventsByWorldId(
+  worldId: string,
+): Promise<WikiEvent[]> {
+  return (await getCmsEventsByWorldId(worldId)) ?? [];
 }
 export async function getCharactersByWorldSlug(
   storySlug: string,

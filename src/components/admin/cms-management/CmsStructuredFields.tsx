@@ -29,6 +29,28 @@ export default function CmsStructuredFields({
   const advancedDefinitions = definitions.filter(
     (definition) => definition.field_type === "json",
   );
+  const profile = isJsonRecord(draft.profile_data) ? draft.profile_data : {};
+  const palette = Array.isArray(profile.colorPalette)
+    ? profile.colorPalette.filter(
+        (value): value is string => typeof value === "string",
+      )
+    : [];
+  const themeColors = [
+    profile.themePrimaryColor,
+    profile.themeSecondaryColor,
+    ...palette,
+  ].filter(
+    (value): value is string =>
+      typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value),
+  );
+  const showsThemePreview = definitions.some((definition) =>
+    [
+      "colorPalette",
+      "themePrimaryColor",
+      "themeSecondaryColor",
+      "themeTextColor",
+    ].includes(definition.key),
+  );
   const isWide = (definition: ExocorpseCmsFieldDefinition) =>
     ["json", "markdown", "string-array"].includes(definition.field_type) ||
     Boolean(definition.description);
@@ -59,6 +81,39 @@ export default function CmsStructuredFields({
           Add the information visitors need for this item.
         </p>
       </div>
+      {showsThemePreview ? (
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950 text-white shadow-lg">
+          <div
+            className="h-28 transition-[background] duration-200"
+            style={{
+              background:
+                themeColors.length > 1
+                  ? `linear-gradient(135deg, ${themeColors.join(", ")})`
+                  : (themeColors[0] ??
+                    "linear-gradient(135deg, #0891b2, #7c3aed)"),
+            }}
+          />
+          <div className="p-4">
+            <p className="text-xs font-semibold tracking-[0.18em] text-white/55 uppercase">
+              Live profile preview
+            </p>
+            <p
+              className="mt-2 text-xl font-bold"
+              style={{
+                color:
+                  typeof profile.themeTextColor === "string"
+                    ? profile.themeTextColor
+                    : undefined,
+              }}
+            >
+              {draft.title || "Character name"}
+            </p>
+            <p className="mt-1 text-sm text-white/65">
+              Colors update here while you edit—no refresh needed.
+            </p>
+          </div>
+        </div>
+      ) : null}
       <div className="grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
         {standardDefinitions.map((definition) => {
           const scopeValue = draft[definition.field_scope];

@@ -18,6 +18,7 @@ type Props = {
   onChange: (blocks: CmsBlockDraft[]) => void;
   onImageUpload?: (file: File) => Promise<string>;
   singleDocument?: boolean;
+  sectionNoun?: "chapter" | "section";
 };
 
 const inputClassName =
@@ -29,6 +30,7 @@ export default function CmsBlockEditor({
   onChange,
   onImageUpload,
   singleDocument = false,
+  sectionNoun = "section",
 }: Props) {
   const blockTypes = allowedBlockTypes.length
     ? allowedBlockTypes
@@ -91,10 +93,12 @@ export default function CmsBlockEditor({
         <div>
           <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
             <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            Page sections
+            {sectionNoun === "chapter" ? "Chapters" : "Page sections"}
           </h3>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Build longer pages from focused, reorderable sections.
+            {sectionNoun === "chapter"
+              ? "Organize long-form writing into named, reorderable chapters."
+              : "Build longer pages from focused, reorderable sections."}
           </p>
         </div>
         <Button
@@ -109,7 +113,7 @@ export default function CmsBlockEditor({
           type="button"
         >
           <Plus className="h-3.5 w-3.5" />
-          Add section
+          Add {sectionNoun}
         </Button>
       </div>
 
@@ -134,7 +138,8 @@ export default function CmsBlockEditor({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {block.title || `Section ${index + 1}`}
+                    {block.title ||
+                      `${sectionNoun === "chapter" ? "Chapter" : "Section"} ${index + 1}`}
                   </span>
                   <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
                     {block.blockType === "markdown"
@@ -185,7 +190,7 @@ export default function CmsBlockEditor({
                   onChange={(event) =>
                     update(index, { title: event.target.value })
                   }
-                  placeholder="Optional section title"
+                  placeholder={`Optional ${sectionNoun} title`}
                   value={block.title}
                 />
                 {block.blockType === "markdown" ? (
@@ -193,7 +198,7 @@ export default function CmsBlockEditor({
                     minHeight="18rem"
                     onChange={(value) => update(index, { contentText: value })}
                     onImageUpload={onImageUpload}
-                    placeholder="Write this section’s content…"
+                    placeholder={`Write this ${sectionNoun}…`}
                     value={block.contentText}
                   />
                 ) : (
@@ -215,7 +220,7 @@ export default function CmsBlockEditor({
 
       {blocks.length === 0 ? (
         <div className="rounded-lg border-2 border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-          No page sections yet. Add one when this item needs a longer story.
+          No {sectionNoun}s yet. Add one when this item needs a longer story.
         </div>
       ) : null}
     </section>

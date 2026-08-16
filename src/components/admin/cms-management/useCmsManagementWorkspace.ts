@@ -740,7 +740,11 @@ export function useCmsManagementWorkspace({
     }
   }
 
-  async function uploadCharacterGalleryAsset(file: File, characterId: string) {
+  async function uploadCharacterGalleryAsset(
+    file: File,
+    characterId: string,
+    requestedTitle?: string,
+  ) {
     const galleryCollection = studio.collections.find(
       (item) => item.slug === "character-gallery",
     );
@@ -761,7 +765,10 @@ export function useCmsManagementWorkspace({
     setUploadStatus({ fileName: file.name, percentage: 2, stage: "preparing" });
     let createdEntryId: string | null = null;
     try {
-      const fileTitle = file.name.replace(/\.[^.]+$/, "").trim() || "Artwork";
+      const fileTitle =
+        requestedTitle?.trim() ||
+        file.name.replace(/\.[^.]+$/, "").trim() ||
+        "Artwork";
       const slug = slugify(
         `${character.slug}-${fileTitle}-${crypto.randomUUID().slice(0, 8)}`,
       );

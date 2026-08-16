@@ -425,7 +425,9 @@ export default function WikiClient({
 
   useEffect(() => {
     publishWikiDesktopExperience({
-      backgroundImage: selectedStory?.theme_background_image ?? null,
+      // Story-specific desktop backgrounds remain intentionally disabled until
+      // the matching logo treatment is ready. Keep soundtrack support stable.
+      backgroundImage: null,
       soundtrackUrl: selectedStory?.theme_soundtrack_url ?? null,
       storyTitle: selectedStory?.title ?? null,
     });

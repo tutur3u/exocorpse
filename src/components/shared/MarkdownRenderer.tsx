@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { markdownHeadingId } from "@/lib/markdown-outline";
 import { markdownComponents, renderMarkdownParagraph } from "./MarkdownEditor";
 
 type MarkdownRendererProps = {
@@ -22,6 +23,18 @@ export default function MarkdownRenderer({
     return null;
   }
 
+  const headingCounts = new Map<string, number>();
+  const heading = (level: 1 | 2 | 3 | 4) =>
+    function MarkdownHeading({ children }: { children?: React.ReactNode }) {
+      const text = String(children ?? "");
+      const base = markdownHeadingId(text);
+      const occurrence = headingCounts.get(base) ?? 0;
+      headingCounts.set(base, occurrence + 1);
+      const id = occurrence ? `${base}-${occurrence + 1}` : base;
+      const Tag = `h${level}` as const;
+      return <Tag id={id}>{children}</Tag>;
+    };
+
   return (
     <div className={`@container ${className}`.trim()}>
       <ReactMarkdown
@@ -29,6 +42,10 @@ export default function MarkdownRenderer({
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
           ...markdownComponents,
+          h1: heading(1),
+          h2: heading(2),
+          h3: heading(3),
+          h4: heading(4),
           details: ({ children }) => (
             <details className="group my-4 overflow-hidden rounded-xl border border-current/15 bg-black/10 open:pb-3">
               {children}

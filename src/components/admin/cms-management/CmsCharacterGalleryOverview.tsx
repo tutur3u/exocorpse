@@ -8,6 +8,7 @@ import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickA
 import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
+import { Input } from "@tuturuuu/ui/input";
 import { ImageIcon, Loader2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
@@ -15,28 +16,39 @@ import { useRef, useState } from "react";
 export default function CmsCharacterGalleryOverview({
   characterId,
   onEdit,
+  onPendingFileChange,
   onUpload,
   pending,
   studio,
 }: {
   characterId: string;
   onEdit: (entryId: string) => void;
-  onUpload: (file: File) => Promise<void>;
+  onPendingFileChange?: (pending: boolean) => void;
+  onUpload: (file: File, title: string) => Promise<void>;
   pending: boolean;
   studio: ExocorpseCmsStudio;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
 
-  const uploadFiles = async (files: FileList | File[]) => {
-    const images = Array.from(files).filter((file) =>
-      file.type.startsWith("image/"),
-    );
-    if (!images.length) return;
+  const chooseFile = (file: File | undefined) => {
+    if (!file?.type.startsWith("image/")) return;
+    setPendingFile(file);
+    onPendingFileChange?.(true);
+    setTitle(file.name.replace(/\.[^.]+$/, "").trim());
+  };
+
+  const uploadFile = async () => {
+    if (!pendingFile || !title.trim()) return;
     setUploading(true);
     try {
-      for (const file of images) await onUpload(file);
+      await onUpload(pendingFile, title.trim());
+      setPendingFile(null);
+      setTitle("");
+      onPendingFileChange?.(false);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -119,7 +131,7 @@ export default function CmsCharacterGalleryOverview({
         onDrop={(event) => {
           event.preventDefault();
           setDragging(false);
-          void uploadFiles(event.dataTransfer.files);
+          chooseFile(event.dataTransfer.files[0]);
         }}
       >
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
@@ -142,21 +154,55 @@ export default function CmsCharacterGalleryOverview({
             accept="image/*"
             className="sr-only"
             disabled={busy}
-            multiple
             onChange={(event) => {
-              if (event.target.files) void uploadFiles(event.target.files);
+              chooseFile(event.target.files?.[0]);
             }}
             ref={inputRef}
             type="file"
           />
-          <Button
-            disabled={busy}
-            onClick={() => inputRef.current?.click()}
-            type="button"
-          >
-            <ImageIcon className="h-4 w-4" />
-            Choose images
-          </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-72">
+            {pendingFile ? (
+              <>
+                <Input
+                  aria-label="Artwork title"
+                  className="w-full"
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Artwork title"
+                  value={title}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    disabled={busy || !title.trim()}
+                    onClick={() => void uploadFile()}
+                    type="button"
+                  >
+                    <Upload className="h-4 w-4" /> Add artwork
+                  </Button>
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      setPendingFile(null);
+                      setTitle("");
+                      onPendingFileChange?.(false);
+                    }}
+                    type="button"
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button
+                disabled={busy}
+                onClick={() => inputRef.current?.click()}
+                type="button"
+              >
+                <ImageIcon className="h-4 w-4" /> Choose an image
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

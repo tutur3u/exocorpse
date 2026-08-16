@@ -2,15 +2,10 @@
 
 import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { RichTextEditor } from "@tuturuuu/editor/react";
-import { toolbarOverflowStartIndex } from "@/components/admin/admin-markdown-toolbar";
-import { MoreHorizontal, X } from "lucide-react";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { Eye, ListTree, Maximize2, Minimize2, Pencil } from "lucide-react";
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
-
-type OverflowTool = {
-  label: string;
-  pressed: boolean;
-};
+import { useMemo, useState } from "react";
 
 export default function AdminMarkdownEditor({
   compact = false,
@@ -31,225 +26,110 @@ export default function AdminMarkdownEditor({
   showWordCount?: boolean;
   value: string;
 }) {
-  const [showMoreTools, setShowMoreTools] = useState(false);
-  const [overflowTools, setOverflowTools] = useState<OverflowTool[]>([]);
+  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
   const style = {
-    "--tuturuuu-editor-min-height": minHeight,
+    "--tuturuuu-editor-min-height": expanded ? "34rem" : minHeight,
   } as CSSProperties;
-
-  useEffect(() => {
-    const wrapper = editorRef.current;
-    if (!wrapper) return;
-
-    let toolbar: HTMLElement | null = null;
-    let resizeObserver: ResizeObserver | null = null;
-    let animationFrame = 0;
-    const measure = () => {
-      if (!toolbar) return;
-      cancelAnimationFrame(animationFrame);
-      animationFrame = requestAnimationFrame(() => {
-        if (!toolbar) return;
-        const items = Array.from(toolbar.children).filter(
-          (item): item is HTMLElement => item instanceof HTMLElement,
-        );
-        for (const item of items) delete item.dataset.adminOverflow;
-
-        const styles = getComputedStyle(toolbar);
-        const horizontalPadding =
-          Number.parseFloat(styles.paddingLeft) +
-          Number.parseFloat(styles.paddingRight);
-        const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
-        const availableWidth = Math.max(
-          0,
-          toolbar.clientWidth - horizontalPadding,
-        );
-        const overflowStartIndex = toolbarOverflowStartIndex({
-          availableWidth,
-          gap,
-          itemWidths: items.map((item) => item.offsetWidth),
-        });
-
-        if (overflowStartIndex === null) {
-          setOverflowTools((current) => (current.length === 0 ? current : []));
-          setShowMoreTools(false);
-          return;
-        }
-
-        const nextOverflowTools: OverflowTool[] = [];
-
-        items.forEach((item, index) => {
-          if (index < overflowStartIndex) return;
-
-          item.dataset.adminOverflow = "true";
-          const button =
-            item.querySelector<HTMLButtonElement>("button[aria-label]");
-          const label = button?.getAttribute("aria-label");
-          if (button && label) {
-            nextOverflowTools.push({
-              label,
-              pressed: button.getAttribute("aria-pressed") === "true",
-            });
-          }
-        });
-
-        setOverflowTools((current) => {
-          const unchanged =
-            current.length === nextOverflowTools.length &&
-            current.every(
-              (tool, index) =>
-                tool.label === nextOverflowTools[index]?.label &&
-                tool.pressed === nextOverflowTools[index]?.pressed,
-            );
-          return unchanged ? current : nextOverflowTools;
-        });
-      });
-    };
-
-    const attachToolbar = () => {
-      const nextToolbar = wrapper.querySelector<HTMLElement>(
-        ".tuturuuu-editor-toolbar",
-      );
-      if (!nextToolbar) return;
-      if (nextToolbar === toolbar) {
-        measure();
-        return;
-      }
-      resizeObserver?.disconnect();
-      toolbar = nextToolbar;
-      resizeObserver = new ResizeObserver(measure);
-      resizeObserver.observe(toolbar);
-      measure();
-    };
-
-    const mountObserver = new MutationObserver(attachToolbar);
-    mountObserver.observe(wrapper, { childList: true, subtree: true });
-    window.addEventListener("resize", measure);
-    attachToolbar();
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      mountObserver.disconnect();
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", measure);
-      for (const item of Array.from(toolbar?.children ?? [])) {
-        if (item instanceof HTMLElement) delete item.dataset.adminOverflow;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!showMoreTools) return;
-    const close = (event: MouseEvent | KeyboardEvent) => {
-      if (event instanceof KeyboardEvent && event.key !== "Escape") return;
-      if (
-        event instanceof MouseEvent &&
-        editorRef.current?.contains(event.target as Node)
-      ) {
-        return;
-      }
-      setShowMoreTools(false);
-    };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, [showMoreTools]);
 
   return (
     <div
       className="admin-markdown-editor"
-      data-has-tool-overflow={overflowTools.length > 0 || undefined}
       data-show-word-count={showWordCount || undefined}
-      ref={editorRef}
       style={style}
     >
-      <RichTextEditor
-        content={content}
-        featurePreset="full"
-        onChange={(nextContent) => {
-          const markdown = jsonToMarkdown(nextContent);
-          if (maxLength && markdown.length > maxLength) return;
-          onChange(markdown);
-        }}
-        onImageUpload={
-          onImageUpload
-            ? async (file) => {
-                setImageError(null);
-                const url = await onImageUpload(file);
-                setImageError(null);
-                return url;
-              }
-            : undefined
-        }
-        onImageUploadError={(error) =>
-          setImageError(
-            error instanceof Error
-              ? error.message
-              : "That image could not be added. Please try again.",
-          )
-        }
-        placeholder={placeholder}
-      />
-      {overflowTools.length > 0 ? (
-        <>
+      <div className="admin-markdown-editor-view-controls">
+        <div
+          className="flex items-center gap-1"
+          role="tablist"
+          aria-label="Editor view"
+        >
           <button
-            aria-expanded={showMoreTools}
-            aria-label={
-              showMoreTools
-                ? "Close more formatting tools"
-                : "More formatting tools"
-            }
-            className="admin-markdown-editor-tools-toggle"
-            data-tooltip="More formatting tools"
-            onClick={() => setShowMoreTools((current) => !current)}
-            title="More formatting tools"
+            aria-selected={mode === "edit"}
+            onClick={() => setMode("edit")}
+            role="tab"
             type="button"
           >
-            {showMoreTools ? (
-              <X aria-hidden className="h-4 w-4" />
-            ) : (
-              <MoreHorizontal aria-hidden className="h-4 w-4" />
-            )}
+            <Pencil className="h-3.5 w-3.5" /> Edit
           </button>
-          {showMoreTools ? (
-            <div
-              aria-label="More formatting tools"
-              className="admin-markdown-editor-tools-menu"
-              role="menu"
-            >
-              {overflowTools.map((tool) => (
-                <button
-                  className="admin-markdown-editor-tools-menu-item"
-                  data-active={tool.pressed || undefined}
-                  key={tool.label}
-                  onClick={() => {
-                    const buttons = Array.from(
-                      editorRef.current?.querySelectorAll<HTMLButtonElement>(
-                        ".tuturuuu-editor-toolbar button[aria-label]",
-                      ) ?? [],
-                    );
-                    buttons
-                      .find(
-                        (button) =>
-                          button.getAttribute("aria-label") === tool.label,
-                      )
-                      ?.click();
-                    setShowMoreTools(false);
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  {tool.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </>
-      ) : null}
+          <button
+            aria-selected={mode === "preview"}
+            onClick={() => setMode("preview")}
+            role="tab"
+            type="button"
+          >
+            <Eye className="h-3.5 w-3.5" /> Preview
+          </button>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            aria-label="Add collapsible section"
+            onClick={() =>
+              onChange(
+                `${value}${value.trim() ? "\n\n" : ""}<details>\n<summary>Section title</summary>\n\nWrite the collapsible content here.\n\n</details>`,
+              )
+            }
+            title="Add collapsible section"
+            type="button"
+          >
+            <ListTree className="h-4 w-4" />
+            <span className="hidden sm:inline">Toggle</span>
+          </button>
+          <button
+            aria-label={expanded ? "Use compact editor" : "Expand editor"}
+            onClick={() => setExpanded((current) => !current)}
+            title={expanded ? "Use compact editor" : "Expand editor"}
+            type="button"
+          >
+            {expanded ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {expanded ? "Compact" : "Expand"}
+            </span>
+          </button>
+        </div>
+      </div>
+      {mode === "edit" ? (
+        <RichTextEditor
+          content={content}
+          featurePreset="full"
+          onChange={(nextContent) => {
+            const markdown = jsonToMarkdown(nextContent);
+            if (maxLength && markdown.length > maxLength) return;
+            onChange(markdown);
+          }}
+          onImageUpload={
+            onImageUpload
+              ? async (file) => {
+                  setImageError(null);
+                  const url = await onImageUpload(file);
+                  setImageError(null);
+                  return url;
+                }
+              : undefined
+          }
+          onImageUploadError={(error) =>
+            setImageError(
+              error instanceof Error
+                ? error.message
+                : "That image could not be added. Please try again.",
+            )
+          }
+          placeholder={placeholder}
+        />
+      ) : (
+        <div
+          className="admin-markdown-editor-preview"
+          style={{ minHeight: expanded ? "34rem" : minHeight }}
+        >
+          {value ? <MarkdownRenderer content={value} /> : <p>{placeholder}</p>}
+        </div>
+      )}
       {maxLength ? (
         <p className="mt-1 text-right text-[0.68rem] text-slate-500 dark:text-slate-400">
           {value.length}/{maxLength}

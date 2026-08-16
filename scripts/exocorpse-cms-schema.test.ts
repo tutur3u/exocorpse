@@ -64,6 +64,33 @@ describe("canonical Exocorpse CMS schema", () => {
     );
   });
 
+  test("uses free directional labels for character relationships", () => {
+    expect(EXOCORPSE_CMS_SCHEMA.fieldDefinitions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          collectionSlug: "character-relationships",
+          key: "forwardLabel",
+        }),
+        expect.objectContaining({
+          collectionSlug: "character-relationships",
+          fieldType: "boolean",
+          key: "createReverse",
+        }),
+        expect.objectContaining({
+          collectionSlug: "character-relationships",
+          key: "reverseLabel",
+        }),
+      ]),
+    );
+    expect(EXOCORPSE_CMS_SCHEMA.relationDefinitions).toContainEqual(
+      expect.objectContaining({
+        isRequired: false,
+        key: "type",
+        sourceCollectionSlug: "character-relationships",
+      }),
+    );
+  });
+
   test("defines crop, spoiler, and reference-sheet presentation fields", () => {
     const fields = EXOCORPSE_CMS_SCHEMA.fieldDefinitions;
     expect(fields).toEqual(

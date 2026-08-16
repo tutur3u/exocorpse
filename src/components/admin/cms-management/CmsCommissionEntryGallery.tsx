@@ -9,6 +9,8 @@ import type {
 } from "@/types/exocorpse-cms";
 import { useMemo, useState } from "react";
 import { Input } from "@tuturuuu/ui/input";
+import Image from "next/image";
+import { ImageIcon } from "lucide-react";
 import SortableList, {
   mergeVisibleOrder,
 } from "@/components/admin/SortableList";
@@ -59,6 +61,32 @@ export default function CmsCommissionEntryGallery({
     (studio.relations ?? []).filter(
       (relation) => relation.to_entry_id === entryId,
     ).length;
+  const pictureCollection = studio.collections.find(
+    (collection) => collection.slug === "commission-pictures",
+  );
+  const pictureServiceDefinition = (studio.relationDefinitions ?? []).find(
+    (definition) =>
+      definition.source_collection_id === pictureCollection?.id &&
+      definition.key === "service",
+  );
+  const servicePictureAsset = (serviceId: string) => {
+    const pictureIds = new Set(
+      (studio.relations ?? [])
+        .filter(
+          (relation) =>
+            relation.relation_definition_id === pictureServiceDefinition?.id &&
+            relation.to_entry_id === serviceId,
+        )
+        .map((relation) => relation.from_entry_id),
+    );
+    return studio.assets
+      .filter(
+        (asset) =>
+          asset.asset_type === "image" &&
+          Boolean(asset.entry_id && pictureIds.has(asset.entry_id)),
+      )
+      .sort((left, right) => left.sort_order - right.sort_order)[0];
+  };
 
   return (
     <div className="space-y-6">
@@ -135,6 +163,9 @@ export default function CmsCommissionEntryGallery({
             );
             const price = typeof rawPrice === "number" ? rawPrice : 0;
             const active = profileValue(entry, "isActive") !== false;
+            const picture =
+              kind === "services" ? servicePictureAsset(entry.id) : undefined;
+            const pictureUrl = picture?.preview_url ?? picture?.asset_url;
             return (
               <article
                 aria-label={`Edit ${entry.title}`}
@@ -162,6 +193,24 @@ export default function CmsCommissionEntryGallery({
                       : undefined
                   }
                 />
+                {kind === "services" ? (
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg bg-slate-100 dark:bg-slate-950">
+                    {pictureUrl ? (
+                      <Image
+                        alt={picture?.alt_text ?? `${entry.title} example`}
+                        className="object-cover transition duration-200 group-hover:scale-[1.02]"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        src={pictureUrl}
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="grid h-full place-items-center text-slate-400">
+                        <ImageIcon className="h-8 w-8" />
+                      </div>
+                    )}
+                  </div>
+                ) : null}
                 <div className={kind === "services" ? "p-4" : ""}>
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <h3 className="font-semibold text-gray-900 dark:text-white">

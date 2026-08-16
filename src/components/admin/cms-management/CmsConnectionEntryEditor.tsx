@@ -22,6 +22,10 @@ import {
   Info,
   UserRound,
 } from "lucide-react";
+import { Input } from "@tuturuuu/ui/input";
+import { Checkbox } from "@tuturuuu/ui/checkbox";
+import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
+import { charactersInSameStory } from "@/components/admin/cms-management/connection-entry-utils";
 
 function optionsForDefinition(
   definition: ExocorpseCmsRelationDefinition | undefined,
@@ -97,6 +101,7 @@ export default function CmsConnectionEntryEditor({
   onBlocksChange,
   onDraftChange,
   onRelationsChange,
+  onImageUpload,
   relationSelections,
   studio,
 }: {
@@ -110,10 +115,12 @@ export default function CmsConnectionEntryEditor({
   onBlocksChange: (blocks: CmsBlockDraft[]) => void;
   onDraftChange: (draft: CmsEntryDraft) => void;
   onRelationsChange: (selections: CmsRelationSelections) => void;
+  onImageUpload?: (file: File) => Promise<string>;
   relationSelections: CmsRelationSelections;
   studio: ExocorpseCmsStudio;
 }) {
   const isRelationship = collectionSlug === "character-relationships";
+  const profile = isJsonRecord(draft.profile_data) ? draft.profile_data : {};
   const definition = (key: string) =>
     definitions.find((item) => item.key === key);
   const setSelection = (
@@ -128,6 +135,7 @@ export default function CmsConnectionEntryEditor({
     key: string,
     description: string,
     icon: React.ReactNode,
+    optionsOverride?: ExocorpseCmsEntry[],
   ) => {
     const target = definition(key);
     return (
@@ -136,11 +144,18 @@ export default function CmsConnectionEntryEditor({
         description={description}
         icon={icon}
         onChange={(entryIds) => setSelection(target, entryIds)}
-        options={optionsForDefinition(target, studio)}
+        options={optionsOverride ?? optionsForDefinition(target, studio)}
         value={target ? (relationSelections[target.id] ?? []) : []}
       />
     );
   };
+  const characterADefinition = definition("character-a");
+  const characterAId = characterADefinition
+    ? relationSelections[characterADefinition.id]?.[0]
+    : undefined;
+  const sameStoryCharacters = charactersInSameStory(characterAId, studio);
+  const setProfile = (key: string, value: string | boolean) =>
+    onDraftChange({ ...draft, profile_data: { ...profile, [key]: value } });
 
   return (
     <div className="space-y-6">
@@ -180,8 +195,13 @@ export default function CmsConnectionEntryEditor({
           {isRelationship
             ? selection(
                 "character-b",
-                "The other person in this connection.",
+                characterAId
+                  ? "Only characters from the same story are available."
+                  : "Choose the first character to limit this list to their story.",
                 <UserRound className="h-4 w-4" />,
+                sameStoryCharacters.filter(
+                  (entry) => entry.id !== characterAId,
+                ),
               )
             : selection(
                 "faction",
@@ -193,11 +213,64 @@ export default function CmsConnectionEntryEditor({
 
       {isRelationship ? (
         <section className="space-y-4">
-          {selection(
-            "type",
-            "Choose the label visitors will see for this relationship.",
-            <HeartHandshake className="h-4 w-4" />,
-          )}
+          <div className="grid gap-4 @2xl:grid-cols-2">
+            <label className="block space-y-2 text-sm @2xl:col-span-2">
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                Relationship label
+              </span>
+              <Input
+                className="w-full"
+                onChange={(event) =>
+                  setProfile("forwardLabel", event.target.value)
+                }
+                placeholder="Friend, rival, sibling, partner…"
+                value={
+                  typeof profile.forwardLabel === "string"
+                    ? profile.forwardLabel
+                    : ""
+                }
+              />
+              <span className="block text-xs text-zinc-500">
+                Use any wording that fits this relationship.
+              </span>
+            </label>
+            <label className="flex items-start gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+              <Checkbox
+                checked={profile.createReverse === true}
+                onCheckedChange={(checked) =>
+                  setProfile("createReverse", checked === true)
+                }
+              />
+              <span>
+                <span className="block font-semibold">
+                  Use a different label in reverse
+                </span>
+                <span className="mt-1 block text-xs text-zinc-500">
+                  For example, “Parent” in one direction and “Child” in the
+                  other.
+                </span>
+              </span>
+            </label>
+            {profile.createReverse === true ? (
+              <label className="block space-y-2 text-sm">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  Reverse label
+                </span>
+                <Input
+                  className="w-full"
+                  onChange={(event) =>
+                    setProfile("reverseLabel", event.target.value)
+                  }
+                  placeholder="How the second character describes the first…"
+                  value={
+                    typeof profile.reverseLabel === "string"
+                      ? profile.reverseLabel
+                      : ""
+                  }
+                />
+              </label>
+            ) : null}
+          </div>
           <div className="block space-y-2 text-sm">
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               Relationship summary
@@ -212,6 +285,7 @@ export default function CmsConnectionEntryEditor({
                   summary: value || null,
                 })
               }
+              onImageUpload={onImageUpload}
               placeholder="What is their dynamic? Add the useful context visitors should see…"
               value={draft.summary ?? ""}
             />

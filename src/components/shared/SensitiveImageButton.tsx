@@ -17,7 +17,7 @@ export default function SensitiveImageButton({
   label?: string | null;
   onOpen: () => void;
   sensitive: boolean;
-  type?: "gore" | "nsfw" | null;
+  type?: "gore" | "nudity" | "suggestive" | "violence" | "nsfw" | null;
 }) {
   const [revealed, setRevealed] = useState(!sensitive);
   return (
@@ -33,15 +33,21 @@ export default function SensitiveImageButton({
       </span>
       {!revealed ? (
         <span
-          className={`absolute inset-0 grid place-content-center gap-2 px-4 text-center text-sm font-semibold text-white ${type === "gore" ? "bg-red-950/85" : type === "nsfw" ? "bg-fuchsia-950/85" : "bg-black/70"}`}
+          className={`absolute inset-0 grid place-content-center gap-2 px-4 text-center text-sm font-semibold text-white ${type === "gore" || type === "violence" ? "bg-red-950/85" : type === "nsfw" || type === "nudity" || type === "suggestive" ? "bg-fuchsia-950/85" : "bg-black/70"}`}
         >
           <EyeOff className="mx-auto h-6 w-6" />
           {label ||
             (type === "gore"
               ? "Graphic content — click to reveal"
-              : type === "nsfw"
-                ? "Adult content — click to reveal"
-                : "Sensitive image — click to reveal")}
+              : type === "violence"
+                ? "Violence — click to reveal"
+                : type === "nudity"
+                  ? "Nudity — click to reveal"
+                  : type === "suggestive"
+                    ? "Suggestive content — click to reveal"
+                    : type === "nsfw"
+                      ? "Adult content — click to reveal"
+                      : "Sensitive image — click to reveal")}
         </span>
       ) : null}
     </button>

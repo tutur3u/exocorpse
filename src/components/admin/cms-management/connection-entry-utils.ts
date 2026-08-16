@@ -29,6 +29,70 @@ export type CmsConnectionPresentation = {
   type?: ExocorpseCmsEntry;
 };
 
+export function charactersInSameStory(
+  anchorId: string | undefined,
+  studio: ExocorpseCmsStudio,
+) {
+  const characters = studio.collections.find(
+    (item) => item.slug === "characters",
+  );
+  const worlds = studio.collections.find((item) => item.slug === "worlds");
+  if (!characters || !worlds || !anchorId) {
+    return studio.entries.filter(
+      (entry) => entry.collection_id === characters?.id,
+    );
+  }
+  const definitionById = new Map(
+    (studio.relationDefinitions ?? []).map((definition) => [
+      definition.id,
+      definition,
+    ]),
+  );
+  const worldStoryIds = new Map<string, Set<string>>();
+  for (const relation of studio.relations ?? []) {
+    const definition = relation.relation_definition_id
+      ? definitionById.get(relation.relation_definition_id)
+      : undefined;
+    if (
+      definition?.source_collection_id !== worlds.id ||
+      definition.key !== "story"
+    )
+      continue;
+    const ids = worldStoryIds.get(relation.from_entry_id) ?? new Set<string>();
+    ids.add(relation.to_entry_id);
+    worldStoryIds.set(relation.from_entry_id, ids);
+  }
+  const characterStories = (characterId: string) => {
+    const storyIds = new Set<string>();
+    for (const relation of studio.relations ?? []) {
+      const definition = relation.relation_definition_id
+        ? definitionById.get(relation.relation_definition_id)
+        : undefined;
+      if (
+        relation.from_entry_id !== characterId ||
+        definition?.source_collection_id !== characters.id ||
+        definition.key !== "worlds"
+      )
+        continue;
+      for (const storyId of worldStoryIds.get(relation.to_entry_id) ?? [])
+        storyIds.add(storyId);
+    }
+    return storyIds;
+  };
+  const anchorStories = characterStories(anchorId);
+  if (!anchorStories.size)
+    return studio.entries.filter(
+      (entry) => entry.collection_id === characters.id,
+    );
+  return studio.entries.filter((entry) => {
+    if (entry.collection_id !== characters.id) return false;
+    if (entry.id === anchorId) return true;
+    return [...characterStories(entry.id)].some((storyId) =>
+      anchorStories.has(storyId),
+    );
+  });
+}
+
 function targetsForEntry(entryId: string, studio: ExocorpseCmsStudio) {
   const definitionById = new Map(
     (studio.relationDefinitions ?? []).map((definition) => [
@@ -67,7 +131,11 @@ export function connectionPresentation(
       characterA && characterB
         ? `${characterA.title} & ${characterB.title}`
         : "Choose both characters";
-    const secondary = type?.title ?? "Relationship type not selected";
+    const secondary =
+      (typeof profile.forwardLabel === "string" &&
+        profile.forwardLabel.trim()) ||
+      type?.title ||
+      "Related";
     return {
       characterA,
       characterB,
@@ -142,15 +210,21 @@ export function normalizeConnectionDraft({
       studio,
     );
     const type = selectedTarget("type", definitions, selections, studio);
+    const profile = isJsonRecord(draft.profile_data) ? draft.profile_data : {};
+    const label =
+      (typeof profile.forwardLabel === "string" &&
+        profile.forwardLabel.trim()) ||
+      type?.title ||
+      "Related";
     const title = [characterA?.title, characterB?.title]
       .filter(Boolean)
       .join(" & ");
-    const fullTitle = type?.title ? `${title} — ${type.title}` : title;
+    const fullTitle = `${title} — ${label}`;
     return {
       ...draft,
       slug: slugify(fullTitle),
       status: "published" as const,
-      subtitle: type?.title ?? null,
+      subtitle: label,
       title: fullTitle,
     };
   }
@@ -175,9 +249,17 @@ export function normalizeConnectionDraft({
 export function isConnectionDraftReady(
   definitions: ExocorpseCmsRelationDefinition[],
   selections: CmsRelationSelections,
+  collectionSlug?: string,
 ) {
   return definitions
-    .filter((definition) => definition.is_required)
+    .filter(
+      (definition) =>
+        definition.is_required &&
+        !(
+          collectionSlug === "character-relationships" &&
+          definition.key === "type"
+        ),
+    )
     .every((definition) => Boolean(selections[definition.id]?.length));
 }
 
@@ -205,7 +287,7 @@ export function hasDuplicateConnection({
   );
   const requiredKeys =
     collectionSlug === "character-relationships"
-      ? ["character-a", "character-b", "type"]
+      ? ["character-a", "character-b"]
       : ["character", "faction"];
   if (requiredKeys.some((key) => !selectedByKey.get(key))) return false;
   const identity =
@@ -214,7 +296,6 @@ export function hasDuplicateConnection({
           [selectedByKey.get("character-a"), selectedByKey.get("character-b")]
             .sort()
             .join(":"),
-          selectedByKey.get("type"),
         ].join("|")
       : [selectedByKey.get("character"), selectedByKey.get("faction")].join(
           "|",
@@ -241,7 +322,6 @@ export function hasDuplicateConnection({
               [targetByKey.get("character-a"), targetByKey.get("character-b")]
                 .sort()
                 .join(":"),
-              targetByKey.get("type"),
             ].join("|")
           : [targetByKey.get("character"), targetByKey.get("faction")].join(
               "|",

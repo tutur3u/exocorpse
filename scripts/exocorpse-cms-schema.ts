@@ -380,6 +380,18 @@ export const EXOCORPSE_CMS_SCHEMA = {
     ),
     field("relationship-types", "isMutual", "Mutual", "boolean"),
     field("relationship-types", "reverseName", "Reverse name"),
+    field("character-relationships", "forwardLabel", "Relationship label"),
+    field(
+      "character-relationships",
+      "createReverse",
+      "Use reverse label",
+      "boolean",
+    ),
+    field(
+      "character-relationships",
+      "reverseLabel",
+      "Reverse relationship label",
+    ),
     ...["outfit-types", "event-types"].flatMap((slug) => [
       field(slug, "color", "Color"),
       field(slug, "icon", "Icon"),
@@ -547,7 +559,7 @@ export const EXOCORPSE_CMS_SCHEMA = {
       "Relationship type",
       ["relationship-types"],
       "one",
-      true,
+      false,
     ),
     relation(
       "character-factions",

@@ -149,7 +149,7 @@ type Props = {
   onSave: () => void;
   onTitleChange: (title: string) => void;
   onUploadAsset: (file: File) => void;
-  onUploadGalleryAsset: (file: File) => Promise<void>;
+  onUploadGalleryAsset: (file: File, title: string) => Promise<void>;
   onUploadInlineAsset: (file: File) => Promise<string>;
   onEditGalleryEntry: (entryId: string) => void;
   onCreateRelationshipEntry: () => void;
@@ -220,7 +220,11 @@ export default function CmsEntryEditor({
       })
     : false;
   const canSave = isConnectionEntry
-    ? isConnectionDraftReady(definitions, relationSelections) &&
+    ? isConnectionDraftReady(
+        definitions,
+        relationSelections,
+        collection.slug,
+      ) &&
       !duplicateConnection &&
       !pending &&
       isDirty
@@ -477,6 +481,9 @@ export default function CmsEntryEditor({
         <CmsCharacterGalleryOverview
           characterId={selectedEntryId}
           onEdit={onEditGalleryEntry}
+          onPendingFileChange={(hasPendingFile) =>
+            updatePendingMedia("character-gallery", hasPendingFile)
+          }
           onUpload={onUploadGalleryAsset}
           pending={pending}
           studio={studio}
@@ -490,6 +497,9 @@ export default function CmsEntryEditor({
           blocks={blocks}
           onChange={onBlocksChange}
           onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+          sectionNoun={
+            collection.slug === "portfolio-writing" ? "chapter" : "section"
+          }
           singleDocument={isBlog}
         />
       );
@@ -750,6 +760,9 @@ export default function CmsEntryEditor({
           <CmsCharacterGalleryOverview
             characterId={selectedEntryId}
             onEdit={onEditGalleryEntry}
+            onPendingFileChange={(hasPendingFile) =>
+              updatePendingMedia("character-gallery", hasPendingFile)
+            }
             onUpload={onUploadGalleryAsset}
             pending={pending}
             studio={studio}
@@ -855,6 +868,7 @@ export default function CmsEntryEditor({
             onBlocksChange={onBlocksChange}
             onDraftChange={onDraftChange}
             onRelationsChange={onRelationsChange}
+            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             relationSelections={relationSelections}
             studio={studio}
           />

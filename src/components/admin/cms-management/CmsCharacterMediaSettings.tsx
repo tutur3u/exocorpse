@@ -191,6 +191,9 @@ export default function CmsCharacterMediaSettings({
               [
                 ["nsfw", "Adult / NSFW"],
                 ["gore", "Gore / violence"],
+                ["nudity", "Nudity"],
+                ["suggestive", "Suggestive"],
+                ["violence", "Violence"],
               ] as const
             ).map(([value, label]) => (
               <Button
@@ -205,7 +208,9 @@ export default function CmsCharacterMediaSettings({
                         profile.sensitiveLabel ||
                         (value === "nsfw"
                           ? "Adult content — click to reveal"
-                          : "Graphic content — click to reveal"),
+                          : value === "gore"
+                            ? "Graphic content — click to reveal"
+                            : `${label} — click to reveal`),
                     },
                   });
                 }}

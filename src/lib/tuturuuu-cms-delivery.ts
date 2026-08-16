@@ -1435,17 +1435,22 @@ export type CmsCharacterGalleryItem = {
   thumbnail_url: string | null;
   title: string;
   is_sensitive: boolean;
-  sensitive_type: "gore" | "nsfw" | null;
+  sensitive_type: "gore" | "nudity" | "suggestive" | "violence" | "nsfw" | null;
   sensitive_label: string | null;
   is_reference_sheet: boolean;
+  tagged_characters: Array<{ id: string; name: string; slug: string }>;
 };
 
 function sensitiveTypeValue(
   profileData: Record<string, unknown>,
-): "gore" | "nsfw" | null {
-  return profileData.sensitiveType === "gore" ||
-    profileData.sensitiveType === "nsfw"
-    ? profileData.sensitiveType
+): "gore" | "nudity" | "suggestive" | "violence" | "nsfw" | null {
+  const value = profileData.sensitiveType;
+  return value === "gore" ||
+    value === "nudity" ||
+    value === "suggestive" ||
+    value === "violence" ||
+    value === "nsfw"
+    ? value
     : null;
 }
 
@@ -1458,7 +1463,7 @@ export type CmsCharacterOutfit = {
   name: string;
   outfit_types: { id: string; name: string } | null;
   is_sensitive: boolean;
-  sensitive_type: "gore" | "nsfw" | null;
+  sensitive_type: "gore" | "nudity" | "suggestive" | "violence" | "nsfw" | null;
   sensitive_label: string | null;
   is_reference_sheet: boolean;
 };
@@ -1546,6 +1551,20 @@ export async function getCmsCharacterGallery(characterId: string) {
               "character",
             ])) ?? "",
           ];
+      const taggedCharacters = taggedCharacterIds
+        .map((characterId) =>
+          characters.find(
+            (candidate) =>
+              legacyId(candidate) === characterId ||
+              candidate.entryId === characterId,
+          ),
+        )
+        .filter((candidate): candidate is CmsEntry => Boolean(candidate))
+        .map((candidate) => ({
+          id: legacyId(candidate),
+          name: candidate.title,
+          slug: candidate.slug,
+        }));
 
       return {
         artist_name: stringValue(entry.profileData, "artistName"),
@@ -1562,6 +1581,7 @@ export async function getCmsCharacterGallery(characterId: string) {
         sensitive_type: sensitiveTypeValue(entry.profileData),
         sensitive_label: stringValue(entry.profileData, "sensitiveLabel"),
         is_reference_sheet: entry.profileData.referenceSheet === true,
+        tagged_characters: taggedCharacters,
       };
     }),
   );
@@ -1717,6 +1737,16 @@ export async function getCmsCharacterRelationships(characterId: string) {
           ["relationship-type", "type"],
         )) ?? "";
       const type = typeById.get(typeId);
+      const isForward = characterA === characterId;
+      const forwardLabel =
+        stringValue(entry.profileData, "forwardLabel") ??
+        type?.title ??
+        "Related";
+      const reverseLabel = stringValue(entry.profileData, "reverseLabel");
+      const useReverse =
+        entry.profileData.createReverse === true && Boolean(reverseLabel);
+      const visibleLabel =
+        isForward || !useReverse ? forwardLabel : reverseLabel!;
       return {
         description: entry.bodyMarkdown ?? entry.summary,
         id: legacyId(entry),
@@ -1725,11 +1755,13 @@ export async function getCmsCharacterRelationships(characterId: string) {
         relationship_type: {
           description: type?.bodyMarkdown ?? type?.summary ?? null,
           id: typeId,
-          is_mutual: type ? booleanValue(type.profileData, "isMutual") : null,
-          name: type?.title ?? "Related",
-          reverse_name: type
-            ? stringValue(type.profileData, "reverseName")
-            : null,
+          is_mutual: !useReverse,
+          name: visibleLabel,
+          reverse_name: useReverse
+            ? reverseLabel
+            : type
+              ? stringValue(type.profileData, "reverseName")
+              : null,
         },
       } satisfies CmsCharacterRelationship;
     }),
@@ -1740,6 +1772,55 @@ export async function getCmsCharacterRelationships(characterId: string) {
 export async function getCmsLocationById(locationId: string) {
   const locations = await getCmsLocations();
   return locations?.find((location) => location.id === locationId) ?? null;
+}
+
+export type CmsWikiEvent = {
+  color: string | null;
+  content: string;
+  date: string | null;
+  id: string;
+  slug: string;
+  summary: string | null;
+  title: string;
+};
+
+export async function getCmsEventsByWorldId(worldId: string) {
+  const entries = await getExocorpseCmsEntries("events");
+  if (!entries) return null;
+  const items = await Promise.all(
+    entries.map(async (entry) => ({
+      entry,
+      worldId:
+        (await resolveTargetLegacyId(entry, "worlds", "worldId", ["world"])) ??
+        "",
+    })),
+  );
+  return items
+    .filter(
+      ({ entry, worldId: targetWorldId }) =>
+        targetWorldId === worldId && entry.status === "published",
+    )
+    .sort(
+      (left, right) =>
+        (numberValue(left.entry.profileData, "displayOrder") ?? 0) -
+          (numberValue(right.entry.profileData, "displayOrder") ?? 0) ||
+        left.entry.title.localeCompare(right.entry.title),
+    )
+    .map(
+      ({ entry }) =>
+        ({
+          color: stringValue(entry.profileData, "color"),
+          content: entry.bodyMarkdown ?? "",
+          date:
+            stringValue(entry.profileData, "date") ??
+            numberValue(entry.profileData, "dateYear")?.toString() ??
+            null,
+          id: legacyId(entry),
+          slug: entry.slug,
+          summary: entry.summary,
+          title: entry.title,
+        }) satisfies CmsWikiEvent,
+    );
 }
 
 export async function getCmsLocationGallery(locationId: string) {

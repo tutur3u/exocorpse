@@ -473,8 +473,8 @@ export default function CmsManagementWorkspace({
             }}
             onTitleChange={changeTitle}
             onUploadAsset={uploadAsset}
-            onUploadGalleryAsset={(file) =>
-              uploadCharacterGalleryAsset(file, entryId)
+            onUploadGalleryAsset={(file, title) =>
+              uploadCharacterGalleryAsset(file, entryId, title)
             }
             onUploadInlineAsset={uploadInlineAsset}
             onEditGalleryEntry={(galleryEntryId) => {

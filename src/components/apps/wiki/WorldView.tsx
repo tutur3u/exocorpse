@@ -3,7 +3,14 @@
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import StorageImage from "@/components/shared/StorageImage";
 import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
-import type { Character, Faction, Location, World } from "@/lib/actions/wiki";
+import {
+  type Character,
+  type Faction,
+  type Location,
+  type World,
+  getEventsByWorldId,
+} from "@/lib/actions/wiki";
+import { useQuery } from "@tanstack/react-query";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 type WorldViewProps = {
@@ -32,10 +39,15 @@ export default function WorldView({
       "characters",
       "factions",
       "locations",
+      "history",
     ] as const)
       .withDefault("overview")
       .withOptions({ history: "push", shallow: true }),
   );
+  const { data: events = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ["world-events", world.id],
+    queryFn: () => getEventsByWorldId(world.id),
+  });
 
   // Batch fetch all character profile images
   // Only fetch signed URLs for storage paths (non-HTTP URLs)
@@ -163,6 +175,17 @@ export default function WorldView({
           >
             Locations ({locations.length})
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+              activeTab === "history"
+                ? "text-theme-text bg-theme-primary font-bold shadow-sm"
+                : "text-theme-text hover:bg-theme-primary hover:text-theme-secondary"
+            }`}
+          >
+            History ({eventsLoading ? "…" : events.length})
+          </button>
         </div>
       </div>
 
@@ -180,6 +203,58 @@ export default function WorldView({
                 <p className="text-theme-text">
                   No overview available for this world yet.
                 </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="animate-fadeIn mx-auto max-w-4xl space-y-4">
+            {eventsLoading ? (
+              <p className="text-theme-text py-10 text-center">
+                Loading history…
+              </p>
+            ) : events.length ? (
+              events.map((event) => (
+                <article
+                  className="bg-theme-secondary overflow-hidden rounded-xl shadow-sm"
+                  key={event.id}
+                >
+                  <div className="flex items-start gap-3 p-5">
+                    <span
+                      aria-hidden="true"
+                      className="mt-1 h-12 w-1 shrink-0 rounded-full"
+                      style={{ backgroundColor: event.color ?? "currentColor" }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h3 className="text-theme-text text-xl font-bold">
+                          {event.title}
+                        </h3>
+                        {event.date ? (
+                          <span className="text-theme-text text-sm opacity-70">
+                            {event.date}
+                          </span>
+                        ) : null}
+                      </div>
+                      {event.summary ? (
+                        <p className="text-theme-text mt-2 opacity-80">
+                          {event.summary}
+                        </p>
+                      ) : null}
+                      {event.content ? (
+                        <MarkdownRenderer
+                          content={event.content}
+                          className="text-theme-text mt-4 max-w-none"
+                        />
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="text-theme-text bg-theme-secondary rounded-xl p-8 text-center shadow-sm">
+                No history events have been added to this world yet.
               </div>
             )}
           </div>
