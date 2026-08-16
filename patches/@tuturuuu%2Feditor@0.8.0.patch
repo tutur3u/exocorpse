@@ -184,18 +184,18 @@ index 0000000000000000000000000000000000000000..169f5c6f4bf02eff3d14f7f2c4b843b0
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..0f46757d05295b73f3ec4bfc838edd9c98f256b1
+index 0000000000000000000000000000000000000000..6391393ac17b256e0b5ae3e94f260f4b1fdc37a8
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAiC7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBA2DtB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAErD,eAAO,MAAM,kBAAkB,gBAiC7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAgEtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..dd4a449d2a15b8fdda1420694248e89e4f4b4a7f
+index 0000000000000000000000000000000000000000..e959c67d626d415da08b93830fc0f5202bd24afc
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,91 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +export const CollapsibleSummary = Node.create({
 +    name: 'collapsibleSummary',
@@ -239,7 +239,11 @@ index 0000000000000000000000000000000000000000..dd4a449d2a15b8fdda1420694248e89e
 +        return () => {
 +            const dom = document.createElement('details');
 +            dom.open = this.editor.isEditable;
-+            return { contentDOM: dom, dom };
++            return {
++                contentDOM: dom,
++                dom,
++                ignoreMutation: (mutation) => mutation.type === 'attributes' && mutation.attributeName === 'open',
++            };
 +        };
 +    },
 +    addKeyboardShortcuts() {
@@ -699,7 +703,7 @@ index f972b4b1552aa37f55ac49c004cf4d15411d7314..9725f3cf0433b9d7b75382cf0b400c91
  }
  export { inspectRichTextHTML } from './html-source.js';
 diff --git a/dist/react.test.js b/dist/react.test.js
-index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..25c22a564d0aef97b8aa676cf735678ab13f8a59 100644
+index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..00768448d59d1304d90af848d2a3635a4466c6a2 100644
 --- a/dist/react.test.js
 +++ b/dist/react.test.js
 @@ -4,31 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, } from '@testing-library/r
@@ -839,9 +843,9 @@ index 0d4ca32663becfd1caff73f565f7609a48ed1f5e..25c22a564d0aef97b8aa676cf735678a
 +            name: 'Expand or collapse section',
 +        });
 +        fireEvent.click(disclosure);
-+        expect(details?.hasAttribute('open')).toBe(false);
++        await waitFor(() => expect(details?.hasAttribute('open')).toBe(false));
 +        fireEvent.click(disclosure);
-+        expect(details?.hasAttribute('open')).toBe(true);
++        await waitFor(() => expect(details?.hasAttribute('open')).toBe(true));
      });
 -    it('exits source mode when source editing becomes unavailable', async () => {
 -        const { rerender } = render(_jsx(RichTextEditor, { content: null, enableHTMLSource: true, featurePreset: "full" }));
