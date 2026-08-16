@@ -100,10 +100,10 @@ index d3e578697dd6104c77fbcac4cf8ffb25f6d565bf..19f3f6a3788fced1ebcfe598fee89b0b
      };
      visit(content);
 diff --git a/dist/codec.test.js b/dist/codec.test.js
-index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..5085dddeb8c143014f14c961fd34e6ce20ed420c 100644
+index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..ba95a1bd1d4bd3f4897c976c29bbdab6483ef637 100644
 --- a/dist/codec.test.js
 +++ b/dist/codec.test.js
-@@ -38,6 +38,154 @@ describe('rich text codecs', () => {
+@@ -38,6 +38,117 @@ describe('rich text codecs', () => {
          expect(roundTrip).toContain('---');
          expect(roundTrip).toContain('![A PNG](https://example.com/cover.png "Cover")');
      });
@@ -217,43 +217,6 @@ index 6818d7d0b6d3f08ce07075734c715bec019e0a2e..5085dddeb8c143014f14c961fd34e6ce
 +        expect(summaryNode?.type).toBe('collapsibleSummary');
 +        expect(summaryNode?.content).toEqual([{ text: summary, type: 'text' }]);
 +        expect(jsonToMarkdown(content)).toBe(markdown);
-+    });
-+    it('keeps image Markdown literal inside inline-only summaries', () => {
-+        const markdown = [
-+            '<details>',
-+            '<summary>![cover](https://example.com/a.png)</summary>',
-+            '',
-+            'Hidden context.',
-+            '',
-+            '</details>',
-+        ].join('\n');
-+        const content = markdownToJSON(markdown);
-+        const summaryNode = content.content?.[0]?.content?.[0];
-+        expect(summaryNode?.type).toBe('collapsibleSummary');
-+        expect(summaryNode?.content).toEqual([
-+            {
-+                text: '![cover](https://example.com/a.png)',
-+                type: 'text',
-+            },
-+        ]);
-+        expect(jsonToMarkdown(content)).toContain('<summary>!\\[cover\\](https://example.com/a.png)</summary>');
-+    });
-+    it('keeps content immediately following a collapsible section', () => {
-+        const markdown = [
-+            '<details>',
-+            '<summary>Notes</summary>',
-+            '',
-+            'Hidden context.',
-+            '',
-+            '</details>',
-+            'Visible afterward.',
-+        ].join('\n');
-+        const content = markdownToJSON(markdown);
-+        expect(content.content?.map((node) => node.type)).toEqual([
-+            'collapsible',
-+            'paragraph',
-+        ]);
-+        expect(extractPlainText(content)).toContain('Visible afterward.');
 +    });
      it('preserves literal Markdown delimiters through compatibility mirrors', () => {
          const content = {
@@ -423,6 +386,70 @@ index 0000000000000000000000000000000000000000..57ed959c50393a15aa75ec1d14cc1e87
 +    const bodyMarkdown = body.map(serializeNode).join('\n\n');
 +    return `<details>\n<summary>${summaryMarkdown}</summary>\n\n${bodyMarkdown}\n\n</details>`;
 +}
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible-codec.test.d.ts b/dist/collapsible-codec.test.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..a9fd18ef74f4a407893df5dbacdf347175c75a57
+--- /dev/null
++++ b/dist/collapsible-codec.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=collapsible-codec.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible-codec.test.d.ts.map b/dist/collapsible-codec.test.d.ts.map
+new file mode 100644
+index 0000000000000000000000000000000000000000..e80c24063f7628c1789a68d3fadf6c1a92922b38
+--- /dev/null
++++ b/dist/collapsible-codec.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"collapsible-codec.test.d.ts","sourceRoot":"","sources":["../src/collapsible-codec.test.ts"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@tuturuuu/editor/dist/collapsible-codec.test.js b/dist/collapsible-codec.test.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d192147e337f5b1293f11c252fa33ed016d83db
+--- /dev/null
++++ b/dist/collapsible-codec.test.js
+@@ -0,0 +1,41 @@
++import { describe, expect, it } from 'vitest';
++import { extractPlainText, jsonToMarkdown, markdownToJSON } from './codec.js';
++describe('collapsible codec edge cases', () => {
++    it('keeps image Markdown literal inside inline-only summaries', () => {
++        const markdown = [
++            '<details>',
++            '<summary>![cover](https://example.com/a.png)</summary>',
++            '',
++            'Hidden context.',
++            '',
++            '</details>',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        const summaryNode = content.content?.[0]?.content?.[0];
++        expect(summaryNode?.type).toBe('collapsibleSummary');
++        expect(summaryNode?.content).toEqual([
++            {
++                text: '![cover](https://example.com/a.png)',
++                type: 'text',
++            },
++        ]);
++        expect(jsonToMarkdown(content)).toContain('<summary>!\\[cover\\](https://example.com/a.png)</summary>');
++    });
++    it('keeps content immediately following a collapsible section', () => {
++        const markdown = [
++            '<details>',
++            '<summary>Notes</summary>',
++            '',
++            'Hidden context.',
++            '',
++            '</details>',
++            'Visible afterward.',
++        ].join('\n');
++        const content = markdownToJSON(markdown);
++        expect(content.content?.map((node) => node.type)).toEqual([
++            'collapsible',
++            'paragraph',
++        ]);
++        expect(extractPlainText(content)).toContain('Visible afterward.');
++    });
++});
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts b/dist/collapsible.d.ts
 new file mode 100644
 index 0000000000000000000000000000000000000000..a557f7106a0389443b4221e9d4b142f7aa26c4bd
@@ -438,18 +465,18 @@ index 0000000000000000000000000000000000000000..a557f7106a0389443b4221e9d4b142f7
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.d.ts.map b/dist/collapsible.d.ts.map
 new file mode 100644
-index 0000000000000000000000000000000000000000..1032b363254ee7fe04fac200959891a3252ecc1b
+index 0000000000000000000000000000000000000000..cdd78196713bbf26dd8c71e38e26fcaed1a731c4
 --- /dev/null
 +++ b/dist/collapsible.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAGrD,eAAO,MAAM,kBAAkB;;OAqF7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
++{"version":3,"file":"collapsible.d.ts","sourceRoot":"","sources":["../src/collapsible.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,IAAI,EAAE,MAAM,cAAc,CAAC;AAGrD,eAAO,MAAM,kBAAkB;;OA6F7B,CAAC;AAEH,eAAO,MAAM,WAAW,gBAwEtB,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.js b/dist/collapsible.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..994df8463e6a2980189e1b3eece2fcedf84d63a1
+index 0000000000000000000000000000000000000000..3f1d2059dd2c821348864a67ed7727c0d28aa5d2
 --- /dev/null
 +++ b/dist/collapsible.js
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,150 @@
 +import { mergeAttributes, Node } from '@tiptap/core';
 +import { TextSelection } from '@tiptap/pm/state';
 +export const CollapsibleSummary = Node.create({
@@ -487,22 +514,30 @@ index 0000000000000000000000000000000000000000..994df8463e6a2980189e1b3eece2fced
 +                // that native toggle, then explicitly hand focus back to ProseMirror.
 +                const domSelection = dom.ownerDocument.getSelection();
 +                const anchorNode = domSelection?.anchorNode;
++                const focusNode = domSelection?.focusNode;
 +                const nodePosition = getPos();
 +                if (nodePosition === undefined)
 +                    return;
-+                let position = nodePosition + 1;
-+                if (anchorNode && contentDOM.contains(anchorNode)) {
++                const positionFor = (node, offset) => {
++                    if (!node || !contentDOM.contains(node))
++                        return nodePosition + 1;
++                    if (node === contentDOM.firstChild &&
++                        node.nodeType === globalThis.Node.TEXT_NODE)
++                        return nodePosition + 1 + offset;
 +                    try {
-+                        position = view.posAtDOM(anchorNode, domSelection?.anchorOffset ?? 0);
++                        return view.posAtDOM(node, offset);
 +                    }
 +                    catch {
 +                        // Keep the safe start-of-summary fallback for unusual browser
 +                        // selections (for example, clicking directly between elements).
++                        return nodePosition + 1;
 +                    }
-+                }
++                };
++                const anchor = positionFor(anchorNode, domSelection?.anchorOffset ?? 0);
++                const head = positionFor(focusNode, domSelection?.focusOffset ?? 0);
 +                event.preventDefault();
 +                view.focus();
-+                view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, position)));
++                view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, anchor, head)));
 +            };
 +            disclosure.addEventListener('click', toggleDisclosure);
 +            dom.addEventListener('click', keepSummaryEditable);
@@ -611,10 +646,10 @@ index 0000000000000000000000000000000000000000..a3ff2a600b52d557dcdadd082daa2ec2
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/collapsible.test.js b/dist/collapsible.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..7edd2f97f27448528e3c126937f8d190b668538e
+index 0000000000000000000000000000000000000000..54b176d35ebc3d54cd43c4f73465bfe2f204fb63
 --- /dev/null
 +++ b/dist/collapsible.test.js
-@@ -0,0 +1,84 @@
+@@ -0,0 +1,87 @@
 +// @vitest-environment jsdom
 +import { Editor } from '@tiptap/core';
 +import StarterKit from '@tiptap/starter-kit';
@@ -670,16 +705,19 @@ index 0000000000000000000000000000000000000000..7edd2f97f27448528e3c126937f8d190
 +    });
 +    it('keeps summary text editable without disabling native read-only toggles', () => {
 +        const editor = createEditor();
++        document.body.append(editor.view.dom);
 +        const summary = editor.view.dom.querySelector('summary');
 +        const summaryContent = editor.view.dom.querySelector('.tuturuuu-editor-collapsible-summary-content');
 +        const selection = window.getSelection();
 +        const range = document.createRange();
 +        range.setStart(summaryContent.firstChild, 4);
-+        range.collapse(true);
++        range.setEnd(summaryContent.firstChild, 9);
 +        selection?.removeAllRanges();
 +        selection?.addRange(range);
++        expect(selection?.toString()).toBe('ion t');
 +        expect(summaryContent?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))).toBe(false);
-+        expect(editor.state.selection.from).toBe(2);
++        expect(editor.state.selection.from).toBe(6);
++        expect(editor.state.selection.to).toBe(11);
 +        editor.setEditable(false);
 +        expect(summary?.dispatchEvent(new MouseEvent('click', { cancelable: true }))).toBe(true);
 +        editor.destroy();
@@ -1475,19 +1513,19 @@ index 1aa74d1508158b7213365e2c39e078b457f9a76b..3231a76f604bb326a64358053ba5768e
  export declare function ToolbarAction({ active, buttonRef, controls, expanded, icon: Icon, label, run, type, }: {
      active?: boolean;
 diff --git a/dist/toolbar-action.d.ts.map b/dist/toolbar-action.d.ts.map
-index 760849b20de1ede9c9f5753d4531b0e061cc0d75..de116f0e2a0ec69e5dba9effde1d9cab48789b96 100644
+index 760849b20de1ede9c9f5753d4531b0e061cc0d75..20ffb0ed5637c2ffdd51be0ffd9d921f5e4d3239 100644
 --- a/dist/toolbar-action.d.ts.map
 +++ b/dist/toolbar-action.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"toolbar-action.d.ts","sourceRoot":"","sources":["../src/toolbar-action.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,GAAG,EAAE,QAAQ,EAAE,MAAM,OAAO,CAAC;AAE1D,MAAM,MAAM,WAAW,GAAG,aAAa,CAAC,QAAQ,CAAC,aAAa,CAAC,CAAC,CAAC;AAEjE,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,SAAS,EACT,QAAQ,EACR,QAAQ,EACR,IAAI,EAAE,IAAI,EACV,KAAK,EACL,GAAG,EACH,IAAe,GAChB,EAAE;IACD,MAAM,CAAC,EAAE,OAAO,CAAC;IACjB,SAAS,CAAC,EAAE,GAAG,CAAC,iBAAiB,CAAC,CAAC;IACnC,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,IAAI,EAAE,WAAW,CAAC;IAClB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,CAAC,EAAE,MAAM,IAAI,CAAC;IACjB,IAAI,CAAC,EAAE,QAAQ,GAAG,QAAQ,CAAC;CAC5B,+BAmBA"}
 \ No newline at end of file
-+{"version":3,"file":"toolbar-action.d.ts","sourceRoot":"","sources":["../src/toolbar-action.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,aAAa,EAAE,KAAK,GAAG,EAAE,KAAK,QAAQ,EAAU,MAAM,OAAO,CAAC;AAE5E,MAAM,MAAM,WAAW,GAAG,aAAa,CAAC,QAAQ,CAAC,aAAa,CAAC,CAAC,CAAC;AAEjE,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,SAAS,EACT,QAAQ,EACR,QAAQ,EACR,IAAI,EAAE,IAAI,EACV,KAAK,EACL,GAAG,EACH,IAAe,GAChB,EAAE;IACD,MAAM,CAAC,EAAE,OAAO,CAAC;IACjB,SAAS,CAAC,EAAE,GAAG,CAAC,iBAAiB,CAAC,CAAC;IACnC,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,IAAI,EAAE,WAAW,CAAC;IAClB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,CAAC,EAAE,MAAM,IAAI,CAAC;IACjB,IAAI,CAAC,EAAE,QAAQ,GAAG,QAAQ,CAAC;CAC5B,+BAiDA"}
++{"version":3,"file":"toolbar-action.d.ts","sourceRoot":"","sources":["../src/toolbar-action.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,aAAa,EAAE,KAAK,GAAG,EAAE,KAAK,QAAQ,EAAU,MAAM,OAAO,CAAC;AAE5E,MAAM,MAAM,WAAW,GAAG,aAAa,CAAC,QAAQ,CAAC,aAAa,CAAC,CAAC,CAAC;AAEjE,wBAAgB,aAAa,CAAC,EAC5B,MAAM,EACN,SAAS,EACT,QAAQ,EACR,QAAQ,EACR,IAAI,EAAE,IAAI,EACV,KAAK,EACL,GAAG,EACH,IAAe,GAChB,EAAE;IACD,MAAM,CAAC,EAAE,OAAO,CAAC;IACjB,SAAS,CAAC,EAAE,GAAG,CAAC,iBAAiB,CAAC,CAAC;IACnC,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,IAAI,EAAE,WAAW,CAAC;IAClB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,CAAC,EAAE,MAAM,IAAI,CAAC;IACjB,IAAI,CAAC,EAAE,QAAQ,GAAG,QAAQ,CAAC;CAC5B,+BAsDA"}
 \ No newline at end of file
 diff --git a/dist/toolbar-action.js b/dist/toolbar-action.js
-index a4056256274c6909737e896c10c98d8192eaf1c1..ca21db118858977a491ebf887e7d05219d4f0012 100644
+index a4056256274c6909737e896c10c98d8192eaf1c1..c30765fd70c1193457f99f54de46cf58485146a9 100644
 --- a/dist/toolbar-action.js
 +++ b/dist/toolbar-action.js
-@@ -1,4 +1,31 @@
+@@ -1,4 +1,35 @@
  import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 +import { useRef } from 'react';
  export function ToolbarAction({ active, buttonRef, controls, expanded, icon: Icon, label, run, type = 'button', }) {
@@ -1513,11 +1551,15 @@ index a4056256274c6909737e896c10c98d8192eaf1c1..ca21db118858977a491ebf887e7d0521
 +                    const target = event.currentTarget;
 +                    clearPointerHandled(target);
 +                    target.dataset.pointerActionHandled = 'true';
-+                    // A press released outside the button has no click or pointercancel
-+                    // here. Expire the marker after this activation turn so it cannot
-+                    // swallow the user's next keyboard or touch activation.
-+                    handledReset.current = setTimeout(() => clearPointerHandled(target), 0);
++                    target.setPointerCapture?.(event.pointerId);
 +                    run?.();
++                }, onPointerUp: (event) => {
++                    const target = event.currentTarget;
++                    target.releasePointerCapture?.(event.pointerId);
++                    // Pointer capture delivers an outside release here too. Keep the
++                    // marker through the matching click, then expire it if no click was
++                    // produced by an abandoned gesture.
++                    handledReset.current = setTimeout(() => clearPointerHandled(target), 0);
 +                }, ref: buttonRef, type: type, children: _jsx(Icon, { "aria-hidden": "true" }) }), _jsx("span", { "aria-hidden": "true", className: "tuturuuu-editor-tooltip", children: label })] }));
  }
 diff --git a/node_modules/@tuturuuu/editor/dist/toolbar-action.test.d.ts b/dist/toolbar-action.test.d.ts
@@ -1539,10 +1581,10 @@ index 0000000000000000000000000000000000000000..35c59cc3dd43488d080e909ed4525b0c
 \ No newline at end of file
 diff --git a/node_modules/@tuturuuu/editor/dist/toolbar-action.test.js b/dist/toolbar-action.test.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..61467d26812fed5f04f00d168dffe1d3bb656802
+index 0000000000000000000000000000000000000000..b90e2ad18fcccf0c84267aa075b839e3f540c73f
 --- /dev/null
 +++ b/dist/toolbar-action.test.js
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,49 @@
 +import { jsx as _jsx } from "react/jsx-runtime";
 +// @vitest-environment jsdom
 +import { cleanup, fireEvent, render } from '@testing-library/react';
@@ -1575,9 +1617,21 @@ index 0000000000000000000000000000000000000000..61467d26812fed5f04f00d168dffe1d3
 +        const button = getByRole('button', { name: 'Toggle section' });
 +        fireEvent.pointerDown(button, { button: 0, pointerType: 'mouse' });
 +        expect(run).toHaveBeenCalledTimes(1);
++        fireEvent.pointerUp(button, { button: 0, pointerType: 'mouse' });
 +        vi.runAllTimers();
 +        fireEvent.click(button);
 +        expect(run).toHaveBeenCalledTimes(2);
++    });
++    it('does not double-run after a long mouse press', () => {
++        vi.useFakeTimers();
++        const run = vi.fn();
++        const { getByRole } = render(_jsx(ToolbarAction, { icon: () => _jsx("svg", {}), label: "Toggle section", run: run }));
++        const button = getByRole('button', { name: 'Toggle section' });
++        fireEvent.pointerDown(button, { button: 0, pointerType: 'mouse' });
++        vi.runAllTimers();
++        fireEvent.pointerUp(button, { button: 0, pointerType: 'mouse' });
++        fireEvent.click(button);
++        expect(run).toHaveBeenCalledTimes(1);
 +    });
 +});
 diff --git a/dist/types.d.ts b/dist/types.d.ts
