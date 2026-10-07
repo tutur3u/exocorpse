@@ -1,11 +1,7 @@
 "use client";
 
 import { useInitialPortfolioData } from "@/contexts/InitialPortfolioDataContext";
-import {
-  getArtPieces,
-  getGamePieces,
-  getWritingPieces,
-} from "@/lib/actions/portfolio";
+import { getPortfolioData } from "@/lib/actions/portfolio";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import PortfolioClient from "./PortfolioClient";
@@ -26,37 +22,26 @@ export default function Portfolio() {
       initialData.gamePieces.length > 0,
   );
 
-  const { data: artPieces = [], isLoading: isLoadingArt } = useQuery({
-    queryKey: ["portfolio", "art"],
-    queryFn: getArtPieces,
-    initialData:
-      initialData.artPieces.length > 0 ? initialData.artPieces : undefined,
-    // Only enable query if viewing gallery or already have data
-    enabled: viewingGallery || initialData.artPieces.length > 0,
+  const hasInitialGallery =
+    initialData.artPieces.length > 0 ||
+    initialData.writingPieces.length > 0 ||
+    initialData.gamePieces.length > 0;
+  const { data, isLoading } = useQuery({
+    queryKey: ["portfolio"],
+    queryFn: getPortfolioData,
+    initialData: hasInitialGallery
+      ? {
+          artPieces: initialData.artPieces,
+          writingPieces: initialData.writingPieces,
+          gamePieces: initialData.gamePieces,
+        }
+      : undefined,
+    enabled: viewingGallery || hasInitialGallery,
   });
-
-  const { data: writingPieces = [], isLoading: isLoadingWriting } = useQuery({
-    queryKey: ["portfolio", "writing"],
-    queryFn: getWritingPieces,
-    initialData:
-      initialData.writingPieces.length > 0
-        ? initialData.writingPieces
-        : undefined,
-    // Only enable query if viewing gallery or already have data
-    enabled: viewingGallery || initialData.writingPieces.length > 0,
-  });
-
-  const { data: gamePieces = [], isLoading: isLoadingGames } = useQuery({
-    queryKey: ["portfolio", "games"],
-    queryFn: getGamePieces,
-    initialData:
-      initialData.gamePieces.length > 0 ? initialData.gamePieces : undefined,
-    // Only enable query if viewing gallery or already have data
-    enabled: viewingGallery || initialData.gamePieces.length > 0,
-  });
-
-  const loading =
-    viewingGallery && (isLoadingArt || isLoadingWriting || isLoadingGames);
+  const artPieces = data?.artPieces ?? [];
+  const writingPieces = data?.writingPieces ?? [];
+  const gamePieces = data?.gamePieces ?? [];
+  const loading = viewingGallery && isLoading;
 
   if (loading) {
     return <PortfolioLoadingSkeleton />;

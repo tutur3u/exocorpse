@@ -20,6 +20,15 @@ import type {
 
 export type { ArtPiece, GamePiece, GamePieceGalleryImage, WritingPiece };
 
+export async function getPortfolioData() {
+  const [artPieces, writingPieces, gamePieces] = await Promise.all([
+    getArtPieces(),
+    getWritingPieces(),
+    getGamePieces(),
+  ]);
+  return { artPieces, writingPieces, gamePieces };
+}
+
 export async function getArtPieces(): Promise<ArtPiece[]> {
   return (await getCmsArtPieces()) ?? [];
 }

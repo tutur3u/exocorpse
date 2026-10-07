@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 export const PUBLIC_QUERY_DEFAULTS = {
   staleTime: 60 * 1000,
   refetchOnWindowFocus: true,
-  refetchOnMount: "always" as const,
+  refetchOnMount: true,
 };
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {

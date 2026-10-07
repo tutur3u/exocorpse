@@ -10,13 +10,7 @@ import { useWindows } from "@/contexts/WindowContext";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
 import type { Character } from "@/lib/actions/wiki";
-import {
-  getCharacterFactions,
-  getCharacterGallery,
-  getCharacterOutfits,
-  getCharacterRelationships,
-  getCharacterWorlds,
-} from "@/lib/actions/wiki";
+import { getCharacterDetailData } from "@/lib/actions/wiki";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -77,46 +71,18 @@ export default function CharacterDetail({
   const hasInitialDetailData =
     initialData.characterDetail?.characterId === character.id;
 
-  const { data: gallery = [], isLoading: galleryLoading } = useQuery({
-    queryKey: ["character-gallery", character.id],
-    queryFn: () => getCharacterGallery(character.id),
+  const { data: detail, isLoading: detailLoading } = useQuery({
+    queryKey: ["character-detail", character.id],
+    queryFn: () => getCharacterDetailData(character.id),
     initialData: hasInitialDetailData
-      ? initialData.characterDetail?.gallery
+      ? (initialData.characterDetail ?? undefined)
       : undefined,
   });
-
-  const { data: outfits = [], isLoading: outfitsLoading } = useQuery({
-    queryKey: ["character-outfits", character.id],
-    queryFn: () => getCharacterOutfits(character.id),
-    initialData: hasInitialDetailData
-      ? initialData.characterDetail?.outfits
-      : undefined,
-  });
-
-  const { data: factions = [], isLoading: factionsLoading } = useQuery({
-    queryKey: ["character-factions", character.id],
-    queryFn: () => getCharacterFactions(character.id),
-    initialData: hasInitialDetailData
-      ? initialData.characterDetail?.factions
-      : undefined,
-  });
-
-  const { data: characterWorlds = [], isLoading: worldsLoading } = useQuery({
-    queryKey: ["character-worlds", character.id],
-    queryFn: () => getCharacterWorlds(character.id),
-    initialData: hasInitialDetailData
-      ? initialData.characterDetail?.worlds
-      : undefined,
-  });
-
-  const { data: relationships = [], isLoading: relationshipsLoading } =
-    useQuery({
-      queryKey: ["character-relationships", character.id],
-      queryFn: () => getCharacterRelationships(character.id),
-      initialData: hasInitialDetailData
-        ? initialData.characterDetail?.relationships
-        : undefined,
-    });
+  const gallery = detail?.gallery ?? [];
+  const outfits = detail?.outfits ?? [];
+  const factions = detail?.factions ?? [];
+  const characterWorlds = detail?.worlds ?? [];
+  const relationships = detail?.relationships ?? [];
 
   // Batch fetch signed URLs for gallery and outfit images
   const imagePaths = [
@@ -130,14 +96,14 @@ export default function CharacterDetail({
 
   // Keep the profile and navigation usable while only the selected section loads.
   const loading =
-    (activeTab === "gallery" && galleryLoading && gallery.length === 0) ||
-    (activeTab === "outfits" && outfitsLoading && outfits.length === 0) ||
+    (activeTab === "gallery" && detailLoading && gallery.length === 0) ||
+    (activeTab === "outfits" && detailLoading && outfits.length === 0) ||
     (activeTab === "relationships" &&
-      relationshipsLoading &&
+      detailLoading &&
       relationships.length === 0) ||
     (activeTab === "overview" &&
-      ((factionsLoading && factions.length === 0) ||
-        (worldsLoading && characterWorlds.length === 0)));
+      ((detailLoading && factions.length === 0) ||
+        (detailLoading && characterWorlds.length === 0)));
 
   const tabs = [
     { id: "overview", label: "Overview" },
