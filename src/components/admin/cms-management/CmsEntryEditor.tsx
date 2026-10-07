@@ -1,5 +1,16 @@
 "use client";
 
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { addonServiceIds } from "@/lib/admin-addon-links";
+import CmsLegacyServiceExamples from "./CmsLegacyServiceExamples";
+import CmsLegacyBlogEditor, {
+  blogPublishDate,
+  blogPublishState,
+} from "./CmsLegacyBlogEditor";
+import CmsLegacyMarkdownField from "./CmsLegacyMarkdownField";
+import CmsRelatedEntriesPanel from "./CmsRelatedEntriesPanel";
+import { isJsonRecord } from "./editor-utils";
+import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import CmsBlockEditor from "@/components/admin/cms-management/CmsBlockEditor";
 import CmsEditorTabs, {
   type CmsEditorTab,
@@ -12,8 +23,6 @@ import CmsStructuredFields from "@/components/admin/cms-management/CmsStructured
 import CmsCharacterMediaSettings, {
   isCharacterMediaField,
 } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
-import CmsCharacterGalleryOverview from "@/components/admin/cms-management/CmsCharacterGalleryOverview";
-import CmsCharacterRelationshipsOverview from "@/components/admin/cms-management/CmsCharacterRelationshipsOverview";
 import CmsGalleryCharacterTagger from "@/components/admin/cms-management/CmsGalleryCharacterTagger";
 import CmsConnectionEntryEditor from "@/components/admin/cms-management/CmsConnectionEntryEditor";
 import {
@@ -43,96 +52,16 @@ import type {
   ExocorpseCmsRelationDefinition,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
-import { ChevronDown, Save, Trash2, UploadCloud } from "lucide-react";
+import { Trash2, UploadCloud } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-function CharacterEditorSection({
-  children,
-  description,
-  id,
-  open = true,
-  title,
-}: {
-  children: ReactNode;
-  description?: string;
-  id: string;
-  open?: boolean;
-  title: string;
-}) {
-  const [expanded, setExpanded] = useState(open);
-  return (
-    <details
-      className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
-      id={id}
-      onToggle={(event) => setExpanded(event.currentTarget.open)}
-      open={expanded}
-    >
-      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xl font-bold tracking-tight text-slate-950 dark:text-white">
-            {title}
-          </h3>
-          {description ? (
-            <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
-              {description}
-            </p>
-          ) : null}
-        </div>
-        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" />
-      </summary>
-      <div className="space-y-5 border-t border-slate-200 p-5 sm:p-6 dark:border-slate-800">
-        {children}
-      </div>
-    </details>
-  );
-}
-
-function EditorTabSection({
-  active,
-  children,
-  id,
-  initialOpen,
-  label,
-  labelledBy,
-}: {
-  active: boolean;
-  children: ReactNode;
-  id: string;
-  initialOpen: boolean;
-  label: string;
-  labelledBy: string;
-}) {
-  const [expanded, setExpanded] = useState(initialOpen);
-
-  useEffect(() => {
-    if (active) setExpanded(true);
-  }, [active]);
-
-  return (
-    <details
-      aria-labelledby={labelledBy}
-      className="group scroll-mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/60 shadow-sm dark:border-slate-700/70 dark:bg-slate-950/25"
-      id={id}
-      onToggle={(event) => setExpanded(event.currentTarget.open)}
-      open={expanded}
-    >
-      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:content-none sm:px-6 sm:py-5">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-bold tracking-tight text-slate-950 dark:text-white">
-            {label}
-          </h3>
-        </div>
-        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" />
-      </summary>
-      <div className="space-y-4 border-t border-slate-200 p-4 sm:p-6 dark:border-slate-800">
-        {children}
-      </div>
-    </details>
-  );
-}
+import { useCallback, useEffect, useState } from "react";
 
 type Props = {
+  error?: string;
+  pendingUploadFileName?: string;
+  onPendingUploadFileChange: (file: File | null) => void;
+  linkedServiceIds: string[];
+  onLinkedServicesChange: (ids: string[]) => void;
   allowedAssetTypes: string[];
   allowedBlockTypes: string[];
   assets: ExocorpseCmsAsset[];
@@ -152,6 +81,14 @@ type Props = {
   onUploadGalleryAsset: (file: File, title: string) => Promise<void>;
   onUploadInlineAsset: (file: File) => Promise<string>;
   onEditGalleryEntry: (entryId: string) => void;
+  onDeleteRelated: (entryId: string) => void;
+  onEditRelated: (collectionSlug: string, entryId: string) => void;
+  onCreateRelated: (
+    collectionSlug: string,
+    parentId: string,
+    relationKey: string,
+  ) => void;
+  initialTab?: CmsEditorTab;
   onCreateRelationshipEntry: () => void;
   onEditRelationshipEntry: (entryId: string) => void;
   onPendingMediaChange: (pending: boolean) => void;
@@ -167,6 +104,11 @@ type Props = {
 };
 
 export default function CmsEntryEditor({
+  error,
+  pendingUploadFileName,
+  onPendingUploadFileChange,
+  linkedServiceIds,
+  onLinkedServicesChange,
   allowedAssetTypes,
   allowedBlockTypes,
   assets,
@@ -185,18 +127,17 @@ export default function CmsEntryEditor({
   onSave,
   onTitleChange,
   onUploadAsset,
-  onUploadGalleryAsset,
   onUploadInlineAsset,
-  onEditGalleryEntry,
-  onCreateRelationshipEntry,
-  onEditRelationshipEntry,
+  onDeleteRelated,
+  onEditRelated,
+  onCreateRelated,
+  initialTab = "basic",
   onPendingMediaChange,
   pending,
   relationSelections,
-  isDirty,
   selectedEntryId,
+  isDirty,
   studio,
-  theme,
   uploadStatus,
 }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -206,7 +147,7 @@ export default function CmsEntryEditor({
   const [activeTab, setActiveTab] = useState<CmsEditorTab>(() =>
     ["character-gallery", "portfolio-art"].includes(collection.slug)
       ? "media"
-      : "basic",
+      : initialTab,
   );
   const isConnectionEntry = CONNECTION_COLLECTION_SLUGS.has(collection.slug);
   const duplicateConnection = isConnectionEntry
@@ -226,9 +167,8 @@ export default function CmsEntryEditor({
         collection.slug,
       ) &&
       !duplicateConnection &&
-      !pending &&
-      isDirty
-    : Boolean(draft.title.trim() && draft.slug.trim() && !pending && isDirty);
+      !pending
+    : Boolean(draft.title.trim() && draft.slug.trim() && !pending);
   const updatePendingMedia = useCallback(
     (section: string, hasPendingFile: boolean) => {
       setPendingMediaSections((current) => {
@@ -296,146 +236,310 @@ export default function CmsEntryEditor({
         ].includes(collection.slug)
       ),
   );
-  const characterWorldDefinitions = visibleDefinitions.filter(
-    (definition) => definition.key === "worlds",
+  const changeTab = (tab: CmsEditorTab) => setActiveTab(tab);
+  const profile = isJsonRecord(draft.profile_data) ? draft.profile_data : {};
+  const inlineUpload = selectedEntryId ? onUploadInlineAsset : undefined;
+  const markdown = (title: string, placeholder?: string, label?: string) => (
+    <CmsLegacyMarkdownField
+      blocks={blocks}
+      title={title}
+      onChange={onBlocksChange}
+      onImageUpload={inlineUpload}
+      placeholder={placeholder}
+      label={label}
+    />
   );
-  const relationInBasics =
-    visibleDefinitions.length > 0 &&
-    ["stories", "worlds", "factions", "locations"].includes(collection.slug);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setActiveTab(
-      ["character-gallery", "portfolio-art"].includes(collection.slug)
-        ? "media"
-        : "basic",
+  const structured = (keys: string[]) => (
+    <CmsStructuredFields
+      compact
+      definitions={fields
+        .filter((field) => keys.includes(field.key))
+        .sort((a, b) => keys.indexOf(a.key) - keys.indexOf(b.key))}
+      draft={draft}
+      onChange={(next) => {
+        if (
+          collection.slug === "commission-addons" &&
+          linkedServiceIds.length > 1 &&
+          isJsonRecord(next.profile_data) &&
+          next.profile_data.isExclusive === true
+        )
+          return;
+        onDraftChange(next);
+      }}
+      onImageUpload={inlineUpload}
+    />
+  );
+  const relations = (keys?: string[]) => (
+    <CmsRelationEditor
+      compact
+      definitions={visibleDefinitions.filter(
+        (definition) => !keys || keys.includes(definition.key),
+      )}
+      entryId={selectedEntryId}
+      onChange={onRelationsChange}
+      selections={relationSelections}
+      studio={studio}
+    />
+  );
+  const related = (slug: string, relationKey: string) => (
+    <CmsRelatedEntriesPanel
+      collectionSlug={slug}
+      parentId={selectedEntryId}
+      relationKey={relationKey}
+      studio={studio}
+      onCreate={onCreateRelated}
+      onEdit={onEditRelated}
+    />
+  );
+  const summary = (label = "Description") => (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+      </p>
+      <AdminMarkdownEditor
+        onChange={(value) =>
+          onDraftChange({ ...draft, summary: value || null })
+        }
+        onImageUpload={inlineUpload}
+        placeholder={`Describe this ${itemName.toLowerCase()}...`}
+        value={draft.summary ?? ""}
+      />
+    </div>
+  );
+  const legacyBasicKeys: Record<string, string[]> = {
+    worlds: ["worldType", "size", "population"],
+    factions: ["factionType", "status", "foundingDate", "memberCount"],
+    "commission-services": ["basePrice", "commLink", "isActive"],
+    "commission-addons": ["priceImpact", "percentage", "isExclusive"],
+    "commission-styles": [],
+    "commission-pictures": ["caption", "isPrimaryExample"],
+    "relationship-types": ["isMutual", "reverseName"],
+  };
+  const serviceAddons = () => {
+    const definition = definitions.find((item) => item.key === "addons");
+    const addonCollection = studio.collections.find(
+      (item) => item.slug === "commission-addons",
     );
-  }, [collection.id, collection.slug]);
-
-  const scrollToSection = (tab: CmsEditorTab) => {
-    setActiveTab(tab);
-    const scrollArea = scrollAreaRef.current;
-    if (isCharacter) {
-      scrollArea?.scrollTo({ behavior: "smooth", top: 0 });
-      return;
-    }
-    const panel = scrollArea?.querySelector<HTMLElement>(`#cms-${tab}-panel`);
-    if (!scrollArea || !panel) return;
-    if (panel instanceof HTMLDetailsElement) panel.open = true;
-    const top =
-      scrollArea.scrollTop +
-      panel.getBoundingClientRect().top -
-      scrollArea.getBoundingClientRect().top -
-      16;
-    scrollArea.scrollTo({ behavior: "smooth", top });
-  };
-
-  const updateActiveSection = () => {
-    if (isCharacter) return;
-    const scrollArea = scrollAreaRef.current;
-    if (!scrollArea) return;
-    if (
-      scrollArea.scrollTop + scrollArea.clientHeight >=
-      scrollArea.scrollHeight - 8
-    ) {
-      const finalTab = tabs.at(-1)?.id;
-      if (finalTab) {
-        setActiveTab(finalTab);
-        return;
-      }
-    }
-    const marker = scrollArea.getBoundingClientRect().top + 48;
-    let next = tabs[0]?.id ?? "basic";
-    for (const tab of tabs) {
-      const panel = scrollArea.querySelector<HTMLElement>(
-        `#cms-${tab.id}-panel`,
+    if (!definition) return null;
+    const chosen = relationSelections[definition.id] ?? [];
+    const addons = studio.entries
+      .filter((item) => item.collection_id === addonCollection?.id)
+      .filter(
+        (item) =>
+          selectedEntryId ||
+          !isJsonRecord(item.profile_data) ||
+          item.profile_data.isExclusive !== true,
       );
-      if (panel && panel.getBoundingClientRect().top <= marker) next = tab.id;
-    }
-    setActiveTab((current) => (current === next ? current : next));
+    return (
+      <section className="space-y-3">
+        <h3 className="text-lg font-semibold">Available Add-ons</h3>
+        {addons.length ? (
+          <div className="space-y-2 rounded-md border border-gray-200 p-3 dark:border-gray-700">
+            {addons.map((addon) => {
+              const data = isJsonRecord(addon.profile_data)
+                ? addon.profile_data
+                : {};
+              const exclusiveElsewhere =
+                data.isExclusive === true &&
+                addonServiceIds(studio, addon.id).some(
+                  (id) => id !== selectedEntryId,
+                );
+              return (
+                <label
+                  className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  key={addon.id}
+                >
+                  <input
+                    checked={chosen.includes(addon.id)}
+                    disabled={exclusiveElsewhere}
+                    onChange={(event) =>
+                      onRelationsChange({
+                        ...relationSelections,
+                        [definition.id]: event.target.checked
+                          ? [...chosen, addon.id]
+                          : chosen.filter((id) => id !== addon.id),
+                      })
+                    }
+                    type="checkbox"
+                  />
+                  <span className="flex-1">
+                    <span className="block font-medium">{addon.title}</span>
+                    <span className="block text-xs text-gray-600 dark:text-gray-400">
+                      +{data.percentage === true ? "" : "€"}
+                      {typeof data.priceImpact === "number"
+                        ? data.priceImpact.toFixed(2)
+                        : "0.00"}
+                      {data.percentage === true ? "%" : ""}
+                      {data.isExclusive === true ? " · Exclusive" : ""}
+                    </span>
+                    {addon.summary ? (
+                      <MarkdownRenderer
+                        className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                        content={addon.summary}
+                      />
+                    ) : null}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No add-ons available</p>
+        )}
+      </section>
+    );
   };
-
-  const characterSubsections: Record<
-    "basic" | "content" | "gallery" | "physical",
-    { id: string; label: string }[]
-  > = {
-    basic: [
-      { id: "character-basic-info", label: "Basic Info" },
-      { id: "character-profile-images", label: "Profile Images" },
-      { id: "character-publishing", label: "Publishing" },
-    ],
-    physical: [
-      { id: "character-physical-details", label: "Physical Details" },
-      { id: "character-personality", label: "Personality" },
-    ],
-    content: [
-      { id: "character-relationships", label: "Relationships" },
-      { id: "character-lore", label: "Backstory / Lore" },
-      { id: "character-abilities", label: "Abilities" },
-    ],
-    gallery: [
-      { id: "character-gallery", label: "Gallery" },
-      { id: "character-fanwork", label: "Fanwork Policy" },
-    ],
-  };
-
-  const scrollToCharacterSubsection = (id: string) => {
-    const scrollArea = scrollAreaRef.current;
-    const panel = scrollArea?.querySelector<HTMLDetailsElement>(`#${id}`);
-    if (!scrollArea || !panel) return;
-    panel.open = true;
-    const top =
-      scrollArea.scrollTop +
-      panel.getBoundingClientRect().top -
-      scrollArea.getBoundingClientRect().top -
-      64;
-    scrollArea.scrollTo({ behavior: "smooth", top });
-  };
-
-  const renderSection = (tab: CmsEditorTab) => {
+  const namedContentSlugs = [
+    "stories",
+    "worlds",
+    "characters",
+    "factions",
+    "locations",
+  ];
+  const renderSection = (tab: CmsEditorTab): ReactNode => {
     if (tab === "basic") {
+      const slug = collection.slug;
       return (
         <>
+          {["worlds", "characters", "factions", "locations"].includes(slug)
+            ? relations(isCharacter ? ["worlds"] : undefined)
+            : null}
           <CmsEntryBasics
+            collectionSlug={slug}
             draft={draft}
             onChange={onDraftChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
             onTitleChange={onTitleChange}
-          />
-          <CmsStructuredFields
-            definitions={
-              isCharacter ? characterFields.basic : groupedFields.basic
-            }
-            draft={draft}
-            onChange={onDraftChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            title="Basic Details"
-          />
-          {relationInBasics ? (
-            <CmsRelationEditor
-              definitions={visibleDefinitions}
-              entryId={selectedEntryId}
-              onChange={onRelationsChange}
-              selections={relationSelections}
-              studio={studio}
-            />
+          >
+            {isCharacter ? (
+              <>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Nickname
+                  </span>
+                  <input
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700"
+                    onChange={(event) =>
+                      onDraftChange({
+                        ...draft,
+                        subtitle: event.target.value || null,
+                        profile_data: {
+                          ...profile,
+                          nickname: event.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Johnny"
+                    value={
+                      draft.subtitle ??
+                      (typeof profile.nickname === "string"
+                        ? profile.nickname
+                        : "")
+                    }
+                  />
+                </label>
+                {structured(["quote"])}
+              </>
+            ) : null}
+          </CmsEntryBasics>
+          {namedContentSlugs.includes(slug) && slug !== "locations"
+            ? markdown(
+                "Description",
+                `A detailed description of your ${itemName.toLowerCase()}...`,
+              )
+            : null}
+          {[
+            "commission-addons",
+            "relationship-types",
+            "character-gallery",
+            "character-outfits",
+            "location-gallery",
+          ].includes(slug)
+            ? summary()
+            : null}
+          {[
+            "commission-services",
+            "commission-styles",
+            "portfolio-art",
+            "portfolio-games",
+          ].includes(slug)
+            ? markdown("Description")
+            : null}
+          {structured(
+            legacyBasicKeys[slug] ??
+              (isCharacter
+                ? []
+                : groupedFields.basic.map((field) => field.key)),
+          )}
+          {slug === "commission-services" ? renderSection("media") : null}
+          {!selectedEntryId && slug === "commission-services"
+            ? serviceAddons()
+            : null}
+          {slug === "commission-addons" ? (
+            <section className="space-y-3">
+              <h3 className="text-sm font-medium">Link to Services</h3>
+              <div className="space-y-2 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700/50">
+                {studio.entries
+                  .filter(
+                    (entry) =>
+                      entry.collection_id ===
+                      studio.collections.find(
+                        (item) => item.slug === "commission-services",
+                      )?.id,
+                  )
+                  .map((entry) => (
+                    <label
+                      className="flex items-center gap-2 rounded p-2 hover:bg-white dark:hover:bg-gray-600"
+                      key={entry.id}
+                    >
+                      <input
+                        checked={linkedServiceIds.includes(entry.id)}
+                        disabled={
+                          profile.isExclusive === true &&
+                          !linkedServiceIds.includes(entry.id) &&
+                          linkedServiceIds.length >= 1
+                        }
+                        onChange={(event) =>
+                          onLinkedServicesChange(
+                            event.target.checked
+                              ? [...linkedServiceIds, entry.id]
+                              : linkedServiceIds.filter(
+                                  (id) => id !== entry.id,
+                                ),
+                          )
+                        }
+                        type="checkbox"
+                      />
+                      <span>{entry.title}</span>
+                    </label>
+                  ))}
+              </div>
+            </section>
           ) : null}
         </>
       );
     }
-    if (tab === "details") {
+    if (tab === "details")
       return (
-        <CmsStructuredFields
-          definitions={groupedFields.details}
-          draft={draft}
-          onChange={onDraftChange}
-          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-        />
+        <>
+          {structured(
+            collection.slug === "factions"
+              ? ["primaryGoal", "reputation", "powerLevel"]
+              : groupedFields.details
+                  .filter(
+                    (field) =>
+                      !(legacyBasicKeys[collection.slug] ?? []).includes(
+                        field.key,
+                      ),
+                  )
+                  .map((field) => field.key),
+          )}
+          {collection.slug === "factions" ? markdown("Ideology") : null}
+        </>
       );
-    }
     if (tab === "physical") {
       return (
         <CmsStructuredFields
+          compact
           definitions={characterFields.physical}
           draft={draft}
           onChange={onDraftChange}
@@ -447,6 +551,7 @@ export default function CmsEntryEditor({
     if (tab === "personality") {
       return (
         <CmsStructuredFields
+          compact
           definitions={characterFields.personality}
           draft={draft}
           onChange={onDraftChange}
@@ -458,6 +563,7 @@ export default function CmsEntryEditor({
     if (tab === "abilities") {
       return (
         <CmsStructuredFields
+          compact
           definitions={characterFields.abilities}
           draft={draft}
           onChange={onDraftChange}
@@ -469,6 +575,7 @@ export default function CmsEntryEditor({
     if (tab === "fanwork") {
       return (
         <CmsStructuredFields
+          compact
           definitions={characterFields.fanwork}
           draft={draft}
           onChange={onDraftChange}
@@ -477,37 +584,89 @@ export default function CmsEntryEditor({
       );
     }
     if (tab === "gallery") {
-      return (
-        <CmsCharacterGalleryOverview
-          characterId={selectedEntryId}
-          onEdit={onEditGalleryEntry}
-          onPendingFileChange={(hasPendingFile) =>
-            updatePendingMedia("character-gallery", hasPendingFile)
-          }
-          onUpload={onUploadGalleryAsset}
-          pending={pending}
-          studio={studio}
-        />
+      return collection.slug === "locations" ? (
+        related("location-gallery", "location")
+      ) : (
+        <>
+          {structured(["fanworkPolicy"])}
+          {related("character-outfits", "character")}
+        </>
       );
     }
+    if (tab === "styles")
+      return (
+        <CmsLegacyServiceExamples
+          studio={studio}
+          serviceId={selectedEntryId}
+          onCreate={onCreateRelated}
+          onEdit={onEditRelated}
+          onDelete={onDeleteRelated}
+        />
+      );
     if (tab === "content") {
+      if (isCharacter)
+        return (
+          <>
+            {markdown("Backstory")}
+            {markdown("Lore")}
+          </>
+        );
+      if (collection.slug === "locations")
+        return (
+          <>
+            {markdown("Description")}
+            {markdown("Geography")}
+            {markdown("History")}
+          </>
+        );
+      if (["stories", "worlds", "factions"].includes(collection.slug))
+        return markdown(
+          "Content",
+          collection.slug === "stories"
+            ? "# My Story\n\nWrite your story details here..."
+            : collection.slug === "worlds"
+              ? "# World Geography\n\nDescribe your world’s history, geography, cultures, and lore..."
+              : "# History\n\nDescribe the faction’s history, structure, notable achievements, and current operations...",
+          collection.slug === "stories"
+            ? "Story Content"
+            : collection.slug === "worlds"
+              ? "World Lore"
+              : "Content",
+        );
       return (
         <CmsBlockEditor
           allowedBlockTypes={allowedBlockTypes}
           blocks={blocks}
           onChange={onBlocksChange}
-          onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-          sectionNoun={
-            collection.slug === "portfolio-writing" ? "chapter" : "section"
-          }
-          singleDocument={isBlog}
+          onImageUpload={inlineUpload}
+          singleDocument={["blog-posts", "portfolio-writing"].includes(
+            collection.slug,
+          )}
         />
       );
     }
     if (tab === "connections") {
+      if (collection.slug === "commission-services") return serviceAddons();
+      const contextualKeys = [
+        "commission-styles",
+        "commission-pictures",
+      ].includes(collection.slug)
+        ? ["service", "style"]
+        : ["character-gallery", "character-outfits"].includes(collection.slug)
+          ? ["character"]
+          : collection.slug === "location-gallery"
+            ? ["location"]
+            : [];
       return (
         <CmsRelationEditor
-          definitions={visibleDefinitions}
+          compact
+          definitions={visibleDefinitions.filter(
+            (definition) =>
+              !(
+                contextualKeys.includes(definition.key) &&
+                relationSelections[definition.id]?.length
+              ),
+          )}
           entryId={selectedEntryId}
           onChange={onRelationsChange}
           selections={relationSelections}
@@ -520,11 +679,15 @@ export default function CmsEntryEditor({
         "character-gallery",
         "location-gallery",
         "portfolio-art",
+        "commission-pictures",
+        "character-outfits",
+        "blog-posts",
+        "portfolio-writing",
       ].includes(collection.slug);
       return (
         <>
           <CmsMediaPanel
-            allowUploadBeforeSave={usesSingleArtwork}
+            allowUploadBeforeSave
             allowedAssetTypes={allowedAssetTypes}
             assets={assets}
             canSave={canSave}
@@ -532,6 +695,17 @@ export default function CmsEntryEditor({
             onSave={onSave}
             onUpload={onUploadAsset}
             onReorder={onReorderAssets}
+            onFileSelectionChange={(file) => {
+              onPendingUploadFileChange(file);
+              if (
+                file &&
+                !draft.title.trim() &&
+                usesSingleArtwork &&
+                !isBlog &&
+                collection.slug !== "portfolio-writing"
+              )
+                onTitleChange(file.name.replace(/\.[^.]+$/, ""));
+            }}
             onPendingFileChange={(hasPendingFile) =>
               updatePendingMedia("media", hasPendingFile)
             }
@@ -544,12 +718,12 @@ export default function CmsEntryEditor({
                 : collection.slug === "character-gallery"
                   ? "Gallery artwork"
                   : collection.slug === "blog-posts"
-                    ? "Cover and post images"
+                    ? "Cover Image"
                     : undefined
             }
             description={
               collection.slug === "blog-posts"
-                ? "The cover appears first. Add more images to use inside the post."
+                ? "Pick a file now. It uploads right after the post is saved."
                 : undefined
             }
             saved={Boolean(selectedEntryId)}
@@ -574,245 +748,159 @@ export default function CmsEntryEditor({
             onChange={onDraftChange}
           />
           <CmsStructuredFields
-            definitions={groupedFields.visuals}
+            compact
+            definitions={[
+              ...groupedFields.visuals,
+              ...fields.filter((field) => field.key === "spotifyLink"),
+            ]}
             draft={draft}
             onChange={onDraftChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            onImageUpload={inlineUpload}
             title="Visual Style"
           />
         </>
       );
     }
     if (tab === "settings") {
+      if (collection.slug === "stories")
+        return (
+          <>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                checked={draft.status === "published"}
+                onChange={(event) =>
+                  onDraftChange({
+                    ...draft,
+                    status: event.target.checked ? "published" : "draft",
+                    profile_data: {
+                      ...profile,
+                      isPublished: event.target.checked,
+                    },
+                  })
+                }
+                type="checkbox"
+              />
+              Published
+            </label>
+            <label className="block text-sm font-medium">
+              Visibility
+              <select
+                className="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+                onChange={(event) =>
+                  onDraftChange({
+                    ...draft,
+                    profile_data: {
+                      ...profile,
+                      visibility: event.target.value,
+                    },
+                  })
+                }
+                value={
+                  typeof profile.visibility === "string"
+                    ? profile.visibility
+                    : "private"
+                }
+              >
+                <option value="public">Public</option>
+                <option value="unlisted">Unlisted</option>
+                <option value="private">Private</option>
+              </select>
+            </label>
+          </>
+        );
       return (
         <>
           <CmsStructuredFields
+            compact
             definitions={groupedFields.publishing}
             draft={draft}
             onChange={onDraftChange}
-            title="Publishing Options"
           />
-          <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+          {isBlog ? (
+            <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
+          ) : null}
         </>
       );
     }
     return null;
   };
 
-  const renderCharacterSection = () => {
-    if (activeTab === "basic") {
-      return (
-        <>
-          <CharacterEditorSection
-            description="Name, introduction, and the details readers see first."
-            id="character-basic-info"
-            title="Basic Info"
-          >
-            <CmsEntryBasics
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-              onTitleChange={onTitleChange}
-            />
-            <CmsStructuredFields
-              definitions={characterFields.basic}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-            <CmsRelationEditor
-              definitions={characterWorldDefinitions}
-              entryId={selectedEntryId}
-              onChange={onRelationsChange}
-              selections={relationSelections}
-              studio={studio}
-            />
-          </CharacterEditorSection>
-          <CharacterEditorSection
-            description="Profile picture, banner, and the character's visual presentation."
-            id="character-profile-images"
-            title="Profile Images"
-          >
-            <CmsCharacterMediaSettings
-              assets={assets}
-              collectionSlug={collection.slug}
-              draft={draft}
-              onChange={onDraftChange}
-            />
-            <CmsStructuredFields
-              definitions={groupedFields.visuals}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-            <CmsMediaPanel
-              allowedAssetTypes={allowedAssetTypes}
-              assets={assets}
-              canSave={canSave}
-              mode="gallery"
-              onDelete={onDeleteAsset}
-              onReorder={onReorderAssets}
-              onPendingFileChange={(hasPendingFile) =>
-                updatePendingMedia("character-profile", hasPendingFile)
-              }
-              onSave={onSave}
-              onUpload={onUploadAsset}
-              pending={pending}
-              saved={Boolean(selectedEntryId)}
-              title="Profile and banner images"
-            />
-          </CharacterEditorSection>
-          <CharacterEditorSection
-            description="Choose when and how this character appears on the site."
-            id="character-publishing"
-            title="Publishing"
-          >
-            <CmsStructuredFields
-              definitions={groupedFields.publishing}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-            <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
-          </CharacterEditorSection>
-        </>
-      );
-    }
-    if (activeTab === "physical") {
-      return (
-        <>
-          <CharacterEditorSection
-            description="Appearance, identity, and distinguishing traits."
-            id="character-physical-details"
-            title="Physical Details"
-          >
-            <CmsStructuredFields
-              definitions={characterFields.physical}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-          </CharacterEditorSection>
-          <CharacterEditorSection
-            description="Temperament, habits, motivations, and personality."
-            id="character-personality"
-            title="Personality Summary"
-          >
-            <CmsStructuredFields
-              definitions={characterFields.personality}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-          </CharacterEditorSection>
-        </>
-      );
-    }
-    if (activeTab === "content") {
-      return (
-        <>
-          <CharacterEditorSection
-            description="The people, factions, stories, and places connected to this character."
-            id="character-relationships"
-            title="Relationships"
-          >
-            <CmsCharacterRelationshipsOverview
-              characterId={selectedEntryId}
-              onCreate={onCreateRelationshipEntry}
-              onEdit={onEditRelationshipEntry}
-              studio={studio}
-            />
-          </CharacterEditorSection>
-          <CharacterEditorSection
-            description="Write the character's history and longer story sections."
-            id="character-lore"
-            title="Backstory / Lore"
-          >
-            <CmsBlockEditor
-              allowedBlockTypes={allowedBlockTypes}
-              blocks={blocks}
-              onChange={onBlocksChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-          </CharacterEditorSection>
-          <CharacterEditorSection
-            description="Powers, learned skills, strengths, and limitations."
-            id="character-abilities"
-            title="Abilities"
-          >
-            <CmsStructuredFields
-              definitions={characterFields.abilities}
-              draft={draft}
-              onChange={onDraftChange}
-              onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-            />
-          </CharacterEditorSection>
-        </>
-      );
-    }
-    return (
-      <>
-        <CharacterEditorSection
-          description="Upload and edit this character's artwork without leaving the editor."
-          id="character-gallery"
-          title="Gallery"
-        >
-          <CmsCharacterGalleryOverview
-            characterId={selectedEntryId}
-            onEdit={onEditGalleryEntry}
-            onPendingFileChange={(hasPendingFile) =>
-              updatePendingMedia("character-gallery", hasPendingFile)
-            }
-            onUpload={onUploadGalleryAsset}
-            pending={pending}
-            studio={studio}
-          />
-        </CharacterEditorSection>
-        <CharacterEditorSection
-          description="Explain what fans may create and how the work may be shared."
-          id="character-fanwork"
-          title="Fanwork Policy"
-        >
-          <CmsStructuredFields
-            definitions={characterFields.fanwork}
-            draft={draft}
-            onChange={onDraftChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
-          />
-        </CharacterEditorSection>
-      </>
-    );
-  };
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-800">
+    <div
+      className={`flex min-h-0 flex-1 flex-col ${isBlog ? "bg-transparent" : "bg-white dark:bg-gray-800"}`}
+    >
       <div
-        className={`px-4 pt-6 pr-16 pb-4 sm:px-6 sm:pr-18 ${isBlog ? "border-b border-zinc-200 bg-linear-to-br from-red-50 via-white to-orange-50 dark:border-zinc-800 dark:from-red-950/30 dark:via-zinc-950 dark:to-zinc-950" : "border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_30%)] dark:border-slate-700"}`}
+        className={
+          isBlog
+            ? "shrink-0 border-b border-zinc-200/80 px-4 py-5 sm:px-6 dark:border-zinc-800/80"
+            : "shrink-0 px-4 pt-6 pb-4 sm:px-6"
+        }
       >
         {isBlog ? (
           <p className="text-xs font-semibold tracking-[0.32em] text-red-700 uppercase dark:text-red-300">
-            {selectedEntryId ? "Edit post" : "New post"}
+            {selectedEntryId ? "Edit Sequence" : "Draft Sequence"}
           </p>
         ) : null}
-        <h2 className="truncate text-2xl font-bold text-gray-900 dark:text-white">
-          {selectedEntryId ? `Edit ${itemName}` : `Create New ${itemName}`}
+        <h2
+          className={
+            isBlog
+              ? "mt-2 font-serif text-3xl text-zinc-950 dark:text-zinc-50"
+              : "truncate text-2xl font-bold text-gray-900 dark:text-white"
+          }
+        >
+          {isBlog
+            ? selectedEntryId
+              ? "Edit Blog Post"
+              : "Create Blog Post"
+            : selectedEntryId
+              ? `Edit ${itemName}`
+              : collection.slug === "commission-pictures"
+                ? "Upload New Picture"
+                : `Create New ${itemName}`}
         </h2>
         {isBlog ? (
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Shape the story, choose its cover, and control who can read it.
+            Tighten the metadata, sharpen the excerpt, and control when the
+            archive entry becomes visible.
           </p>
+        ) : null}
+        {isBlog ? (
+          <div className="mt-4 rounded-[1.5rem] border border-zinc-200/80 bg-white/80 px-4 py-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-400">
+            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+              {blogPublishState(blogPublishDate(draft)).label}
+            </p>
+            <p className="mt-1 text-xs tracking-[0.22em] uppercase">
+              {selectedEntryId ? "Editing existing entry" : "New archive entry"}
+            </p>
+          </div>
         ) : null}
       </div>
 
-      {!isConnectionEntry ? (
+      {!isConnectionEntry && tabs.length ? (
         <CmsEditorTabs
           activeTab={activeTab}
-          onChange={scrollToSection}
-          tabs={tabs}
-          theme={theme}
+          onChange={changeTab}
+          tabs={
+            collection.slug === "commission-services" && !selectedEntryId
+              ? tabs.slice(0, 1)
+              : tabs
+          }
         />
       ) : null}
 
+      {error ? (
+        <div
+          className="mx-4 mt-4 rounded-md bg-red-50 p-4 text-sm text-red-800 sm:mx-6 dark:bg-red-900/20 dark:text-red-200"
+          role="alert"
+        >
+          {error}
+        </div>
+      ) : null}
+      {pendingUploadFileName && !uploadStatus ? (
+        <div className="mx-4 mt-3 flex items-center justify-between rounded-md bg-blue-50 p-3 text-sm text-blue-800 sm:mx-6 dark:bg-blue-900/20 dark:text-blue-200">
+          <span>{pendingUploadFileName} — uploads when you save</span>
+        </div>
+      ) : null}
       {uploadStatus ? (
         <div
           aria-live="polite"
@@ -843,11 +931,7 @@ export default function CmsEntryEditor({
         </div>
       ) : null}
 
-      <div
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6"
-        onScroll={isCharacter ? undefined : updateActiveSection}
-        ref={scrollAreaRef}
-      >
+      <div className="@container min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
         {isConnectionEntry ? (
           <CmsConnectionEntryEditor
             allowedBlockTypes={allowedBlockTypes}
@@ -868,56 +952,122 @@ export default function CmsEntryEditor({
             onBlocksChange={onBlocksChange}
             onDraftChange={onDraftChange}
             onRelationsChange={onRelationsChange}
-            onImageUpload={selectedEntryId ? onUploadInlineAsset : undefined}
+            onImageUpload={inlineUpload}
             relationSelections={relationSelections}
             studio={studio}
           />
-        ) : isCharacter ? (
-          <section
-            aria-labelledby={`cms-${activeTab}-tab`}
-            className="space-y-4"
-            id={`cms-${activeTab}-panel`}
-          >
-            <nav
-              aria-label="Sections in this tab"
-              className="sticky top-0 z-20 flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
-            >
-              {characterSubsections[
-                activeTab as keyof typeof characterSubsections
-              ].map((subsection) => (
-                <button
-                  className="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-cyan-50 hover:text-cyan-800 dark:text-slate-300 dark:hover:bg-cyan-950/40 dark:hover:text-cyan-200"
-                  key={subsection.id}
-                  onClick={() => scrollToCharacterSubsection(subsection.id)}
-                  type="button"
-                >
-                  {subsection.label}
-                </button>
-              ))}
-            </nav>
-            {renderCharacterSection()}
-          </section>
-        ) : (
-          tabs.map((tab, index) => (
-            <EditorTabSection
-              active={activeTab === tab.id}
+        ) : isBlog ? (
+          <CmsLegacyBlogEditor
+            draft={draft}
+            blocks={blocks}
+            onDraftChange={onDraftChange}
+            onTitleChange={onTitleChange}
+            onBlocksChange={onBlocksChange}
+            onImageUpload={inlineUpload}
+            media={renderSection("media")}
+            isDirty={isDirty}
+            pendingFileName={pendingUploadFileName}
+            hasCover={assets.some((asset) => asset.asset_type === "image")}
+          />
+        ) : collection.slug === "portfolio-writing" ? (
+          <div className="space-y-4">
+            <CmsEntryBasics
+              collectionSlug={collection.slug}
+              draft={draft}
+              onChange={onDraftChange}
+              onTitleChange={onTitleChange}
+            />
+            {renderSection("media")}
+            {markdown("Content", "Write your piece...", "Content *")}
+            {structured(["year", "createdDate", "tags", "wordCount"])}
+            {renderSection("settings")}
+          </div>
+        ) : collection.slug === "portfolio-games" ? (
+          <div className="space-y-4">
+            <CmsEntryBasics
+              collectionSlug={collection.slug}
+              draft={draft}
+              onChange={onDraftChange}
+              onTitleChange={onTitleChange}
+            />
+            {structured(["gameUrl"])}
+            {renderSection("media")}
+          </div>
+        ) : tabs.length ? (
+          tabs.map((tab) => (
+            <section
+              aria-labelledby={`cms-${tab.id}-tab`}
+              className="space-y-4"
+              hidden={activeTab !== tab.id}
               id={`cms-${tab.id}-panel`}
-              initialOpen={index === 0}
               key={tab.id}
-              label={tab.label}
-              labelledBy={`cms-${tab.id}-tab`}
+              role="tabpanel"
             >
               {renderSection(tab.id)}
-            </EditorTabSection>
+            </section>
           ))
+        ) : (
+          <div
+            className={
+              isBlog
+                ? "grid gap-6 @2xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.8fr)]"
+                : "space-y-4"
+            }
+          >
+            <div className="space-y-4">
+              {[
+                "portfolio-art",
+                "character-gallery",
+                "location-gallery",
+                "commission-pictures",
+                "character-outfits",
+              ].includes(collection.slug)
+                ? renderSection("media")
+                : null}
+              {renderSection("basic")}
+              {renderSection("details")}
+              {allowedBlockTypes.length &&
+              ![
+                "portfolio-art",
+                "character-gallery",
+                "location-gallery",
+                "commission-pictures",
+                "character-outfits",
+                "commission-addons",
+                "commission-styles",
+                "relationship-types",
+              ].includes(collection.slug)
+                ? renderSection("content")
+                : null}
+            </div>
+            <div className="space-y-4">
+              {![
+                "portfolio-art",
+                "character-gallery",
+                "location-gallery",
+                "commission-pictures",
+                "character-outfits",
+              ].includes(collection.slug) && allowedAssetTypes.length
+                ? renderSection("media")
+                : null}
+              {visibleDefinitions.length ? renderSection("connections") : null}
+              {renderSection("settings")}
+            </div>
+          </div>
         )}
       </div>
 
       <div
-        className={`sticky bottom-0 flex flex-col-reverse items-stretch gap-2 border-t px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 ${isBlog ? "border-zinc-200 bg-[#fffaf6]/95 dark:border-zinc-800 dark:bg-zinc-950/95" : "border-gray-300 bg-white/95 dark:border-gray-600 dark:bg-gray-800/95"}`}
+        className={`sticky bottom-0 flex shrink-0 flex-col-reverse items-stretch gap-2 border-t px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 ${isBlog ? "border-zinc-200 bg-[#fffaf6]/95 dark:border-zinc-800 dark:bg-zinc-950/95" : "border-gray-300 bg-white/95 dark:border-gray-600 dark:bg-gray-800/95"}`}
       >
         <div>
-          {selectedEntryId ? (
+          {isBlog ? (
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              {draft.slug
+                ? `Preview path: /blog/${draft.slug}`
+                : "Add a title to generate the post slug."}
+            </span>
+          ) : selectedEntryId ? (
             <button
               className="inline-flex w-full items-center justify-center gap-2 rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-200 disabled:opacity-50 sm:w-auto dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
               disabled={pending}
@@ -939,23 +1089,26 @@ export default function CmsEntryEditor({
             Cancel
           </button>
           <button
-            className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isBlog ? "rounded-full bg-cyan-700 hover:bg-cyan-600 dark:bg-cyan-500 dark:text-zinc-950 dark:hover:bg-cyan-400" : "rounded bg-blue-600 hover:bg-blue-700"}`}
+            className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${isBlog ? "rounded-full bg-zinc-950 hover:bg-red-700 dark:bg-red-600 dark:text-zinc-950 dark:hover:bg-red-500" : "rounded bg-blue-600 hover:bg-blue-700"}`}
             disabled={!canSave}
             onClick={onSave}
             type="button"
           >
-            <Save className="h-4 w-4" />
             {pending
               ? "Saving..."
               : selectedEntryId
-                ? isConnectionEntry
-                  ? "Save changes"
-                  : `Update ${itemName}`
-                : isConnectionEntry
-                  ? collection.slug === "character-relationships"
-                    ? "Add relationship"
-                    : "Add membership"
-                  : `Create ${itemName}`}
+                ? isBlog
+                  ? "Update post"
+                  : isConnectionEntry
+                    ? "Save changes"
+                    : `Update ${itemName}`
+                : isBlog
+                  ? "Create post"
+                  : isConnectionEntry
+                    ? collection.slug === "character-relationships"
+                      ? "Add relationship"
+                      : "Add membership"
+                    : `Create ${itemName}`}
           </button>
         </div>
       </div>

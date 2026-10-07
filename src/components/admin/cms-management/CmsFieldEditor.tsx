@@ -197,8 +197,9 @@ export default function CmsFieldEditor({
       `${definition.key} ${definition.label ?? ""}`,
     );
   const isMultiline =
-    definition.field_type === "markdown" ||
-    multilineFieldKeys.has(definition.key);
+    definition.key !== "quote" &&
+    (definition.field_type === "markdown" ||
+      multilineFieldKeys.has(definition.key));
   const isSoundtrackField = definition.key === "themeSoundtrackUrl";
 
   const Wrapper =
@@ -280,6 +281,14 @@ export default function CmsFieldEditor({
             </option>
           ))}
         </select>
+      ) : definition.key === "distinguishingFeatures" ? (
+        <Textarea
+          className={inputClassName}
+          onChange={(event) => onChange(event.target.value)}
+          rows={4}
+          value={stringValue}
+          placeholder="Scars, tattoos, cybernetic implants, glowing eyes, etc..."
+        />
       ) : isMultiline ? (
         <AdminMarkdownEditor
           minHeight={spaciousFieldKeys.has(definition.key) ? "13rem" : "9rem"}

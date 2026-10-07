@@ -15,12 +15,14 @@ export default function CmsStructuredFields({
   onChange,
   onImageUpload,
   title = "Details",
+  compact = false,
 }: {
   definitions: ExocorpseCmsFieldDefinition[];
   draft: CmsEntryDraft;
   onChange: (draft: CmsEntryDraft) => void;
   onImageUpload?: (file: File) => Promise<string>;
   title?: string;
+  compact?: boolean;
 }) {
   if (!definitions.length) return null;
   const standardDefinitions = definitions.filter(
@@ -71,17 +73,25 @@ export default function CmsStructuredFields({
   }
 
   return (
-    <section className="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
-      <div>
-        <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-          <SlidersHorizontal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          {title}
-        </h3>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Add the information visitors need for this item.
-        </p>
-      </div>
-      {showsThemePreview ? (
+    <section
+      className={
+        compact
+          ? "space-y-4"
+          : "space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700"
+      }
+    >
+      {!compact ? (
+        <div>
+          <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
+            <SlidersHorizontal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            {title}
+          </h3>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Add the information visitors need for this item.
+          </p>
+        </div>
+      ) : null}
+      {!compact && showsThemePreview ? (
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950 text-white shadow-lg">
           <div
             className="h-28 transition-[background] duration-200"
@@ -114,17 +124,13 @@ export default function CmsStructuredFields({
           </div>
         </div>
       ) : null}
-      <div className="grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
+      <div className="grid gap-4 @xl:grid-cols-2">
         {standardDefinitions.map((definition) => {
           const scopeValue = draft[definition.field_scope];
           const record = isJsonRecord(scopeValue) ? scopeValue : {};
           return (
             <div
-              className={
-                isWide(definition)
-                  ? "@2xl:col-span-2 @5xl:col-span-3"
-                  : "min-w-0"
-              }
+              className={isWide(definition) ? "@xl:col-span-2" : "min-w-0"}
               key={`${draft.id || "new"}:${definition.id}`}
             >
               <CmsFieldEditor

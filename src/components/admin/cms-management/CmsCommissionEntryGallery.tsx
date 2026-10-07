@@ -1,7 +1,7 @@
 "use client";
 
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
-import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import CmsLegacyCardActions from "@/components/admin/cms-management/CmsLegacyCardActions";
 import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type {
   ExocorpseCmsEntry,
@@ -25,6 +25,7 @@ export default function CmsCommissionEntryGallery({
   onCreate,
   onReorder,
   onSelect,
+  onDelete,
   studio,
 }: {
   entries: ExocorpseCmsEntry[];
@@ -32,6 +33,7 @@ export default function CmsCommissionEntryGallery({
   onCreate: () => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
+  onDelete: (entryId: string) => void;
   studio: ExocorpseCmsStudio;
 }) {
   const [query, setQuery] = useState("");
@@ -164,7 +166,13 @@ export default function CmsCommissionEntryGallery({
             const price = typeof rawPrice === "number" ? rawPrice : 0;
             const active = profileValue(entry, "isActive") !== false;
             const picture =
-              kind === "services" ? servicePictureAsset(entry.id) : undefined;
+              kind === "services"
+                ? (studio.assets.find(
+                    (asset) =>
+                      asset.entry_id === entry.id &&
+                      asset.asset_type === "image",
+                  ) ?? servicePictureAsset(entry.id))
+                : undefined;
             const pictureUrl = picture?.preview_url ?? picture?.asset_url;
             return (
               <article
@@ -175,24 +183,7 @@ export default function CmsCommissionEntryGallery({
                     : "group relative cursor-pointer rounded-lg border border-gray-300 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-600 dark:bg-gray-800"
                 }
                 key={entry.id}
-                onClick={() => onSelect(entry.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect(entry.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
-                <CmsCardQuickActions
-                  className="absolute top-3 left-3 z-20"
-                  path={
-                    kind === "services"
-                      ? cmsEntryPublicPath("commission-services", entry)
-                      : undefined
-                  }
-                />
                 {kind === "services" ? (
                   <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg bg-slate-100 dark:bg-slate-950">
                     {pictureUrl ? (
@@ -254,6 +245,19 @@ export default function CmsCommissionEntryGallery({
                       {linkedServiceCount(entry.id) === 1 ? "" : "s"}
                     </p>
                   ) : null}
+                </div>
+                <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+                  <CmsLegacyCardActions
+                    onEdit={() => onSelect(entry.id)}
+                    onDelete={() => onDelete(entry.id)}
+                    path={cmsEntryPublicPath(
+                      kind === "addons"
+                        ? "commission-addons"
+                        : "commission-services",
+                      entry,
+                      studio,
+                    )}
+                  />
                 </div>
               </article>
             );

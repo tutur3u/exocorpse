@@ -1,7 +1,9 @@
 "use server";
 
+import { planAddonServiceLinks } from "@/lib/admin-addon-links";
 import { verifyAuth } from "@/lib/auth/utils";
 import {
+  entryBlocksForBundle,
   createExocorpseCmsAsset,
   createExocorpseCmsEntryBundle,
   deleteExocorpseCmsAsset,
@@ -68,6 +70,47 @@ export async function saveAdminCmsEntry(payload: {
     : await createExocorpseCmsEntryBundle(bundlePayload);
   revalidateCmsSurfaces();
   return result;
+}
+
+export async function saveAdminCmsAddonLinks(
+  addonId: string,
+  serviceIds: string[],
+) {
+  await verifyAuth();
+  if (
+    !Array.isArray(serviceIds) ||
+    serviceIds.some((id) => typeof id !== "string")
+  )
+    throw new Error("Invalid service selection.");
+  const studio = await getExocorpseCmsStudio();
+  const changes = planAddonServiceLinks(studio, addonId, serviceIds);
+  for (const { entry, relations } of changes) {
+    try {
+      await updateExocorpseCmsEntryBundle(entry.id, entry.updated_at, {
+        blocks: entryBlocksForBundle(studio, entry.id),
+        entry: {
+          collectionId: entry.collection_id,
+          metadata: entry.metadata,
+          profileData: entry.profile_data,
+          scheduledFor: entry.scheduled_for,
+          slug: entry.slug,
+          sortOrder: entry.sort_order,
+          status: entry.status,
+          subtitle: entry.subtitle,
+          summary: entry.summary,
+          title: entry.title,
+        },
+        relations,
+      });
+    } catch {
+      revalidateCmsSurfaces();
+      throw new Error(
+        `The add-on was saved, but links for “${entry.title}” could not be updated. Retry saving to finish the remaining links.`,
+      );
+    }
+  }
+  revalidateCmsSurfaces();
+  return getExocorpseCmsStudio();
 }
 
 export async function deleteAdminCmsEntry(entryId: string) {

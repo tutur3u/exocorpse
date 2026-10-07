@@ -1,76 +1,122 @@
 "use client";
 
-import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
-import type { CmsEntryDraft } from "@/components/admin/cms-management/editor-types";
-import { Input } from "@tuturuuu/ui/input";
-import { PenLine } from "lucide-react";
+import type { CmsEntryDraft } from "./editor-types";
+
+const inputClassName =
+  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 export default function CmsEntryBasics({
   draft,
   onChange,
-  onImageUpload,
   onTitleChange,
+  collectionSlug = "",
+  children,
 }: {
   draft: CmsEntryDraft;
   onChange: (draft: CmsEntryDraft) => void;
   onImageUpload?: (file: File) => Promise<string>;
   onTitleChange: (title: string) => void;
+  collectionSlug?: string;
+  children?: React.ReactNode;
 }) {
+  const isName = [
+    "worlds",
+    "characters",
+    "factions",
+    "locations",
+    "commission-services",
+    "commission-addons",
+    "commission-styles",
+    "character-outfits",
+    "relationship-types",
+  ].includes(collectionSlug);
+  const placeholders: Record<string, string> = {
+    stories: "My Fantasy Story",
+    worlds: "Terra Nova",
+    characters: "John Doe",
+    factions: "Exocorpse",
+    locations: "Enter location name",
+    "commission-services": "e.g., Full Body Illustration",
+    "commission-addons": "e.g., Extra Character, Complex Background",
+    "commission-styles": "e.g., Anime Style, Realistic, Chibi",
+    "relationship-types": "e.g., Parent, Friend, Rival",
+  };
+  const showSlug = ![
+    "commission-addons",
+    "commission-pictures",
+    "relationship-types",
+    "character-gallery",
+    "character-outfits",
+    "location-gallery",
+  ].includes(collectionSlug);
+  const showTitle = collectionSlug !== "commission-pictures";
+  const showSummary = ![
+    "characters",
+    "commission-pictures",
+    "commission-addons",
+    "commission-services",
+    "commission-styles",
+    "portfolio-art",
+    "portfolio-games",
+    "relationship-types",
+    "character-gallery",
+    "character-outfits",
+    "location-gallery",
+  ].includes(collectionSlug);
   return (
     <section className="space-y-4">
-      <div>
-        <h3 className="flex items-center gap-2 font-semibold text-zinc-950 dark:text-zinc-50">
-          <PenLine className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          Basic Info
-        </h3>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Give visitors a clear title and a helpful introduction.
-        </p>
-      </div>
-
-      <div className="grid gap-4 @2xl:grid-cols-2">
-        <label className="space-y-1.5 text-sm @2xl:col-span-2">
-          <span className="font-medium text-zinc-800 dark:text-zinc-200">
-            Title <span className="text-rose-500">*</span>
+      {showTitle ? (
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {isName ? "Name" : "Title"} *
           </span>
-          <Input
-            className="bg-white dark:bg-gray-800"
+          <input
+            className={inputClassName}
             maxLength={160}
             onChange={(event) => onTitleChange(event.target.value)}
-            placeholder="Add a clear, memorable title"
+            placeholder={placeholders[collectionSlug] ?? "Enter title"}
+            required
             value={draft.title}
           />
         </label>
-        <label className="space-y-1.5 text-sm @2xl:col-span-2">
-          <span className="font-medium text-zinc-800 dark:text-zinc-200">
-            Subtitle
+      ) : null}
+      {children}
+      {showSlug ? (
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Slug *
           </span>
-          <Input
-            className="bg-white dark:bg-gray-800"
-            maxLength={200}
+          <input
+            className={inputClassName}
             onChange={(event) =>
-              onChange({ ...draft, subtitle: event.target.value || null })
+              onChange({ ...draft, slug: event.target.value })
             }
-            placeholder="Optional supporting line"
-            value={draft.subtitle ?? ""}
+            placeholder="url-friendly-slug"
+            required
+            value={draft.slug}
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            URL-friendly identifier (lowercase, hyphens only)
+          </p>
+        </label>
+      ) : null}
+      {showSummary ? (
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {["portfolio-writing", "blog-posts"].includes(collectionSlug)
+              ? "Excerpt"
+              : "Summary"}
+          </span>
+          <input
+            className={inputClassName}
+            onChange={(event) =>
+              onChange({ ...draft, summary: event.target.value || null })
+            }
+            placeholder="A brief one-line summary"
+            value={draft.summary ?? ""}
           />
         </label>
-      </div>
-
-      <div className="block space-y-1.5 text-sm">
-        <span className="font-medium text-zinc-800 dark:text-zinc-200">
-          Short description
-        </span>
-        <AdminMarkdownEditor
-          compact
-          maxLength={1000}
-          minHeight="8rem"
-          onChange={(value) => onChange({ ...draft, summary: value || null })}
-          onImageUpload={onImageUpload}
-          placeholder="Help visitors understand what this is at a glance"
-          value={draft.summary ?? ""}
-        />
-      </div>
+      ) : null}
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { matchesCmsMarkdownTitle } from "@/lib/cms-markdown-titles";
 
 import {
   getExocorpseApiBaseUrl,
@@ -353,11 +354,10 @@ function firstAssetUrl(entry: CmsEntry, assetType = "image") {
 }
 
 function markdownBlock(entry: CmsEntry, title: string) {
-  const normalizedTitle = title.toLowerCase();
   const block = entry.blocks.find(
     (candidate) =>
       candidate.blockType === "markdown" &&
-      candidate.title?.toLowerCase() === normalizedTitle,
+      matchesCmsMarkdownTitle(candidate.title, title),
   );
 
   return asString(block?.content.markdown);
@@ -621,15 +621,17 @@ export async function getCmsAboutPageData(): Promise<AboutPageData | null> {
   return { faqs, items, settings };
 }
 
-function mapCmsStory(entry: CmsEntry): Story {
+export function mapCmsStory(entry: CmsEntry): Story {
   const profile = entry.profileData;
 
   return {
-    content: entry.bodyMarkdown,
+    content: markdownBlock(entry, "Content") ?? entry.bodyMarkdown,
     created_at: EPOCH,
     created_by: null,
     deleted_at: null,
-    description: entry.bodyMarkdown,
+    description:
+      markdownBlock(entry, "Description") ??
+      (markdownBlock(entry, "Content") ? null : entry.bodyMarkdown),
     id: legacyId(entry),
     is_published: booleanValue(profile, "isPublished") ?? true,
     slug: entry.slug,
@@ -651,11 +653,13 @@ function mapCmsWorld(entry: CmsEntry): Tables<"worlds"> {
   const profile = entry.profileData;
 
   return {
-    content: entry.bodyMarkdown,
+    content: markdownBlock(entry, "Content") ?? entry.bodyMarkdown,
     created_at: EPOCH,
     created_by: null,
     deleted_at: null,
-    description: entry.bodyMarkdown,
+    description:
+      markdownBlock(entry, "Description") ??
+      (markdownBlock(entry, "Content") ? null : entry.bodyMarkdown),
     id: legacyId(entry),
     name: entry.title,
     population: numberValue(profile, "population"),
@@ -751,11 +755,11 @@ function mapCmsFaction(entry: CmsEntry): Tables<"factions"> {
 
   return {
     banner_image: secondAssetUrl(entry),
-    content: entry.bodyMarkdown,
+    content: markdownBlock(entry, "Content") ?? entry.bodyMarkdown,
     created_at: EPOCH,
     created_by: null,
     deleted_at: null,
-    description: entry.summary,
+    description: markdownBlock(entry, "Description") ?? entry.summary,
     faction_type: stringValue(profile, "factionType"),
     founding_date: stringValue(profile, "foundingDate"),
     id: legacyId(entry),

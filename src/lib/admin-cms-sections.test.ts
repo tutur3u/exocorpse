@@ -46,17 +46,16 @@ describe("branded CMS admin sections", () => {
     }
   });
 
-  test("keeps wiki pages focused while exposing world history editors", () => {
+  test("keeps legacy pages focused and relationship types accessible", () => {
     expect(ADMIN_CMS_SECTIONS.stories.primaryCollectionSlugs).toEqual([
       "stories",
     ]);
     expect(ADMIN_CMS_SECTIONS.worlds.primaryCollectionSlugs).toEqual([
       "worlds",
-      "timelines",
-      "events",
     ]);
     expect(ADMIN_CMS_SECTIONS.characters.primaryCollectionSlugs).toEqual([
       "characters",
+      "relationship-types",
     ]);
     expect(ADMIN_CMS_SECTIONS.factions.primaryCollectionSlugs).toEqual([
       "factions",

@@ -4,12 +4,15 @@ import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { RichTextEditor } from "@tuturuuu/editor/react";
 import { Maximize2, Minimize2 } from "lucide-react";
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
+
+import EditorOverflow from "./EditorOverflow";
 
 export default function AdminMarkdownEditor({
   compact = false,
   maxLength,
-  minHeight = compact ? "8rem" : "16rem",
+  rows,
+  minHeight = compact ? "8rem" : rows ? `${rows * 1.5}rem` : "16rem",
   onChange,
   onImageUpload,
   placeholder,
@@ -18,6 +21,7 @@ export default function AdminMarkdownEditor({
 }: {
   compact?: boolean;
   maxLength?: number;
+  rows?: number;
   minHeight?: string;
   onChange: (value: string) => void;
   onImageUpload?: (file: File) => Promise<string>;
@@ -25,6 +29,7 @@ export default function AdminMarkdownEditor({
   showWordCount?: boolean;
   value: string;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
@@ -34,6 +39,17 @@ export default function AdminMarkdownEditor({
 
   return (
     <div
+      ref={rootRef}
+      onKeyDown={(event) => {
+        if (
+          event.key === "Escape" &&
+          event.target instanceof HTMLElement &&
+          event.target.closest(
+            ".tuturuuu-editor-link-form, .admin-editor-overflow-menu",
+          )
+        )
+          event.stopPropagation();
+      }}
       className="admin-markdown-editor"
       data-show-word-count={showWordCount || undefined}
       style={style}
@@ -65,22 +81,25 @@ export default function AdminMarkdownEditor({
         }
         placeholder={placeholder}
         toolbarEnd={
-          <span className="tuturuuu-editor-tool">
-            <button
-              aria-label={expanded ? "Use compact editor" : "Expand editor"}
-              aria-pressed={expanded}
-              onClick={() => setExpanded((current) => !current)}
-              type="button"
-            >
-              {expanded ? (
-                <Minimize2 aria-hidden="true" />
-              ) : (
-                <Maximize2 aria-hidden="true" />
-              )}
-            </button>
-            <span aria-hidden="true" className="tuturuuu-editor-tooltip">
-              {expanded ? "Use compact editor" : "Expand editor"}
+          <span className="admin-editor-toolbar-end" data-admin-toolbar-end>
+            <span className="tuturuuu-editor-tool">
+              <button
+                aria-label={expanded ? "Use compact editor" : "Expand editor"}
+                aria-pressed={expanded}
+                onClick={() => setExpanded((current) => !current)}
+                type="button"
+              >
+                {expanded ? (
+                  <Minimize2 aria-hidden="true" />
+                ) : (
+                  <Maximize2 aria-hidden="true" />
+                )}
+              </button>
+              <span aria-hidden="true" className="tuturuuu-editor-tooltip">
+                {expanded ? "Use compact editor" : "Expand editor"}
+              </span>
             </span>
+            <EditorOverflow root={rootRef} />
           </span>
         }
       />

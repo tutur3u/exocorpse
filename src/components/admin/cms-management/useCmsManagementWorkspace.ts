@@ -26,11 +26,13 @@ import {
   deleteAdminCmsAsset,
   deleteAdminCmsEntry,
   saveAdminCmsEntry,
+  saveAdminCmsAddonLinks,
   reorderAdminCmsEntries,
   reorderAdminCmsAssets,
   registerAdminCmsAsset,
   setAdminCmsEntryVisibility,
 } from "@/lib/actions/cms";
+import { addonServiceIds } from "@/lib/admin-addon-links";
 import { publishCmsContentChanged } from "@/lib/cms-content-events";
 import { uploadCmsAssetDirect } from "@/lib/cms-asset-upload";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
@@ -108,11 +110,16 @@ export function useCmsManagementWorkspace({
   initialStudio: ExocorpseCmsStudio;
   section: AdminCmsSection;
 }) {
+  const pendingAddonLinksRef = useRef(new Map<string, string[]>());
   const galleryUploadSequenceRef = useRef(0);
   const hydratedEditorSourceRef = useRef("");
+  const restoredEditorRef = useRef<ReturnType<typeof captureEditor> | null>(
+    null,
+  );
   const uploadAbortControllerRef = useRef<AbortController | null>(null);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<CmsUploadStatus>(null);
   const [studio, setStudio] = useState(initialStudio);
   const visibleCollections = useMemo(() => {
@@ -160,6 +167,7 @@ export function useCmsManagementWorkspace({
       relationSelections: {},
     }),
   );
+  const [linkedServiceIds, setLinkedServiceIds] = useState<string[]>([]);
   const [message, setMessage] = useState<CmsEditorMessage>(null);
 
   useEffect(() => setStudio(initialStudio), [initialStudio]);
@@ -197,12 +205,7 @@ export function useCmsManagementWorkspace({
           definition.is_enabled &&
           !(
             definition.key === "tags" &&
-            [
-              "blog-posts",
-              "character-gallery",
-              "portfolio-art",
-              "portfolio-writing",
-            ].includes(collection?.slug ?? "")
+            ["blog-posts", "character-gallery"].includes(collection?.slug ?? "")
           ),
       )
       .sort((left, right) => left.sort_order - right.sort_order);
@@ -236,9 +239,30 @@ export function useCmsManagementWorkspace({
     });
     if (hydratedEditorSourceRef.current === editorSource) return;
     hydratedEditorSourceRef.current = editorSource;
+    const restored = restoredEditorRef.current;
+    if (restored) {
+      restoredEditorRef.current = null;
+      setPendingUploadFile(restored.pendingUploadFile);
+      setLinkedServiceIds(restored.linkedServiceIds);
+      setDraft(restored.draft);
+      setBlocks(restored.blocks);
+      setRelationSelections(restored.relationSelections);
+      setSavedEditorState(restored.savedEditorState);
+      return;
+    }
     const nextDraft = entry
       ? entryDraft(entry, collection.id)
       : applyFieldDefaults(emptyEntry(collection.id), fields);
+    if (collection.slug === "blog-posts" && entry?.status === "published") {
+      const profile = isJsonRecord(nextDraft.profile_data)
+        ? nextDraft.profile_data
+        : {};
+      if (!profile.publishedAt)
+        nextDraft.profile_data = {
+          ...profile,
+          publishedAt: entry.published_at ?? entry.updated_at,
+        };
+    }
     const nextBlocks = blocksToDrafts(
       studio.blocks.filter((block) => block.entry_id === entry?.id),
       studio.assets.filter((asset) => asset.entry_id === entry?.id),
@@ -247,6 +271,12 @@ export function useCmsManagementWorkspace({
       studio,
       entry?.id ?? "",
       definitions,
+    );
+    setLinkedServiceIds(
+      collection.slug === "commission-addons" && entry
+        ? (pendingAddonLinksRef.current.get(entry.id) ??
+            addonServiceIds(studio, entry.id))
+        : [],
     );
     setDraft(nextDraft);
     setBlocks(nextBlocks);
@@ -264,6 +294,32 @@ export function useCmsManagementWorkspace({
     hydratedEditorSourceRef.current = "";
     setCreatingEntry(false);
     setEntryIdState(nextEntryId);
+  }
+
+  function captureEditor() {
+    return {
+      collectionId,
+      entryId,
+      draft,
+      blocks,
+      relationSelections,
+      savedEditorState,
+      linkedServiceIds,
+      pendingUploadFile,
+    };
+  }
+  function restoreEditor(snapshot: ReturnType<typeof captureEditor>) {
+    restoredEditorRef.current = snapshot;
+    hydratedEditorSourceRef.current = "";
+    setCreatingEntry(false);
+    setCollectionId(snapshot.collectionId);
+    setEntryIdState(snapshot.entryId);
+    setPendingUploadFile(snapshot.pendingUploadFile);
+    setLinkedServiceIds(snapshot.linkedServiceIds);
+    setDraft(snapshot.draft);
+    setBlocks(snapshot.blocks);
+    setRelationSelections(snapshot.relationSelections);
+    setSavedEditorState(snapshot.savedEditorState);
   }
 
   function selectCollection(nextCollectionId: string) {
@@ -288,10 +344,20 @@ export function useCmsManagementWorkspace({
       : {};
     const initialDraft = {
       ...nextDraft,
-      profile_data: { ...profileData, ...initialProfileData },
-      status: CONNECTION_COLLECTION_SLUGS.has(collection.slug)
-        ? "published"
-        : nextDraft.status,
+      profile_data: {
+        ...(collection.slug === "commission-services"
+          ? { basePrice: 0, isActive: true }
+          : collection.slug === "commission-addons"
+            ? { priceImpact: 0, percentage: false, isExclusive: false }
+            : {}),
+        ...profileData,
+        ...initialProfileData,
+      },
+      status:
+        !["stories", "blog-posts"].includes(collection.slug) &&
+        section.key !== "cms"
+          ? "published"
+          : nextDraft.status,
     } satisfies CmsEntryDraft;
     const initialSelections = Object.fromEntries(
       definitions.map((definition) => [
@@ -300,6 +366,8 @@ export function useCmsManagementWorkspace({
       ]),
     );
     setDraft(initialDraft);
+    setPendingUploadFile(null);
+    setLinkedServiceIds([]);
     setBlocks([]);
     setRelationSelections(initialSelections);
     setSavedEditorState(
@@ -338,9 +406,11 @@ export function useCmsManagementWorkspace({
     );
     const initialDraft = {
       ...nextDraft,
-      status: CONNECTION_COLLECTION_SLUGS.has(nextCollection.slug)
-        ? "published"
-        : nextDraft.status,
+      status:
+        !["stories", "blog-posts"].includes(nextCollection.slug) &&
+        section.key !== "cms"
+          ? "published"
+          : nextDraft.status,
     } satisfies CmsEntryDraft;
     const initialSelections = Object.fromEntries(
       nextDefinitions.map((definition) => [
@@ -354,6 +424,8 @@ export function useCmsManagementWorkspace({
     setCreatingEntry(true);
     setEntryIdState("");
     setDraft(initialDraft);
+    setPendingUploadFile(null);
+    setLinkedServiceIds([]);
     setBlocks([]);
     setRelationSelections(initialSelections);
     setSavedEditorState(
@@ -369,13 +441,13 @@ export function useCmsManagementWorkspace({
   function run<T>(
     operation: () => Promise<T>,
     success: string,
-    onSuccess: (result: T) => void,
+    onSuccess: (result: T) => void | Promise<void>,
   ) {
     setMessage(null);
     startTransition(async () => {
       try {
         const result = await operation();
-        onSuccess(result);
+        await onSuccess(result);
         publishCmsContentChanged();
         setMessage({ kind: "success", text: success });
       } catch (error) {
@@ -456,7 +528,7 @@ export function useCmsManagementWorkspace({
           expectedUpdatedAt: selectedEntry?.updated_at,
         }),
       selectedEntry ? "Changes saved." : "Your new item is ready.",
-      (bundle) => {
+      async (bundle) => {
         setStudio((current) => ({
           ...current,
           blocks: [
@@ -476,7 +548,81 @@ export function useCmsManagementWorkspace({
             ...bundle.relations,
           ],
         }));
+        if (collection.slug === "commission-addons")
+          pendingAddonLinksRef.current.set(bundle.entry.id, linkedServiceIds);
         setEntryId(bundle.entry.id);
+        if (collection.slug === "commission-addons") {
+          const updatedStudio = await saveAdminCmsAddonLinks(
+            bundle.entry.id,
+            linkedServiceIds,
+          );
+          pendingAddonLinksRef.current.delete(bundle.entry.id);
+          setStudio(updatedStudio);
+        }
+        if (pendingUploadFile) {
+          const file = pendingUploadFile;
+          const controller = new AbortController();
+          uploadAbortControllerRef.current = controller;
+          setUploadStatus({
+            fileName: file.name,
+            percentage: 2,
+            stage: "preparing",
+          });
+          try {
+            const storagePath = await uploadCmsAssetDirect({
+              collectionType: collection.collection_type,
+              entrySlug: bundle.entry.slug,
+              file,
+              signal: controller.signal,
+              onProgress: (percentage) =>
+                setUploadStatus({
+                  fileName: file.name,
+                  percentage,
+                  stage: percentage < 5 ? "preparing" : "uploading",
+                }),
+            });
+            setUploadStatus({
+              fileName: file.name,
+              percentage: 97,
+              stage: "saving",
+            });
+            const asset = await registerAdminCmsAsset({
+              entryId: bundle.entry.id,
+              fileName: file.name,
+              fileType: file.type,
+              storagePath,
+            });
+            const replaced = [
+              "portfolio-art",
+              "portfolio-writing",
+              "character-gallery",
+              "location-gallery",
+              "commission-pictures",
+              "character-outfits",
+              "blog-posts",
+            ].includes(collection.slug)
+              ? assets
+                  .filter((item) => item.asset_type === "image")
+                  .map((item) => item.id)
+              : [];
+            await Promise.all(replaced.map(deleteAdminCmsAsset));
+            setStudio((current) => ({
+              ...current,
+              assets: [
+                ...current.assets.filter((item) => !replaced.includes(item.id)),
+                asset,
+              ],
+            }));
+            setPendingUploadFile(null);
+          } catch (error) {
+            throw new Error(
+              `“${file.name}” could not be uploaded. ${error instanceof Error ? error.message : ""} Save again to retry the upload.`,
+            );
+          } finally {
+            uploadAbortControllerRef.current = null;
+            setUploadStatus(null);
+          }
+        }
         onSuccess?.();
       },
     );
@@ -511,7 +657,7 @@ export function useCmsManagementWorkspace({
               relation.to_entry_id !== deletedId,
           ),
         }));
-        setEntryId(remaining[0]?.id ?? "");
+        if (deletedId === entryId) setEntryId(remaining[0]?.id ?? "");
         onSuccess?.();
       },
     );
@@ -556,14 +702,38 @@ export function useCmsManagementWorkspace({
       "character-gallery",
       "location-gallery",
       "portfolio-art",
+      "portfolio-writing",
+      "commission-pictures",
+      "character-outfits",
     ].includes(collection.slug);
-    if (!selectedEntry && !canCreateFromMedia) return;
+    if (!selectedEntry && !canCreateFromMedia) {
+      try {
+        validate();
+        if (!draft.title.trim() || !draft.slug.trim())
+          throw new Error("Add a name and slug before uploading images.");
+      } catch (error) {
+        setMessage({
+          kind: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "Review the required fields before uploading.",
+        });
+        throw error;
+      }
+    }
     const replacedAssetIds = [
       "character-gallery",
       "location-gallery",
       "portfolio-art",
+      "portfolio-writing",
+      "commission-pictures",
+      "character-outfits",
+      "blog-posts",
     ].includes(collection.slug)
-      ? assets.map((asset) => asset.id)
+      ? assets
+          .filter((asset) => asset.asset_type === "image")
+          .map((asset) => asset.id)
       : [];
     setUploading(true);
     const abortController = new AbortController();
@@ -665,6 +835,7 @@ export function useCmsManagementWorkspace({
               : "That media could not be uploaded. Please try again.",
         });
       }
+      throw error;
     } finally {
       if (uploadAbortControllerRef.current === abortController) {
         uploadAbortControllerRef.current = null;
@@ -978,6 +1149,7 @@ export function useCmsManagementWorkspace({
   }
 
   function discardChanges() {
+    setPendingUploadFile(null);
     if (!collection) return;
     const entry = studio.entries.find((item) => item.id === entryId) ?? null;
     const nextDraft = entry
@@ -992,6 +1164,8 @@ export function useCmsManagementWorkspace({
       entry?.id ?? "",
       definitions,
     );
+    if (entry) pendingAddonLinksRef.current.delete(entry.id);
+    setLinkedServiceIds(entry ? addonServiceIds(studio, entry.id) : []);
     setDraft(nextDraft);
     setBlocks(nextBlocks);
     setRelationSelections(nextRelations);
@@ -1004,14 +1178,21 @@ export function useCmsManagementWorkspace({
     );
   }
 
+  const hasLinkChanges =
+    collection?.slug === "commission-addons" &&
+    JSON.stringify([...linkedServiceIds].sort()) !==
+      JSON.stringify(addonServiceIds(studio, entryId).sort());
   const isDirty =
+    hasLinkChanges ||
     savedEditorState !==
-    cmsEditorStateFingerprint({ blocks, draft, relationSelections });
+      cmsEditorStateFingerprint({ blocks, draft, relationSelections });
 
   return {
     assets,
     blocks,
     cancelUploads,
+    captureEditor,
+    restoreEditor,
     changeTitle,
     collection,
     config,
@@ -1029,6 +1210,8 @@ export function useCmsManagementWorkspace({
     message,
     pending: pending || uploading,
     relationSelections,
+    linkedServiceIds,
+    setLinkedServiceIds,
     reorderAssets,
     reorderEntries,
     save,
@@ -1044,6 +1227,8 @@ export function useCmsManagementWorkspace({
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
     uploadStatus,
+    pendingUploadFile,
+    setPendingUploadFile,
     uploading,
     visibleCollections,
   };

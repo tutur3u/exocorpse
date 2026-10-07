@@ -132,30 +132,67 @@ export function legacyEditorTabs({
   hasBlocks: boolean;
   hasConnections: boolean;
 }): CmsEditorTabConfig[] {
-  if (collection.slug === "characters") {
-    return [
-      {
-        icon: FileText,
-        id: "basic",
-        label: "Basic Info & Publishing",
-      },
-      {
-        icon: ScanFace,
-        id: "physical",
-        label: "Physical & Personality",
-      },
-      {
-        icon: BookOpenText,
-        id: "content",
-        label: "Relationships, Lore & Abilities",
-      },
-      {
-        icon: ImageIcon,
-        id: "gallery",
-        label: "Gallery & Fanwork Policy",
-      },
-    ];
-  }
+  const historicalTabs: Record<string, [CmsEditorTab, string][]> = {
+    stories: [
+      ["basic", "Basic Info"],
+      ["media", "Theme & Style"],
+      ["content", "Content"],
+      ["settings", "Publishing"],
+    ],
+    worlds: [
+      ["basic", "Basic Info"],
+      ["media", "Visuals"],
+      ["content", "Content"],
+    ],
+    characters: [
+      ["basic", "Basic Info"],
+      ["physical", "Physical"],
+      ["personality", "Personality"],
+      ["content", "History & Lore"],
+      ["abilities", "Abilities"],
+      ["media", "Visuals"],
+      ["gallery", "Outfits"],
+    ],
+    factions: [
+      ["basic", "Basic Info"],
+      ["details", "Characteristics"],
+      ["media", "Visuals"],
+      ["content", "Content"],
+    ],
+    locations: [
+      ["basic", "Basic Info"],
+      ["content", "Content"],
+      ["media", "Images"],
+      ["gallery", "Gallery"],
+    ],
+    "commission-services": [
+      ["basic", "Details"],
+      ["styles", "Styles & Pictures"],
+      ["connections", "Add-ons"],
+    ],
+  };
+  if (historicalTabs[collection.slug])
+    return historicalTabs[collection.slug].map(([id, label]) => ({
+      id,
+      label,
+      icon: FileText,
+    }));
+  if (
+    [
+      "commission-addons",
+      "commission-styles",
+      "commission-pictures",
+      "relationship-types",
+      "portfolio-art",
+      "portfolio-writing",
+      "portfolio-games",
+      "character-gallery",
+      "character-outfits",
+      "location-gallery",
+      "blog-posts",
+    ].includes(collection.slug)
+  )
+    return [];
   const visualLabel =
     collection.slug === "stories"
       ? "Theme & Style"

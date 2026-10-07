@@ -3,7 +3,6 @@
 import CmsEntryEditor from "@/components/admin/cms-management/CmsEntryEditor";
 import CmsEntryEditorDialog from "@/components/admin/cms-management/CmsEntryEditorDialog";
 import CmsEntryGallery from "@/components/admin/cms-management/CmsEntryGallery";
-import { CONNECTION_COLLECTION_SLUGS } from "@/components/admin/cms-management/connection-entry-utils";
 import { adminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import {
   collectionItemLabel,
@@ -28,12 +27,14 @@ export default function CmsManagementWorkspace({
   initialStudio: ExocorpseCmsStudio;
   section: AdminCmsSection;
 }) {
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [manager, setManager] = useState<{
+    collectionId: string;
+    title: string;
+  } | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [hasPendingMedia, setHasPendingMedia] = useState(false);
-  const [characterEditorReturnId, setCharacterEditorReturnId] = useState<
-    string | null
-  >(null);
   const [relatedTarget, setRelatedTarget] = useState<{
     id: string;
     relationKey: string;
@@ -42,10 +43,20 @@ export default function CmsManagementWorkspace({
     "profile" | "about" | "faq" | "dni" | "socials"
   >("profile");
   const workspace = useCmsManagementWorkspace({ initialStudio, section });
+  const [editorParents, setEditorParents] = useState<
+    Array<{
+      snapshot: ReturnType<typeof workspace.captureEditor>;
+      tab: import("./CmsEditorTabs").CmsEditorTab;
+    }>
+  >([]);
+  const [editorInitialTab, setEditorInitialTab] =
+    useState<import("./CmsEditorTabs").CmsEditorTab>("basic");
   const {
     assets,
     blocks,
     cancelUploads,
+    captureEditor,
+    restoreEditor,
     changeTitle,
     collection,
     config,
@@ -63,6 +74,8 @@ export default function CmsManagementWorkspace({
     message,
     pending,
     relationSelections,
+    linkedServiceIds,
+    setLinkedServiceIds,
     reorderEntries,
     reorderAssets,
     save,
@@ -78,11 +91,14 @@ export default function CmsManagementWorkspace({
     uploadCharacterGalleryAsset,
     uploadInlineAsset,
     uploadStatus,
+    pendingUploadFile,
+    setPendingUploadFile,
     uploading,
     visibleCollections,
   } = workspace;
 
-  const hasUnsavedEditorWork = isDirty || hasPendingMedia || uploading;
+  const hasUnsavedEditorWork =
+    isDirty || hasPendingMedia || Boolean(pendingUploadFile) || uploading;
   const handlePendingMediaChange = useCallback(
     (hasPendingFile: boolean) => setHasPendingMedia(hasPendingFile),
     [],
@@ -134,12 +150,18 @@ export default function CmsManagementWorkspace({
           (item) => !inlineCharacterCollections.has(item.slug),
         )
       : supportingCollections;
-  const relationFilter = buildCmsEntryGalleryFilter(studio, collection.id);
+  const relationFilter = buildCmsEntryGalleryFilter(
+    studio,
+    collection.id,
+    manager ? relatedTarget?.relationKey : undefined,
+  );
   const itemLabel = collectionItemLabel(collection);
   const theme = adminCmsTheme(section.key);
   const canCreate =
     !["about", "portfolio"].includes(section.key) &&
-    collection.slug !== "about";
+    collection.slug !== "about" &&
+    collection.slug !== "relationship-types" &&
+    (section.key !== "factions" || Boolean(relatedTarget));
   const createActionLabel =
     section.key === "services"
       ? "Create Service"
@@ -164,7 +186,8 @@ export default function CmsManagementWorkspace({
         });
 
   const beginCreateEntry = () => {
-    setCharacterEditorReturnId(null);
+    setEditorParents([]);
+    setEditorInitialTab("basic");
     const relation = relatedTarget
       ? definitions.find(
           (definition) => definition.key === relatedTarget.relationKey,
@@ -179,27 +202,66 @@ export default function CmsManagementWorkspace({
     setEditorOpen(true);
   };
 
-  const returnToCharacterEditor = () => {
-    if (!characterEditorReturnId) return;
-    const characters = visibleCollections.find(
-      (item) => item.slug === "characters",
-    );
-    if (!characters) return;
-    const characterId = characterEditorReturnId;
-    setRelatedTarget(null);
-    selectCollection(characters.id);
-    setEntryId(characterId);
-    setCharacterEditorReturnId(null);
+  const returnToParentEditor = () => {
+    const parent = editorParents.at(-1);
+    if (!parent) {
+      setEditorOpen(false);
+      return;
+    }
+    restoreEditor(parent.snapshot);
+    setEditorInitialTab(parent.tab);
+    setEditorParents((parents) => parents.slice(0, -1));
+  };
+  const beginRelatedEditor = (
+    slug: string,
+    childId?: string,
+    parentId?: string,
+    relationKey?: string,
+  ) => {
+    const target = visibleCollections.find((item) => item.slug === slug);
+    if (!target || uploading) return;
+    const tab =
+      collection.slug === "commission-services" ? "styles" : "gallery";
+    setEditorParents((parents) => [
+      ...parents,
+      { snapshot: captureEditor(), tab },
+    ]);
+    setEditorInitialTab("basic");
+    if (childId) {
+      selectCollection(target.id);
+      setEntryId(childId);
+    } else {
+      const initialRelations =
+        parentId && relationKey ? { [relationKey]: [parentId] } : {};
+      if (slug === "commission-pictures" && relationKey === "style") {
+        const styleCollection = studio.collections.find(
+          (item) => item.slug === "commission-styles",
+        );
+        const serviceDefinition = studio.relationDefinitions?.find(
+          (item) =>
+            item.source_collection_id === styleCollection?.id &&
+            item.key === "service",
+        );
+        const serviceId = studio.relations?.find(
+          (item) =>
+            item.from_entry_id === parentId &&
+            item.relation_definition_id === serviceDefinition?.id,
+        )?.to_entry_id;
+        if (serviceId) initialRelations.service = [serviceId];
+      }
+      createEntryForCollection(target.id, initialRelations);
+    }
   };
 
   const finishEditorExit = () => {
     setConfirmingDiscard(false);
     setHasPendingMedia(false);
-    if (characterEditorReturnId) returnToCharacterEditor();
+    if (editorParents.length) returnToParentEditor();
     else setEditorOpen(false);
   };
 
   const requestEditorExit = () => {
+    if (pending) return;
     if (hasUnsavedEditorWork) {
       setConfirmingDiscard(true);
       return;
@@ -224,12 +286,14 @@ export default function CmsManagementWorkspace({
       <button
         className={`flex shrink-0 items-center gap-2 text-sm font-medium transition ${
           variant === "tab"
-            ? "border-b-2 px-1 py-4 whitespace-nowrap"
+            ? "border-b-2 px-1 py-3 whitespace-nowrap"
             : "rounded-lg px-3 py-2"
         } ${
           item.id === collection.id
             ? variant === "tab"
-              ? theme.activeTab
+              ? section.key === "characters"
+                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                : theme.activeTab
               : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
             : variant === "tab"
               ? "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -243,9 +307,11 @@ export default function CmsManagementWorkspace({
         type="button"
       >
         {collectionTabLabel(item)}
-        <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-75">
-          {count}
-        </span>
+        {section.key === "cms" ? (
+          <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-75">
+            {count}
+          </span>
+        ) : null}
       </button>
     );
   };
@@ -257,8 +323,8 @@ export default function CmsManagementWorkspace({
       collection={collection}
       entries={visibleEntries}
       initialRelationTargetId={
-        relatedTarget?.relationKey.startsWith("character")
-          ? relatedTarget.id
+        manager || relatedTarget?.relationKey.startsWith("character")
+          ? relatedTarget?.id
           : undefined
       }
       key={collection.id}
@@ -270,10 +336,18 @@ export default function CmsManagementWorkspace({
         }
         beginCreateEntry();
       }}
+      onDelete={setDeleteTargetId}
+      onContextChange={(id, relationKey) =>
+        setRelatedTarget(id ? { id, relationKey } : null)
+      }
       onSetVisibility={setEntryVisibility}
       onOpenCollection={(slug, targetId, relationKey) => {
         const target = visibleCollections.find((item) => item.slug === slug);
         if (target) {
+          setManager({
+            collectionId: collection.id,
+            title: `${studio.entries.find((entry) => entry.id === targetId)?.title ?? collection.title} — ${collectionTabLabel(target)}`,
+          });
           setRelatedTarget(
             targetId && relationKey ? { id: targetId, relationKey } : null,
           );
@@ -282,7 +356,8 @@ export default function CmsManagementWorkspace({
       }}
       onReorder={reorderEntries}
       onSelect={(nextEntryId) => {
-        setCharacterEditorReturnId(null);
+        setEditorParents([]);
+        setEditorInitialTab("basic");
         setEntryId(nextEntryId);
         setEditorOpen(true);
       }}
@@ -311,35 +386,40 @@ export default function CmsManagementWorkspace({
   ) : null;
   return (
     <div className="@container space-y-6">
-      <AdminPageHeader
-        actions={
-          <>
-            {canCreate ? (
-              <button
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
-                onClick={beginCreateEntry}
-                type="button"
-              >
-                + {createActionLabel}
-              </button>
-            ) : null}
-            {section.key === "cms" ? (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                href={cmsHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <Library className="h-3.5 w-3.5" />
-                Content library
-              </a>
-            ) : null}
-          </>
-        }
-        title={section.title}
-      />
+      {section.key !== "blog-posts" ? (
+        <AdminPageHeader
+          actions={
+            <>
+              {canCreate ? (
+                <button
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                  onClick={beginCreateEntry}
+                  type="button"
+                >
+                  + {createActionLabel}
+                </button>
+              ) : null}
+              {section.key === "cms" ? (
+                <a
+                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                  href={cmsHref}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <Library className="h-3.5 w-3.5" />
+                  Content library
+                </a>
+              ) : null}
+            </>
+          }
+          title={
+            section.key === "portfolio" ? "Portfolio Management" : section.title
+          }
+          description={section.description.replace(/\.$/, "")}
+        />
+      ) : null}
 
-      {message ? (
+      {message && (!editorOpen || message.kind === "success") ? (
         <div
           className={`fixed top-5 right-5 z-[70] flex max-w-md items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl ${
             message.kind === "success"
@@ -415,10 +495,10 @@ export default function CmsManagementWorkspace({
         </div>
       ) : (
         <div className="space-y-6">
-          {primaryCollections.length > 1 && section.key !== "characters" ? (
+          {primaryCollections.length > 1 && section.key !== "services" ? (
             <nav
               aria-label={`${section.title} content`}
-              className="-mb-px flex gap-6 overflow-x-auto rounded-lg border border-gray-200 bg-white px-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+              className="-mb-px flex gap-8 overflow-x-auto border-b border-gray-200 dark:border-gray-700"
             >
               {primaryCollections.map((item) => collectionButton(item, "tab"))}
             </nav>
@@ -428,17 +508,54 @@ export default function CmsManagementWorkspace({
         </div>
       )}
 
+      {manager ? (
+        <CmsEntryEditorDialog
+          collectionSlug={collection.slug}
+          title={manager.title}
+          onClose={() => {
+            setManager(null);
+            setRelatedTarget(null);
+            selectCollection(manager.collectionId);
+          }}
+        >
+          <div className="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-700">
+            <h2 className="text-2xl font-bold">{manager.title}</h2>
+            <button
+              className="rounded bg-gray-200 px-4 py-2 text-sm dark:bg-gray-700"
+              onClick={() => {
+                setManager(null);
+                setRelatedTarget(null);
+                selectCollection(manager.collectionId);
+              }}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+          <div className="min-h-0 overflow-y-auto p-6">{entryGallery}</div>
+        </CmsEntryEditorDialog>
+      ) : null}
+      <ConfirmDeleteDialog
+        isOpen={Boolean(deleteTargetId)}
+        loading={pending}
+        title={`Delete ${itemLabel.replace(/^./, (letter) => letter.toUpperCase())}`}
+        message={`Are you sure you want to delete “${studio.entries.find((entry) => entry.id === deleteTargetId)?.title ?? "this item"}”? This action cannot be undone.`}
+        onCancel={() => setDeleteTargetId(null)}
+        onConfirm={() => {
+          if (deleteTargetId)
+            deleteEntry(deleteTargetId, () => setDeleteTargetId(null));
+        }}
+      />
       {editorOpen ? (
         <CmsEntryEditorDialog
           onClose={requestEditorExit}
           title={
             entryId
-              ? CONNECTION_COLLECTION_SLUGS.has(collection.slug)
-                ? `Edit ${itemLabel}`
-                : `Edit ${draft.title}`
-              : `Add ${itemLabel}`
+              ? `Edit ${itemLabel.replace(/^./, (letter) => letter.toUpperCase())}`
+              : `Create New ${itemLabel.replace(/^./, (letter) => letter.toUpperCase())}`
           }
           variant={section.key === "blog-posts" ? "blog" : "default"}
+          collectionSlug={collection.slug}
         >
           <CmsEntryEditor
             allowedAssetTypes={config.assetTypes}
@@ -451,22 +568,17 @@ export default function CmsManagementWorkspace({
             fields={fields}
             key={`${collection.id}:${entryId || "new"}`}
             onBlocksChange={setBlocks}
-            onDelete={() => {
-              if (characterEditorReturnId) {
-                deleteEntry(undefined, returnToCharacterEditor);
-              } else {
-                deleteEntry();
-                setEditorOpen(false);
-              }
-            }}
+            onDelete={() => deleteEntry(undefined, returnToParentEditor)}
             onDeleteAsset={deleteAsset}
             onDraftChange={setDraft}
             onRelationsChange={setRelationSelections}
             onReorderAssets={reorderAssets}
-            onSave={() =>
-              save(
-                characterEditorReturnId ? returnToCharacterEditor : undefined,
-              )
+            onSave={() => save(returnToParentEditor)}
+            initialTab={editorInitialTab}
+            onDeleteRelated={setDeleteTargetId}
+            onEditRelated={(slug, childId) => beginRelatedEditor(slug, childId)}
+            onCreateRelated={(slug, parentId, relationKey) =>
+              beginRelatedEditor(slug, undefined, parentId, relationKey)
             }
             onCancel={() => {
               requestEditorExit();
@@ -477,43 +589,27 @@ export default function CmsManagementWorkspace({
               uploadCharacterGalleryAsset(file, entryId, title)
             }
             onUploadInlineAsset={uploadInlineAsset}
-            onEditGalleryEntry={(galleryEntryId) => {
-              const target = visibleCollections.find(
-                (item) => item.slug === "character-gallery",
-              );
-              if (!target) return;
-              if (collection.slug === "characters" && entryId) {
-                setCharacterEditorReturnId(entryId);
-              }
-              setRelatedTarget(null);
-              selectCollection(target.id);
-              setEntryId(galleryEntryId);
-            }}
-            onEditRelationshipEntry={(relationshipEntryId) => {
-              const target = visibleCollections.find(
-                (item) => item.slug === "character-relationships",
-              );
-              if (!target || collection.slug !== "characters" || !entryId)
-                return;
-              setCharacterEditorReturnId(entryId);
-              setRelatedTarget(null);
-              selectCollection(target.id);
-              setEntryId(relationshipEntryId);
-            }}
-            onCreateRelationshipEntry={() => {
-              const target = visibleCollections.find(
-                (item) => item.slug === "character-relationships",
-              );
-              if (!target || collection.slug !== "characters" || !entryId)
-                return;
-              setCharacterEditorReturnId(entryId);
-              setRelatedTarget(null);
-              createEntryForCollection(target.id, {
-                "character-a": [entryId],
-              });
-            }}
+            onEditGalleryEntry={(childId) =>
+              beginRelatedEditor("character-gallery", childId)
+            }
+            onEditRelationshipEntry={(childId) =>
+              beginRelatedEditor("character-relationships", childId)
+            }
+            onCreateRelationshipEntry={() =>
+              beginRelatedEditor(
+                "character-relationships",
+                undefined,
+                entryId,
+                "character-a",
+              )
+            }
             isDirty={isDirty}
+            linkedServiceIds={linkedServiceIds}
+            onLinkedServicesChange={setLinkedServiceIds}
             onPendingMediaChange={handlePendingMediaChange}
+            onPendingUploadFileChange={setPendingUploadFile}
+            pendingUploadFileName={pendingUploadFile?.name}
+            error={message?.kind === "error" ? message.text : undefined}
             pending={pending}
             relationSelections={relationSelections}
             selectedEntryId={entryId}

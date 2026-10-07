@@ -25,6 +25,7 @@ export default function CmsAssetManager({
   onUpload,
   onReorder,
   onPendingFileChange,
+  onFileSelectionChange,
   previewSize = "default",
   mode = "gallery",
   showHeader = true,
@@ -38,6 +39,7 @@ export default function CmsAssetManager({
   onUpload: (file: File) => Promise<void> | void;
   onReorder: (assets: ExocorpseCmsAsset[]) => void;
   onPendingFileChange?: (pending: boolean) => void;
+  onFileSelectionChange?: (file: File | null) => void;
   previewSize?: "compact" | "default";
   mode?: "gallery" | "single";
   showHeader?: boolean;
@@ -120,7 +122,7 @@ export default function CmsAssetManager({
             setDragActive(false);
             const file = event.dataTransfer.files[0];
             if (!file || disabled) return;
-            void onUpload(file);
+            void Promise.resolve(onUpload(file)).catch(() => undefined);
           }}
         >
           {showHeader ? (
@@ -148,6 +150,7 @@ export default function CmsAssetManager({
                 await onUpload(file);
                 formRef.current?.reset();
                 updateSelectedFile("");
+                onFileSelectionChange?.(null);
               } catch {
                 // The parent owns the user-facing error and keeps the selected
                 // file available so the upload can be retried.
@@ -163,9 +166,10 @@ export default function CmsAssetManager({
                 className="sr-only"
                 disabled={disabled}
                 name="file"
-                onChange={(event) =>
-                  updateSelectedFile(event.target.files?.[0]?.name ?? "")
-                }
+                onChange={(event) => {
+                  updateSelectedFile(event.target.files?.[0]?.name ?? "");
+                  onFileSelectionChange?.(event.target.files?.[0] ?? null);
+                }}
                 required
                 type="file"
               />

@@ -1,3 +1,4 @@
+import LogoutButton from "@/components/admin/LogoutButton";
 import AdminNav from "@/components/admin/AdminNav";
 import AdminSessionKeeper from "@/components/admin/AdminSessionKeeper";
 import AdminUserMenu from "@/components/admin/AdminUserMenu";
@@ -20,26 +21,40 @@ export default async function AdminLayout({
     workspaceId: session.workspaceId,
   });
   return (
-    <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen flex-col bg-gray-50 [--radius:0.5rem] dark:bg-gray-900">
       {/* Admin Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div className="flex flex-1 items-center justify-between md:flex-none md:justify-start md:gap-5">
+            <div className="flex flex-1 items-center justify-between md:flex-none md:justify-start md:gap-8">
               <Link
                 href="/admin"
-                className="flex items-center text-xl font-bold text-gray-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+                className="flex items-center text-2xl font-bold text-gray-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
               >
                 EXOCORPSE
               </Link>
               <AdminNav tasksHref={tasksHref}>
-                <div className="px-4">
+                <div className="flex flex-col gap-3 px-4">
                   <AdminUserMenu initialUser={session.user} />
+                  <LogoutButton />
+                  <Link
+                    href="/"
+                    className="rounded-lg bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Back to Site
+                  </Link>
                 </div>
               </AdminNav>
             </div>
             <div className="hidden items-center gap-3 lg:flex">
               <AdminUserMenu initialUser={session.user} />
+              <LogoutButton />
+              <Link
+                href="/"
+                className="rounded-lg bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Back to Site
+              </Link>
             </div>
           </div>
         </div>

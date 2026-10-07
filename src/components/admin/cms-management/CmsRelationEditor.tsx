@@ -1,5 +1,6 @@
 "use client";
 
+import { MultiSelect } from "@/components/shared/MultiSelect";
 import type { CmsRelationSelections } from "@/components/admin/cms-management/editor-types";
 import type {
   ExocorpseCmsEntry,
@@ -132,12 +133,14 @@ function RelationControl({
 
 export default function CmsRelationEditor({
   definitions,
+  compact = false,
   entryId,
   onChange,
   selections,
   studio,
 }: {
   definitions: ExocorpseCmsRelationDefinition[];
+  compact?: boolean;
   entryId: string;
   onChange: (selections: CmsRelationSelections) => void;
   selections: CmsRelationSelections;
@@ -168,6 +171,57 @@ export default function CmsRelationEditor({
 
   if (!definitions.length) return null;
 
+  if (compact)
+    return (
+      <div className="space-y-4">
+        {definitions.map((definition) =>
+          definition.cardinality === "many" ? (
+            <MultiSelect
+              key={definition.id}
+              label={definition.label}
+              required={definition.is_required}
+              items={(options[definition.id] ?? []).map((entry) => ({
+                id: entry.id,
+                name: entry.title,
+              }))}
+              onChange={(ids) =>
+                onChange({ ...selections, [definition.id]: ids })
+              }
+              selectedIds={selections[definition.id] ?? []}
+              variant="form"
+            />
+          ) : (
+            <label className="block" key={definition.id}>
+              <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {definition.label}
+                {definition.is_required ? " *" : ""}
+              </span>
+              <select
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700"
+                onChange={(event) =>
+                  onChange({
+                    ...selections,
+                    [definition.id]: event.target.value
+                      ? [event.target.value]
+                      : [],
+                  })
+                }
+                value={selections[definition.id]?.[0] ?? ""}
+              >
+                <option value="">
+                  Select {definition.label.toLowerCase()}
+                </option>
+                {(options[definition.id] ?? []).map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ),
+        )}
+      </div>
+    );
   return (
     <section className="space-y-4">
       <div>

@@ -70,13 +70,16 @@ export function entryCardDescription(entry: ExocorpseCmsEntry) {
 export function buildCmsEntryGalleryFilter(
   studio: ExocorpseCmsStudio,
   collectionId: string,
+  relationKey?: string,
 ): CmsEntryGalleryFilter | undefined {
   const definitions = (studio.relationDefinitions ?? []).filter(
     (definition) => definition.source_collection_id === collectionId,
   );
-  const definition = FILTER_RELATION_PRIORITY.flatMap((key) =>
-    definitions.filter((candidate) => candidate.key === key),
-  )[0];
+  const definition = relationKey
+    ? definitions.find((candidate) => candidate.key === relationKey)
+    : FILTER_RELATION_PRIORITY.flatMap((key) =>
+        definitions.filter((candidate) => candidate.key === key),
+      )[0];
   if (!definition) return undefined;
 
   const targetCollectionIds = new Set(
@@ -88,7 +91,6 @@ export function buildCmsEntryGalleryFilter(
     .filter((entry) => targetCollectionIds.has(entry.collection_id))
     .sort((left, right) => left.title.localeCompare(right.title))
     .map((entry) => ({ id: entry.id, title: entry.title }));
-  if (!options.length) return undefined;
 
   const entryTargetIds: Record<string, string[]> = {};
   for (const relation of studio.relations ?? []) {

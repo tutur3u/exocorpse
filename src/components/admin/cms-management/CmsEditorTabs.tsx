@@ -1,6 +1,5 @@
 "use client";
 
-import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import type { CmsEditorTabConfig } from "@/components/admin/cms-management/legacy-editor-tabs";
 
 export type CmsEditorTab =
@@ -14,55 +13,57 @@ export type CmsEditorTab =
   | "media"
   | "personality"
   | "physical"
-  | "settings";
+  | "settings"
+  | "styles";
 
 export default function CmsEditorTabs({
   activeTab,
   onChange,
   tabs,
-  theme,
 }: {
   activeTab: CmsEditorTab;
   onChange: (tab: CmsEditorTab) => void;
   tabs: CmsEditorTabConfig[];
-  theme: AdminCmsTheme;
 }) {
   return (
-    <nav
-      aria-label="Editing sections"
-      className="flex gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/80 p-2.5 sm:px-5 dark:border-slate-700 dark:bg-slate-950/45"
-    >
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const active = activeTab === tab.id;
-        return (
+    <>
+      <div className="border-b border-gray-300 px-4 pb-4 sm:hidden dark:border-gray-600">
+        <label className="sr-only" htmlFor="editor-tabs">
+          Select a tab
+        </label>
+        <select
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+          id="editor-tabs"
+          onChange={(event) => onChange(event.target.value as CmsEditorTab)}
+          value={activeTab}
+        >
+          {tabs.map((tab) => (
+            <option key={tab.id} value={tab.id}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <nav
+        aria-label="Editing sections"
+        role="tablist"
+        className="hidden shrink-0 gap-1 overflow-x-auto border-b border-gray-300 px-4 sm:flex sm:px-6 dark:border-gray-600"
+      >
+        {tabs.map((tab) => (
           <button
             aria-controls={`cms-${tab.id}-panel`}
-            aria-current={active ? "location" : undefined}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
-              active
-                ? theme.activeTab
-                : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-100"
-            }`}
+            aria-selected={activeTab === tab.id}
+            className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.id ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
             id={`cms-${tab.id}-tab`}
             key={tab.id}
             onClick={() => onChange(tab.id)}
+            role="tab"
             type="button"
           >
-            <Icon className="h-3.5 w-3.5" />
             {tab.label}
-            {tab.count ? (
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                  active ? "bg-current/10" : "bg-gray-200 dark:bg-gray-700"
-                }`}
-              >
-                {tab.count}
-              </span>
-            ) : null}
           </button>
-        );
-      })}
-    </nav>
+        ))}
+      </nav>
+    </>
   );
 }

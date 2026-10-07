@@ -1,7 +1,7 @@
 "use client";
 
 import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
-import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import CmsLegacyCardActions from "@/components/admin/cms-management/CmsLegacyCardActions";
 import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type {
   ExocorpseCmsAsset,
@@ -37,6 +37,7 @@ export default function CmsPortfolioEntryGallery({
   onCreate,
   onReorder,
   onSelect,
+  onDelete,
 }: {
   assets: ExocorpseCmsAsset[];
   collection: ExocorpseCmsCollection;
@@ -44,6 +45,7 @@ export default function CmsPortfolioEntryGallery({
   onCreate: () => void;
   onReorder: (entries: ExocorpseCmsEntry[]) => void;
   onSelect: (entryId: string) => void;
+  onDelete: (entryId: string) => void;
 }) {
   const sectionCopy =
     copy[collection.slug as keyof typeof copy] ?? copy["portfolio-art"];
@@ -57,11 +59,11 @@ export default function CmsPortfolioEntryGallery({
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold tracking-tight text-slate-950 dark:text-[#fff6e8]">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-white">
           {sectionCopy.title}
         </h2>
         <button
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-cyan-500 hover:to-blue-500 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none"
+          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           onClick={onCreate}
           type="button"
         >
@@ -70,7 +72,7 @@ export default function CmsPortfolioEntryGallery({
       </div>
 
       {!entries.length ? (
-        <div className="rounded-[1.35rem] border-2 border-dashed border-slate-300 bg-white/60 py-12 text-center dark:border-white/10 dark:bg-slate-950/40">
+        <div className="rounded-lg border-2 border-dashed border-gray-300 py-12 text-center dark:border-gray-600">
           {collection.slug === "portfolio-games" ? (
             <Gamepad2 className="mx-auto h-12 w-12 text-gray-400" />
           ) : collection.slug === "portfolio-writing" ? (
@@ -104,20 +106,7 @@ export default function CmsPortfolioEntryGallery({
                 aria-label={`Edit ${entry.title}`}
                 className="group relative cursor-pointer overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/90 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(10,18,32,0.96),rgba(14,8,24,0.96))]"
                 key={entry.id}
-                onClick={() => onSelect(entry.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect(entry.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
-                <CmsCardQuickActions
-                  className="absolute top-3 left-3 z-20"
-                  path={cmsEntryPublicPath(collection.slug, entry)}
-                />
                 <div className="flex items-start gap-4 p-4">
                   {asset && imageUrl ? (
                     <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded bg-gray-100 dark:bg-gray-700">
@@ -142,6 +131,13 @@ export default function CmsPortfolioEntryGallery({
                     ) : null}
                   </div>
                 </div>
+                <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+                  <CmsLegacyCardActions
+                    onEdit={() => onSelect(entry.id)}
+                    onDelete={() => onDelete(entry.id)}
+                    path={cmsEntryPublicPath(collection.slug, entry)}
+                  />
+                </div>
               </article>
             );
           }}
@@ -163,20 +159,7 @@ export default function CmsPortfolioEntryGallery({
                 aria-label={`Edit ${entry.title}`}
                 className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-white/90 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(10,18,32,0.96),rgba(14,8,24,0.96))]"
                 key={entry.id}
-                onClick={() => onSelect(entry.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect(entry.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
-                <CmsCardQuickActions
-                  className="absolute top-3 left-3 z-20"
-                  path={cmsEntryPublicPath(collection.slug, entry)}
-                />
                 {isArt || (asset && imageUrl) ? (
                   <div
                     className={`relative overflow-hidden bg-gray-100 dark:bg-gray-700 ${isArt ? "aspect-square" : "aspect-video"}`}
@@ -202,6 +185,13 @@ export default function CmsPortfolioEntryGallery({
                       {entry.summary ?? entry.subtitle}
                     </p>
                   ) : null}
+                </div>
+                <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+                  <CmsLegacyCardActions
+                    onEdit={() => onSelect(entry.id)}
+                    onDelete={() => onDelete(entry.id)}
+                    path={cmsEntryPublicPath(collection.slug, entry)}
+                  />
                 </div>
               </article>
             );

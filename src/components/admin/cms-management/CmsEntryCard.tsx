@@ -2,7 +2,7 @@
 
 import { shouldBypassImageOptimization } from "@/components/admin/cms-management/editor-utils";
 import { entryCardDescription } from "@/components/admin/cms-management/gallery-utils";
-import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickActions";
+import CmsLegacyCardActions from "@/components/admin/cms-management/CmsLegacyCardActions";
 import type { AdminCmsTheme } from "@/components/admin/cms-management/admin-theme";
 import type {
   ExocorpseCmsAsset,
@@ -10,6 +10,8 @@ import type {
   ExocorpseCmsEntry,
 } from "@/types/exocorpse-cms";
 import Image from "next/image";
+import { isJsonRecord } from "./editor-utils";
+import { EyeOff, Globe, Lock, Pencil } from "lucide-react";
 
 export default function CmsEntryCard({
   avatarAsset,
@@ -17,6 +19,7 @@ export default function CmsEntryCard({
   eager = false,
   entry,
   onEdit,
+  onDelete,
   publicPath,
   secondaryActions = [],
   previewAsset,
@@ -28,6 +31,7 @@ export default function CmsEntryCard({
   eager?: boolean;
   entry: ExocorpseCmsEntry;
   onEdit: () => void;
+  onDelete: () => void;
   publicPath?: string;
   secondaryActions?: Array<{
     label: string;
@@ -42,6 +46,16 @@ export default function CmsEntryCard({
   const avatarUrl = avatarAsset?.preview_url ?? avatarAsset?.asset_url;
   const hasPreview = previewAsset?.asset_type === "image" && Boolean(imageUrl);
   const description = entryCardDescription(entry);
+  const profile = isJsonRecord(entry.profile_data) ? entry.profile_data : {};
+  const visibility = profile.visibility;
+  const storyStatus =
+    visibility === "unlisted"
+      ? { label: "Unlisted", color: "bg-yellow-500/90", icon: EyeOff }
+      : visibility === "private"
+        ? { label: "Private", color: "bg-red-500/90", icon: Lock }
+        : entry.status === "published"
+          ? { label: "Public", color: "bg-green-500/90", icon: Globe }
+          : { label: "Draft", color: "bg-gray-500/90", icon: Pencil };
   const previewSize =
     collection.slug === "portfolio-art"
       ? "aspect-square"
@@ -50,22 +64,9 @@ export default function CmsEntryCard({
         : "h-48";
   return (
     <article
-      aria-label={`Edit ${entry.title}`}
-      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/30"
-      onClick={onEdit}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onEdit();
-        }
-      }}
-      role="button"
-      tabIndex={0}
+      aria-label={entry.title}
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 [content-visibility:auto] hover:-translate-y-1 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-800"
     >
-      <CmsCardQuickActions
-        className="absolute top-3 left-3 z-30"
-        path={publicPath}
-      />
       {supportsImages ? (
         <div
           className={`relative overflow-hidden rounded-t-xl ${previewSize} ${theme.media}`}
@@ -85,6 +86,14 @@ export default function CmsEntryCard({
             />
           ) : null}
           <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+          {collection.slug === "stories" ? (
+            <div
+              className={`absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-white backdrop-blur-sm ${storyStatus.color}`}
+            >
+              <storyStatus.icon className="h-3 w-3" />
+              {storyStatus.label}
+            </div>
+          ) : null}
         </div>
       ) : null}
       {supportsImages && avatarAsset && avatarUrl ? (
@@ -134,6 +143,13 @@ export default function CmsEntryCard({
             ))}
           </div>
         ) : null}
+      </div>
+      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+        <CmsLegacyCardActions
+          onEdit={onEdit}
+          onDelete={onDelete}
+          path={publicPath}
+        />
       </div>
     </article>
   );

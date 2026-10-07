@@ -1,3 +1,4 @@
+import StorageAnalytics from "@/components/admin/StorageAnalytics";
 import CmsLegacyAboutWorkspace from "@/components/admin/about/CmsLegacyAboutWorkspace";
 import { ADMIN_CMS_SECTIONS } from "@/lib/admin-cms-sections";
 import { requireAdminSession } from "@/lib/auth/utils";
@@ -8,5 +9,10 @@ export default async function AboutAdminPage() {
   await connection();
   await requireAdminSession();
   const studio = await getExocorpseCmsStudio(ADMIN_CMS_SECTIONS.about);
-  return <CmsLegacyAboutWorkspace initialStudio={studio} />;
+  return (
+    <div className="space-y-4">
+      <StorageAnalytics />
+      <CmsLegacyAboutWorkspace initialStudio={studio} />
+    </div>
+  );
 }

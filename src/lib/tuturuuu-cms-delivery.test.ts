@@ -176,4 +176,54 @@ describe("Tuturuuu CMS raw delivery", () => {
       { content: "A customer-created section", title: "Field Notes" },
     ]);
   });
+  test("legacy story description and imported content stay distinct after edits", async () => {
+    const { mapCmsStory, normalizeDeliveryCollections } =
+      await import("@/lib/tuturuuu-cms-delivery");
+    const result = normalizeDeliveryCollections(
+      [
+        {
+          id: "stories",
+          collection_type: "stories",
+          slug: "stories",
+          title: "Stories",
+          entries: [
+            {
+              id: "story",
+              title: "Story",
+              slug: "story",
+              status: "published",
+              metadata: {},
+              profile_data: {},
+              assets: [],
+              relations: [],
+              blocks: [
+                {
+                  block_type: "markdown",
+                  title: "Description",
+                  content: { markdown: "An introduction" },
+                  sort_order: 0,
+                },
+                {
+                  block_type: "markdown",
+                  title: "Story content",
+                  content: { markdown: "The complete story" },
+                  sort_order: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      "https://tuturuuu.com/api/v1",
+    );
+    const entry = result.collections.stories!.entries[0]!;
+    expect(mapCmsStory(entry).description).toBe("An introduction");
+    expect(mapCmsStory(entry).content).toBe("The complete story");
+    expect(
+      mapCmsStory({
+        ...entry,
+        blocks: entry.blocks.filter((block) => block.title !== "Description"),
+      }).description,
+    ).toBeNull();
+  });
 });

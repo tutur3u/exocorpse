@@ -1,65 +1,115 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export default function CmsEntryEditorDialog({
   children,
+  collectionSlug,
   onClose,
   title,
   variant = "default",
 }: {
   children: ReactNode;
+  collectionSlug: string;
   onClose: () => void;
   title: string;
   variant?: "blog" | "default";
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeRef = useRef(onClose);
   useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const handleKeyDown = (event: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll("[data-cms-dialog]");
+      if (
+        dialogs[dialogs.length - 1] !== dialogRef.current ||
+        document.querySelector('[role="alertdialog"]')
+      )
+        return;
+      if (event.key === "Tab") {
+        const controls = Array.from(
+          dialogRef.current?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+          ) ?? [],
+        ).filter((control) => control.getClientRects().length > 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (
+          event.shiftKey &&
+          (document.activeElement === first ||
+            !dialogRef.current?.contains(document.activeElement))
+        ) {
+          event.preventDefault();
+          last?.focus();
+        } else if (
+          !event.shiftKey &&
+          (document.activeElement === last ||
+            !dialogRef.current?.contains(document.activeElement))
+        ) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
       if (
         event.key === "Escape" &&
         !document.querySelector('[role="alertdialog"]')
       ) {
-        onClose();
+        closeRef.current();
       }
     };
+    dialogRef.current?.focus();
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose]);
-
+  }, []);
+  const maxWidth =
+    collectionSlug === "character-relationships"
+      ? "max-w-3xl"
+      : collectionSlug === "character-factions"
+        ? "max-w-2xl"
+        : collectionSlug === "locations"
+          ? "max-w-5xl"
+          : ["portfolio-writing", "blog-posts"].includes(collectionSlug)
+            ? "max-w-6xl"
+            : collectionSlug === "portfolio-games"
+              ? "max-w-3xl"
+              : [
+                    "commission-addons",
+                    "commission-styles",
+                    "commission-pictures",
+                    "relationship-types",
+                  ].includes(collectionSlug)
+                ? "max-w-2xl"
+                : "max-w-4xl";
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-hidden bg-slate-950/72 backdrop-blur-sm sm:items-center sm:p-4">
+    <div className="animate-fadeIn fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
       <button
-        aria-label="Close editor"
+        aria-label="Close and discard changes"
         className="absolute inset-0 cursor-default"
         onClick={onClose}
         type="button"
       />
       <section
+        ref={dialogRef}
+        data-cms-dialog
+        tabIndex={-1}
         aria-label={title}
         aria-modal="true"
-        className={`animate-slideUp relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-t-[1.75rem] border border-white/10 shadow-[0_32px_100px_rgba(2,6,23,0.62)] sm:h-[min(94dvh,62rem)] sm:w-[min(96vw,88rem)] sm:rounded-[1.75rem] ${
-          variant === "blog"
-            ? "bg-[#fffaf6] dark:bg-zinc-950"
-            : "bg-white dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.055),transparent_28%),linear-gradient(180deg,#111827,#0b1220)]"
-        }`}
+        className={`animate-slideUp relative flex h-[100dvh] w-full flex-col overflow-hidden ${maxWidth} ${variant === "blog" ? "rounded-t-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,_rgba(255,252,249,0.98),_rgba(247,242,236,0.96))] shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-[2rem] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,_rgba(22,22,24,0.98),_rgba(10,10,12,0.98))]" : "rounded-t-2xl bg-white sm:h-auto sm:max-h-[90vh] sm:rounded-lg dark:bg-gray-800"}`}
         role="dialog"
       >
-        <button
-          aria-label="Close editor"
-          className="absolute top-3 right-3 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 shadow-sm backdrop-blur transition hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-800 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-950/85 dark:text-slate-300 dark:hover:border-cyan-300/45 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-100"
-          onClick={onClose}
-          title="Close"
-          type="button"
-        >
-          <X className="h-4 w-4" />
-        </button>
         {children}
       </section>
     </div>

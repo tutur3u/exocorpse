@@ -1,5 +1,6 @@
 "use client";
 
+import CmsRelationshipTypesGallery from "./CmsRelationshipTypesGallery";
 import CmsEntryCard from "@/components/admin/cms-management/CmsEntryCard";
 import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import SortableList, {
@@ -37,6 +38,8 @@ export default function CmsEntryGallery({
   initialRelationTargetId,
   relationFilter,
   onCreate,
+  onDelete,
+  onContextChange,
   onOpenCollection,
   onReorder,
   onSelect,
@@ -52,6 +55,8 @@ export default function CmsEntryGallery({
   entries: ExocorpseCmsEntry[];
   initialRelationTargetId?: string;
   relationFilter?: CmsEntryGalleryFilter;
+  onDelete: (entryId: string) => void;
+  onContextChange?: (entryId: string | null, relationKey: string) => void;
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
   onOpenCollection: (
     slug: string,
@@ -72,6 +77,7 @@ export default function CmsEntryGallery({
   const [relationTargetId, setRelationTargetId] = useState(
     initialRelationTargetId ?? "all",
   );
+  const [worldFilters, setWorldFilters] = useState<string[]>([]);
   const [storyTargetId, setStoryTargetId] = useState("all");
   const itemLabel = collectionItemLabel(collection);
   const worldsCollection = studio.collections.find(
@@ -120,13 +126,27 @@ export default function CmsEntryGallery({
             (worldId) => worldStoryIds.get(worldId) === storyTargetId,
           ),
       )
+      .filter(
+        (entry) =>
+          !worldFilters.length ||
+          relationFilter?.entryTargetIds[entry.id]?.some((id) =>
+            worldFilters.includes(id),
+          ),
+      )
       .sort((left, right) => {
         if (left.sort_order !== right.sort_order) {
           return left.sort_order - right.sort_order;
         }
         return left.title.localeCompare(right.title);
       });
-  }, [entries, relationFilter, relationTargetId, storyTargetId, worldStoryIds]);
+  }, [
+    entries,
+    relationFilter,
+    relationTargetId,
+    storyTargetId,
+    worldStoryIds,
+    worldFilters,
+  ]);
 
   const mediaByEntry = useMemo(() => {
     const assetsByEntry = new Map<string, ExocorpseCmsAsset[]>();
@@ -145,12 +165,25 @@ export default function CmsEntryGallery({
     );
   }, [assets, collection, entries]);
 
+  if (collection.slug === "relationship-types")
+    return (
+      <CmsRelationshipTypesGallery
+        entries={entries}
+        onCreate={() => onCreate()}
+        onSelect={onSelect}
+        onDelete={onDelete}
+      />
+    );
+
   if (sectionKey === "blog-posts") {
     return (
       <CmsBlogEntryGallery
+        onCreate={() => onCreate()}
+        blocks={studio.blocks}
         assets={assets}
         entries={entries}
         onSelect={onSelect}
+        onDelete={onDelete}
         onSetVisibility={onSetVisibility}
       />
     );
@@ -164,6 +197,7 @@ export default function CmsEntryGallery({
         entries={entries}
         onCreate={onCreate}
         onSelect={onSelect}
+        onDelete={onDelete}
       />
     );
   }
@@ -177,6 +211,7 @@ export default function CmsEntryGallery({
         onCreate={onCreate}
         onReorder={onReorder}
         onSelect={onSelect}
+        onDelete={onDelete}
       />
     );
   }
@@ -192,6 +227,7 @@ export default function CmsEntryGallery({
         onCreate={onCreate}
         onReorder={onReorder}
         onSelect={onSelect}
+        onDelete={onDelete}
         studio={studio}
       />
     );
@@ -207,6 +243,7 @@ export default function CmsEntryGallery({
         onCreate={() => onCreate()}
         onReorder={onReorder}
         onSelect={onSelect}
+        onDelete={onDelete}
         studio={studio}
       />
     );
@@ -214,53 +251,31 @@ export default function CmsEntryGallery({
 
   return (
     <section className="space-y-5">
-      {relationFilter &&
-      usesStoryAndWorldFilters(collection.slug, sectionKey) ? (
-        <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-sm dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.09),transparent_32%),radial-gradient(circle_at_top_right,rgba(217,70,239,0.07),transparent_26%),linear-gradient(180deg,rgba(8,12,22,0.98),rgba(5,8,15,0.98))]">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
-                <SlidersHorizontal className="h-4 w-4 text-cyan-500" />
-                Find characters
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Narrow the list by story and world.
-              </p>
-            </div>
-            <span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-400">
-              {filteredEntries.length} shown
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              <span className="mb-2 block">Story</span>
+      {collection.slug === "characters" || collection.slug === "factions" ? (
+        <>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {collection.slug === "factions"
+                  ? "Select a Story"
+                  : "Filter by Story (optional)"}
+              </span>
               <select
-                className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 onChange={(event) => {
                   setStoryTargetId(event.target.value);
                   setRelationTargetId("all");
+                  setWorldFilters([]);
+                  onContextChange?.(null, "world");
                 }}
                 value={storyTargetId}
               >
-                <option value="all">All Stories</option>
-                {storyOptions.map((story) => (
-                  <option key={story.id} value={story.id}>
-                    {story.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              <span className="mb-2 block">World</span>
-              <select
-                className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-45 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
-                disabled={storyTargetId === "all"}
-                onChange={(event) => setRelationTargetId(event.target.value)}
-                value={relationTargetId}
-              >
-                <option value="all">All Worlds</option>
-                {availableRelationOptions.map((option) => (
+                <option value="all">
+                  {collection.slug === "factions"
+                    ? "-- Choose a story --"
+                    : "All Stories"}
+                </option>
+                {storyOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.title}
                   </option>
@@ -268,33 +283,95 @@ export default function CmsEntryGallery({
               </select>
             </label>
           </div>
-        </div>
-      ) : relationFilter ? (
-        <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.95))] p-5 shadow-sm dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.09),transparent_32%),radial-gradient(circle_at_top_right,rgba(217,70,239,0.07),transparent_26%),linear-gradient(180deg,rgba(8,12,22,0.98),rgba(5,8,15,0.98))]">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-cyan-300/15 via-cyan-300/70 to-fuchsia-300/45" />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-slate-950 dark:text-[#fff6e8]">
-                <SlidersHorizontal className="h-4 w-4 text-cyan-500" />
-                Find {collection.title.toLowerCase()}
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Choose a {relationFilter.label.toLowerCase()} to narrow the
-                list.
-              </p>
+          {collection.slug === "factions" ? (
+            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium">
+                  Select a World
+                </span>
+                <select
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800"
+                  disabled={storyTargetId === "all"}
+                  onChange={(event) => {
+                    setRelationTargetId(event.target.value);
+                    onContextChange?.(
+                      event.target.value === "all" ? null : event.target.value,
+                      "world",
+                    );
+                  }}
+                  value={relationTargetId}
+                >
+                  <option value="all">-- Choose a world --</option>
+                  {availableRelationOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
-            <span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-400">
-              {filteredEntries.length} shown
+          ) : storyTargetId !== "all" && availableRelationOptions.length ? (
+            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-950">
+              <p className="mb-3 text-sm font-medium">
+                Filter by Worlds (
+                {worldFilters.length
+                  ? `${worldFilters.length} selected`
+                  : "All worlds"}
+                )
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableRelationOptions.map((option) => (
+                  <button
+                    className={`rounded-full px-4 py-2 text-sm font-medium ${worldFilters.includes(option.id) ? "bg-linear-to-r from-blue-600 to-cyan-600 text-white shadow-md" : "border border-gray-300 bg-white text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"}`}
+                    key={option.id}
+                    onClick={() =>
+                      setWorldFilters((ids) =>
+                        ids.includes(option.id)
+                          ? ids.filter((id) => id !== option.id)
+                          : [...ids, option.id],
+                      )
+                    }
+                    type="button"
+                  >
+                    {option.title}
+                  </button>
+                ))}
+                {worldFilters.length ? (
+                  <button
+                    className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400"
+                    onClick={() => setWorldFilters([])}
+                    type="button"
+                  >
+                    Clear Filters
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : relationFilter && !initialRelationTargetId ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Filter by {relationFilter.label}
+              {collection.slug === "worlds" ? " (Optional)" : ""}
             </span>
-          </div>
-          <label className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-300">
-            <span className="sr-only">Filter by {relationFilter.label}</span>
             <select
-              className="h-11 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 shadow-inner outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
-              onChange={(event) => setRelationTargetId(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              onChange={(event) => {
+                setRelationTargetId(event.target.value);
+                onContextChange?.(
+                  event.target.value === "all" ? null : event.target.value,
+                  collection.slug === "worlds"
+                    ? "story"
+                    : collection.slug === "locations"
+                      ? "world"
+                      : relationFilter.label.toLowerCase(),
+                );
+              }}
               value={relationTargetId}
             >
-              <option value="all">All {collection.title.toLowerCase()}</option>
+              <option value="all">All {collection.title}</option>
               {relationFilter.options.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.title}
@@ -304,93 +381,135 @@ export default function CmsEntryGallery({
           </label>
         </div>
       ) : null}
-
-      {filteredEntries.length ? (
-        <SortableList
-          className="grid items-stretch gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3"
-          getId={(entry) => entry.id}
-          items={filteredEntries}
-          layout="grid"
-          onReorder={(next) =>
-            onReorder(mergeVisibleOrder(entries, next, (entry) => entry.id))
-          }
-        >
-          {(entry) => {
-            const index = filteredEntries.findIndex(
-              (item) => item.id === entry.id,
-            );
-            const media = mediaByEntry.get(entry.id);
-            const secondaryActions =
-              collection.slug === "factions"
-                ? [
-                    {
-                      label: "Manage Members",
-                      onClick: () =>
-                        onOpenCollection(
-                          "character-factions",
-                          entry.id,
-                          "faction",
-                        ),
-                      tone: "purple" as const,
-                    },
-                  ]
-                : collection.slug === "locations"
-                  ? [
-                      {
-                        label: "Manage Gallery",
-                        onClick: () =>
-                          onOpenCollection(
-                            "location-gallery",
-                            entry.id,
-                            "location",
-                          ),
-                        tone: "blue" as const,
-                      },
-                    ]
-                  : [];
-            return (
-              <CmsEntryCard
-                avatarAsset={media?.avatar}
-                collection={collection}
-                eager={index < 3}
-                entry={entry}
-                key={entry.id}
-                onEdit={() => onSelect(entry.id)}
-                publicPath={cmsEntryPublicPath(collection.slug, entry, studio)}
-                previewAsset={media?.preview}
-                secondaryActions={secondaryActions}
-                supportsImages={supportsImages}
-                theme={theme}
-              />
-            );
-          }}
-        </SortableList>
-      ) : (
-        <div className="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center dark:border-gray-800 dark:bg-gray-950">
-          <div
-            className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${theme.emptyIcon}`}
-          >
-            <FilePlus2 className="h-8 w-8" />
-          </div>
-          <p className="font-medium text-zinc-700 dark:text-zinc-300">
-            {entries.length ? "No matching items" : `No ${itemLabel} yet`}
+      {collection.slug === "factions" && relationTargetId === "all" ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-gray-950">
+          <h3 className="mb-2 text-lg font-semibold">
+            Select a world to manage factions
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Choose a story and world from the dropdowns above
           </p>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {entries.length
-              ? `No ${collection.title.toLowerCase()} match this filter.`
-              : `Add your first ${itemLabel} when you are ready.`}
-          </p>
-          {!entries.length ? (
-            <button
-              className={`mt-5 inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
-              onClick={() => onCreate()}
-              type="button"
-            >
-              <FilePlus2 className="h-4 w-4" />
-              Add {itemLabel}
-            </button>
-          ) : null}
         </div>
+      ) : (
+        <>
+          {filteredEntries.length ? (
+            <SortableList
+              className="grid items-stretch gap-6 @2xl:grid-cols-2 @5xl:grid-cols-3"
+              getId={(entry) => entry.id}
+              items={filteredEntries}
+              layout="grid"
+              onReorder={(next) =>
+                onReorder(mergeVisibleOrder(entries, next, (entry) => entry.id))
+              }
+            >
+              {(entry) => {
+                const index = filteredEntries.findIndex(
+                  (item) => item.id === entry.id,
+                );
+                const media = mediaByEntry.get(entry.id);
+                const secondaryActions =
+                  collection.slug === "characters"
+                    ? [
+                        {
+                          label: "Gallery",
+                          onClick: () =>
+                            onOpenCollection(
+                              "character-gallery",
+                              entry.id,
+                              "character",
+                            ),
+                          tone: "pink" as const,
+                        },
+                        {
+                          label: "Relationships",
+                          onClick: () =>
+                            onOpenCollection(
+                              "character-relationships",
+                              entry.id,
+                              "character-a",
+                            ),
+                          tone: "purple" as const,
+                        },
+                      ]
+                    : collection.slug === "factions"
+                      ? [
+                          {
+                            label: "Manage Members",
+                            onClick: () =>
+                              onOpenCollection(
+                                "character-factions",
+                                entry.id,
+                                "faction",
+                              ),
+                            tone: "purple" as const,
+                          },
+                        ]
+                      : collection.slug === "locations"
+                        ? [
+                            {
+                              label: "Manage Gallery",
+                              onClick: () =>
+                                onOpenCollection(
+                                  "location-gallery",
+                                  entry.id,
+                                  "location",
+                                ),
+                              tone: "blue" as const,
+                            },
+                          ]
+                        : [];
+                return (
+                  <CmsEntryCard
+                    avatarAsset={media?.avatar}
+                    collection={collection}
+                    eager={index < 3}
+                    entry={entry}
+                    key={entry.id}
+                    onEdit={() => onSelect(entry.id)}
+                    onDelete={() => onDelete(entry.id)}
+                    publicPath={cmsEntryPublicPath(
+                      collection.slug,
+                      entry,
+                      studio,
+                    )}
+                    previewAsset={media?.preview}
+                    secondaryActions={secondaryActions}
+                    supportsImages={supportsImages}
+                    theme={theme}
+                  />
+                );
+              }}
+            </SortableList>
+          ) : (
+            <div className="rounded-lg border border-gray-200 bg-white px-6 py-12 text-center dark:border-gray-800 dark:bg-gray-950">
+              <div
+                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${theme.emptyIcon}`}
+              >
+                <FilePlus2 className="h-8 w-8" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {entries.length
+                  ? "No matching items"
+                  : `No ${collection.title.toLowerCase()} yet`}
+              </h3>
+              <p className="mb-6 text-gray-600 dark:text-gray-400">
+                {entries.length
+                  ? `No ${collection.title.toLowerCase()} match this filter.`
+                  : `Create your first ${itemLabel} to get started`}
+              </p>
+              {!entries.length ? (
+                <button
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                  onClick={() => onCreate()}
+                  type="button"
+                >
+                  Create Your First{" "}
+                  {itemLabel.replace(/^./, (letter) => letter.toUpperCase())}
+                </button>
+              ) : null}
+            </div>
+          )}
+        </>
       )}
     </section>
   );

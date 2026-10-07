@@ -66,7 +66,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     description: "Manage all characters across your worlds.",
     eyebrow: "Character archive",
     key: "characters",
-    primaryCollectionSlugs: ["characters"],
+    primaryCollectionSlugs: ["characters", "relationship-types"],
     title: "Characters",
   },
   cms: {
@@ -124,11 +124,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
       "Manage your commission services, styles, and example pictures.",
     eyebrow: "Commission catalogue",
     key: "services",
-    primaryCollectionSlugs: [
-      "commission-services",
-      "commission-styles",
-      "commission-pictures",
-    ],
+    primaryCollectionSlugs: ["commission-services"],
     title: "Commission Services",
   },
   stories: {
@@ -153,7 +149,7 @@ export const ADMIN_CMS_SECTIONS: Record<AdminCmsSectionKey, AdminCmsSection> = {
     description: "Manage worlds within your stories.",
     eyebrow: "Worldbuilding atlas",
     key: "worlds",
-    primaryCollectionSlugs: ["worlds", "timelines", "events"],
+    primaryCollectionSlugs: ["worlds"],
     title: "Worlds",
   },
 };

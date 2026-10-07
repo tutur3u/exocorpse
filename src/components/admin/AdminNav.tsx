@@ -127,7 +127,7 @@ export default function AdminNav({
         {/* Dashboard Link */}
         <Link
           href="/admin"
-          className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             pathname === "/admin"
               ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
@@ -135,16 +135,6 @@ export default function AdminNav({
         >
           Dashboard
         </Link>
-
-        <a
-          href={tasksHref}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-        >
-          <ListTodo className="size-4" aria-hidden="true" />
-          Tasks
-        </a>
 
         {/* Dropdown Sections */}
         {navSections.map((section) => {
@@ -162,7 +152,7 @@ export default function AdminNav({
               <button
                 type="button"
                 onClick={() => setOpenDropdown(isOpen ? null : section.label)}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   active
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                     : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
@@ -180,6 +170,16 @@ export default function AdminNav({
 
               {isOpen && (
                 <div className="absolute top-full left-0 z-50 mt-1 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                  {section.label === "Advanced" && (
+                    <a
+                      href={tasksHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      <ListTodo className="size-4" aria-hidden="true" /> Tasks
+                    </a>
+                  )}
                   {section.items.map((item) => {
                     const itemActive = isActive(item.href, item.exact);
                     return (
@@ -235,17 +235,6 @@ export default function AdminNav({
                 Dashboard
               </Link>
 
-              <a
-                href={tasksHref}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-4 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-              >
-                <ListTodo className="size-5" aria-hidden="true" />
-                Tasks
-              </a>
-
               {navSections.map((section) => {
                 const isExpanded = expandedMobileSections.includes(
                   section.label,
@@ -272,6 +261,18 @@ export default function AdminNav({
 
                     {isExpanded && (
                       <div className="mt-1 ml-4 flex flex-col gap-1 border-l-2 border-gray-100 pl-4 dark:border-gray-800">
+                        {section.label === "Advanced" && (
+                          <a
+                            href={tasksHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                          >
+                            <ListTodo className="size-4" aria-hidden="true" />{" "}
+                            Tasks
+                          </a>
+                        )}
                         {section.items.map((item) => {
                           const itemActive = isActive(item.href, item.exact);
                           return (

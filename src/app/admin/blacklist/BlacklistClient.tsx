@@ -170,10 +170,11 @@ export default function BlacklistClient({
             }}
             type="button"
           >
-            + Add person
+            + Add to Blacklist
           </button>
         }
-        title="Blacklist"
+        title="Blacklist Management"
+        description="Manage blacklisted users and their reasons"
       />
 
       {/* Search */}

@@ -35,7 +35,7 @@ describe("legacy CMS editor navigation", () => {
     ]);
   });
 
-  test("groups the character editor into four focused sections", () => {
+  test("restores all seven legacy character tabs", () => {
     const tabs = legacyEditorTabs({
       assetCount: 2,
       blockCount: 1,
@@ -48,10 +48,13 @@ describe("legacy CMS editor navigation", () => {
     });
 
     expect(tabs.map((tab) => tab.label)).toEqual([
-      "Basic Info & Publishing",
-      "Physical & Personality",
-      "Relationships, Lore & Abilities",
-      "Gallery & Fanwork Policy",
+      "Basic Info",
+      "Physical",
+      "Personality",
+      "History & Lore",
+      "Abilities",
+      "Visuals",
+      "Outfits",
     ]);
   });
 
@@ -96,27 +99,29 @@ describe("legacy CMS editor navigation", () => {
     ]);
   });
 
-  test("uses the old visual label for world, faction, and location editors", () => {
-    for (const slug of ["worlds", "factions", "locations"]) {
-      const tabs = legacyEditorTabs({
-        assetCount: 1,
-        blockCount: 0,
-        collection: collection(slug),
-        connectionCount: 0,
-        fields,
-        hasAssets: true,
-        hasBlocks: false,
-        hasConnections: false,
-      });
-      expect(tabs.map((tab) => tab.label)).toEqual([
-        "Basic Info",
-        "Visuals",
-        "Publishing",
-      ]);
+  test("keeps each wiki editor's distinct legacy sections", () => {
+    const expected = {
+      worlds: ["Basic Info", "Visuals", "Content"],
+      factions: ["Basic Info", "Characteristics", "Visuals", "Content"],
+      locations: ["Basic Info", "Content", "Images", "Gallery"],
+    };
+    for (const [slug, labels] of Object.entries(expected)) {
+      expect(
+        legacyEditorTabs({
+          assetCount: 1,
+          blockCount: 0,
+          collection: collection(slug),
+          connectionCount: 0,
+          fields,
+          hasAssets: true,
+          hasBlocks: true,
+          hasConnections: false,
+        }).map((tab) => tab.label),
+      ).toEqual(labels);
     }
   });
 
-  test("puts artwork media first", () => {
+  test("keeps the single-page artwork form without extra tabs", () => {
     const tabs = legacyEditorTabs({
       assetCount: 1,
       blockCount: 0,
@@ -128,14 +133,10 @@ describe("legacy CMS editor navigation", () => {
       hasConnections: false,
     });
 
-    expect(tabs.map((tab) => tab.label)).toEqual([
-      "Media",
-      "Basic Info",
-      "Publishing",
-    ]);
+    expect(tabs).toEqual([]);
   });
 
-  test("keeps character tagging beside gallery artwork", () => {
+  test("keeps the gallery form on one page", () => {
     const tabs = legacyEditorTabs({
       assetCount: 1,
       blockCount: 0,
@@ -147,10 +148,6 @@ describe("legacy CMS editor navigation", () => {
       hasConnections: true,
     });
 
-    expect(tabs.map((tab) => tab.label)).toEqual([
-      "Media",
-      "Basic Info",
-      "Publishing",
-    ]);
+    expect(tabs).toEqual([]);
   });
 });

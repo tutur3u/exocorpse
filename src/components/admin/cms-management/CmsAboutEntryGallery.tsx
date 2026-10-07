@@ -58,6 +58,7 @@ export default function CmsAboutEntryGallery({
   entries: ExocorpseCmsEntry[];
   onCreate: (profileData?: Record<string, ExocorpseJson>) => void;
   onSelect: (entryId: string) => void;
+  onDelete?: (entryId: string) => void;
 }) {
   if (collection.slug === "about") {
     const profile = entries[0];

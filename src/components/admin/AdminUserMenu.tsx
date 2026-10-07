@@ -22,7 +22,6 @@ import { Input } from "@tuturuuu/ui/input";
 import { Label } from "@tuturuuu/ui/label";
 import {
   Camera,
-  ChevronDown,
   ExternalLink,
   Loader2,
   LogOut,
@@ -291,16 +290,11 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="flex max-w-52 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/70 px-1.5 py-1 text-left transition hover:border-cyan-900 hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
+            className="rounded-lg text-sm text-gray-600 transition-colors hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-gray-400 dark:hover:text-white"
             type="button"
+            aria-label="Account and profile"
           >
-            <UserAvatar compact user={user} />
-            <span className="hidden min-w-0 flex-1 sm:block">
-              <span className="block max-w-32 truncate text-xs font-semibold text-slate-100">
-                {primary}
-              </span>
-            </span>
-            <ChevronDown className="size-3.5 text-slate-500" />
+            {user.email ?? primary}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
