@@ -1,52 +1,13 @@
 "use client";
 
-import { ChevronDown, ListTodo, Menu, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, ListTodo, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-type NavItem = {
-  href: string;
-  label: string;
-  exact?: boolean;
-};
+import { adminNavigation } from "./admin-navigation";
 
-type NavSection = {
-  label: string;
-  items: NavItem[];
-};
-
-const navSections: NavSection[] = [
-  {
-    label: "Wiki",
-    items: [
-      { href: "/admin/stories", label: "Stories" },
-      { href: "/admin/worlds", label: "Worlds" },
-      { href: "/admin/characters", label: "Characters" },
-      { href: "/admin/factions", label: "Factions" },
-      { href: "/admin/locations", label: "Locations" },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      { href: "/admin/about", label: "About Me" },
-      { href: "/admin/portfolio", label: "Portfolio" },
-      { href: "/admin/blog-posts", label: "Blog Posts" },
-      { href: "/admin/services", label: "Commission Services" },
-      { href: "/admin/addons", label: "Add-ons" },
-      { href: "/admin/blacklist", label: "Blacklist" },
-    ],
-  },
-  {
-    label: "Advanced",
-    items: [
-      { href: "/admin/cms", label: "Content library" },
-      { href: "/admin/drive", label: "Tuturuuu Drive" },
-      { href: "/admin/members", label: "Team members" },
-    ],
-  },
-];
+const navSections = adminNavigation;
 
 export default function AdminNav({
   children,
@@ -70,8 +31,10 @@ export default function AdminNav({
     return pathname.startsWith(href);
   };
 
-  const isSectionActive = (items: NavItem[]) => {
-    return items.some((item) => isActive(item.href, item.exact));
+  const isSectionActive = (
+    items: (typeof adminNavigation)[number]["items"],
+  ) => {
+    return items.some((item) => isActive(item.href));
   };
 
   // Close dropdown when clicking outside
@@ -88,6 +51,17 @@ export default function AdminNav({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenDropdown(null);
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
   }, []);
 
   // Prevent scrolling when mobile menu is open
@@ -127,13 +101,14 @@ export default function AdminNav({
         {/* Dashboard Link */}
         <Link
           href="/admin"
-          className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+          aria-current={pathname === "/admin" ? "page" : undefined}
+          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             pathname === "/admin"
               ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
           }`}
         >
-          Dashboard
+          <LayoutDashboard className="size-4" aria-hidden="true" /> Dashboard
         </Link>
 
         {/* Dropdown Sections */}
@@ -181,18 +156,24 @@ export default function AdminNav({
                     </a>
                   )}
                   {section.items.map((item) => {
-                    const itemActive = isActive(item.href, item.exact);
+                    const itemActive = isActive(item.href);
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setOpenDropdown(null)}
-                        className={`block px-4 py-2 text-sm transition-colors ${
+                        aria-current={itemActive ? "page" : undefined}
+                        title={item.description}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
                           itemActive
                             ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                             : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                         }`}
                       >
+                        <item.icon
+                          className="size-4 shrink-0"
+                          aria-hidden="true"
+                        />
                         {item.label}
                       </Link>
                     );
@@ -226,12 +207,13 @@ export default function AdminNav({
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
                   pathname === "/admin"
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                     : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
                 }`}
               >
+                <LayoutDashboard className="size-4" aria-hidden="true" />{" "}
                 Dashboard
               </Link>
 
@@ -274,18 +256,24 @@ export default function AdminNav({
                           </a>
                         )}
                         {section.items.map((item) => {
-                          const itemActive = isActive(item.href, item.exact);
+                          const itemActive = isActive(item.href);
                           return (
                             <Link
                               key={item.href}
                               href={item.href}
                               onClick={() => setMobileMenuOpen(false)}
-                              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                              aria-current={itemActive ? "page" : undefined}
+                              title={item.description}
+                              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                 itemActive
                                   ? "text-blue-600 dark:text-blue-400"
                                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                               }`}
                             >
+                              <item.icon
+                                className="size-4 shrink-0"
+                                aria-hidden="true"
+                              />
                               {item.label}
                             </Link>
                           );

@@ -39,6 +39,7 @@ export default function CmsEditorTabs({
         >
           {tabs.map((tab) => (
             <option key={tab.id} value={tab.id}>
+              <tab.icon className="size-4" aria-hidden="true" />
               {tab.label}
             </option>
           ))}
@@ -53,13 +54,14 @@ export default function CmsEditorTabs({
           <button
             aria-controls={`cms-${tab.id}-panel`}
             aria-selected={activeTab === tab.id}
-            className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.id ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
+            className={`inline-flex shrink-0 items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${activeTab === tab.id ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}`}
             id={`cms-${tab.id}-tab`}
             key={tab.id}
             onClick={() => onChange(tab.id)}
             role="tab"
             type="button"
           >
+            <tab.icon className="size-4" aria-hidden="true" />
             {tab.label}
           </button>
         ))}

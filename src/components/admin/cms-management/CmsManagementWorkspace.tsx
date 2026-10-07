@@ -11,11 +11,19 @@ import {
 import { buildCmsEntryGalleryFilter } from "@/components/admin/cms-management/gallery-utils";
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import { useCmsManagementWorkspace } from "@/components/admin/cms-management/useCmsManagementWorkspace";
+import { cmsCollectionIcon } from "@/components/admin/admin-navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type { AdminCmsSection } from "@/lib/admin-cms-sections";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
-import { ChevronDown, Library, RefreshCw, Settings2, X } from "lucide-react";
+import {
+  ChevronDown,
+  Library,
+  Plus,
+  RefreshCw,
+  Settings2,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function CmsManagementWorkspace({
@@ -282,8 +290,11 @@ export default function CmsManagementWorkspace({
     const count = studio.entries.filter(
       (entry) => entry.collection_id === item.id,
     ).length;
+    const Icon = cmsCollectionIcon(item.slug);
     return (
       <button
+        aria-current={item.id === collection.id ? "page" : undefined}
+        title={collectionTabLabel(item)}
         className={`flex shrink-0 items-center gap-2 text-sm font-medium transition ${
           variant === "tab"
             ? "border-b-2 px-1 py-3 whitespace-nowrap"
@@ -306,6 +317,7 @@ export default function CmsManagementWorkspace({
         }}
         type="button"
       >
+        <Icon className="size-3.5 shrink-0" aria-hidden="true" />
         {collectionTabLabel(item)}
         {section.key === "cms" ? (
           <span className="rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] opacity-75">
@@ -385,18 +397,19 @@ export default function CmsManagementWorkspace({
     </details>
   ) : null;
   return (
-    <div className="@container space-y-6">
+    <div className="@container space-y-4">
       {section.key !== "blog-posts" ? (
         <AdminPageHeader
           actions={
             <>
               {canCreate ? (
                 <button
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 ${theme.button}`}
+                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white transition-colors ${theme.button}`}
                   onClick={beginCreateEntry}
                   type="button"
                 >
-                  + {createActionLabel}
+                  <Plus className="size-4" aria-hidden="true" />{" "}
+                  {createActionLabel}
                 </button>
               ) : null}
               {section.key === "cms" ? (

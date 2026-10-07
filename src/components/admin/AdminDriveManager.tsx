@@ -158,7 +158,7 @@ export default function AdminDriveManager({
     initialData: initialData.analytics,
     queryFn: async () => {
       const result = await jsonRequest<{
-        data: AdminDrivePayload["analytics"];
+        data: NonNullable<AdminDrivePayload["analytics"]>;
       }>("/api/admin/drive?analytics=1");
       return result.data;
     },
@@ -386,17 +386,19 @@ export default function AdminDriveManager({
             {
               icon: HardDrive,
               label: "Used",
-              value: formatBytes(analytics.totalSize),
+              value: analytics ? formatBytes(analytics.totalSize) : "—",
             },
             {
               icon: File,
               label: "Files",
-              value: analytics.fileCount.toLocaleString(),
+              value: analytics ? analytics.fileCount.toLocaleString() : "—",
             },
             {
               icon: BarChart3,
               label: "Workspace quota",
-              value: `${analytics.usagePercentage.toFixed(1)}%`,
+              value: analytics
+                ? `${analytics.usagePercentage.toFixed(1)}%`
+                : "—",
             },
             {
               icon: Cloud,
@@ -419,10 +421,32 @@ export default function AdminDriveManager({
         <div className="h-1 bg-slate-800">
           <div
             className="h-full bg-linear-to-r from-cyan-500 to-violet-500"
-            style={{ width: `${Math.max(analytics.usagePercentage, 0.4)}%` }}
+            style={{
+              width: `${Math.min(100, Math.max(analytics?.usagePercentage ?? 0, 0))}%`,
+            }}
           />
         </div>
       </section>
+
+      {analyticsQuery.isPending || analyticsQuery.isError ? (
+        <div
+          role="status"
+          className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
+        >
+          {analyticsQuery.isError
+            ? "Storage statistics could not load. File browsing is still available."
+            : "Loading storage statistics…"}
+          {analyticsQuery.isError ? (
+            <button
+              type="button"
+              className="underline hover:text-blue-600"
+              onClick={() => void analyticsQuery.refetch()}
+            >
+              Retry statistics
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
         <div className="space-y-4 border-b border-gray-200 p-4 sm:p-5 dark:border-gray-800">

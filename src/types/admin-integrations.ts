@@ -57,6 +57,6 @@ export type AdminDriveListing = {
 };
 
 export type AdminDrivePayload = {
-  analytics: AdminDriveAnalytics;
+  analytics?: AdminDriveAnalytics;
   listing: AdminDriveListing;
 };

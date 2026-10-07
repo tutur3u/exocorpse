@@ -79,16 +79,9 @@ export function removeExocorpseTeamRoleMember(roleId: string, userId: string) {
 export async function getExocorpseDrive(
   searchParams = new URLSearchParams(),
 ): Promise<AdminDrivePayload> {
-  const query = searchParams.toString();
-  const [listing, analytics] = await Promise.all([
-    request<{ data: AdminDriveListing }>(
-      `${externalProjectPath("/storage")}${query ? `?${query}` : ""}`,
-    ),
-    request<{ data: AdminDriveAnalytics }>(
-      externalProjectPath("/storage-analytics"),
-    ),
-  ]);
-  return { analytics: analytics.data, listing: listing.data };
+  // Statistics load independently so a slow bucket scan cannot block browsing.
+  const listing = await getExocorpseDriveListing(searchParams);
+  return { listing: listing.data };
 }
 
 export function getExocorpseDriveListing(searchParams: URLSearchParams) {

@@ -175,7 +175,22 @@ export function legacyEditorTabs({
     return historicalTabs[collection.slug].map(([id, label]) => ({
       id,
       label,
-      icon: FileText,
+      icon: (
+        {
+          basic: FileText,
+          physical: ScanFace,
+          personality: BookOpenText,
+          abilities: SlidersHorizontal,
+          media: Palette,
+          content: BookOpenText,
+          gallery: Images,
+          styles: ImageIcon,
+          connections: Link2,
+          settings: Settings2,
+          details: SlidersHorizontal,
+          fanwork: BookOpenText,
+        } satisfies Record<CmsEditorTab, LucideIcon>
+      )[id],
     }));
   if (
     [

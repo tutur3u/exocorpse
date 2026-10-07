@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, ExternalLink, Trash2, Check } from "lucide-react";
+import { Copy, ExternalLink, Trash2, Check, Pencil } from "lucide-react";
 import { productionUrl } from "./cms-entry-public-url";
 import { useState } from "react";
 
@@ -21,11 +21,11 @@ export default function CmsLegacyCardActions({
       onKeyDown={(event) => event.stopPropagation()}
     >
       <button
-        className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
         onClick={onEdit}
         type="button"
       >
-        Edit
+        <Pencil className="size-3.5" aria-hidden="true" /> Edit
       </button>
       {path ? (
         <>
@@ -36,13 +36,13 @@ export default function CmsLegacyCardActions({
               await navigator.clipboard.writeText(productionUrl(path));
               setCopied(true);
             }}
-            title={copied ? "Copied" : "Copy link"}
+            title={copied ? "Public link copied" : "Copy public link"}
             type="button"
           >
             {copied ? (
-              <Check className="h-4 w-4" />
+              <Check className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <Copy className="h-4 w-4" />
+              <Copy className="h-4 w-4" aria-hidden="true" />
             )}
           </button>
           <a
@@ -51,9 +51,9 @@ export default function CmsLegacyCardActions({
             href={productionUrl(path)}
             rel="noreferrer"
             target="_blank"
-            title="View"
+            title="Open on the public site"
           >
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         </>
       ) : null}
@@ -62,10 +62,10 @@ export default function CmsLegacyCardActions({
           aria-label="Delete"
           className="rounded-lg bg-red-100 p-2 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
           onClick={onDelete}
-          title="Delete"
+          title="Delete this item"
           type="button"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
         </button>
       ) : null}
     </div>
