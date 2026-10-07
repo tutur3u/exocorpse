@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
-import { aboutPageData } from "./CmsLegacyAboutWorkspace";
+import { aboutEntrySummary, aboutPageData } from "./CmsLegacyAboutWorkspace";
+
+test("bounds About summaries to the CMS grapheme limit without splitting emoji", () => {
+  const body = "👨‍👩‍👧‍👦".repeat(281);
+  expect(aboutEntrySummary(body)).toBe("👨‍👩‍👧‍👦".repeat(280));
+  expect(aboutEntrySummary("   ")).toBeNull();
+  expect(aboutEntrySummary(" Short biography ")).toBe("Short biography");
+});
 
 const studio: ExocorpseCmsStudio = {
   assets: [

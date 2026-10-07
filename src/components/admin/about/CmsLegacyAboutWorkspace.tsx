@@ -105,6 +105,16 @@ const dniFields: ContentFieldConfig[] = [
 
 const EPOCH = new Date(0).toISOString();
 
+export function aboutEntrySummary(body: string): string | null {
+  const segments = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+  return (
+    Array.from(segments.segment(body.trim()))
+      .slice(0, 280)
+      .map(({ segment }) => segment)
+      .join("") || null
+  );
+}
+
 function stringValue(
   record: Record<string, ExocorpseJson | undefined>,
   key: string,
@@ -449,7 +459,9 @@ export default function CmsLegacyAboutWorkspace({
           sortOrder: settingsEntry.sort_order,
           status: settingsEntry.status,
           subtitle: settingsEntry.subtitle,
-          summary: updates.hero_bio ?? data.settings.hero_bio,
+          summary: aboutEntrySummary(
+            updates.hero_bio ?? data.settings.hero_bio,
+          ),
           title: settingsEntry.title,
         },
         entryId: settingsEntry.id,
@@ -516,7 +528,7 @@ export default function CmsLegacyAboutWorkspace({
           sortOrder: Number(updates.display_order ?? entry?.sort_order ?? 0),
           status: entry?.status ?? "published",
           subtitle: updates.subtitle ? String(updates.subtitle) : null,
-          summary: body || null,
+          summary: aboutEntrySummary(body),
           title,
         },
         entryId: entry?.id,
