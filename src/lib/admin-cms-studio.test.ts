@@ -160,4 +160,22 @@ describe("admin CMS studio selection", () => {
       selectAdminCmsStudio(studio, { ...section, collectionSlugs: [] }),
     ).toBe(studio);
   });
+
+  test("does not duplicate a world story relation already selected as source content", () => {
+    const selected = selectAdminCmsStudio(studio, {
+      ...section,
+      collectionSlugs: ["worlds", "characters"],
+    });
+
+    expect(selected.relationDefinitions?.map((item) => item.id)).toEqual([
+      "world-character",
+      "character-world",
+      "world-story",
+    ]);
+    expect(
+      selected.relationDefinitionTargets?.filter(
+        (item) => item.relation_definition_id === "world-story",
+      ),
+    ).toHaveLength(1);
+  });
 });

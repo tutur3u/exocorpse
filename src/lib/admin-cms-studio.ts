@@ -52,7 +52,15 @@ export function selectAdminCmsStudio(
           ),
       ),
   );
-  relationDefinitions.push(...storyContextDefinitions);
+  const selectedDefinitionIds = new Set(
+    relationDefinitions.map((definition) => definition.id),
+  );
+  for (const definition of storyContextDefinitions) {
+    if (!selectedDefinitionIds.has(definition.id)) {
+      relationDefinitions.push(definition);
+      selectedDefinitionIds.add(definition.id);
+    }
+  }
   const relationDefinitionIds = new Set(
     relationDefinitions.map((definition) => definition.id),
   );
