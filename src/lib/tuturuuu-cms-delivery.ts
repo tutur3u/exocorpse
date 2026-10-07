@@ -447,6 +447,9 @@ export async function getExocorpseCmsDelivery() {
         cache: "no-store",
         headers: {
           Accept: "application/json",
+          // Revalidate the upstream CDN synchronously after CMS invalidation.
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
       },
     );
