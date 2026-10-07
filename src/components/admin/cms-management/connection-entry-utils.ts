@@ -181,6 +181,13 @@ function selectedTarget(
   return studio.entries.find((entry) => entry.id === targetId);
 }
 
+function connectionSlug(title: string, targets: Array<string | undefined>) {
+  const slug = slugify(title);
+  if (slug.length <= 80) return slug;
+  const identity = targets.filter(Boolean).join("").replaceAll("-", "");
+  return `${slug.slice(0, 15)}-${identity}`;
+}
+
 export function normalizeConnectionDraft({
   collectionSlug,
   definitions,
@@ -222,10 +229,10 @@ export function normalizeConnectionDraft({
     const fullTitle = `${title} — ${label}`;
     return {
       ...draft,
-      slug: slugify(fullTitle),
+      slug: connectionSlug(fullTitle, [characterA?.id, characterB?.id]),
       status: "published" as const,
       subtitle: label,
-      title: fullTitle,
+      title: fullTitle.slice(0, 160),
     };
   }
 
@@ -239,10 +246,10 @@ export function normalizeConnectionDraft({
   const title = [character?.title, faction?.title].filter(Boolean).join(" — ");
   return {
     ...draft,
-    slug: slugify(title),
+    slug: connectionSlug(title, [character?.id, faction?.id]),
     status: "published" as const,
     subtitle: faction?.title ?? null,
-    title,
+    title: title.slice(0, 160),
   };
 }
 

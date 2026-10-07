@@ -129,6 +129,40 @@ describe("connection entry UX", () => {
     ).toBe(false);
   });
 
+  test("long character names produce bounded, distinct hidden CMS identities", () => {
+    const first = entry(
+      "11111111-1111-4111-8111-111111111111",
+      "A".repeat(160),
+      "characters",
+    );
+    const second = entry(
+      "22222222-2222-4222-8222-222222222222",
+      "B".repeat(160),
+      "characters",
+    );
+    const third = entry(
+      "33333333-3333-4333-8333-333333333333",
+      second.title,
+      "characters",
+    );
+    const normalize = (target: ExocorpseCmsEntry) =>
+      normalizeConnectionDraft({
+        collectionSlug: "character-relationships",
+        definitions,
+        draft: entryDraft(relationship, "relationships"),
+        selections: {
+          "definition-0": [first.id],
+          "definition-1": [target.id],
+          "definition-2": [rivals.id],
+        },
+        studio: { ...studio, entries: [first, second, third, rivals] },
+      });
+    const normalized = normalize(second);
+    expect(normalized.slug).toHaveLength(80);
+    expect(normalized.title).toHaveLength(160);
+    expect(normalized.slug).not.toBe(normalize(third).slug);
+  });
+
   test("uses free relationship labels without requiring a type", () => {
     expect(
       normalizeConnectionDraft({
