@@ -474,8 +474,10 @@ export async function getExocorpseCmsDelivery() {
   }
 }
 
+const getRequestCmsDelivery = cache(getExocorpseCmsDelivery);
+
 export const getExocorpseCmsCollection = cache(async function (slug: string) {
-  const delivery = await getExocorpseCmsDelivery();
+  const delivery = await getRequestCmsDelivery();
   return delivery?.collections[slug] ?? null;
 });
 

@@ -33,7 +33,9 @@ export default function ServiceDetail({
     : styles[0]; // Default to first style if no selection
 
   // Get pictures for the selected style or service-level pictures
-  const displayPictures = selectedStyle?.pictures || service.pictures || [];
+  const displayPictures = selectedStyle?.pictures?.length
+    ? selectedStyle.pictures
+    : (service.pictures ?? []);
 
   // Batch fetch all picture URLs from all styles and service
   const allPicturePaths = [

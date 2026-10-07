@@ -60,6 +60,10 @@ export default function CommissionClient({
     Error
   >({
     queryKey: ["commission-service", serviceSlug],
+    initialData:
+      initialData.selectedService?.slug === serviceSlug
+        ? initialData.selectedService
+        : undefined,
     queryFn: async () => {
       if (!serviceSlug) return null;
       return getServiceBySlug(serviceSlug);
