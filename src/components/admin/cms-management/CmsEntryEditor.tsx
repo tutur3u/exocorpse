@@ -98,6 +98,7 @@ type Props = {
   relationSelections: CmsRelationSelections;
   isDirty: boolean;
   selectedEntryId: string;
+  showPublishingControls?: boolean;
   studio: ExocorpseCmsStudio;
   theme: AdminCmsTheme;
   uploadStatus: CmsUploadStatus;
@@ -136,6 +137,7 @@ export default function CmsEntryEditor({
   pending,
   relationSelections,
   selectedEntryId,
+  showPublishingControls = false,
   isDirty,
   studio,
   uploadStatus,
@@ -816,7 +818,7 @@ export default function CmsEntryEditor({
             draft={draft}
             onChange={onDraftChange}
           />
-          {isBlog ? (
+          {isBlog || showPublishingControls ? (
             <CmsPublishingSettings draft={draft} onChange={onDraftChange} />
           ) : null}
         </>

@@ -626,6 +626,7 @@ export default function CmsManagementWorkspace({
             relationSelections={relationSelections}
             selectedEntryId={entryId}
             studio={studio}
+            showPublishingControls={section.key === "cms"}
             theme={theme}
             uploadStatus={uploadStatus}
           />
