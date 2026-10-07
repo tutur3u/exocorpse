@@ -8,11 +8,15 @@ import {
   useInitialPortfolioData,
 } from "@/contexts/InitialPortfolioDataContext";
 import { useBatchMediaUrls } from "@/hooks/useMediaUrl";
-import type {
-  ArtPiece,
-  GamePiece,
-  WritingPiece,
+import {
+  getArtPieceBySlug,
+  getWritingPieceBySlug,
+  getGamePieceBySlug,
+  type ArtPiece,
+  type GamePiece,
+  type WritingPiece,
 } from "@/lib/actions/portfolio";
+import { useQuery } from "@tanstack/react-query";
 import { markdownToPlainText } from "@/lib/markdown";
 import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
@@ -55,51 +59,42 @@ export default function PortfolioClient({
   const activeTab = params["portfolio-tab"] as "art" | "writing" | "games";
   const selectedPieceId = params["portfolio-piece"];
 
-  // Find selected pieces based on URL params
-  // First try to use server-fetched data, then fall back to client data
-  const selectedArt = useMemo(() => {
-    if (!selectedPieceId || activeTab !== "art") return null;
-    // Prefer server-fetched data if available and matches
-    if (
-      initialData.selectedArtPiece &&
-      initialData.selectedArtPiece.slug === selectedPieceId
-    ) {
-      return initialData.selectedArtPiece;
-    }
-    // Fall back to searching in the gallery list
-    return artPieces.find((a) => a.slug === selectedPieceId) ?? null;
-  }, [selectedPieceId, activeTab, artPieces, initialData.selectedArtPiece]);
-
-  const selectedWriting = useMemo(() => {
-    if (!selectedPieceId || activeTab !== "writing") return null;
-    // Prefer server-fetched data if available and matches
-    if (
-      initialData.selectedWritingPiece &&
-      initialData.selectedWritingPiece.slug === selectedPieceId
-    ) {
-      return initialData.selectedWritingPiece;
-    }
-    // Fall back to searching in the gallery list
-    return writingPieces.find((w) => w.slug === selectedPieceId) ?? null;
-  }, [
-    selectedPieceId,
-    activeTab,
-    writingPieces,
-    initialData.selectedWritingPiece,
-  ]);
-
-  const selectedGame = useMemo<GamePieceWithGallery | null>(() => {
-    if (!selectedPieceId || activeTab !== "games") return null;
-    // Prefer server-fetched data if available and matches (includes gallery images)
-    if (
-      initialData.selectedGamePiece &&
-      initialData.selectedGamePiece.slug === selectedPieceId
-    ) {
-      return initialData.selectedGamePiece;
-    }
-    // Fall back to searching in the gallery list
-    return gamePieces.find((g) => g.slug === selectedPieceId) ?? null;
-  }, [selectedPieceId, activeTab, gamePieces, initialData.selectedGamePiece]);
+  const { data: selectedArt = null } = useQuery({
+    queryKey: ["portfolio-art", selectedPieceId],
+    queryFn: () =>
+      selectedPieceId
+        ? getArtPieceBySlug(selectedPieceId)
+        : Promise.resolve(null),
+    enabled: !!selectedPieceId && activeTab === "art",
+    initialData:
+      initialData.selectedArtPiece?.slug === selectedPieceId
+        ? initialData.selectedArtPiece
+        : artPieces.find((piece) => piece.slug === selectedPieceId),
+  });
+  const { data: selectedWriting = null } = useQuery({
+    queryKey: ["portfolio-writing", selectedPieceId],
+    queryFn: () =>
+      selectedPieceId
+        ? getWritingPieceBySlug(selectedPieceId)
+        : Promise.resolve(null),
+    enabled: !!selectedPieceId && activeTab === "writing",
+    initialData:
+      initialData.selectedWritingPiece?.slug === selectedPieceId
+        ? initialData.selectedWritingPiece
+        : writingPieces.find((piece) => piece.slug === selectedPieceId),
+  });
+  const { data: selectedGame = null } = useQuery<GamePieceWithGallery | null>({
+    queryKey: ["portfolio-game", selectedPieceId],
+    queryFn: () =>
+      selectedPieceId
+        ? getGamePieceBySlug(selectedPieceId)
+        : Promise.resolve(null),
+    enabled: !!selectedPieceId && activeTab === "games",
+    initialData:
+      initialData.selectedGamePiece?.slug === selectedPieceId
+        ? initialData.selectedGamePiece
+        : gamePieces.find((piece) => piece.slug === selectedPieceId),
+  });
 
   const launchHeavenSpace = () => {
     setParams({

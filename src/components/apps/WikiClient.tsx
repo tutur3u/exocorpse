@@ -8,6 +8,7 @@ import {
   getFactionBySlugInStory,
   getFactionsByWorldSlug,
   getLocationBySlug,
+  getStoryBySlug,
   getLocationsByWorldSlug,
   getWorldsByStorySlug,
   type Character,
@@ -84,14 +85,18 @@ export default function WikiClient({
             ? "story"
             : "stories";
 
-  // Find selected story from slug
-  // First check currentStory (for unlisted stories accessed via URL)
-  // Then fall back to searching in the stories list
-  const selectedStory = storySlug
+  const initialStory = storySlug
     ? initialData.currentStory?.slug === storySlug
       ? initialData.currentStory
       : stories.find((s) => s.slug === storySlug) || null
     : null;
+  const { data: selectedStory = null } = useQuery({
+    queryKey: ["story", storySlug],
+    queryFn: () =>
+      storySlug ? getStoryBySlug(storySlug) : Promise.resolve(null),
+    initialData: initialStory ?? undefined,
+    enabled: !!storySlug,
+  });
 
   // Worlds query - load when we have a story slug
   const shouldUseInitialWorlds =
