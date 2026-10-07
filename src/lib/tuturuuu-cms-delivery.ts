@@ -439,17 +439,15 @@ export async function getExocorpseCmsDelivery() {
   try {
     const workspaceId = getExocorpseWorkspaceId();
     const apiBaseUrl = getExocorpseApiBaseUrl().replace(/\/+$/, "");
+    // Only remote-cache misses reach this fetch; bypass the upstream stale CDN copy.
     const response = await fetch(
       `${apiBaseUrl}/workspaces/${encodeURIComponent(
         workspaceId,
-      )}/external-projects/delivery`,
+      )}/external-projects/delivery?fresh=${Date.now()}`,
       {
         cache: "no-store",
         headers: {
           Accept: "application/json",
-          // Revalidate the upstream CDN synchronously after CMS invalidation.
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
         },
       },
     );
