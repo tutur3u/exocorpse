@@ -10,6 +10,7 @@ import {
   type BlacklistedUser,
 } from "@/lib/actions/blacklist";
 import toastWithSound from "@/lib/toast";
+import { publishCmsContentChanged } from "@/lib/cms-content-events";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import BlacklistForm from "./BlacklistForm";
@@ -77,6 +78,7 @@ export default function BlacklistClient({
             total: (current?.total ?? 0) + 1,
           }),
         );
+        publishCmsContentChanged();
         toastWithSound.success(`Added "${formData.username}" to blacklist`);
         setShowForm(false);
         setPage(1);
@@ -106,6 +108,7 @@ export default function BlacklistClient({
               ),
             },
         );
+        publishCmsContentChanged();
         toastWithSound.success("Blacklist entry updated");
         setEditingUser(null);
         setShowForm(false);
@@ -139,6 +142,7 @@ export default function BlacklistClient({
               total: Math.max(0, current.total - 1),
             },
         );
+        publishCmsContentChanged();
         toastWithSound.success("User removed from blacklist");
         await queryClient.invalidateQueries({
           queryKey: ["blacklistedUsers"],

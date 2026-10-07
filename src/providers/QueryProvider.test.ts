@@ -30,6 +30,7 @@ describe("public CMS query freshness", () => {
   });
 
   test("refreshes stale content when its window is reopened", async () => {
+    let requests = 0;
     const client = new QueryClient({
       defaultOptions: { queries: PUBLIC_QUERY_DEFAULTS },
     });
@@ -37,10 +38,14 @@ describe("public CMS query freshness", () => {
       queryKey: ["public-content"],
       initialData: "old content",
       initialDataUpdatedAt: Date.now() - 61_000,
-      queryFn: async () => "current content",
+      queryFn: async () => {
+        requests += 1;
+        return "current content";
+      },
     });
     const unsubscribe = observer.subscribe(() => undefined);
     try {
+      expect(requests).toBe(1);
       await client.refetchQueries();
       expect(observer.getCurrentResult().data).toBe("current content");
     } finally {

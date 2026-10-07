@@ -210,9 +210,16 @@ export default function WikiClient({
 
   // Character query for story view (without world)
   // If character is specified without world, fetch it
+  const initialStoryCharacter =
+    storySlug === initialData.params.story && !worldSlug
+      ? initialData.characters.find(
+          (character) => character.slug === characterSlug,
+        )
+      : undefined;
   const { data: characterWithWorlds, isLoading: characterWithWorldsLoading } =
-    useQuery({
+    useQuery<Character | null>({
       queryKey: ["character-with-worlds", storySlug, characterSlug],
+      initialData: initialStoryCharacter,
       queryFn: async () => {
         if (storySlug && characterSlug && !worldSlug) {
           return getCharacterBySlugInStory(storySlug, characterSlug);
