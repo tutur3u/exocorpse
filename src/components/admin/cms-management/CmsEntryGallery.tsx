@@ -208,7 +208,7 @@ export default function CmsEntryGallery({
         assets={assets}
         collection={collection}
         entries={entries}
-        onCreate={onCreate}
+        onCreate={() => onCreate()}
         onReorder={onReorder}
         onSelect={onSelect}
         onDelete={onDelete}
@@ -224,7 +224,7 @@ export default function CmsEntryGallery({
       <CmsCommissionEntryGallery
         entries={entries}
         kind={collection.slug === "commission-addons" ? "addons" : "services"}
-        onCreate={onCreate}
+        onCreate={() => onCreate()}
         onReorder={onReorder}
         onSelect={onSelect}
         onDelete={onDelete}
