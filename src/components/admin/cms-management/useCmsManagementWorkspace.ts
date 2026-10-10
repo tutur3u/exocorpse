@@ -1,5 +1,7 @@
 "use client";
 
+import { configuredEditorFields } from "./editor-fields";
+
 import {
   blocksToDrafts,
   buildSavePayload,
@@ -198,17 +200,11 @@ export function useCmsManagementWorkspace({
     [collection?.id, studio.relationDefinitions],
   );
   const fields = useMemo(() => {
-    const configuredFields = (studio.fieldDefinitions ?? [])
-      .filter(
-        (definition) =>
-          definition.collection_id === collection?.id &&
-          definition.is_enabled &&
-          !(
-            definition.key === "tags" &&
-            ["blog-posts", "character-gallery"].includes(collection?.slug ?? "")
-          ),
-      )
-      .sort((left, right) => left.sort_order - right.sort_order);
+    const configuredFields = configuredEditorFields(
+      studio.fieldDefinitions ?? [],
+      collection?.id,
+      collection?.slug,
+    );
 
     return ensureStorySoundtrackField(
       collection?.id ?? "",

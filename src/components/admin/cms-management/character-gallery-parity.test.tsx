@@ -5,6 +5,7 @@ import type {
   ExocorpseCmsEntry,
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
+import { configuredEditorFields } from "./editor-fields";
 import { adminCmsTheme } from "./admin-theme";
 
 const noop = () => {};
@@ -135,4 +136,50 @@ describe("character gallery feature parity", () => {
     expect(panel(html, "gallery")).not.toContain("Add Image");
     expect(panel(html, "outfits")).toMatch(/disabled=""[^>]*>\+ Add outfit/);
   });
+});
+
+test("gallery artwork retains its editable legacy tags", () => {
+  const tags = {
+    id: "gallery-tags",
+    collection_id: "character-gallery",
+    key: "tags",
+    label: "Tags",
+    field_type: "string-array" as const,
+    field_scope: "profile_data" as const,
+    default_value: null,
+    description: null,
+    is_enabled: true,
+    is_required: false,
+    options: [],
+    sort_order: 0,
+    source: "test",
+  };
+  const fields = configuredEditorFields(
+    [tags],
+    "character-gallery",
+    "character-gallery",
+  );
+  expect(fields).toHaveLength(1);
+  const artwork = studio.entries.find((entry) => entry.id === "Portrait")!;
+  const html = renderToStaticMarkup(
+    <CmsEntryEditor
+      {...props}
+      collection={collections[1]}
+      fields={fields}
+      draft={{ ...artwork, profile_data: { tags: ["portrait", "commission"] } }}
+      selectedEntryId={artwork.id}
+    />,
+  );
+  expect(html).toContain("Tags");
+  expect(html).toContain("portrait\ncommission");
+  expect(
+    configuredEditorFields(
+      [{ ...tags, is_enabled: false }],
+      "character-gallery",
+      "character-gallery",
+    ),
+  ).toEqual([]);
+  expect(configuredEditorFields([tags], "characters", "characters")).toEqual(
+    [],
+  );
 });
