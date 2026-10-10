@@ -414,9 +414,18 @@ export const EXOCORPSE_CMS_SCHEMA = {
     field("character-outfits", "displayOrder", "Display order", "number"),
     field("character-outfits", "colorPalette", "Color palette"),
     field("character-outfits", "isDefault", "Default", "boolean"),
-    field("character-gallery", "commissionDate", "Commission date", "date"),
-    field("character-gallery", "isFeatured", "Featured", "boolean"),
-    field("character-gallery", "tags", "Tags", "string-array"),
+    field(
+      "character-outfits",
+      "referenceImages",
+      "Reference images",
+      "string-array",
+    ),
+    field("character-outfits", "notes", "Notes", "markdown"),
+    ...["character-gallery", "location-gallery"].flatMap((slug) => [
+      field(slug, "commissionDate", "Commission date", "date"),
+      field(slug, "isFeatured", "Featured", "boolean"),
+      field(slug, "tags", "Tags", "string-array"),
+    ]),
     ...["character-gallery", "character-outfits"].flatMap((slug) => [
       field(slug, "sensitiveContent", "Sensitive content", "boolean"),
       field(slug, "sensitiveType", "Content warning type"),

@@ -159,7 +159,7 @@ test("gallery artwork retains its editable legacy tags", () => {
     "character-gallery",
     "character-gallery",
   );
-  expect(fields).toHaveLength(1);
+  expect(fields.filter((field) => field.key === "tags")).toHaveLength(1);
   const artwork = studio.entries.find((entry) => entry.id === "Portrait")!;
   const html = renderToStaticMarkup(
     <CmsEntryEditor
@@ -177,9 +177,44 @@ test("gallery artwork retains its editable legacy tags", () => {
       [{ ...tags, is_enabled: false }],
       "character-gallery",
       "character-gallery",
-    ),
-  ).toEqual([]);
+    ).map((field) => field.key),
+  ).not.toContain("tags");
   expect(configuredEditorFields([tags], "characters", "characters")).toEqual(
     [],
   );
+});
+
+test("older media collections retain legacy controls and imported values", () => {
+  for (const slug of ["character-outfits", "location-gallery"]) {
+    const fields = configuredEditorFields([], slug, slug);
+    const draft = {
+      ...character,
+      collection_id: slug,
+      profile_data: {
+        referenceImages: ["https://example.com/ref.png"],
+        notes: "Outfit notes",
+        commissionDate: "2026-10-10",
+        tags: ["landscape"],
+        isFeatured: true,
+      },
+    };
+    const html = renderToStaticMarkup(
+      <CmsEntryEditor
+        {...props}
+        collection={{ id: slug, slug, title: slug, collection_type: "content" }}
+        fields={fields}
+        draft={draft}
+      />,
+    );
+    if (slug === "character-outfits") {
+      expect(html).toContain("Reference images");
+      expect(html).toContain("https://example.com/ref.png");
+      expect(html).toContain("Notes");
+    } else {
+      expect(html).toContain("Commission date");
+      expect(html).toContain("2026-10-10");
+      expect(html).toContain("landscape");
+      expect(html).toContain("Featured");
+    }
+  }
 });

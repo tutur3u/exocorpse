@@ -127,3 +127,16 @@ describe("canonical Exocorpse CMS schema", () => {
     );
   });
 });
+
+test("retains location artwork and outfit metadata from legacy forms", () => {
+  for (const [slug, keys] of [
+    ["location-gallery", ["commissionDate", "tags", "isFeatured"]],
+    ["character-outfits", ["referenceImages", "notes"]],
+  ] as const) {
+    const fields = EXOCORPSE_CMS_SCHEMA.fieldDefinitions.filter(
+      (field) => field.collectionSlug === slug,
+    );
+    for (const key of keys)
+      expect(fields.some((field) => field.key === key)).toBe(true);
+  }
+});
