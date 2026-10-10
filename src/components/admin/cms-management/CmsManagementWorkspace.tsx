@@ -564,17 +564,7 @@ export default function CmsManagementWorkspace({
           </div>
         </CmsEntryEditorDialog>
       ) : null}
-      <ConfirmDeleteDialog
-        isOpen={Boolean(deleteTargetId)}
-        loading={pending}
-        title={`Delete ${itemLabel.replace(/^./, (letter) => letter.toUpperCase())}`}
-        message={`Are you sure you want to delete “${studio.entries.find((entry) => entry.id === deleteTargetId)?.title ?? "this item"}”? This action cannot be undone.`}
-        onCancel={() => setDeleteTargetId(null)}
-        onConfirm={() => {
-          if (deleteTargetId)
-            deleteEntry(deleteTargetId, () => setDeleteTargetId(null));
-        }}
-      />
+
       {editorOpen ? (
         <CmsEntryEditorDialog
           onClose={requestEditorExit}
@@ -649,6 +639,25 @@ export default function CmsManagementWorkspace({
           />
         </CmsEntryEditorDialog>
       ) : null}
+
+      <ConfirmDeleteDialog
+        isOpen={Boolean(deleteTargetId)}
+        loading={pending}
+        title={`Delete ${collectionItemLabel(
+          studio.collections.find(
+            (item) =>
+              item.id ===
+              studio.entries.find((entry) => entry.id === deleteTargetId)
+                ?.collection_id,
+          ) ?? collection,
+        ).replace(/^./, (letter) => letter.toUpperCase())}`}
+        message={`Are you sure you want to delete “${studio.entries.find((entry) => entry.id === deleteTargetId)?.title ?? "this item"}”? This action cannot be undone.`}
+        onCancel={() => setDeleteTargetId(null)}
+        onConfirm={() => {
+          if (deleteTargetId)
+            deleteEntry(deleteTargetId, () => setDeleteTargetId(null));
+        }}
+      />
 
       <ConfirmDeleteDialog
         confirmText="Discard changes"
