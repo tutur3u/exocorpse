@@ -1,6 +1,7 @@
 "use client";
 
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
+import { isMultilineField, spaciousFieldKeys } from "./field-presentation";
 import { humanizeField } from "@/components/admin/cms-management/editor-utils";
 import type {
   ExocorpseCmsFieldDefinition,
@@ -22,15 +23,6 @@ type Props = {
 
 const inputClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
-
-const spaciousFieldKeys = new Set([
-  "abilities",
-  "distinguishingFeatures",
-  "fanworkPolicy",
-  "personalitySummary",
-]);
-
-const multilineFieldKeys = new Set([...spaciousFieldKeys, "notes", "quote"]);
 
 const isHexColor = (value: string) => /^#[0-9a-f]{6}$/i.test(value);
 
@@ -196,10 +188,7 @@ export default function CmsFieldEditor({
     /colou?r.*palette|palette.*colou?r/i.test(
       `${definition.key} ${definition.label ?? ""}`,
     );
-  const isMultiline =
-    definition.key !== "quote" &&
-    (definition.field_type === "markdown" ||
-      multilineFieldKeys.has(definition.key));
+  const isMultiline = isMultilineField(definition);
   const isSoundtrackField = definition.key === "themeSoundtrackUrl";
 
   const Wrapper =

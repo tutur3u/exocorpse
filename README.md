@@ -19,6 +19,8 @@ The `/admin` dashboard preserves the legacy welcome banner, Wiki Management and 
 
 Character editors expose a dedicated Gallery tab, separate from profile/banner media and Outfits. Visuals links to that tab. Gallery supports direct image upload and the full artwork editor (title, description, artist attribution, commission date, tags, featured state, content warnings, and reference sheets). Gallery, outfit, and location-gallery cards provide edit/delete actions; deleting requires a confirmation shown above the active editor and named for the selected item. Returning from a child editor restores the appropriate parent tab and unsaved parent fields. Outfit notes and reference URLs, and location-gallery commission dates, tags, and featured state remain editable even when older CMS metadata omits their field definitions. Explicit operator disabling remains authoritative. New characters must be saved before adding related artwork or outfits. Regression coverage lives in `legacy-editor-tabs.test.ts` and `character-gallery-parity.test.tsx`.
 
+Structured editor grids give every multiline control the full row, including legacy string-typed Personality, Abilities, Distinguishing Features, Fanwork Policy, and Notes fields. Rendering and width share the same field semantics; short inputs retain the responsive two-column layout. Regression coverage lives in `field-presentation.test.tsx`.
+
 The Build Check workflow runs formatting, lint, TypeScript, and regression tests before the Vercel build for the pushed commit. Use that CI build on hosts where local production builds are prohibited.
 
 ## Hard-cutover importer

@@ -1,5 +1,6 @@
 "use client";
 
+import { isFullWidthField } from "./field-presentation";
 import CmsFieldEditor from "@/components/admin/cms-management/CmsFieldEditor";
 import { isJsonRecord } from "@/components/admin/cms-management/editor-utils";
 import type { CmsEntryDraft } from "@/components/admin/cms-management/editor-types";
@@ -53,9 +54,6 @@ export default function CmsStructuredFields({
       "themeTextColor",
     ].includes(definition.key),
   );
-  const isWide = (definition: ExocorpseCmsFieldDefinition) =>
-    ["json", "markdown", "string-array"].includes(definition.field_type) ||
-    Boolean(definition.description);
 
   function update(
     definition: ExocorpseCmsFieldDefinition,
@@ -130,7 +128,11 @@ export default function CmsStructuredFields({
           const record = isJsonRecord(scopeValue) ? scopeValue : {};
           return (
             <div
-              className={isWide(definition) ? "@xl:col-span-2" : "min-w-0"}
+              className={
+                isFullWidthField(definition)
+                  ? "min-w-0 @xl:col-span-2"
+                  : "min-w-0"
+              }
               key={`${draft.id || "new"}:${definition.id}`}
             >
               <CmsFieldEditor
