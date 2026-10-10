@@ -16,14 +16,12 @@ import CmsEditorTabs, {
   type CmsEditorTab,
 } from "@/components/admin/cms-management/CmsEditorTabs";
 import CmsEntryBasics from "@/components/admin/cms-management/CmsEntryBasics";
-import CmsMediaPanel from "@/components/admin/cms-management/CmsMediaPanel";
+import CmsEntryMediaSection from "./CmsEntryMediaSection";
+import CmsCharacterGalleryOverview from "./CmsCharacterGalleryOverview";
 import CmsPublishingSettings from "@/components/admin/cms-management/CmsPublishingSettings";
 import CmsRelationEditor from "@/components/admin/cms-management/CmsRelationEditor";
 import CmsStructuredFields from "@/components/admin/cms-management/CmsStructuredFields";
-import CmsCharacterMediaSettings, {
-  isCharacterMediaField,
-} from "@/components/admin/cms-management/CmsCharacterMediaSettings";
-import CmsGalleryCharacterTagger from "@/components/admin/cms-management/CmsGalleryCharacterTagger";
+import { isCharacterMediaField } from "@/components/admin/cms-management/CmsCharacterMediaSettings";
 import CmsConnectionEntryEditor from "@/components/admin/cms-management/CmsConnectionEntryEditor";
 import {
   CONNECTION_COLLECTION_SLUGS,
@@ -56,7 +54,7 @@ import { Trash2, UploadCloud } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 
-type Props = {
+export type CmsEntryEditorProps = {
   error?: string;
   pendingUploadFileName?: string;
   onPendingUploadFileChange: (file: File | null) => void;
@@ -129,6 +127,8 @@ export default function CmsEntryEditor({
   onTitleChange,
   onUploadAsset,
   onUploadInlineAsset,
+  onUploadGalleryAsset,
+  onEditGalleryEntry,
   onDeleteRelated,
   onEditRelated,
   onCreateRelated,
@@ -141,7 +141,7 @@ export default function CmsEntryEditor({
   isDirty,
   studio,
   uploadStatus,
-}: Props) {
+}: CmsEntryEditorProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pendingMediaSections, setPendingMediaSections] = useState<Set<string>>(
     () => new Set(),
@@ -291,8 +291,24 @@ export default function CmsEntryEditor({
       studio={studio}
       onCreate={onCreateRelated}
       onEdit={onEditRelated}
+      onDelete={onDeleteRelated}
+      pending={pending}
     />
   );
+  const characterGallery = isCharacter ? (
+    <CmsCharacterGalleryOverview
+      characterId={selectedEntryId}
+      onEdit={onEditGalleryEntry}
+      onCreate={() =>
+        onCreateRelated("character-gallery", selectedEntryId, "character")
+      }
+      onDelete={onDeleteRelated}
+      onPendingFileChange={(pending) => updatePendingMedia("gallery", pending)}
+      onUpload={onUploadGalleryAsset}
+      pending={pending}
+      studio={studio}
+    />
+  ) : null;
   const summary = (label = "Description") => (
     <div className="space-y-2">
       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -585,7 +601,8 @@ export default function CmsEntryEditor({
         />
       );
     }
-    if (tab === "gallery") {
+    if (tab === "gallery" && isCharacter) return characterGallery;
+    if (tab === "gallery" || tab === "outfits") {
       return collection.slug === "locations" ? (
         related("location-gallery", "location")
       ) : (
@@ -676,93 +693,47 @@ export default function CmsEntryEditor({
         />
       );
     }
-    if (tab === "media") {
-      const usesSingleArtwork = [
-        "character-gallery",
-        "location-gallery",
-        "portfolio-art",
-        "commission-pictures",
-        "character-outfits",
-        "blog-posts",
-        "portfolio-writing",
-      ].includes(collection.slug);
+    if (tab === "media")
       return (
         <>
-          <CmsMediaPanel
-            allowUploadBeforeSave
+          <CmsEntryMediaSection
             allowedAssetTypes={allowedAssetTypes}
             assets={assets}
+            draft={draft}
+            collection={collection}
             canSave={canSave}
-            onDelete={onDeleteAsset}
+            onDeleteAsset={onDeleteAsset}
             onSave={onSave}
-            onUpload={onUploadAsset}
-            onReorder={onReorderAssets}
-            onFileSelectionChange={(file) => {
-              onPendingUploadFileChange(file);
-              if (
-                file &&
-                !draft.title.trim() &&
-                usesSingleArtwork &&
-                !isBlog &&
-                collection.slug !== "portfolio-writing"
-              )
-                onTitleChange(file.name.replace(/\.[^.]+$/, ""));
-            }}
-            onPendingFileChange={(hasPendingFile) =>
-              updatePendingMedia("media", hasPendingFile)
-            }
+            onUploadAsset={onUploadAsset}
+            onReorderAssets={onReorderAssets}
+            onPendingUploadFileChange={onPendingUploadFileChange}
+            onTitleChange={onTitleChange}
+            isBlog={isBlog}
             pending={pending}
-            previewSize={usesSingleArtwork ? "compact" : "default"}
-            mode={usesSingleArtwork ? "single" : "gallery"}
-            title={
-              collection.slug === "portfolio-art"
-                ? "Artwork image"
-                : collection.slug === "character-gallery"
-                  ? "Gallery artwork"
-                  : collection.slug === "blog-posts"
-                    ? "Cover Image"
-                    : undefined
+            selectedEntryId={selectedEntryId}
+            taggedCharactersDefinition={taggedCharactersDefinition}
+            onRelationsChange={onRelationsChange}
+            relationSelections={relationSelections}
+            studio={studio}
+            onDraftChange={onDraftChange}
+            groupedFields={groupedFields}
+            fields={fields}
+            inlineUpload={inlineUpload}
+            onPendingFileChange={(pending) =>
+              updatePendingMedia("media", pending)
             }
-            description={
-              collection.slug === "blog-posts"
-                ? "Pick a file now. It uploads right after the post is saved."
-                : undefined
-            }
-            saved={Boolean(selectedEntryId)}
           />
-          {taggedCharactersDefinition ? (
-            <CmsGalleryCharacterTagger
-              definition={taggedCharactersDefinition}
-              onChange={(entryIds) =>
-                onRelationsChange({
-                  ...relationSelections,
-                  [taggedCharactersDefinition.id]: entryIds,
-                })
-              }
-              studio={studio}
-              value={relationSelections[taggedCharactersDefinition.id] ?? []}
-            />
+          {isCharacter ? (
+            <button
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium dark:border-gray-600"
+              onClick={() => changeTab("gallery")}
+              type="button"
+            >
+              Manage Gallery
+            </button>
           ) : null}
-          <CmsCharacterMediaSettings
-            assets={assets}
-            collectionSlug={collection.slug}
-            draft={draft}
-            onChange={onDraftChange}
-          />
-          <CmsStructuredFields
-            compact
-            definitions={[
-              ...groupedFields.visuals,
-              ...fields.filter((field) => field.key === "spotifyLink"),
-            ]}
-            draft={draft}
-            onChange={onDraftChange}
-            onImageUpload={inlineUpload}
-            title="Visual Style"
-          />
         </>
       );
-    }
     if (tab === "settings") {
       if (collection.slug === "stories")
         return (

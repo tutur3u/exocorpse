@@ -1,21 +1,46 @@
 "use client";
 
-import { ChevronDown, LayoutDashboard, ListTodo, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { adminNavigation } from "./admin-navigation";
+type NavItem = {
+  href: string;
+  label: string;
+  exact?: boolean;
+};
 
-const navSections = adminNavigation;
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
 
-export default function AdminNav({
-  children,
-  tasksHref,
-}: {
-  children?: React.ReactNode;
-  tasksHref: string;
-}) {
+const navSections: NavSection[] = [
+  {
+    label: "Wiki",
+    items: [
+      { href: "/admin/stories", label: "Stories" },
+      { href: "/admin/worlds", label: "Worlds" },
+      { href: "/admin/characters", label: "Characters" },
+      { href: "/admin/factions", label: "Factions" },
+      { href: "/admin/locations", label: "Locations" },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { href: "/admin/about", label: "About Me" },
+      { href: "/admin/portfolio", label: "Portfolio" },
+      { href: "/admin/blog-posts", label: "Blog Posts" },
+      { href: "/admin/services", label: "Commission Services" },
+      { href: "/admin/addons", label: "Add-ons" },
+      { href: "/admin/blacklist", label: "Blacklist" },
+    ],
+  },
+];
+
+export default function AdminNav({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,10 +56,8 @@ export default function AdminNav({
     return pathname.startsWith(href);
   };
 
-  const isSectionActive = (
-    items: (typeof adminNavigation)[number]["items"],
-  ) => {
-    return items.some((item) => isActive(item.href));
+  const isSectionActive = (items: NavItem[]) => {
+    return items.some((item) => isActive(item.href, item.exact));
   };
 
   // Close dropdown when clicking outside
@@ -101,14 +124,13 @@ export default function AdminNav({
         {/* Dashboard Link */}
         <Link
           href="/admin"
-          aria-current={pathname === "/admin" ? "page" : undefined}
-          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+          className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             pathname === "/admin"
               ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
           }`}
         >
-          <LayoutDashboard className="size-4" aria-hidden="true" /> Dashboard
+          Dashboard
         </Link>
 
         {/* Dropdown Sections */}
@@ -145,35 +167,19 @@ export default function AdminNav({
 
               {isOpen && (
                 <div className="absolute top-full left-0 z-50 mt-1 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                  {section.label === "Advanced" && (
-                    <a
-                      href={tasksHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                    >
-                      <ListTodo className="size-4" aria-hidden="true" /> Tasks
-                    </a>
-                  )}
                   {section.items.map((item) => {
-                    const itemActive = isActive(item.href);
+                    const itemActive = isActive(item.href, item.exact);
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setOpenDropdown(null)}
-                        aria-current={itemActive ? "page" : undefined}
-                        title={item.description}
-                        className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                        className={`block px-4 py-2 text-sm transition-colors ${
                           itemActive
                             ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                             : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                         }`}
                       >
-                        <item.icon
-                          className="size-4 shrink-0"
-                          aria-hidden="true"
-                        />
                         {item.label}
                       </Link>
                     );
@@ -207,13 +213,12 @@ export default function AdminNav({
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${
                   pathname === "/admin"
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                     : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
                 }`}
               >
-                <LayoutDashboard className="size-4" aria-hidden="true" />{" "}
                 Dashboard
               </Link>
 
@@ -243,37 +248,19 @@ export default function AdminNav({
 
                     {isExpanded && (
                       <div className="mt-1 ml-4 flex flex-col gap-1 border-l-2 border-gray-100 pl-4 dark:border-gray-800">
-                        {section.label === "Advanced" && (
-                          <a
-                            href={tasksHref}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                          >
-                            <ListTodo className="size-4" aria-hidden="true" />{" "}
-                            Tasks
-                          </a>
-                        )}
                         {section.items.map((item) => {
-                          const itemActive = isActive(item.href);
+                          const itemActive = isActive(item.href, item.exact);
                           return (
                             <Link
                               key={item.href}
                               href={item.href}
                               onClick={() => setMobileMenuOpen(false)}
-                              aria-current={itemActive ? "page" : undefined}
-                              title={item.description}
-                              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                 itemActive
                                   ? "text-blue-600 dark:text-blue-400"
                                   : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                               }`}
                             >
-                              <item.icon
-                                className="size-4 shrink-0"
-                                aria-hidden="true"
-                              />
                               {item.label}
                             </Link>
                           );

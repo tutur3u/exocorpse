@@ -15,6 +15,12 @@ Public content is read from Tuturuuu delivery. The branded `/admin` surface uses
 
 Admin media uploads request signed Tuturuuu upload metadata and send bytes directly from the browser. Upload lifecycle state lives at the editor-dialog level so switching accordion sections or quick-navigation tabs never cancels an upload or hides its progress. Artwork editors are media-first; supporting copy and publishing controls are optional refinements.
 
+The `/admin` dashboard preserves the legacy welcome banner, Wiki Management and Content Management cards, navigation, and storage accordion styling. The retired "Tuturuuu CMS migration" panel is omitted. Content and storage continue to use the current Tuturuuu CMS and Drive integrations; the legacy database is not restored.
+
+Character editors expose a dedicated Gallery tab, separate from profile/banner media and Outfits. Visuals links to that tab. Gallery supports direct image upload and the full artwork editor (title, description, artist attribution, commission date, tags, featured state, content warnings, and reference sheets). Gallery, outfit, and location-gallery cards provide edit/delete actions; deleting requires confirmation. Returning from a child editor restores the appropriate parent tab and unsaved parent fields. New characters must be saved before adding related artwork or outfits. Regression coverage lives in `legacy-editor-tabs.test.ts` and `character-gallery-parity.test.tsx`.
+
+The Build Check workflow runs formatting, lint, TypeScript, and regression tests before the Vercel build for the pushed commit. Use that CI build on hosts where local production builds are prohibited.
+
 ## Hard-cutover importer
 
 The operator-only importer accepts a secured canonical JSON export and performs idempotent collection, typed-field, relation-definition, entry, relation, and asset upserts before managed-storage ingestion and parity checks. The export addresses entries with `collectionSlug`, relations with `definitionKey`, and all records with stable source IDs; environment-specific CMS UUIDs are resolved during the run.

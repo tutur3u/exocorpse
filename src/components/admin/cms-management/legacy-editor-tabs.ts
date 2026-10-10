@@ -151,7 +151,8 @@ export function legacyEditorTabs({
       ["content", "History & Lore"],
       ["abilities", "Abilities"],
       ["media", "Visuals"],
-      ["gallery", "Outfits"],
+      ["gallery", "Gallery"],
+      ["outfits", "Outfits"],
     ],
     factions: [
       ["basic", "Basic Info"],
@@ -184,6 +185,7 @@ export function legacyEditorTabs({
           media: Palette,
           content: BookOpenText,
           gallery: Images,
+          outfits: Images,
           styles: ImageIcon,
           connections: Link2,
           settings: Settings2,

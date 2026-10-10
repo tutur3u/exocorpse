@@ -2,7 +2,7 @@
 
 import type { AdminDriveAnalytics } from "@/types/admin-integrations";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, HardDrive } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 async function getStorageAnalytics(): Promise<AdminDriveAnalytics> {
@@ -54,15 +54,12 @@ export default function StorageAnalytics() {
         aria-expanded={isOpen}
         aria-controls="storage-analytics-content"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-900"
+        className="flex w-full items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-900"
       >
         <div className="flex items-center gap-3">
-          <HardDrive
-            className="size-5 text-blue-600 dark:text-blue-400"
-            aria-hidden="true"
-          />
+          <div className="h-1 w-12 rounded-full bg-linear-to-r from-cyan-500 to-blue-500"></div>
           <div className="text-left">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
               Storage Analytics
             </h3>
             {isOpen && (

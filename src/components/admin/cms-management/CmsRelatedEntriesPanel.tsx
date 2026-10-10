@@ -11,6 +11,8 @@ export default function CmsRelatedEntriesPanel({
   relationKey,
   onCreate,
   onEdit,
+  onDelete,
+  pending,
 }: {
   studio: ExocorpseCmsStudio;
   parentId: string;
@@ -22,6 +24,8 @@ export default function CmsRelatedEntriesPanel({
     relationKey: string,
   ) => void;
   onEdit: (collectionSlug: string, entryId: string) => void;
+  onDelete: (entryId: string) => void;
+  pending: boolean;
 }) {
   const collection = studio.collections.find(
     (item) => item.slug === collectionSlug,
@@ -50,7 +54,7 @@ export default function CmsRelatedEntriesPanel({
         <h3 className="text-lg font-semibold">{collection.title}</h3>
         <button
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          disabled={!parentId}
+          disabled={!parentId || pending}
           onClick={() => onCreate(collectionSlug, parentId, relationKey)}
           type="button"
         >
@@ -93,10 +97,19 @@ export default function CmsRelatedEntriesPanel({
                   ) : null}
                   <button
                     className="rounded bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                    disabled={pending}
                     onClick={() => onEdit(collectionSlug, entry.id)}
                     type="button"
                   >
                     Edit
+                  </button>
+                  <button
+                    className="ml-2 rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600"
+                    disabled={pending}
+                    onClick={() => onDelete(entry.id)}
+                    type="button"
+                  >
+                    Delete
                   </button>
                 </div>
               </div>

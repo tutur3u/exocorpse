@@ -35,7 +35,7 @@ describe("legacy CMS editor navigation", () => {
     ]);
   });
 
-  test("restores all seven legacy character tabs", () => {
+  test("exposes character artwork separately from visual settings and outfits", () => {
     const tabs = legacyEditorTabs({
       assetCount: 2,
       blockCount: 1,
@@ -54,8 +54,25 @@ describe("legacy CMS editor navigation", () => {
       "History & Lore",
       "Abilities",
       "Visuals",
+      "Gallery",
       "Outfits",
     ]);
+  });
+
+  test("keeps gallery and outfit panels distinct when creating a character", () => {
+    const tabs = legacyEditorTabs({
+      assetCount: 0,
+      blockCount: 0,
+      collection: collection("characters"),
+      connectionCount: 0,
+      fields,
+      hasAssets: false,
+      hasBlocks: false,
+      hasConnections: false,
+    });
+    expect(tabs.find((tab) => tab.label === "Gallery")?.id).toBe("gallery");
+    expect(tabs.find((tab) => tab.label === "Outfits")?.id).toBe("outfits");
+    expect(new Set(tabs.map((tab) => tab.id)).size).toBe(tabs.length);
   });
 
   test("gives long character writing fields their historical sections", () => {

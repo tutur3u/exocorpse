@@ -11,6 +11,7 @@ export type CmsEditorTab =
   | "fanwork"
   | "gallery"
   | "media"
+  | "outfits"
   | "personality"
   | "physical"
   | "settings"

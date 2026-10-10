@@ -16,6 +16,8 @@ import { useRef, useState } from "react";
 export default function CmsCharacterGalleryOverview({
   characterId,
   onEdit,
+  onCreate,
+  onDelete,
   onPendingFileChange,
   onUpload,
   pending,
@@ -23,6 +25,8 @@ export default function CmsCharacterGalleryOverview({
 }: {
   characterId: string;
   onEdit: (entryId: string) => void;
+  onCreate: () => void;
+  onDelete: (entryId: string) => void;
   onPendingFileChange?: (pending: boolean) => void;
   onUpload: (file: File, title: string) => Promise<void>;
   pending: boolean;
@@ -49,6 +53,8 @@ export default function CmsCharacterGalleryOverview({
       setPendingFile(null);
       setTitle("");
       onPendingFileChange?.(false);
+    } catch {
+      // The workspace displays the upload error. Keep the file available for retry.
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -112,6 +118,12 @@ export default function CmsCharacterGalleryOverview({
 
   return (
     <section className="space-y-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold">Gallery ({entries.length})</h3>
+        <Button disabled={busy} onClick={onCreate} type="button">
+          Add Image
+        </Button>
+      </div>
       <div
         className={`rounded-2xl border-2 border-dashed p-5 transition sm:p-6 ${
           dragging
@@ -147,7 +159,7 @@ export default function CmsCharacterGalleryOverview({
               {busy ? "Adding images…" : "Add images to this gallery"}
             </h4>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Drop one or more images here, or choose them from your device.
+              Drop an image here, or choose it from your device.
             </p>
           </div>
           <input
@@ -254,10 +266,34 @@ export default function CmsCharacterGalleryOverview({
                     </span>
                   ) : null}
                 </div>
-                <div className="p-3">
+                <div className="space-y-2 p-3">
                   <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
                     {entry.title}
                   </p>
+                  <div
+                    className="flex gap-2"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
+                    <Button
+                      disabled={busy}
+                      onClick={() => onEdit(entry.id)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      disabled={busy}
+                      onClick={() => onDelete(entry.id)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </article>
             );

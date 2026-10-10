@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Validate source and regressions
+        run: bun check
+
       - name: Install Vercel CLI
         run: bun install --global vercel@latest
 

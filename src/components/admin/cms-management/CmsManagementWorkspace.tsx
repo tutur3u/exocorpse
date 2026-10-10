@@ -229,7 +229,11 @@ export default function CmsManagementWorkspace({
     const target = visibleCollections.find((item) => item.slug === slug);
     if (!target || uploading) return;
     const tab =
-      collection.slug === "commission-services" ? "styles" : "gallery";
+      collection.slug === "commission-services"
+        ? "styles"
+        : slug === "character-outfits"
+          ? "outfits"
+          : "gallery";
     setEditorParents((parents) => [
       ...parents,
       { snapshot: captureEditor(), tab },
