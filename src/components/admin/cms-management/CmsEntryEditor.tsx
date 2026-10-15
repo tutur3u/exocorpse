@@ -964,6 +964,11 @@ export default function CmsEntryEditor({
               onTitleChange={onTitleChange}
             />
             {structured(["gameUrl"])}
+            {markdown(
+              "Description",
+              "Write the game biography...",
+              "Description / Bio",
+            )}
             {renderSection("media")}
           </div>
         ) : tabs.length ? (

@@ -4,6 +4,7 @@ import {
   updateLegacyMarkdownBlock,
 } from "./legacy-blocks";
 import type { CmsBlockDraft } from "./editor-types";
+import { blocksToDrafts, buildSavePayload } from "./editor-utils";
 
 const blocks: CmsBlockDraft[] = [
   {
@@ -32,6 +33,63 @@ const blocks: CmsBlockDraft[] = [
     title: "Reference",
   },
 ];
+
+test("game bio edits survive bundle serialization and reopening without changing other data", () => {
+  const draft = {
+    collection_id: "games",
+    id: "game",
+    title: "Owned fixture",
+    slug: "owned-fixture",
+    status: "published" as const,
+    subtitle: null,
+    summary: "Retained summary",
+    metadata: { provenance: "legacy" },
+    profile_data: { gameUrl: "https://example.org/game" },
+    sort_order: 4,
+    scheduled_for: null,
+    updated_at: "2026-10-15",
+  };
+  const updated = updateLegacyMarkdownBlock(
+    blocks,
+    "Description",
+    "Edited **game bio**",
+  );
+  const payload = buildSavePayload({
+    blocks: updated,
+    draft,
+    definitions: [],
+    relationSelections: {},
+  });
+  expect(payload.entry.profileData).toEqual(draft.profile_data);
+  expect(payload.entry.metadata).toEqual(draft.metadata);
+  expect(payload.entry.summary).toBe(draft.summary);
+  expect(payload.blocks[0]).toMatchObject({
+    id: "description-id",
+    stableSourceId: "original-description",
+    content: { markdown: "Edited **game bio**" },
+  });
+  const reopened = blocksToDrafts(
+    payload.blocks.map((block, index) => ({
+      block_type: block.blockType,
+      content: block.content,
+      id: block.id ?? `new-${index}`,
+      sort_order: block.sortOrder,
+      stable_source_id: block.stableSourceId ?? null,
+      title: block.title,
+    })),
+  );
+  expect(legacyMarkdownBlock(reopened, "Description")?.contentText).toBe(
+    "Edited **game bio**",
+  );
+  const original = buildSavePayload({
+    blocks,
+    draft,
+    definitions: [],
+    relationSelections: {},
+  });
+  expect(payload.blocks.slice(1)).toEqual(original.blocks.slice(1));
+  expect(updated.slice(1)).toEqual(blocks.slice(1));
+});
 test("editing one legacy field preserves sibling blocks and CMS identities", () => {
   const result = updateLegacyMarkdownBlock(
     blocks,

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export default function CmsEntryEditorDialog({
   children,
@@ -17,6 +17,39 @@ export default function CmsEntryEditorDialog({
   variant?: "blog" | "default";
 }) {
   const dialogRef = useRef<HTMLElement>(null);
+  const [viewport, setViewport] = useState<{
+    height: number;
+    top: number;
+  } | null>(null);
+  useEffect(() => {
+    const visualViewport = window.visualViewport;
+    if (!visualViewport) return;
+    const updateViewport = () => {
+      setViewport((current) =>
+        current?.height === visualViewport.height &&
+        current.top === visualViewport.offsetTop
+          ? current
+          : { height: visualViewport.height, top: visualViewport.offsetTop },
+      );
+    };
+    updateViewport();
+    visualViewport.addEventListener("resize", updateViewport);
+    visualViewport.addEventListener("scroll", updateViewport);
+    return () => {
+      visualViewport.removeEventListener("resize", updateViewport);
+      visualViewport.removeEventListener("scroll", updateViewport);
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const focused = document.activeElement;
+    if (
+      focused instanceof HTMLElement &&
+      dialogRef.current?.contains(focused) &&
+      focused.matches('input, textarea, [contenteditable="true"]')
+    ) {
+      focused.scrollIntoView({ block: "nearest" });
+    }
+  }, [viewport]);
   const closeRef = useRef(onClose);
   useEffect(() => {
     closeRef.current = onClose;
@@ -94,7 +127,12 @@ export default function CmsEntryEditorDialog({
                 ? "max-w-2xl"
                 : "max-w-4xl";
   return (
-    <div className="animate-fadeIn fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
+    <div
+      className="animate-fadeIn fixed inset-x-0 top-0 z-[60] flex h-[100dvh] items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
+      style={
+        viewport ? { height: viewport.height, top: viewport.top } : undefined
+      }
+    >
       <button
         aria-label="Close and discard changes"
         className="absolute inset-0 cursor-default"
@@ -107,7 +145,7 @@ export default function CmsEntryEditorDialog({
         tabIndex={-1}
         aria-label={title}
         aria-modal="true"
-        className={`animate-slideUp relative flex h-[100dvh] w-full flex-col overflow-hidden ${maxWidth} ${variant === "blog" ? "rounded-t-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,_rgba(255,252,249,0.98),_rgba(247,242,236,0.96))] shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-[2rem] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,_rgba(22,22,24,0.98),_rgba(10,10,12,0.98))]" : "rounded-t-2xl bg-white sm:h-auto sm:max-h-[90vh] sm:rounded-lg dark:bg-gray-800"}`}
+        className={`animate-slideUp relative flex h-full w-full flex-col overflow-hidden ${maxWidth} ${variant === "blog" ? "rounded-t-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,_rgba(255,252,249,0.98),_rgba(247,242,236,0.96))] shadow-xl sm:h-auto sm:max-h-[92%] sm:rounded-[2rem] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,_rgba(22,22,24,0.98),_rgba(10,10,12,0.98))]" : "rounded-t-2xl bg-white sm:h-auto sm:max-h-[90%] sm:rounded-lg dark:bg-gray-800"}`}
         role="dialog"
       >
         {children}

@@ -101,6 +101,35 @@ const props: CmsEntryEditorProps = {
   onRelationsChange: noop,
   onReorderAssets: noop,
 };
+
+test("game editors expose the imported biography alongside media", () => {
+  const html = renderToStaticMarkup(
+    <CmsEntryEditor
+      {...props}
+      collection={{
+        id: "games",
+        slug: "portfolio-games",
+        title: "Games",
+        collection_type: "content",
+      }}
+      blocks={[
+        {
+          key: "bio",
+          id: "bio",
+          blockType: "markdown",
+          title: "Description",
+          contentText: "Saved **biography**",
+          sortOrder: 0,
+        },
+      ]}
+      allowedBlockTypes={["markdown"]}
+    />,
+  );
+  expect(html).toContain("Description / Bio");
+  expect(html).toContain("Linked media");
+  expect(html).toContain("Inline media");
+  expect(html).toContain("Update Game");
+});
 const panel = (html: string, id: string) =>
   html.match(
     new RegExp(

@@ -12,7 +12,12 @@ import { Checkbox } from "@tuturuuu/ui/checkbox";
 import { Input } from "@tuturuuu/ui/input";
 import { Textarea } from "@tuturuuu/ui/textarea";
 import { Music2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  parseStringArrayInput,
+  reconcileStringArrayInput,
+  stringArrayInputValue,
+} from "./string-array-input";
 
 type Props = {
   definition: ExocorpseCmsFieldDefinition;
@@ -25,6 +30,28 @@ const inputClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
 
 const isHexColor = (value: string) => /^#[0-9a-f]{6}$/i.test(value);
+
+function StringArrayInput({
+  onChange,
+  value,
+}: Pick<Props, "onChange" | "value">) {
+  const serialized = stringArrayInputValue(value);
+  const [text, setText] = useState(serialized);
+  useEffect(() => {
+    setText((current) => reconcileStringArrayInput(current, serialized));
+  }, [serialized]);
+  return (
+    <Textarea
+      className={`${inputClassName} min-h-24`}
+      onChange={(event) => {
+        setText(event.target.value);
+        onChange(parseStringArrayInput(event.target.value));
+      }}
+      placeholder="One value per line"
+      value={text}
+    />
+  );
+}
 
 function ColorPaletteInput({
   onChange,
@@ -305,19 +332,7 @@ export default function CmsFieldEditor({
       ) : definition.field_type === "json" ? (
         <JsonInput onChange={onChange} value={value} />
       ) : definition.field_type === "string-array" ? (
-        <Textarea
-          className={`${inputClassName} min-h-24`}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-                .split(/[\n,]/)
-                .map((item) => item.trim())
-                .filter(Boolean),
-            )
-          }
-          placeholder="One value per line"
-          value={Array.isArray(value) ? value.join("\n") : ""}
-        />
+        <StringArrayInput onChange={onChange} value={value} />
       ) : (
         <Input
           className={inputClassName}
