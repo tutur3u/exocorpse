@@ -2,7 +2,8 @@
 
 import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { RichTextEditor } from "@tuturuuu/editor/react";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Eye, Maximize2, Minimize2, Pencil } from "lucide-react";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { CSSProperties } from "react";
 import { useMemo, useState, useRef } from "react";
 
@@ -31,6 +32,7 @@ export default function AdminMarkdownEditor({
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const content = useMemo(() => markdownToJSON(value), [value]);
   const style = {
@@ -51,6 +53,7 @@ export default function AdminMarkdownEditor({
           event.stopPropagation();
       }}
       className="admin-markdown-editor"
+      data-preview={preview || undefined}
       data-show-word-count={showWordCount || undefined}
       style={style}
     >
@@ -84,6 +87,23 @@ export default function AdminMarkdownEditor({
           <span className="admin-editor-toolbar-end" data-admin-toolbar-end>
             <span className="tuturuuu-editor-tool">
               <button
+                aria-label={preview ? "Edit content" : "Preview content"}
+                aria-pressed={preview}
+                onClick={() => setPreview((current) => !current)}
+                type="button"
+              >
+                {preview ? (
+                  <Pencil aria-hidden="true" />
+                ) : (
+                  <Eye aria-hidden="true" />
+                )}
+              </button>
+              <span aria-hidden="true" className="tuturuuu-editor-tooltip">
+                {preview ? "Edit content" : "Preview content"}
+              </span>
+            </span>
+            <span className="tuturuuu-editor-tool">
+              <button
                 aria-label={expanded ? "Use compact editor" : "Expand editor"}
                 aria-pressed={expanded}
                 onClick={() => setExpanded((current) => !current)}
@@ -103,6 +123,19 @@ export default function AdminMarkdownEditor({
           </span>
         }
       />
+      {preview ? (
+        <section
+          aria-label="Content preview"
+          className="admin-markdown-preview focus-visible:outline-2 focus-visible:outline-cyan-500"
+          tabIndex={0}
+        >
+          {value ? (
+            <MarkdownRenderer content={value} />
+          ) : (
+            <p>Nothing to preview yet.</p>
+          )}
+        </section>
+      ) : null}
       {maxLength ? (
         <p className="mt-1 text-right text-[0.68rem] text-slate-500 dark:text-slate-400">
           {value.length}/{maxLength}

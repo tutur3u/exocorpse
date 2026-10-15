@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { jsonToMarkdown, markdownToJSON } from "@tuturuuu/editor";
 import { toolbarOverflowStartIndex } from "./admin-markdown-toolbar";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 describe("admin Markdown toolbar overflow", () => {
   test("does not reserve or show overflow when every tool fits", () => {
@@ -47,15 +50,16 @@ describe("admin Markdown WYSIWYG contract", () => {
     expect(jsonToMarkdown(content)).toBe(markdown);
   });
 
-  test("keeps expand in the toolbar and never renders edit or preview modes", async () => {
-    const source = await Bun.file(
-      new URL("./AdminMarkdownEditor.tsx", import.meta.url),
-    ).text();
-
-    expect(source).toContain("toolbarEnd={");
-    expect(source).toContain('aria-label={expanded ? "Use compact editor"');
-    expect(source).not.toContain('"edit" | "preview"');
-    expect(source).not.toContain("admin-markdown-editor-view-controls");
-    expect(source).not.toContain("MarkdownRenderer");
+  test("preview renders formatted content and sanitizes unsafe HTML", () => {
+    const html = renderToStaticMarkup(
+      createElement(MarkdownRenderer, {
+        content:
+          '**Saved prose** and [link](https://example.org).\n\n<script>alert(1)</script>\n\n<img src="https://example.org/image.png" onerror="alert(1)">',
+      }),
+    );
+    expect(html).toMatch(/<strong\b[^>]*>Saved prose<\/strong>/);
+    expect(html).toContain('href="https://example.org"');
+    expect(html).not.toContain("<script");
+    expect(html).not.toContain("onerror");
   });
 });

@@ -43,6 +43,33 @@
     calc(var(--tuturuuu-editor-radius) - 1px);
 }
 
+.admin-markdown-editor .tuturuuu-editor .tiptap,
+.admin-markdown-preview {
+  height: var(--tuturuuu-editor-min-height, 16rem);
+  min-height: 0;
+  max-height: 70dvh;
+  overflow-y: auto;
+}
+
+.admin-markdown-preview {
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--tuturuuu-editor-border);
+  border-top: 0;
+  border-radius: 0 0 var(--tuturuuu-editor-radius) var(--tuturuuu-editor-radius);
+  background: var(--tuturuuu-editor-background);
+}
+
+.admin-markdown-editor[data-preview] .tiptap {
+  display: none;
+}
+
+.admin-markdown-editor[data-preview]
+  .tuturuuu-editor-toolbar
+  > :not([data-admin-toolbar-end]),
+.admin-markdown-editor[data-preview] .admin-editor-overflow {
+  display: none;
+}
+
 .admin-markdown-editor:not([data-show-word-count="true"])
   .tuturuuu-editor-word-count {
   display: none;
