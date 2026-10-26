@@ -14,6 +14,34 @@ const privateNoStoreHeaders = [
   { key: "Vercel-CDN-Cache-Control", value: "private, no-store" },
 ];
 
+// Report-Only until violations are reviewed; enforcing would need nonces for
+// the inline scripts Next emits.
+const contentSecurityPolicyReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https:",
+  "frame-src 'self' https://open.spotify.com",
+  "worker-src 'self' blob:",
+].join("; ");
+
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  {
+    key: "Content-Security-Policy-Report-Only",
+    value: contentSecurityPolicyReportOnly,
+  },
+];
+
 const nextConfig: NextConfig = {
   transpilePackages: [
     "@tuturuuu/editor",
@@ -53,6 +81,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
       {
         source: "/admin",
         headers: privateNoStoreHeaders,
