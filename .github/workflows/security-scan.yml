@@ -1,0 +1,54 @@
+name: Daily security scan
+
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-scan
+
+jobs:
+  secrets-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download and verify gitleaks
+        run: |
+          base=https://github.com/gitleaks/gitleaks/releases/download/v8.30.1
+          curl --fail --location --silent --show-error -O "$base/gitleaks_8.30.1_linux_x64.tar.gz"
+          curl --fail --location --silent --show-error -O "$base/gitleaks_8.30.1_checksums.txt"
+          grep '  gitleaks_8.30.1_linux_x64.tar.gz$' gitleaks_8.30.1_checksums.txt | sha256sum --check --strict
+          tar -xzf gitleaks_8.30.1_linux_x64.tar.gz gitleaks
+      - name: Scan recent commits
+        run: ./gitleaks git --redact --log-opts="--since=36.hours" --report-format json --report-path gitleaks.json
+      - name: Upload redacted findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gitleaks-report
+          path: gitleaks.json
+          if-no-files-found: warn
+  route-permission-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Check route baseline
+        run: python3 .github/security/route-permission-lint.py > security-scan.json
+      - name: Upload route findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: security-scan-route-permission-lint
+          path: security-scan.json
+          if-no-files-found: warn
