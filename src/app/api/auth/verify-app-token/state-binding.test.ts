@@ -110,6 +110,29 @@ describe("verify-app-token login state binding", () => {
     expectStateCleared(response);
   });
 
+  test("rejects a state whose length differs from the cookie", async () => {
+    const { POST } = await import("./route");
+    const response = await POST(
+      exchangeRequest({ cookieState: "short", state: "short-but-longer" }),
+    );
+    expect(response.status).toBe(400);
+    expect(exchangeCalls).toBe(0);
+    expectStateCleared(response);
+  });
+
+  test("cookie Path equals the URL the client fetches", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { EXOCORPSE_LOGIN_STATE_PATH } =
+      await import("@/lib/exocorpse-login-state");
+    const client = readFileSync(
+      new URL("../../../../components/VerifyTokenClient.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(/fetch\(\s*"([^"]+)"/.exec(client)?.[1]).toBe(
+      EXOCORPSE_LOGIN_STATE_PATH,
+    );
+  });
+
   test("rejects a missing state cookie", async () => {
     const { POST } = await import("./route");
     const response = await POST(exchangeRequest({ state: "abc" }));
