@@ -26,9 +26,7 @@ export async function GET(request: NextRequest) {
     const imageResponse = await fetch(src, {
       redirect: "error",
       signal: AbortSignal.timeout(5000),
-      next: {
-        revalidate: 86400,
-      },
+      cache: "no-store",
     });
 
     if (!imageResponse.ok) {

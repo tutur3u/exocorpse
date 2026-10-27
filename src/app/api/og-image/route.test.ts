@@ -40,7 +40,7 @@ for (const src of [
     expect(calls).toBe(0);
   });
 }
-test("disables redirects and bounds the fetch deadline", async () => {
+test("disables upstream caching and redirects and bounds the fetch deadline", async () => {
   let options: RequestInit | undefined;
   setFetch(async (_input, init) => {
     options = init;
@@ -51,6 +51,8 @@ test("disables redirects and bounds the fetch deadline", async () => {
   });
   expect((await GET(request(asset))).status).toBe(502);
   expect(options?.redirect).toBe("error");
+  expect(options?.cache).toBe("no-store");
+  expect(options?.next?.revalidate).toBeUndefined();
   expect(options?.signal).toBeInstanceOf(AbortSignal);
 });
 for (const declared of [true, false]) {
