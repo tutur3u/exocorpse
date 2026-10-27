@@ -30,6 +30,7 @@ const contentSecurityPolicyReportOnly = [
   "connect-src 'self' https:",
   "frame-src 'self' https://open.spotify.com",
   "worker-src 'self' blob:",
+  "report-uri /api/csp-report",
 ].join("; ");
 
 const securityHeaders = [
