@@ -52,3 +52,48 @@ jobs:
           name: security-scan-route-permission-lint
           path: security-scan.json
           if-no-files-found: warn
+  osv-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Download and verify osv-scanner
+        run: |
+          version=v2.7.0 # google/osv-scanner release tag; commit bfe2f84abd2f09fe0b83ba7f6dad40d296762f40
+          curl --fail --location --silent --show-error -o osv-scanner "https://github.com/google/osv-scanner/releases/download/${version}/osv-scanner_linux_amd64"
+          echo "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b  osv-scanner" | sha256sum --check --strict
+          chmod +x osv-scanner
+      - name: Scan lockfile
+        id: scan
+        run: |
+          set +e
+          ./osv-scanner scan source --lockfile=bun.lock --format=json > osv-results.json
+          scan_status=$?
+          set -e
+          if [ "$scan_status" -gt 1 ]; then
+            echo "osv-scanner failed with status $scan_status"
+            exit "$scan_status"
+          fi
+          jq -e '.results | type == "array"' osv-results.json >/dev/null
+          jq -r '
+            def severity: ((.database_specific.severity // "UNKNOWN") | ascii_upcase | if . == "MODERATE" then "MEDIUM" elif . == "LOW" or . == "MEDIUM" or . == "HIGH" or . == "CRITICAL" then . else "UNKNOWN" end);
+            [.results[].packages[]?.vulnerabilities[]? | severity] as $levels |
+            "Critical: \([$levels[] | select(. == "CRITICAL")] | length)",
+            "High: \([$levels[] | select(. == "HIGH")] | length)",
+            "Medium: \([$levels[] | select(. == "MEDIUM")] | length)",
+            "Low: \([$levels[] | select(. == "LOW")] | length)",
+            "Unknown: \([$levels[] | select(. == "UNKNOWN")] | length)"
+          ' osv-results.json
+          if jq -e '[.results[].packages[]?.vulnerabilities[]? | (.database_specific.severity // "UNKNOWN" | ascii_upcase)] | any(. == "HIGH" or . == "CRITICAL")' osv-results.json >/dev/null; then
+            echo 'HIGH or CRITICAL vulnerabilities found'
+            exit 1
+          fi
+      - name: Upload osv-scanner JSON result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: osv-scanner-results
+          path: osv-results.json
+          if-no-files-found: warn
