@@ -63,7 +63,7 @@ describe("login entry points", () => {
     ]);
     const route = readFileSync(callers[0]!, "utf8");
     expect(route).toMatch(
-      /buildExocorpseCentralizedLoginUrl\(\{[^}]*\bstate\b/s,
+      /buildExocorpseCentralizedLoginUrl\(\{[^}]*\bstate\b/,
     );
     expect(route).toMatch(/setExocorpseLoginStateCookie\(/);
   });

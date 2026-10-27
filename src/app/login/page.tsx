@@ -1,13 +1,21 @@
-import { buildExocorpseCentralizedLoginUrl } from "@/lib/exocorpse-config";
+import {
+  getExocorpseAdminLoginPath,
+  resolveExocorpseAdminTargetKeyFromPath,
+} from "@/lib/exocorpse-config";
 import { redirect } from "next/navigation";
 
 export const instant = false;
 
+// /admin/tuturuuu/login is the only entry point that issues the one-use login
+// state, so this page only hands off to it.
 export default async function LoginPage(props: {
   searchParams: Promise<{ redirect?: string }>;
 }) {
   const params = await props.searchParams;
-  const redirectTo = params.redirect || "/admin";
 
-  redirect(buildExocorpseCentralizedLoginUrl({ nextUrl: redirectTo }));
+  redirect(
+    getExocorpseAdminLoginPath(
+      resolveExocorpseAdminTargetKeyFromPath(params.redirect),
+    ),
+  );
 }

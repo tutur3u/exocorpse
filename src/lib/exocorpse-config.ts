@@ -265,6 +265,32 @@ export function buildExocorpseCentralizedLoginUrl({
   return loginUrl.toString();
 }
 
+// Maps a post-login path (for example the proxy's `?redirect=`) onto an admin
+// target key. Anything that is not the admin home falls back to the default.
+export function resolveExocorpseAdminTargetKeyFromPath(
+  rawValue: string | null | undefined,
+): ExocorpseAdminTargetKey {
+  if (!rawValue?.trim()) {
+    return resolveExocorpseAdminTargetKey(null);
+  }
+
+  try {
+    const parsed = new URL(
+      sanitizeExocorpseNextPath(rawValue, "http://localhost", "/"),
+      "http://localhost",
+    );
+
+    if (parsed.pathname.replace(/\/+$/, "") !== "/admin") {
+      return resolveExocorpseAdminTargetKey(null);
+    }
+
+    const target = parsed.searchParams.get("target");
+    return target ? resolveExocorpseAdminTargetKey(target) : "dashboard";
+  } catch {
+    return resolveExocorpseAdminTargetKey(null);
+  }
+}
+
 export function getExocorpseAdminLoginPath(targetKey: ExocorpseAdminTargetKey) {
   return `/admin/tuturuuu/login?next=${encodeURIComponent(targetKey)}`;
 }
