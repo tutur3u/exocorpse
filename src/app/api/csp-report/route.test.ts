@@ -8,10 +8,10 @@ beforeEach(() => {
 });
 afterEach(() => mock.restore());
 
-function reportRequest(ip: string) {
+function reportRequest(ip: string, identityHeader = "x-vercel-forwarded-for") {
   return new Request("http://localhost/api/csp-report", {
     method: "POST",
-    headers: { "x-forwarded-for": ip },
+    headers: { [identityHeader]: ip },
     body: JSON.stringify({
       "csp-report": { "effective-directive": "script-src" },
     }),
@@ -94,3 +94,22 @@ test("global cap rejects reports even when each IP is new", async () => {
   expect(await response.text()).toBe("");
   expect(log).toHaveBeenCalledTimes(120);
 });
+
+for (const identitySource of ["platform", "real-ip", "fallback"] as const) {
+  test(`rotating raw XFF cannot bypass the ${identitySource} identity bucket`, async () => {
+    const log = spyOn(console, "warn").mockImplementation(() => {});
+    for (let i = 1; i <= 11; i++) {
+      const request = reportRequest(`198.51.100.${i}`, "x-forwarded-for");
+      if (identitySource === "platform") {
+        request.headers.set("x-vercel-forwarded-for", "192.0.2.10");
+        request.headers.set("x-real-ip", `203.0.113.${i}`);
+      } else if (identitySource === "real-ip") {
+        request.headers.set("x-real-ip", "192.0.2.10");
+      }
+      const response = await POST(request);
+      expect(response.status).toBe(i <= 10 ? 204 : 429);
+      if (i === 11) expect(await response.text()).toBe("");
+    }
+    expect(log).toHaveBeenCalledTimes(10);
+  });
+}

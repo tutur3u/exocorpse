@@ -36,9 +36,10 @@ function admitReport(request: Request) {
     ipCounts.clear();
   }
   if (accepted >= globalLimit) return false;
-  const forwardedIp =
-    request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim() || "";
-  const ip = isIP(forwardedIp) ? forwardedIp : "unknown";
+  const platformIp =
+    request.headers.get("x-vercel-forwarded-for")?.trim() || "";
+  const realIp = request.headers.get("x-real-ip")?.trim() || "";
+  const ip = isIP(platformIp) ? platformIp : isIP(realIp) ? realIp : "unknown";
   const count = ipCounts.get(ip) || 0;
   if (count >= perIpLimit) return false;
   ipCounts.set(ip, count + 1);
