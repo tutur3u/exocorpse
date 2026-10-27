@@ -242,10 +242,12 @@ export function buildExocorpseCmsUrl({
 export function buildExocorpseCentralizedLoginUrl({
   appBaseUrl = getExocorpseAppBaseUrl(),
   nextUrl = "/admin",
+  state,
   webAppUrl = getExocorpseWebAppUrl(),
 }: {
   appBaseUrl?: string;
   nextUrl?: string;
+  state?: string;
   webAppUrl?: string;
 }) {
   const appOrigin = new URL(appBaseUrl).origin;
@@ -254,6 +256,9 @@ export function buildExocorpseCentralizedLoginUrl({
     "nextUrl",
     sanitizeExocorpseNextPath(nextUrl, appOrigin),
   );
+  if (state) {
+    verifyUrl.searchParams.set("state", state);
+  }
 
   const loginUrl = new URL("/login", webAppUrl);
   loginUrl.searchParams.set("returnUrl", verifyUrl.toString());
