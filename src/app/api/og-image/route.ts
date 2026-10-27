@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
+const CMS_STORAGE_ORIGIN = "https://nzamlzqfdwaaxdefwraj.supabase.co";
 export async function GET(request: NextRequest) {
   const src = request.nextUrl.searchParams.get("src");
 
@@ -23,11 +24,30 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const imageResponse = await fetch(src, {
-      redirect: "error",
+    const fetchOptions = {
+      redirect: "manual",
       signal: AbortSignal.timeout(5000),
       cache: "no-store",
-    });
+    } satisfies RequestInit;
+    let imageResponse = await fetch(src, fetchOptions);
+
+    if ([301, 302, 303, 307, 308].includes(imageResponse.status)) {
+      const location = imageResponse.headers.get("location");
+      await imageResponse.body?.cancel();
+      if (!location || !URL.canParse(location)) {
+        return new Response("Invalid image redirect", { status: 502 });
+      }
+      const target = new URL(location);
+      if (
+        target.origin !== CMS_STORAGE_ORIGIN ||
+        target.username ||
+        target.password ||
+        !target.pathname.startsWith("/storage/v1/object/sign/")
+      ) {
+        return new Response("Invalid image redirect", { status: 502 });
+      }
+      imageResponse = await fetch(target.href, fetchOptions);
+    }
 
     if (!imageResponse.ok) {
       return new Response("Failed to fetch image", { status: 502 });
