@@ -57,6 +57,7 @@ export function VerifyTokenClient() {
 
     async function verifyToken() {
       const token = searchParams.get("token");
+      const loginState = searchParams.get("state");
 
       if (!token) {
         router.replace(nextPath);
@@ -66,7 +67,7 @@ export function VerifyTokenClient() {
 
       try {
         const response = await fetch("/api/auth/verify-app-token", {
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ state: loginState, token }),
           headers: {
             "Content-Type": "application/json",
           },

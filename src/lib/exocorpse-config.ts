@@ -242,10 +242,12 @@ export function buildExocorpseCmsUrl({
 export function buildExocorpseCentralizedLoginUrl({
   appBaseUrl = getExocorpseAppBaseUrl(),
   nextUrl = "/admin",
+  state,
   webAppUrl = getExocorpseWebAppUrl(),
 }: {
   appBaseUrl?: string;
   nextUrl?: string;
+  state?: string;
   webAppUrl?: string;
 }) {
   const appOrigin = new URL(appBaseUrl).origin;
@@ -254,10 +256,39 @@ export function buildExocorpseCentralizedLoginUrl({
     "nextUrl",
     sanitizeExocorpseNextPath(nextUrl, appOrigin),
   );
+  if (state) {
+    verifyUrl.searchParams.set("state", state);
+  }
 
   const loginUrl = new URL("/login", webAppUrl);
   loginUrl.searchParams.set("returnUrl", verifyUrl.toString());
   return loginUrl.toString();
+}
+
+// Maps a post-login path (for example the proxy's `?redirect=`) onto an admin
+// target key. Anything that is not the admin home falls back to the default.
+export function resolveExocorpseAdminTargetKeyFromPath(
+  rawValue: string | null | undefined,
+): ExocorpseAdminTargetKey {
+  if (!rawValue?.trim()) {
+    return resolveExocorpseAdminTargetKey(null);
+  }
+
+  try {
+    const parsed = new URL(
+      sanitizeExocorpseNextPath(rawValue, "http://localhost", "/"),
+      "http://localhost",
+    );
+
+    if (parsed.pathname.replace(/\/+$/, "") !== "/admin") {
+      return resolveExocorpseAdminTargetKey(null);
+    }
+
+    const target = parsed.searchParams.get("target");
+    return target ? resolveExocorpseAdminTargetKey(target) : "dashboard";
+  } catch {
+    return resolveExocorpseAdminTargetKey(null);
+  }
 }
 
 export function getExocorpseAdminLoginPath(targetKey: ExocorpseAdminTargetKey) {

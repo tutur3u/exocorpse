@@ -7,8 +7,11 @@ const originalConsoleError = console.error;
 
 function createRequest() {
   return new NextRequest("http://localhost/api/auth/verify-app-token", {
-    body: JSON.stringify({ token: "cross-app-token" }),
-    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ state: "bound-state", token: "cross-app-token" }),
+    headers: {
+      "Content-Type": "application/json",
+      cookie: "exocorpse_login_state=bound-state",
+    },
     method: "POST",
   });
 }
@@ -84,7 +87,15 @@ describe("exocorpse app token verification", () => {
       const response = await POST(createRequest());
 
       expect(response.status).toBe(status);
-      expect(response.headers.get("set-cookie")).toBeNull();
+      // The single-use state cookie is cleared on failure; only the session
+      // cookie must stay untouched.
+      expect(
+        response.headers
+          .getSetCookie()
+          .some((cookie) =>
+            cookie.startsWith("exocorpse_tuturuuu_admin_session="),
+          ),
+      ).toBe(false);
     });
   }
 });
