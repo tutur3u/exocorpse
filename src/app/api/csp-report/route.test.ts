@@ -1,5 +1,22 @@
-import { expect, test } from "bun:test";
+import { afterEach, beforeEach, expect, mock, spyOn, test } from "bun:test";
 import { POST } from "./route";
+
+let windowTime = Date.now();
+beforeEach(() => {
+  windowTime += 120_000;
+  spyOn(Date, "now").mockReturnValue(windowTime);
+});
+afterEach(() => mock.restore());
+
+function reportRequest(ip: string) {
+  return new Request("http://localhost/api/csp-report", {
+    method: "POST",
+    headers: { "x-forwarded-for": ip },
+    body: JSON.stringify({
+      "csp-report": { "effective-directive": "script-src" },
+    }),
+  });
+}
 
 test("collects only the directive without logging private report fields", async () => {
   const original = console.warn;
@@ -45,4 +62,35 @@ test("rejects oversized and malformed reports", async () => {
       ).status,
     ).toBe(status);
   }
+});
+
+test("rate limits an IP before body parsing or logging and recovers next window", async () => {
+  const log = spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 10; i++) {
+    expect((await POST(reportRequest("192.0.2.1"))).status).toBe(204);
+  }
+  const rejected = reportRequest("192.0.2.1");
+  Object.defineProperty(rejected, "body", {
+    get() {
+      throw new Error("Body must not be read");
+    },
+  });
+  const response = await POST(rejected);
+  expect(response.status).toBe(429);
+  expect(await response.text()).toBe("");
+  expect(log).toHaveBeenCalledTimes(10);
+  expect((await POST(reportRequest("192.0.2.2"))).status).toBe(204);
+  spyOn(Date, "now").mockReturnValue(windowTime + 60_000);
+  expect((await POST(reportRequest("192.0.2.1"))).status).toBe(204);
+});
+
+test("global cap rejects reports even when each IP is new", async () => {
+  const log = spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 1; i <= 120; i++) {
+    expect((await POST(reportRequest(`198.51.100.${i}`))).status).toBe(204);
+  }
+  const response = await POST(reportRequest("203.0.113.1"));
+  expect(response.status).toBe(429);
+  expect(await response.text()).toBe("");
+  expect(log).toHaveBeenCalledTimes(120);
 });
