@@ -28,6 +28,12 @@ let windowStartedAt = 0;
 let accepted = 0;
 const ipCounts = new Map<string, number>();
 
+function parseClientIp(value: string | null) {
+  if (!value || value.length > 64 || value.includes("%")) return "";
+  const ip = value.trim();
+  return isIP(ip) ? ip : "";
+}
+
 function admitReport(request: Request) {
   const now = Date.now();
   if (now - windowStartedAt >= windowMs || now < windowStartedAt) {
@@ -36,10 +42,10 @@ function admitReport(request: Request) {
     ipCounts.clear();
   }
   if (accepted >= globalLimit) return false;
-  const platformIp =
-    request.headers.get("x-vercel-forwarded-for")?.trim() || "";
-  const realIp = request.headers.get("x-real-ip")?.trim() || "";
-  const ip = isIP(platformIp) ? platformIp : isIP(realIp) ? realIp : "unknown";
+  const ip =
+    parseClientIp(request.headers.get("x-vercel-forwarded-for")) ||
+    parseClientIp(request.headers.get("x-real-ip")) ||
+    "unknown";
   const count = ipCounts.get(ip) || 0;
   if (count >= perIpLimit) return false;
   ipCounts.set(ip, count + 1);

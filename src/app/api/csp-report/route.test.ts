@@ -113,3 +113,44 @@ for (const identitySource of ["platform", "real-ip", "fallback"] as const) {
     expect(log).toHaveBeenCalledTimes(10);
   });
 }
+
+for (const header of ["x-vercel-forwarded-for", "x-real-ip"]) {
+  for (const suffixLength of [8, 4096]) {
+    test(`${header} rejects rotating IPv6 zone suffixes of length ${suffixLength}`, async () => {
+      const log = spyOn(console, "warn").mockImplementation(() => {});
+      for (let i = 1; i <= 11; i++) {
+        const request = reportRequest(
+          `fe80::1%${"z".repeat(suffixLength)}${i}`,
+          header,
+        );
+        if (header === "x-vercel-forwarded-for") {
+          request.headers.set("x-real-ip", "192.0.2.10");
+        }
+        const response = await POST(request);
+        expect(response.status).toBe(i <= 10 ? 204 : 429);
+        if (i === 11) expect(await response.text()).toBe("");
+      }
+      expect(log).toHaveBeenCalledTimes(10);
+    });
+  }
+}
+
+for (const header of ["x-vercel-forwarded-for", "x-real-ip"]) {
+  test(`${header} enforces the raw length cap before trimming`, async () => {
+    const log = spyOn(console, "warn").mockImplementation(() => {});
+    for (let i = 1; i <= 11; i++) {
+      const request = reportRequest("", header);
+      if (header === "x-vercel-forwarded-for") {
+        request.headers.set("x-real-ip", "192.0.2.10");
+      }
+      const getHeader = request.headers.get.bind(request.headers);
+      spyOn(request.headers, "get").mockImplementation((name) =>
+        name === header ? `${" ".repeat(65)}198.51.100.${i}` : getHeader(name),
+      );
+      const response = await POST(request);
+      expect(response.status).toBe(i <= 10 ? 204 : 429);
+      if (i === 11) expect(await response.text()).toBe("");
+    }
+    expect(log).toHaveBeenCalledTimes(10);
+  });
+}
