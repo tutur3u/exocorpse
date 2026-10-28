@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { enforcingContentSecurityPolicy } from "./src/lib/enforcing-csp";
 
 const browserAssetCache =
   "public, max-age=86400, stale-while-revalidate=604800";
@@ -14,8 +15,6 @@ const privateNoStoreHeaders = [
   { key: "Vercel-CDN-Cache-Control", value: "private, no-store" },
 ];
 
-// Report-Only until violations are reviewed; enforcing would need nonces for
-// the inline scripts Next emits.
 const contentSecurityPolicyReportOnly = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -37,6 +36,7 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Content-Security-Policy", value: enforcingContentSecurityPolicy() },
   {
     key: "Content-Security-Policy-Report-Only",
     value: contentSecurityPolicyReportOnly,
@@ -50,8 +50,8 @@ const nextConfig: NextConfig = {
     "@tuturuuu/ui",
     "@tuturuuu/utils",
   ],
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Request nonces cannot be embedded in a shared prerendered HTML shell.
+  cacheComponents: false,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -72,6 +72,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // Keep the existing data/component cache scopes without prerendering HTML.
+    useCache: true,
     instantInsights: {
       validationLevel: "warning",
     },

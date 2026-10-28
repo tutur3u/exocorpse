@@ -6,6 +6,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl } from "@/lib/site-url";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Baskervville } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "react-hot-toast";
@@ -27,11 +28,13 @@ export const metadata: Metadata = {
     "Desktop-style portfolio, blog, and fantasy archive for EXOCORPSE, featuring artwork, writing, and story worlds by fenrys and morris.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await connection();
+
   return (
     <html lang="en" className="dark">
       <head>
