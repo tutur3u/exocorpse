@@ -1,3 +1,4 @@
+import { adminId } from "@/lib/admin-input";
 import "server-only";
 
 import {
@@ -110,7 +111,7 @@ async function cmsRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function externalProjectPath(suffix = "") {
   return `/workspaces/${encodeURIComponent(
-    getExocorpseWorkspaceId(),
+    adminId(getExocorpseWorkspaceId()),
   )}/external-projects${suffix}`;
 }
 
@@ -152,7 +153,7 @@ export async function getExocorpseCmsAssetPreviewResponse(
 ) {
   const query = searchParams.toString();
   return authenticatedExocorpseFetch(
-    `${externalProjectPath(`/assets/${encodeURIComponent(assetId)}`)}${query ? `?${query}` : ""}`,
+    `${externalProjectPath(`/assets/${encodeURIComponent(adminId(assetId))}`)}${query ? `?${query}` : ""}`,
     { method: "GET", redirect: "manual" },
   );
 }
@@ -199,7 +200,7 @@ export async function ensureCharacterGalleryTaggingDefinition(
     .map((target) => target.target_collection_id);
   await cmsRequest(
     externalProjectPath(
-      `/relation-definitions/${encodeURIComponent(definition.id)}`,
+      `/relation-definitions/${encodeURIComponent(adminId(definition.id))}`,
     ),
     {
       body: JSON.stringify({
@@ -234,7 +235,9 @@ export async function updateExocorpseCmsEntryBundle(
   input: EntryBundleInput,
 ) {
   const result = await cmsRequest<EntryBundle>(
-    externalProjectPath(`/entries/${encodeURIComponent(entryId)}/bundle`),
+    externalProjectPath(
+      `/entries/${encodeURIComponent(adminId(entryId))}/bundle`,
+    ),
     {
       body: JSON.stringify({ ...input, expectedUpdatedAt }),
       method: "PUT",
@@ -357,7 +360,7 @@ export async function setExocorpseCmsEntryVisibility(
 
 export async function deleteExocorpseCmsEntry(entryId: string) {
   await cmsRequest<{ id: string }>(
-    externalProjectPath(`/entries/${encodeURIComponent(entryId)}`),
+    externalProjectPath(`/entries/${encodeURIComponent(adminId(entryId))}`),
     { method: "DELETE" },
   );
   await invalidateDelivery();
@@ -385,7 +388,7 @@ export async function createExocorpseCmsAsset(payload: {
 
 export async function deleteExocorpseCmsAsset(assetId: string) {
   await cmsRequest<{ id: string }>(
-    externalProjectPath(`/assets/${encodeURIComponent(assetId)}`),
+    externalProjectPath(`/assets/${encodeURIComponent(adminId(assetId))}`),
     { method: "DELETE" },
   );
   await invalidateDelivery();
@@ -394,10 +397,11 @@ export async function deleteExocorpseCmsAsset(assetId: string) {
 export async function reorderExocorpseCmsAssets(
   order: Array<{ assetId: string; sortOrder: number }>,
 ) {
+  for (const { assetId } of order) adminId(assetId);
   const assets = await Promise.all(
     order.map(({ assetId, sortOrder }) =>
       cmsRequest<ExocorpseCmsAsset>(
-        externalProjectPath(`/assets/${encodeURIComponent(assetId)}`),
+        externalProjectPath(`/assets/${encodeURIComponent(adminId(assetId))}`),
         {
           body: JSON.stringify({ sort_order: sortOrder }),
           method: "PATCH",

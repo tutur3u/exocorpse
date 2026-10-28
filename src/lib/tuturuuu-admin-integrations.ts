@@ -1,3 +1,5 @@
+import { AdminInputError, adminId, storagePath } from "@/lib/admin-input";
+import { driveUpload } from "@/lib/upload-policy";
 import "server-only";
 
 import {
@@ -53,7 +55,7 @@ export function removeExocorpseTeamMember(input: {
 }) {
   const query = new URLSearchParams();
   if (input.email) query.set("email", input.email);
-  if (input.userId) query.set("id", input.userId);
+  if (input.userId) query.set("id", adminId(input.userId));
   return request<{ message: string }>(
     `${externalProjectPath("/members/access")}?${query}`,
     { method: "DELETE" },
@@ -61,8 +63,11 @@ export function removeExocorpseTeamMember(input: {
 }
 
 export function addExocorpseTeamRoleMember(roleId: string, userId: string) {
+  adminId(userId);
   return request<{ message: string }>(
-    externalProjectPath(`/members/roles/${encodeURIComponent(roleId)}/members`),
+    externalProjectPath(
+      `/members/roles/${encodeURIComponent(adminId(roleId))}/members`,
+    ),
     jsonInit("POST", { memberIds: [userId] }),
   );
 }
@@ -70,7 +75,7 @@ export function addExocorpseTeamRoleMember(roleId: string, userId: string) {
 export function removeExocorpseTeamRoleMember(roleId: string, userId: string) {
   return request<{ message: string }>(
     externalProjectPath(
-      `/members/roles/${encodeURIComponent(roleId)}/members/${encodeURIComponent(userId)}`,
+      `/members/roles/${encodeURIComponent(adminId(roleId))}/members/${encodeURIComponent(adminId(userId))}`,
     ),
     { method: "DELETE" },
   );
@@ -85,7 +90,20 @@ export async function getExocorpseDrive(
 }
 
 export function getExocorpseDriveListing(searchParams: URLSearchParams) {
-  const query = searchParams.toString();
+  const allowed = new URLSearchParams();
+  for (const key of [
+    "path",
+    "limit",
+    "offset",
+    "sortBy",
+    "sortOrder",
+    "search",
+  ]) {
+    const value = searchParams.get(key);
+    if (value !== null)
+      allowed.set(key, key === "path" ? storagePath(value, true) : value);
+  }
+  const query = allowed.toString();
   return request<{ data: AdminDriveListing }>(
     `${externalProjectPath("/storage")}${query ? `?${query}` : ""}`,
   );
@@ -98,16 +116,20 @@ export async function getExocorpseDriveAnalytics() {
 }
 
 export function getExocorpseDriveReadUrl(filePath: string) {
-  const query = new URLSearchParams({ filePath });
+  const query = new URLSearchParams({ filePath: storagePath(filePath) });
   return request<{ data: { expiresIn: number; signedUrl: string } }>(
     `${externalProjectPath("/storage")}?${query}`,
   );
 }
 
 export function createExocorpseDriveFolder(path: string, name: string) {
+  if (name.includes("/")) throw new AdminInputError("Invalid name.");
   return request<{ data: { name: string; path: string } }>(
     externalProjectPath("/storage"),
-    jsonInit("POST", { name, path }),
+    jsonInit("POST", {
+      name: storagePath(name),
+      path: storagePath(path, true),
+    }),
   );
 }
 
@@ -116,6 +138,9 @@ export function renameExocorpseDriveEntry(input: {
   newName: string;
   path: string;
 }) {
+  storagePath(input.path);
+  storagePath(input.newName);
+  if (input.newName.includes("/")) throw new AdminInputError("Invalid name.");
   return request<{ data: { path: string; updatedAssets: number } }>(
     externalProjectPath("/storage"),
     { body: JSON.stringify(input), method: "PATCH" },
@@ -126,6 +151,7 @@ export function deleteExocorpseDriveEntry(input: {
   kind: "file" | "folder";
   path: string;
 }) {
+  storagePath(input.path);
   return request<{ data: { detachedAssets: number; success: boolean } }>(
     externalProjectPath("/storage"),
     jsonInit("DELETE", input),
@@ -138,7 +164,7 @@ export async function createExocorpseDriveUpload(input: {
   filename: string;
   size: number;
 }) {
-  const relativeDirectory = input.directory.replace(/^drive\/?/u, "") || "root";
+  const metadata = driveUpload(input);
   return request<{
     contentType?: string;
     headers?: Record<string, string>;
@@ -146,15 +172,5 @@ export async function createExocorpseDriveUpload(input: {
     provider: "r2" | "supabase";
     signedUrl: string;
     token?: string;
-  }>(
-    externalProjectPath("/assets/upload-url"),
-    jsonInit("POST", {
-      collectionType: "drive",
-      contentType: input.contentType,
-      entrySlug: relativeDirectory,
-      filename: input.filename,
-      size: input.size,
-      upsert: false,
-    }),
-  );
+  }>(externalProjectPath("/assets/upload-url"), jsonInit("POST", metadata));
 }

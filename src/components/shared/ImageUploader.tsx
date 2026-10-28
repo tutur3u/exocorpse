@@ -154,7 +154,12 @@ export default function ImageUploader({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ path: fullPath }),
+            body: JSON.stringify({
+              path: fullPath,
+              contentType: compressedFile.type,
+              size: compressedFile.size,
+              upsert: false,
+            }),
           },
         );
 

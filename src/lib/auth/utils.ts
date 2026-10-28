@@ -1,5 +1,8 @@
 import { getExocorpseAdminLoginPath } from "@/lib/exocorpse-config";
-import { getExocorpseSessionFromCookies } from "@/lib/exocorpse-session";
+import {
+  ExocorpseAuthError,
+  getExocorpseSessionFromCookies,
+} from "@/lib/exocorpse-session";
 import { redirect } from "next/navigation";
 
 /**
@@ -19,7 +22,7 @@ export async function verifyAuth() {
   const session = await getExocorpseSessionFromCookies();
 
   if (!session) {
-    throw new Error(
+    throw new ExocorpseAuthError(
       "Unauthorized: You must connect through Tuturuuu Auth to perform this action",
     );
   }

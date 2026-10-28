@@ -1,5 +1,8 @@
 "use client";
 
+import AdminDriveFilePreview from "./AdminDriveFilePreview";
+import { uploadFilename } from "@/lib/upload-policy";
+
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import PreviewModal from "@/components/shared/PreviewModal";
 import type {
@@ -11,7 +14,6 @@ import {
   BarChart3,
   ChevronRight,
   Cloud,
-  Download,
   Eye,
   File,
   FileArchive,
@@ -324,7 +326,7 @@ export default function AdminDriveManager({
           action: "upload-url",
           contentType: file.type || "application/octet-stream",
           directory: path,
-          filename: file.name,
+          filename: uploadFilename(file.name),
           size: file.size,
         });
         await uploadDirect(upload, file, setUploadProgress);
@@ -734,46 +736,7 @@ export default function AdminDriveManager({
         title={preview?.item.name ?? "File preview"}
       >
         {preview ? (
-          <div className="flex min-h-full flex-col bg-slate-950 p-4 sm:p-6">
-            <div className="mb-4 flex justify-end">
-              <a
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-cyan-600 px-3 text-xs font-bold text-white hover:bg-cyan-500"
-                href={preview.url}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <Download className="h-4 w-4" /> Open or download
-              </a>
-            </div>
-            {preview.item.contentType?.startsWith("image/") ? (
-              // Signed URLs are short-lived and provider-defined, so they cannot
-              // safely be routed through the Next Image optimizer.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                alt={preview.item.name}
-                className="m-auto max-h-[76vh] max-w-full rounded-xl object-contain"
-                src={preview.url}
-              />
-            ) : preview.item.contentType?.startsWith("audio/") ? (
-              <audio
-                className="m-auto w-full max-w-2xl"
-                controls
-                src={preview.url}
-              />
-            ) : preview.item.contentType?.startsWith("video/") ? (
-              <video
-                className="m-auto max-h-[76vh] max-w-full rounded-xl"
-                controls
-                src={preview.url}
-              />
-            ) : (
-              <iframe
-                className="min-h-[76vh] w-full rounded-xl bg-white"
-                src={preview.url}
-                title={preview.item.name}
-              />
-            )}
-          </div>
+          <AdminDriveFilePreview item={preview.item} url={preview.url} />
         ) : null}
       </PreviewModal>
     </div>
