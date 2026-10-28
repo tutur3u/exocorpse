@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { NextRequest } from "next/server";
-import { config, proxy } from "./proxy";
+import { config, proxy } from "./src/proxy";
 
 describe("admin proxy", () => {
   test("sends unauthenticated visitors to the state-issuing login route", () => {
