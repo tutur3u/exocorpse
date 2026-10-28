@@ -8,7 +8,9 @@ export function enforcingContentSecurityPolicy(nonce?: string) {
     [
       "script-src 'self'",
       ...(nonce ? [`'nonce-${nonce}'`] : []),
-      "https://va.vercel-scripts.com",
+      ...(process.env.NODE_ENV === "development"
+        ? ["https://va.vercel-scripts.com"]
+        : []),
     ].join(" "),
     "script-src-attr 'none'",
     "style-src 'self' 'unsafe-inline'",
@@ -19,6 +21,6 @@ export function enforcingContentSecurityPolicy(nonce?: string) {
     "frame-src 'self' https://open.spotify.com https://nzamlzqfdwaaxdefwraj.supabase.co",
     "worker-src 'self'",
     "upgrade-insecure-requests",
-    "report-uri /api/csp-report",
+    "report-uri /api/csp-report?policy=enforce",
   ].join("; ");
 }

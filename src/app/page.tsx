@@ -565,7 +565,7 @@ export async function generateMetadata({
   };
 }
 
-async function HomeContent({
+async function loadCachedHomeInitialData({
   wikiParamsData,
   blogParamsData,
   commissionParamsData,
@@ -587,6 +587,18 @@ async function HomeContent({
   });
   cacheTag(EXOCORPSE_CMS_CACHE_TAG);
 
+  return loadHomeInitialData({
+    wikiParamsData,
+    blogParamsData,
+    commissionParamsData,
+    portfolioParamsData,
+    gameParamsData,
+  });
+}
+
+async function HomeContent(
+  params: Parameters<typeof loadCachedHomeInitialData>[0],
+) {
   const {
     wikiParams,
     blogParams,
@@ -598,13 +610,7 @@ async function HomeContent({
     initialCommissionData,
     initialPortfolioData,
     initialAboutData,
-  } = await loadHomeInitialData({
-    wikiParamsData,
-    blogParamsData,
-    commissionParamsData,
-    portfolioParamsData,
-    gameParamsData,
-  });
+  } = await loadCachedHomeInitialData(params);
 
   return (
     <HomeClient

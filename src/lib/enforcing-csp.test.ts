@@ -34,7 +34,7 @@ describe("enforcing CSP", () => {
     expect(values["frame-ancestors"]).toEqual(["'self'"]);
     expect(values["form-action"]).toEqual(["'self'"]);
     expect(values["upgrade-insecure-requests"]).toEqual([]);
-    expect(values["report-uri"]).toEqual(["/api/csp-report"]);
+    expect(values["report-uri"]).toEqual(["/api/csp-report?policy=enforce"]);
     expect(values["script-src-attr"]).toEqual(["'none'"]);
     expect(values["style-src"]).toEqual(["'self'", "'unsafe-inline'"]);
     expect(values["img-src"]).toEqual(["'self'", "data:", "blob:", "https:"]);
@@ -56,7 +56,9 @@ describe("enforcing CSP", () => {
     expect(values["script-src"]).toEqual([
       "'self'",
       expect.stringMatching(/^'nonce-[A-Za-z0-9+/]{22}=='$/),
-      "https://va.vercel-scripts.com",
+      ...(process.env.NODE_ENV === "development"
+        ? ["https://va.vercel-scripts.com"]
+        : []),
     ]);
     expect(policy).not.toContain("'unsafe-eval'");
     expect(values["script-src"]).not.toContain("'unsafe-inline'");
@@ -144,4 +146,22 @@ describe("enforcing CSP", () => {
         ?.value,
     ).toContain("report-uri /api/csp-report");
   });
+});
+
+test("only development allows the Vercel Analytics debug script host", () => {
+  const modulePath = new URL("./enforcing-csp.ts", import.meta.url).pathname;
+  for (const environment of ["production", "test", "development"]) {
+    const result = Bun.spawnSync({
+      cmd: [
+        process.execPath,
+        "--eval",
+        `import { enforcingContentSecurityPolicy } from ${JSON.stringify(modulePath)}; process.stdout.write(enforcingContentSecurityPolicy());`,
+      ],
+      env: { ...process.env, NODE_ENV: environment },
+    });
+    expect(result.exitCode).toBe(0);
+    expect(
+      result.stdout.toString().includes("https://va.vercel-scripts.com"),
+    ).toBe(environment === "development");
+  }
 });

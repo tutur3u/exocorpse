@@ -1,11 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-const origin = process.env.CSP_TEST_ORIGIN;
+const origin = process.env.PREVIEW_URL ?? process.env.CSP_TEST_ORIGIN;
 
-// Run against `bun run start` with CSP_TEST_ORIGIN=http://127.0.0.1:<port>.
+// PREVIEW_URL points the same release gate at an immutable Vercel deployment.
 describe.skipIf(!origin)("production HTTP CSP", () => {
   async function get(path: string) {
-    return fetch(new URL(path, origin), { redirect: "manual" });
+    return fetch(new URL(path, origin), {
+      redirect: "manual",
+      signal: AbortSignal.timeout(20_000),
+    });
   }
 
   function checkHeaders(response: Response) {
@@ -27,27 +30,52 @@ describe.skipIf(!origin)("production HTTP CSP", () => {
   test.each([
     ["/", 200],
     ["/?app=blog", 200],
+    ["/?app=portfolio", 200],
+    ["/?app=wiki", 200],
+    ["/?app=commission", 200],
+    ["/?app=about", 200],
+    ["/?app=game", 200],
     ["/artfight-profile", 200],
+    ["/artfight-profile?x=1", 200],
     ["/verify-token", 200],
     ["/missing-csp-test-route", 404],
   ] as const)(
-    "%s serves a matching nonce on every inline script",
+    "%s serves matching HTML/header nonces on two consecutive requests",
     async (path, status) => {
-      const response = await get(path);
-      expect(response.status).toBe(status);
-      const policy = checkHeaders(response);
-      const nonce = policy.match(/'nonce-([^']+)'/)?.[1];
-      expect(nonce).toMatch(/^[A-Za-z0-9+/]{22}==$/);
-      expect(response.headers.get("Cache-Control")).toContain("no-store");
-      const html = await response.text();
-      const scripts = [
-        ...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g),
-      ];
-      expect(scripts.length).toBeGreaterThan(0);
-      for (const [, attributes] of scripts) {
-        if (/\bsrc=/.test(attributes)) continue;
-        expect(attributes).toContain(`nonce="${nonce}"`);
+      const nonces: string[] = [];
+      for (let attempt = 0; attempt < 2; attempt++) {
+        // Keep the URL and default request cache semantics identical to warm the edge.
+        const response = await get(path);
+        expect(response.status).toBe(status);
+        const policy = checkHeaders(response);
+        const nonce = policy.match(/'nonce-([^']+)'/)?.[1];
+        expect(nonce).toMatch(/^[A-Za-z0-9+/]{22}==$/);
+        if (!nonce) throw new Error(`Missing CSP nonce for ${path}`);
+        nonces.push(nonce);
+        expect(response.headers.get("Cache-Control")).toContain("no-store");
+        const html = await response.text();
+        const scripts = [
+          ...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g),
+        ];
+        const inlineScripts = scripts.filter(
+          ([, attributes]) => !/\bsrc=/.test(attributes),
+        );
+        expect(inlineScripts.length).toBeGreaterThan(0);
+        for (const [, attributes] of inlineScripts) {
+          expect(attributes).toContain(`nonce="${nonce}"`);
+        }
+        for (const [, htmlNonce] of html.matchAll(
+          /<(?:script|style|link)\b[^>]*\bnonce="([^"]+)"/g,
+        )) {
+          expect(htmlNonce).toBe(nonce);
+        }
+        const edgeCache = response.headers.get("x-vercel-cache");
+        expect(edgeCache).not.toBe("HIT");
+        expect(edgeCache).not.toBe("STALE");
+        if (new URL(origin!).hostname.endsWith(".vercel.app"))
+          expect(edgeCache).not.toBeNull();
       }
+      expect(nonces[0]).not.toBe(nonces[1]);
     },
   );
 
@@ -63,13 +91,6 @@ describe.skipIf(!origin)("production HTTP CSP", () => {
     },
   );
 
-  test("successive served documents have distinct nonces", async () => {
-    const first = checkHeaders(await get("/"));
-    const second = checkHeaders(await get("/"));
-    expect(first).toContain("'nonce-");
-    expect(first).not.toBe(second);
-  });
-
   test("the compression worker retains its asset cache and can fetch data URLs", async () => {
     const response = await get("/workers/imageCompressor.worker.js");
     expect(response.status).toBe(200);
@@ -79,18 +100,24 @@ describe.skipIf(!origin)("production HTTP CSP", () => {
     expect(response.headers.get("Cache-Control")).toContain("max-age=86400");
   });
 
-  test("the existing collector accepts enforcing-policy reports", async () => {
-    const response = await fetch(new URL("/api/csp-report", origin), {
-      method: "POST",
-      headers: { "Content-Type": "application/csp-report" },
-      body: JSON.stringify({
-        "csp-report": {
-          "effective-directive": "script-src-elem",
-          disposition: "enforce",
+  test.each(["enforce", "report"])(
+    "the collector accepts %s-policy reports",
+    async (policy) => {
+      const response = await fetch(
+        new URL(`/api/csp-report?policy=${policy}`, origin),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/csp-report" },
+          body: JSON.stringify({
+            "csp-report": {
+              "effective-directive": "script-src-elem",
+              disposition: policy,
+            },
+          }),
         },
-      }),
-    });
-    expect(response.status).toBe(204);
-    checkHeaders(response);
-  });
+      );
+      expect(response.status).toBe(204);
+      checkHeaders(response);
+    },
+  );
 });
