@@ -47,7 +47,7 @@ The root layout calls `connection()`. `cacheComponents` is disabled, and `partia
 
 This changes public documents from a reusable prerendered shell to rendering per request. HTML has `private, no-store` browser and CDN headers. The ArtFight asset cache rule uses `:path+`, so it requires a child asset path and cannot match the `/artfight-profile` document. The earlier `:path*` rule applied a one-year immutable Vercel CDN lifetime to that document despite proxy no-store headers. A config-level regression test protects this boundary.
 
-Only data loaders retain cache scopes. ArtFight caches its manifest and file contents in `loadArtfightVersions()`, while its page stays uncached. Home caches its initial data in `loadCachedHomeInitialData()`, while `HomeContent` renders outside that scope. Existing tags, asset cache headers, and image optimization remain. Latency, hosting cost, and navigation behavior need release review before this draft becomes ready.
+Only data loaders retain cache scopes. ArtFight caches its manifest and file contents in `loadArtfightVersions()`, while its page stays uncached. Home caches its initial data in `loadCachedHomeInitialData()`, while `HomeContent` renders outside that scope. Existing tags, asset cache headers, and image optimization remain. The owner accepted the per-request rendering option for `/`, `/verify-token`, and the 404 page. Monetary cost and function GB-hours remain unmeasured. This PR stays in draft for the Security Desk delta review and release checks.
 
 The proxy moves from the root to `src/proxy.ts`, beside `src/app`, as required by the installed Next.js file convention. The production build previously omitted the root proxy. The HTTP checks verify that the new location actually emits nonces, rather than relying only on calls to the exported function.
 
@@ -66,6 +66,12 @@ The complete source audit found four cache scopes. All now return data rather th
 
 The reviewed build on `main` used a partial prerendered shell for `/`, and static output for ArtFight, token verification, and the 404. They now render per request. Login and admin documents were already dynamic. Every HTML request and 404 can therefore incur a render and a proxy invocation. No numerical hosting-cost estimate is claimed.
 
+## Built proxy registration
+
+The registration check reads `.next/server/functions-config-manifest.json`, which records the Node.js proxy. It requires `/_middleware` on the `nodejs` runtime, checks that the compiled matcher covers `/admin` and `/admin/drive`, and excludes `/api/x` and `/_next/static/x`. It accepts the single document matcher rather than requiring the earlier admin-only matcher strings.
+
+The Build Check workflow runs `VERIFY_BUILT_PROXY=1 bun test proxy-registration.test.ts` immediately after `vercel build`. A missing manifest or proxy registration fails that job. The default source check runs before the build and skips this one artifact-dependent test. A local equivalent is `bun run build && VERIFY_BUILT_PROXY=1 bun test proxy-registration.test.ts proxy.test.ts`.
+
 ## Verification commands and limits
 
 The local checks are `bun run build`, `bun run lint`, `bun run typecheck`, `bun run format:check`, and `bun test`.
@@ -77,6 +83,10 @@ Local smoke checks use `TUTURUUU_EXOCORPSE_CMS_DELIVERY=0` and the non-secret fi
 Neither `playwright` nor `@playwright/test` is installed in the repository. The headless-browser check is skipped as requested for that case. Browser CSP console violations have not been captured, so there is no claim of zero violations. Authenticated uploads, Spotify playback, live CMS media, and hosting-injected preview scripts still need browser verification before release.
 
 The unchanged report-only policy may still report `connect-src` for data or blob fetches, `media-src` for Howler's silent data URL, and `frame-src` for signed storage previews. The enforcing policy allows these uses. The collector now reserves separate bounded per-process budgets for enforcement and report-only traffic.
+
+## Known asset-path 404 limitation
+
+Unknown URLs under excluded asset prefixes, such as `/artfight-profile/nope` and `/media/nope`, and missing image paths get the nonce-less policy. Their HTML 404 fallback cannot hydrate because its inline scripts are blocked. Plain 404 links still work. This cosmetic issue remains documented for this round; expanding the proxy to asset requests would also change resource caching and invocation behavior.
 
 ## Rollback
 

@@ -55,3 +55,8 @@ jobs:
 
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Verify built proxy registration
+        env:
+          VERIFY_BUILT_PROXY: "1"
+        run: bun test proxy-registration.test.ts
