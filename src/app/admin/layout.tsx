@@ -6,8 +6,6 @@ import { connection } from "next/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export const instant = false;
-
 export default async function AdminLayout({
   children,
 }: {

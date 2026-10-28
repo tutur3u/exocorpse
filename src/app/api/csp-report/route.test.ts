@@ -39,7 +39,7 @@ test("collects only the directive without logging private report fields", async 
     );
     expect(response.status).toBe(204);
     expect(messages).toEqual([
-      ["[csp-report]", { directive: "script-src-elem" }],
+      ["[csp-report]", { directive: "script-src-elem", policy: "report" }],
     ]);
   } finally {
     console.warn = original;
@@ -154,3 +154,57 @@ for (const header of ["x-vercel-forwarded-for", "x-real-ip"]) {
     expect(log).toHaveBeenCalledTimes(10);
   });
 }
+
+test("enforcing reports log their policy without trusting body disposition or leaking URLs", async () => {
+  const log = spyOn(console, "warn").mockImplementation(() => {});
+  const response = await POST(
+    new Request("http://localhost/api/csp-report?policy=enforce", {
+      method: "POST",
+      body: JSON.stringify({
+        "csp-report": {
+          "effective-directive": "script-src-elem",
+          disposition: "report",
+          "document-uri": "https://example.com/private?token=secret",
+          "script-sample": "private",
+        },
+      }),
+    }),
+  );
+  expect(response.status).toBe(204);
+  expect(log.mock.calls).toEqual([
+    ["[csp-report]", { directive: "script-src-elem", policy: "enforce" }],
+  ]);
+});
+
+function enforcingRequest(ip: string) {
+  const request = reportRequest(ip);
+  return new Request("http://localhost/api/csp-report?policy=enforce", request);
+}
+
+test("report-only exhaustion cannot consume the enforcing IP bucket", async () => {
+  spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 0; i < 10; i++)
+    expect((await POST(reportRequest("192.0.2.1"))).status).toBe(204);
+  expect((await POST(reportRequest("192.0.2.1"))).status).toBe(429);
+  for (let i = 0; i < 10; i++)
+    expect((await POST(enforcingRequest("192.0.2.1"))).status).toBe(204);
+  const rejected = enforcingRequest("192.0.2.1");
+  Object.defineProperty(rejected, "body", {
+    get() {
+      throw new Error("Body must not be read");
+    },
+  });
+  expect((await POST(rejected)).status).toBe(429);
+  spyOn(Date, "now").mockReturnValue(windowTime + 60_000);
+  expect((await POST(enforcingRequest("192.0.2.1"))).status).toBe(204);
+});
+
+test("global budgets are independently bounded for both policy endpoints", async () => {
+  spyOn(console, "warn").mockImplementation(() => {});
+  for (let i = 1; i <= 120; i++)
+    expect((await POST(reportRequest(`198.51.100.${i}`))).status).toBe(204);
+  expect((await POST(reportRequest("203.0.113.1"))).status).toBe(429);
+  for (let i = 1; i <= 120; i++)
+    expect((await POST(enforcingRequest(`198.51.100.${i}`))).status).toBe(204);
+  expect((await POST(enforcingRequest("203.0.113.1"))).status).toBe(429);
+});

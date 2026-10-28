@@ -24,9 +24,15 @@ const directives = new Set([
 const windowMs = 60_000;
 const perIpLimit = 10;
 const globalLimit = 120;
-let windowStartedAt = 0;
-let accepted = 0;
-const ipCounts = new Map<string, number>();
+function createBucket() {
+  return {
+    windowStartedAt: 0,
+    accepted: 0,
+    ipCounts: new Map<string, number>(),
+  };
+}
+
+const buckets = { report: createBucket(), enforce: createBucket() };
 
 function parseClientIp(value: string | null) {
   if (!value || value.length > 64 || value.includes("%")) return "";
@@ -34,27 +40,35 @@ function parseClientIp(value: string | null) {
   return isIP(ip) ? ip : "";
 }
 
-function admitReport(request: Request) {
+function admitReport(request: Request, policy: keyof typeof buckets) {
+  const bucket = buckets[policy];
   const now = Date.now();
-  if (now - windowStartedAt >= windowMs || now < windowStartedAt) {
-    windowStartedAt = now;
-    accepted = 0;
-    ipCounts.clear();
+  if (
+    now - bucket.windowStartedAt >= windowMs ||
+    now < bucket.windowStartedAt
+  ) {
+    bucket.windowStartedAt = now;
+    bucket.accepted = 0;
+    bucket.ipCounts.clear();
   }
-  if (accepted >= globalLimit) return false;
+  if (bucket.accepted >= globalLimit) return false;
   const ip =
     parseClientIp(request.headers.get("x-vercel-forwarded-for")) ||
     parseClientIp(request.headers.get("x-real-ip")) ||
     "unknown";
-  const count = ipCounts.get(ip) || 0;
+  const count = bucket.ipCounts.get(ip) || 0;
   if (count >= perIpLimit) return false;
-  ipCounts.set(ip, count + 1);
-  accepted++;
+  bucket.ipCounts.set(ip, count + 1);
+  bucket.accepted++;
   return true;
 }
 
 export async function POST(request: Request) {
-  if (!admitReport(request)) {
+  const policy =
+    new URL(request.url).searchParams.get("policy") === "enforce"
+      ? "enforce"
+      : "report";
+  if (!admitReport(request, policy)) {
     return new Response(null, {
       status: 429,
       headers: { "Retry-After": "60" },
@@ -79,7 +93,7 @@ export async function POST(request: Request) {
     const directive = report["effective-directive"];
     if (!directives.has(directive)) return new Response(null, { status: 400 });
     // URLs, referrers and script samples can contain private data.
-    console.warn("[csp-report]", { directive });
+    console.warn("[csp-report]", { directive, policy });
     return new Response(null, { status: 204 });
   } catch (error) {
     return new Response(null, {

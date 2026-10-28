@@ -52,13 +52,13 @@ async function readVersionManifest() {
   });
 }
 
-export default async function ArtfightProfilePage() {
+async function loadArtfightVersions() {
   "use cache";
 
   cacheLife("max");
 
   const manifest = await readVersionManifest();
-  const versions = await Promise.all(
+  return Promise.all(
     manifest.map(async (version) => {
       const [inlineHtml, supporterHtml, supporterCss, readme] =
         await Promise.all([
@@ -81,6 +81,9 @@ export default async function ArtfightProfilePage() {
       };
     }),
   );
+}
 
+export default async function ArtfightProfilePage() {
+  const versions = await loadArtfightVersions();
   return <ArtfightProfilePreviewClient versions={versions} />;
 }
