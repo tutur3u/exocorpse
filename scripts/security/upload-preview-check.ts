@@ -431,6 +431,10 @@ switch (process.argv[2]) {
       "O'Neil.png",
       "a+b.png",
       "画像.png",
+      "👩‍🎨 art.png",
+      "می‌خواهم.png",
+      "100% done.png",
+      "sketch...png",
     ]) {
       const path = `drive/root/${name}`;
       await integrations.getExocorpseDriveReadUrl(path);
@@ -456,13 +460,14 @@ switch (process.argv[2]) {
     }
     for (const path of [
       "drive/root/../x",
-      "drive/root/a..b",
       "drive/root/%2e%2e",
       "drive/root/%252e%252e",
       "drive/root/a\\b",
       "drive/root/a\u0000b",
       "drive/root/a\u202eb",
       "drive/root/a\u2066b",
+      "drive/root/a\u200eb",
+      "drive/root/a\ufeffb",
       "/drive/root/a",
       "drive/root//a",
       "drive/roots/a",

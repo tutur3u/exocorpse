@@ -15,8 +15,10 @@ segments: `purpose/entry-slug/filename`.
 Drive uploads stay under `drive/root`. New filenames and new folder or rename
 names use strict character checks. Existing paths use structural checks instead,
 so parentheses, ampersands, apostrophes, brackets and non-Latin names remain
-accessible. Existing paths reject empty segments, `..`, percent encodings,
-backslashes, control and format characters, and paths outside `drive/root`.
+accessible. Existing paths allow ZWJ/ZWNJ scripts and emoji, literal percent signs such as
+`100% done.png`, and dotted names such as `sketch...png`. They reject empty, `.`
+and `..` segments, percent-escaped byte sequences, backslashes, control and bidi
+characters, and paths outside `drive/root`. New names keep their strict checks.
 The empty listing path remains available for the project overview.
 
 ## Accepted Drive files
@@ -45,7 +47,9 @@ Drive previews use image, audio or video elements for allowlisted media. Other
 files have a download link. Files pass through an authenticated streaming
 response with `X-Content-Type-Options: nosniff`,
 `Content-Security-Policy: sandbox; default-src 'none'` and private no-store
-caching. Non-media and forced downloads use `Content-Disposition: attachment`
+caching. A later `/api/admin/drive` rule in `next.config.ts` sets the sandbox
+CSP after the global document policy. Next 16 otherwise keeps the config header
+and drops the route header. Non-media and forced downloads use `Content-Disposition: attachment`
 and `application/octet-stream`. Historical HTML and SVG objects also download
 as attachments.
 
@@ -82,3 +86,10 @@ Run `bun test src/lib/upload-preview-security.test.ts`, `bun run check` and
 names, a 6 MiB file that starts streaming before completion, the byte cap,
 download-only types, unique names and the m4a alias. The streaming test is local
 and does not establish deployed Vercel behavior.
+
+Run `VERIFY_BUILT_DRIVE=1 bun test src/lib/drive-built.integration.test.ts` after
+the build. This gate starts an owned production Next server with fixture-only
+authentication and upstream HTTP, checks actual HTML/PDF/media file bytes and
+headers, streams a 6 MiB file, and confirms that the home page keeps its nonce
+CSP. It stops its own server by PID in a `finally` block. CI runs the gate after
+the production build. It does not use production credentials or contact storage.

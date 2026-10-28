@@ -9,23 +9,37 @@ export function adminId(value: string) {
   return value;
 }
 
-export function storagePath(value: string) {
+function structuralPath(value: string) {
   if (
     !value ||
     value.length > 1024 ||
-    value.includes("..") ||
-    /[%\\\p{Cc}\p{Cf}]/u.test(value) ||
-    value.split("/").some((part) => !part || part === ".")
+    /[\\\p{Cc}\p{Cs}\u061c\u200e\u200f\u202a-\u202e\u2066-\u206f\ufeff]/u.test(
+      value,
+    ) ||
+    value.split("/").some((part) => !part || part === "." || part === "..")
   )
     throw new AdminInputError("Invalid storage path.");
   return value;
 }
 
+export function storagePath(value: string) {
+  structuralPath(value);
+  if (value.includes("..") || /[%\p{Cf}]/u.test(value)) {
+    throw new AdminInputError("Invalid storage path.");
+  }
+  return value;
+}
+
 export function drivePath(value: string, allowOverview = false) {
   if (allowOverview && value === "") return value;
-  storagePath(value);
-  if (value !== "drive/root" && !value.startsWith("drive/root/")) {
-    throw new AdminInputError("Path must be under Managed Drive.");
+  structuralPath(value);
+  if (
+    /%[0-9a-f]{2}/i.test(value) ||
+    (value !== "drive/root" && !value.startsWith("drive/root/"))
+  ) {
+    throw new AdminInputError(
+      "Path must be under Managed Drive without encoded segments.",
+    );
   }
   return value;
 }
