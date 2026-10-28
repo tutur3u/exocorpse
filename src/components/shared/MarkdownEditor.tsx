@@ -345,7 +345,12 @@ export default function MarkdownEditor({
       const urlResponse = await fetch("/api/storage/signed-upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: fullPath }),
+        body: JSON.stringify({
+          path: fullPath,
+          contentType: file.type,
+          size: file.size,
+          upsert: false,
+        }),
       });
 
       if (!urlResponse.ok) {
@@ -482,7 +487,12 @@ export default function MarkdownEditor({
           const urlResponse = await fetch("/api/storage/signed-upload-url", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path: fullPath }),
+            body: JSON.stringify({
+              path: fullPath,
+              contentType: file.type,
+              size: file.size,
+              upsert: false,
+            }),
           });
 
           if (!urlResponse.ok) {

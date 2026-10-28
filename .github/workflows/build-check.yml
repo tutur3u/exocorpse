@@ -60,3 +60,8 @@ jobs:
         env:
           VERIFY_BUILT_PROXY: "1"
         run: bun test proxy-registration.test.ts
+
+      - name: Verify built Drive file headers and streaming
+        env:
+          VERIFY_BUILT_DRIVE: "1"
+        run: bun test src/lib/drive-built.integration.test.ts

@@ -78,7 +78,7 @@ describe("exocorpse session validation", () => {
     });
   }
 
-  test("keeps a valid local session during a temporary platform failure", async () => {
+  test("rejects a locally valid session during a temporary platform failure", async () => {
     const { getExocorpseSessionFromCookies, setExocorpseSessionCookie } =
       await import("./exocorpse-session");
     const response = NextResponse.json({});
@@ -90,10 +90,7 @@ describe("exocorpse session validation", () => {
         { status: 503 },
       )) as unknown as typeof fetch;
 
-    await expect(getExocorpseSessionFromCookies()).resolves.toMatchObject({
-      accessToken: "app-token",
-      user: { id: "user-1" },
-    });
+    await expect(getExocorpseSessionFromCookies()).resolves.toBeNull();
   });
 
   test("refreshes an expired access token before validating the admin session", async () => {

@@ -34,14 +34,13 @@ describe("direct CMS asset uploads", () => {
 
     expect(path).toBe("external-projects/exocorpse/content/hero/test.png");
     expect(requests).toHaveLength(2);
-    expect(requests[0]?.init?.body).toBe(
-      JSON.stringify({
-        contentType: "image/png",
-        path: "content/hero/test.png",
-        size: file.size,
-        upsert: false,
-      }),
-    );
+    const metadata = JSON.parse(String(requests[0]?.init?.body));
+    expect(metadata).toMatchObject({
+      contentType: "image/png",
+      size: file.size,
+      upsert: false,
+    });
+    expect(metadata.path).toMatch(/^content\/hero\/test-[a-f0-9-]+\.png$/);
     expect(requests[1]?.init?.body).toBe(file);
     expect(requests[1]?.init?.headers).toEqual({
       Authorization: "Bearer upload-token",

@@ -1,13 +1,9 @@
+import { verifyAuth } from "@/lib/auth/utils";
+import { adminErrorResponse, adminId } from "@/lib/admin-input";
 import { getExocorpseCmsAssetPreviewResponse } from "@/lib/tuturuuu-cms-repository";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
-  "CDN-Cache-Control": "private, no-store",
-  "Vercel-CDN-Cache-Control": "no-store",
-};
-
-const PRIVATE_REVISIONED_REDIRECT_HEADERS = {
-  "Cache-Control": "private, max-age=3600, stale-while-revalidate=21600",
   "CDN-Cache-Control": "private, no-store",
   "Vercel-CDN-Cache-Control": "no-store",
 };
@@ -25,17 +21,19 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ assetId: string }> },
 ) {
-  const { assetId } = await params;
-  const requestUrl = new URL(request.url);
-  const searchParams = new URLSearchParams();
-
-  for (const key of ALLOWED_QUERY_PARAMETERS) {
-    for (const value of requestUrl.searchParams.getAll(key)) {
-      searchParams.append(key, value);
-    }
-  }
-
   try {
+    await verifyAuth();
+    const { assetId } = await params;
+    adminId(assetId);
+    const requestUrl = new URL(request.url);
+    const searchParams = new URLSearchParams();
+
+    for (const key of ALLOWED_QUERY_PARAMETERS) {
+      for (const value of requestUrl.searchParams.getAll(key)) {
+        searchParams.append(key, value);
+      }
+    }
+
     const response = await getExocorpseCmsAssetPreviewResponse(
       assetId,
       searchParams,
@@ -45,7 +43,7 @@ export async function GET(
     if (response.status >= 300 && response.status < 400 && location) {
       return new Response(null, {
         headers: {
-          ...PRIVATE_REVISIONED_REDIRECT_HEADERS,
+          ...PRIVATE_NO_STORE_HEADERS,
           Location: location,
         },
         status: 307,
@@ -57,14 +55,6 @@ export async function GET(
       { headers: PRIVATE_NO_STORE_HEADERS, status: response.status },
     );
   } catch (error) {
-    return Response.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "CMS asset preview is unavailable.",
-      },
-      { headers: PRIVATE_NO_STORE_HEADERS, status: 401 },
-    );
+    return adminErrorResponse(error);
   }
 }

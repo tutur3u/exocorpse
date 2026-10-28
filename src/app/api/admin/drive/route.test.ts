@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const calls: unknown[][] = [];
+mock.module("@/lib/auth/utils", () => ({
+  verifyAuth: async () => ({ user: { id: "fixture" } }),
+}));
+
 let teamError: (Error & { status?: number }) | undefined;
 
 mock.module("@/lib/tuturuuu-admin-integrations", () => ({

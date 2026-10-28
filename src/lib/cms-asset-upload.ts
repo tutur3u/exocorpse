@@ -1,3 +1,5 @@
+import { uploadFilename } from "./upload-media";
+
 type CmsUploadPayload = {
   contentType?: string;
   headers?: Record<string, string>;
@@ -28,7 +30,7 @@ export async function uploadCmsAssetDirect({
 }) {
   signal?.throwIfAborted();
   onProgress?.(2);
-  const path = `${collectionType}/${entrySlug}/${file.name}`;
+  const path = `${collectionType}/${entrySlug}/${uploadFilename(file.name)}`;
   const metadataResponse = await fetch("/api/storage/signed-upload-url", {
     body: JSON.stringify({
       contentType: file.type || "application/octet-stream",

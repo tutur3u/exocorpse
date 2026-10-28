@@ -1,110 +1,130 @@
+import { driveFileResponse } from "@/lib/drive-file-response";
+import { drivePath } from "@/lib/admin-input";
+import { verifyAuth } from "@/lib/auth/utils";
+import { adminErrorResponse } from "@/lib/admin-input";
 import {
   createExocorpseDriveFolder,
   createExocorpseDriveUpload,
   deleteExocorpseDriveEntry,
   getExocorpseDriveAnalytics,
   getExocorpseDriveListing,
-  getExocorpseDriveReadUrl,
   renameExocorpseDriveEntry,
 } from "@/lib/tuturuuu-admin-integrations";
 
-function errorResponse(error: unknown) {
-  const status =
-    error instanceof Error &&
-    "status" in error &&
-    typeof error.status === "number"
-      ? error.status
-      : 500;
-  return Response.json(
-    { error: error instanceof Error ? error.message : "Drive request failed" },
-    { status },
-  );
-}
-
 export async function GET(request: Request) {
   try {
+    await verifyAuth();
     const params = new URL(request.url).searchParams;
     const filePath = params.get("filePath");
-    const payload = filePath
-      ? await getExocorpseDriveReadUrl(filePath)
-      : params.has("analytics")
-        ? await getExocorpseDriveAnalytics()
-        : await getExocorpseDriveListing(params);
+    if (filePath) {
+      drivePath(filePath);
+      if (params.get("content") === "1")
+        return await driveFileResponse(
+          request,
+          filePath,
+          params.get("download") === "1",
+        );
+      // Keep signed storage URLs off the preview surface. The same-origin file
+      // response enforces download disposition, nosniff and storage-host checks.
+      return Response.json(
+        {
+          data: {
+            signedUrl: `/api/admin/drive?${new URLSearchParams({ filePath, content: "1" })}`,
+          },
+        },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+    const payload = params.has("analytics")
+      ? await getExocorpseDriveAnalytics()
+      : await getExocorpseDriveListing(params);
     return Response.json(payload, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return errorResponse(error);
+    return adminErrorResponse(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    await verifyAuth();
+    const body: unknown = await request.json().catch(() => null);
+    if (!body || typeof body !== "object")
+      return Response.json({ error: "Invalid request." }, { status: 400 });
+    const input = body as Record<string, unknown>;
     if (
-      body.action === "create-folder" &&
-      typeof body.path === "string" &&
-      typeof body.name === "string"
+      input.action === "create-folder" &&
+      typeof input.path === "string" &&
+      typeof input.name === "string"
     ) {
       return Response.json(
-        await createExocorpseDriveFolder(body.path, body.name),
+        await createExocorpseDriveFolder(input.path, input.name),
       );
     }
     if (
-      body.action === "upload-url" &&
-      typeof body.contentType === "string" &&
-      typeof body.directory === "string" &&
-      typeof body.filename === "string" &&
-      typeof body.size === "number"
+      input.action === "upload-url" &&
+      typeof input.contentType === "string" &&
+      typeof input.directory === "string" &&
+      typeof input.filename === "string" &&
+      typeof input.size === "number"
     ) {
       return Response.json(
         await createExocorpseDriveUpload({
-          contentType: body.contentType,
-          directory: body.directory,
-          filename: body.filename,
-          size: body.size,
+          contentType: input.contentType,
+          directory: input.directory,
+          filename: input.filename,
+          size: input.size,
         }),
       );
     }
     return Response.json({ error: "Invalid Drive action." }, { status: 400 });
   } catch (error) {
-    return errorResponse(error);
+    return adminErrorResponse(error);
   }
 }
 
 export async function PATCH(request: Request) {
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    await verifyAuth();
+    const body: unknown = await request.json().catch(() => null);
+    if (!body || typeof body !== "object")
+      return Response.json({ error: "Invalid request." }, { status: 400 });
+    const input = body as Record<string, unknown>;
     if (
-      (body.kind === "file" || body.kind === "folder") &&
-      typeof body.newName === "string" &&
-      typeof body.path === "string"
+      (input.kind === "file" || input.kind === "folder") &&
+      typeof input.newName === "string" &&
+      typeof input.path === "string"
     ) {
       return Response.json(
         await renameExocorpseDriveEntry({
-          kind: body.kind,
-          newName: body.newName,
-          path: body.path,
+          kind: input.kind,
+          newName: input.newName,
+          path: input.path,
         }),
       );
     }
     return Response.json({ error: "Invalid rename action." }, { status: 400 });
   } catch (error) {
-    return errorResponse(error);
+    return adminErrorResponse(error);
   }
 }
 
 export async function DELETE(request: Request) {
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    await verifyAuth();
+    const body: unknown = await request.json().catch(() => null);
+    if (!body || typeof body !== "object")
+      return Response.json({ error: "Invalid request." }, { status: 400 });
+    const input = body as Record<string, unknown>;
     if (
-      (body.kind === "file" || body.kind === "folder") &&
-      typeof body.path === "string"
+      (input.kind === "file" || input.kind === "folder") &&
+      typeof input.path === "string"
     ) {
       return Response.json(
-        await deleteExocorpseDriveEntry({ kind: body.kind, path: body.path }),
+        await deleteExocorpseDriveEntry({ kind: input.kind, path: input.path }),
       );
     }
     return Response.json({ error: "Invalid delete action." }, { status: 400 });
   } catch (error) {
-    return errorResponse(error);
+    return adminErrorResponse(error);
   }
 }

@@ -47,7 +47,12 @@ export async function uploadPendingFile(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ path: fullPath }),
+    body: JSON.stringify({
+      path: fullPath,
+      contentType: compressedFile.type,
+      size: compressedFile.size,
+      upsert: false,
+    }),
   });
 
   if (!signedUrlResponse.ok) {

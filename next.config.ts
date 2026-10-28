@@ -89,6 +89,15 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
+        source: "/api/admin/drive",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "sandbox; default-src 'none'",
+          },
+        ],
+      },
+      {
         source: "/admin",
         headers: privateNoStoreHeaders,
       },

@@ -13,7 +13,7 @@ import {
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 
-const EXOCORPSE_SESSION_COOKIE = "exocorpse_tuturuuu_admin_session";
+export const EXOCORPSE_SESSION_COOKIE = "exocorpse_tuturuuu_admin_session";
 const SESSION_VERSION = "v1";
 const DEFAULT_REFRESH_SKEW_SECONDS = 90;
 
@@ -288,16 +288,9 @@ async function validateSession(session: ExocorpseAdminSession) {
     });
     if (response.ok) return "valid" as const;
     if (response.status === 401) return "expired" as const;
-    if (
-      response.status >= 400 &&
-      response.status < 500 &&
-      response.status !== 429
-    ) {
-      return "invalid" as const;
-    }
-    return "temporary-failure" as const;
+    return "invalid" as const;
   } catch {
-    return "temporary-failure" as const;
+    return "invalid" as const;
   }
 }
 
@@ -322,7 +315,7 @@ export async function getExocorpseSessionFromCookies() {
       return null;
     }
   }
-  return validation === "expired" || validation === "invalid" ? null : session;
+  return validation === "valid" ? session : null;
 }
 
 export function updateExocorpseSessionIdentity(
