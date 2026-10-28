@@ -101,7 +101,7 @@ const nextConfig: NextConfig = {
         "/background-image.webp",
         "/desktop-logo.webp",
         "/exocorpse.webp",
-        "/artfight-profile/:path*",
+        "/artfight-profile/:path+",
         "/audio/:path*",
         "/boot/:path*",
         "/cursor/:path*",
