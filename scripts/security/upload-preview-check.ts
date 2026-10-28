@@ -60,6 +60,7 @@ let storageType = "text/html";
 let storageLocation = signedUrl;
 let storageStatus = 200;
 let storageBytes: Uint8Array<ArrayBuffer> | undefined;
+let storageStream: ReadableStream<Uint8Array> | undefined;
 const originalFetch = globalThis.fetch;
 globalThis.fetch = Object.assign(
   async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -68,7 +69,7 @@ globalThis.fetch = Object.assign(
       return Response.json({}, { status: validationStatus });
     calls.push({ url, init });
     if (url.startsWith("https://nzamlzqfdwaaxdefwraj.supabase.co/"))
-      return new Response(storageBytes ?? "fixture file", {
+      return new Response(storageStream ?? storageBytes ?? "fixture file", {
         status: storageStatus,
         headers: {
           "Content-Type": storageType,
@@ -409,7 +410,8 @@ switch (process.argv[2]) {
         "https://app.example.test/api/admin/drive?filePath=drive%2Froot%2Ftest.png&content=1",
       ),
     );
-    assert.equal(oversized.status, 413);
+    assert.equal(oversized.status, 200);
+    await assert.rejects(() => oversized.arrayBuffer(), /byte limit/);
     storageBytes = undefined;
     storageLocation = "https://127.0.0.1/private";
     const unsafe = await drive.GET(
@@ -418,6 +420,249 @@ switch (process.argv[2]) {
       ),
     );
     assert.equal(unsafe.status, 502);
+    break;
+  }
+  case "existing-drive-paths": {
+    for (const name of [
+      "My Art (final).png",
+      "Art & Stuff",
+      "[WIP] sketch.png",
+      "_drafts",
+      "O'Neil.png",
+      "a+b.png",
+      "画像.png",
+    ]) {
+      const path = `drive/root/${name}`;
+      await integrations.getExocorpseDriveReadUrl(path);
+      await integrations.getExocorpseDriveListing(
+        new URLSearchParams({ path }),
+      );
+      await integrations.renameExocorpseDriveEntry({
+        kind: "file",
+        path,
+        newName: "renamed.png",
+      });
+      await integrations.deleteExocorpseDriveEntry({ kind: "file", path });
+      assert.equal(
+        (
+          await drive.GET(
+            new Request(
+              `https://app.example.test/api/admin/drive?${new URLSearchParams({ filePath: path, content: "1" })}`,
+            ),
+          )
+        ).status,
+        200,
+      );
+    }
+    for (const path of [
+      "drive/root/../x",
+      "drive/root/a..b",
+      "drive/root/%2e%2e",
+      "drive/root/%252e%252e",
+      "drive/root/a\\b",
+      "drive/root/a\u0000b",
+      "drive/root/a\u202eb",
+      "drive/root/a\u2066b",
+      "/drive/root/a",
+      "drive/root//a",
+      "drive/roots/a",
+      "characters/root/a",
+      "drive/root/",
+    ]) {
+      calls.length = 0;
+      await assert.rejects(
+        async () => integrations.getExocorpseDriveReadUrl(path),
+        path,
+      );
+      assert.equal(calls.length, 0);
+    }
+    await assert.rejects(async () =>
+      integrations.renameExocorpseDriveEntry({
+        kind: "file",
+        path: "drive/root/My Art (final).png",
+        newName: "bad&name.png",
+      }),
+    );
+    break;
+  }
+  case "streamed-files": {
+    storageType = "image/png";
+    let finish = () => {};
+    storageStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(3 * 1024 * 1024).fill(1));
+        finish = () => {
+          controller.enqueue(new Uint8Array(3 * 1024 * 1024).fill(2));
+          controller.close();
+        };
+      },
+    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await Promise.race([
+        drive.GET(
+          new Request(
+            "https://app.example.test/api/admin/drive?filePath=drive%2Froot%2Flarge.png&content=1",
+          ),
+        ),
+        new Promise<null>((resolve) => {
+          timer = setTimeout(() => resolve(null), 1000);
+        }),
+      ]);
+      assert.ok(
+        response,
+        "The response must start before the storage stream finishes",
+      );
+      assert.equal(response.headers.get("Content-Length"), null);
+      assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
+      assert.match(
+        response.headers.get("Content-Disposition") ?? "",
+        /^inline;/,
+      );
+      assert.match(
+        response.headers.get("Content-Security-Policy") ?? "",
+        /sandbox/,
+      );
+      const reader = response.body!.getReader();
+      const first = await reader.read();
+      assert.equal(first.value?.byteLength, 3 * 1024 * 1024);
+      finish();
+      const second = await reader.read();
+      assert.equal(second.value?.byteLength, 3 * 1024 * 1024);
+      assert.equal((await reader.read()).done, true);
+    } finally {
+      clearTimeout(timer);
+    }
+    break;
+  }
+  case "drive-downloads": {
+    for (const [filename, contentType] of [
+      ["archive.zip", "application/zip"],
+      ["document.pdf", "application/pdf"],
+      [
+        "document.docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ],
+      [
+        "sheet.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ],
+      [
+        "slides.pptx",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      ],
+      ["table.csv", "text/csv"],
+      ["data.json", "application/json"],
+      ["readme.txt", "text/plain"],
+      ["art.psd", "image/vnd.adobe.photoshop"],
+      ["art.clip", "application/octet-stream"],
+      ["art.kra", "application/x-krita"],
+      ["archive.7z", "application/x-7z-compressed"],
+    ]) {
+      const response = await drive.POST(
+        req("/api/admin/drive", {
+          action: "upload-url",
+          directory: "drive/root",
+          filename,
+          contentType,
+          size: 123,
+        }),
+      );
+      assert.equal(response.status, 200, filename);
+      storageType = contentType;
+      const file = await drive.GET(
+        new Request(
+          `https://app.example.test/api/admin/drive?${new URLSearchParams({ filePath: `drive/root/${filename}`, content: "1" })}`,
+        ),
+      );
+      assert.equal(
+        file.headers.get("Content-Type"),
+        "application/octet-stream",
+      );
+      assert.match(
+        file.headers.get("Content-Disposition") ?? "",
+        /^attachment;/,
+      );
+      assert.equal(file.headers.get("X-Content-Type-Options"), "nosniff");
+    }
+    for (const [filename, contentType] of [
+      ["bad.html", "text/html"],
+      ["bad.xhtml", "application/xhtml+xml"],
+      ["bad.xml", "application/xml"],
+      ["bad.svg", "image/svg+xml"],
+      ["bad.js", "text/javascript"],
+      ["bad.html", "application/octet-stream"],
+      ["bad.bin", "text/html"],
+    ]) {
+      assert.equal(
+        (
+          await drive.POST(
+            req("/api/admin/drive", {
+              action: "upload-url",
+              directory: "drive/root",
+              filename,
+              contentType,
+              size: 123,
+            }),
+          )
+        ).status,
+        400,
+      );
+    }
+    break;
+  }
+  case "unique-filenames": {
+    const { uploadCmsAssetDirect } =
+      await import("../../src/lib/cms-asset-upload");
+    async function storedName(name: string) {
+      calls.length = 0;
+      await uploadCmsAssetDirect({
+        collectionType: "characters",
+        entrySlug: "hero",
+        file: new File(["fixture"], name, { type: "image/png" }),
+      });
+      const metadata = calls.find(
+        (call) => call.url === "/api/storage/signed-upload-url",
+      );
+      return (
+        String(JSON.parse(String(metadata?.init?.body)).path)
+          .split("/")
+          .at(-1) ?? ""
+      );
+    }
+    const first = await storedName("portrait.png");
+    const second = await storedName("portrait.png");
+    assert.notEqual(first, second);
+    assert.match(first, /^portrait-[a-f0-9-]+\.png$/);
+    assert.match(await storedName("画像.png"), /^upload-[a-f0-9-]+\.png$/);
+    for (const name of [
+      "../bad.png",
+      "a".repeat(300) + ".png",
+      "[WIP] picture.png",
+      "画像.png",
+    ]) {
+      const stored = await storedName(name);
+      assert.ok(stored.length <= 160);
+      assert.ok(!stored.includes(".."));
+      assert.equal(
+        (await post({ ...uploadBody, path: `characters/hero/${stored}` }))
+          .status,
+        200,
+      );
+    }
+    break;
+  }
+  case "m4a-alias": {
+    assert.equal(
+      (
+        await post({
+          path: "stories/hero/music.m4a",
+          contentType: "audio/x-m4a",
+          size: 123,
+        })
+      ).status,
+      200,
+    );
     break;
   }
   default:

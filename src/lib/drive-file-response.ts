@@ -1,9 +1,9 @@
 import "server-only";
 
-import { AdminInputError, storagePath } from "./admin-input";
-import { BodyTooLargeError, readBoundedBody } from "./bounded-body";
+import { AdminInputError, drivePath } from "./admin-input";
 import { getExocorpseDriveReadUrl } from "./tuturuuu-admin-integrations";
-import { isInlineMedia, MAX_UPLOAD_BYTES } from "./upload-policy";
+import { isInlineMedia } from "./upload-media";
+import { MAX_UPLOAD_BYTES } from "./upload-policy";
 
 function storageUrl(value: string) {
   if (!URL.canParse(value))
@@ -33,7 +33,7 @@ export async function driveFileResponse(
   filePath: string,
   download: boolean,
 ) {
-  storagePath(filePath);
+  drivePath(filePath);
   const { data } = await getExocorpseDriveReadUrl(filePath);
   const url = storageUrl(data.signedUrl);
   const range = request.headers.get("range");
@@ -61,19 +61,28 @@ export async function driveFileResponse(
     "X-Content-Type-Options": "nosniff",
     "Content-Security-Policy": "sandbox; default-src 'none'",
     "Content-Type": inline ? mime : "application/octet-stream",
-    "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(filename).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)}`,
   });
   for (const key of ["content-range", "accept-ranges"]) {
     const value = upstream.headers.get(key);
     if (value) headers.set(key, value);
   }
-  try {
-    const bytes = await readBoundedBody(upstream, MAX_UPLOAD_BYTES);
-    headers.set("Content-Length", String(bytes.byteLength));
-    return new Response(bytes, { status: upstream.status, headers });
-  } catch (error) {
-    if (error instanceof BodyTooLargeError)
-      throw Object.assign(error, { status: 413 });
-    throw error;
+  if (Number(upstream.headers.get("content-length")) > MAX_UPLOAD_BYTES) {
+    await upstream.body?.cancel();
+    throw Object.assign(new Error("File too large."), { status: 413 });
   }
+  let bytes = 0;
+  const body = upstream.body?.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        bytes += chunk.byteLength;
+        if (bytes > MAX_UPLOAD_BYTES) {
+          controller.error(new Error("File exceeds the download byte limit."));
+          return;
+        }
+        controller.enqueue(chunk);
+      },
+    }),
+  );
+  return new Response(body, { status: upstream.status, headers });
 }

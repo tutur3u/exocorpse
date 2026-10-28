@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
         method: "POST",
       },
     );
+    if (!response.ok) {
+      await response.body?.cancel();
+      return adminErrorResponse(
+        Object.assign(new Error("Upload preparation failed."), {
+          status: response.status,
+        }),
+      );
+    }
     const payload = await response.json().catch(() => null);
     return NextResponse.json(payload, {
       status: response.status,

@@ -1,4 +1,4 @@
-import { uploadFilename } from "./upload-policy";
+import { uploadFilename } from "./upload-media";
 
 type CmsUploadPayload = {
   contentType?: string;

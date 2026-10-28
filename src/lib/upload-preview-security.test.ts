@@ -13,6 +13,11 @@ for (const scenario of [
   "logout",
   "preview",
   "served-file-headers",
+  "existing-drive-paths",
+  "streamed-files",
+  "drive-downloads",
+  "unique-filenames",
+  "m4a-alias",
 ]) {
   test(`upload/preview security: ${scenario}`, () => {
     const result = Bun.spawnSync(

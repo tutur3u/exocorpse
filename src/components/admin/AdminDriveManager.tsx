@@ -1,7 +1,7 @@
 "use client";
 
 import AdminDriveFilePreview from "./AdminDriveFilePreview";
-import { uploadFilename } from "@/lib/upload-policy";
+import { uploadFilename } from "@/lib/upload-media";
 
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import PreviewModal from "@/components/shared/PreviewModal";
@@ -216,7 +216,10 @@ export default function AdminDriveManager({
       { label: "All project files", path: "" },
       ...segments.map((segment, index) => ({
         label: segment === "drive" ? "Managed Drive" : segment,
-        path: segments.slice(0, index + 1).join("/"),
+        path:
+          segment === "drive" && index === 0
+            ? "drive/root"
+            : segments.slice(0, index + 1).join("/"),
       })),
     ];
   }, [path]);

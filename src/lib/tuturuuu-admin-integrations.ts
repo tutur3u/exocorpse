@@ -1,4 +1,4 @@
-import { AdminInputError, adminId, storagePath } from "@/lib/admin-input";
+import { adminId, drivePath, storageName } from "@/lib/admin-input";
 import { driveUpload } from "@/lib/upload-policy";
 import "server-only";
 
@@ -101,7 +101,7 @@ export function getExocorpseDriveListing(searchParams: URLSearchParams) {
   ]) {
     const value = searchParams.get(key);
     if (value !== null)
-      allowed.set(key, key === "path" ? storagePath(value, true) : value);
+      allowed.set(key, key === "path" ? drivePath(value, true) : value);
   }
   const query = allowed.toString();
   return request<{ data: AdminDriveListing }>(
@@ -116,19 +116,18 @@ export async function getExocorpseDriveAnalytics() {
 }
 
 export function getExocorpseDriveReadUrl(filePath: string) {
-  const query = new URLSearchParams({ filePath: storagePath(filePath) });
+  const query = new URLSearchParams({ filePath: drivePath(filePath) });
   return request<{ data: { expiresIn: number; signedUrl: string } }>(
     `${externalProjectPath("/storage")}?${query}`,
   );
 }
 
 export function createExocorpseDriveFolder(path: string, name: string) {
-  if (name.includes("/")) throw new AdminInputError("Invalid name.");
   return request<{ data: { name: string; path: string } }>(
     externalProjectPath("/storage"),
     jsonInit("POST", {
-      name: storagePath(name),
-      path: storagePath(path, true),
+      name: storageName(name),
+      path: drivePath(path),
     }),
   );
 }
@@ -138,9 +137,8 @@ export function renameExocorpseDriveEntry(input: {
   newName: string;
   path: string;
 }) {
-  storagePath(input.path);
-  storagePath(input.newName);
-  if (input.newName.includes("/")) throw new AdminInputError("Invalid name.");
+  drivePath(input.path);
+  storageName(input.newName);
   return request<{ data: { path: string; updatedAssets: number } }>(
     externalProjectPath("/storage"),
     { body: JSON.stringify(input), method: "PATCH" },
@@ -151,7 +149,7 @@ export function deleteExocorpseDriveEntry(input: {
   kind: "file" | "folder";
   path: string;
 }) {
-  storagePath(input.path);
+  drivePath(input.path);
   return request<{ data: { detachedAssets: number; success: boolean } }>(
     externalProjectPath("/storage"),
     jsonInit("DELETE", input),

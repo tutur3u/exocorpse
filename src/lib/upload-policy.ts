@@ -1,37 +1,87 @@
+import { raster, audio, video } from "./upload-media";
 import { EXOCORPSE_CMS_SCHEMA } from "../../scripts/exocorpse-cms-schema";
-import { AdminInputError, adminId, storagePath } from "./admin-input";
+import {
+  AdminInputError,
+  adminId,
+  storagePath,
+  drivePath,
+} from "./admin-input";
 
-const raster = new Map([
-  ["image/png", ["png"]],
-  ["image/jpeg", ["jpg", "jpeg"]],
-  ["image/webp", ["webp"]],
-  ["image/avif", ["avif"]],
-  ["image/gif", ["gif"]],
-]);
-const audio = new Map([
-  ["audio/mpeg", ["mp3"]],
-  ["audio/ogg", ["ogg", "oga"]],
-  ["audio/wav", ["wav"]],
-  ["audio/x-wav", ["wav"]],
-  ["audio/mp4", ["m4a"]],
-]);
-const video = new Map([
-  ["video/mp4", ["mp4"]],
-  ["video/webm", ["webm"]],
-  ["video/ogg", ["ogv"]],
-]);
 const documents = new Map([
   ["application/pdf", ["pdf"]],
   ["text/plain", ["txt"]],
 ]);
+const driveDownloads = new Map<string, string[]>([
+  ["application/zip", ["zip"]],
+  ["application/x-zip-compressed", ["zip"]],
+  ["application/x-7z-compressed", ["7z"]],
+  ["application/vnd.rar", ["rar"]],
+  ["application/x-rar-compressed", ["rar"]],
+  ["application/x-tar", ["tar"]],
+  ["application/gzip", ["gz", "tgz"]],
+  ["application/x-bzip2", ["bz2"]],
+  ["application/x-xz", ["xz"]],
+  ["application/msword", ["doc"]],
+  ["application/vnd.ms-excel", ["xls"]],
+  ["application/vnd.ms-powerpoint", ["ppt"]],
+  [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ["docx"],
+  ],
+  [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ["xlsx"],
+  ],
+  [
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ["pptx"],
+  ],
+  ["text/csv", ["csv"]],
+  ["application/json", ["json"]],
+  ["image/vnd.adobe.photoshop", ["psd", "psb"]],
+  ["application/x-photoshop", ["psd", "psb"]],
+  ["application/x-krita", ["kra"]],
+  ["image/openraster", ["ora"]],
+  [
+    "application/octet-stream",
+    [
+      "zip",
+      "7z",
+      "rar",
+      "tar",
+      "gz",
+      "tgz",
+      "bz2",
+      "xz",
+      "pdf",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "ppt",
+      "pptx",
+      "csv",
+      "json",
+      "txt",
+      "psd",
+      "psb",
+      "clip",
+      "kra",
+      "ora",
+      "blend",
+      "fbx",
+      "obj",
+      "stl",
+      "afdesign",
+      "afphoto",
+      "ase",
+      "aseprite",
+      "procreate",
+      "bin",
+    ],
+  ],
+]);
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-
-export function isInlineMedia(contentType: string, filename: string) {
-  const extension = filename.split(".").at(-1)?.toLowerCase() ?? "";
-  return [raster, audio, video].some((types) =>
-    types.get(contentType)?.includes(extension),
-  );
-}
 
 function validateMetadata(
   purpose: string,
@@ -71,6 +121,8 @@ function validateMetadata(
   ] as const) {
     if (types.includes(kind)) for (const item of entries) allowed.set(...item);
   }
+  if (purpose === "drive")
+    for (const item of driveDownloads) allowed.set(...item);
   const extension = filename.split(".").at(-1)?.toLowerCase() ?? "";
   if (
     typeof contentType !== "string" ||
@@ -125,26 +177,11 @@ export function driveUpload(input: {
   contentType: string;
   size: number;
 }) {
-  const directory = storagePath(input.directory);
-  if (directory !== "drive/root" && !directory.startsWith("drive/root/")) {
-    throw new AdminInputError("Uploads must use Managed Drive.");
-  }
+  const directory = drivePath(input.directory);
   return {
     collectionType: "drive",
     entrySlug: directory.slice("drive/".length),
     ...validateMetadata("drive", input.filename, input.contentType, input.size),
     upsert: false,
   };
-}
-
-export function uploadFilename(filename: string) {
-  return (
-    filename
-      .normalize("NFKC")
-      .replace(/[^A-Za-z0-9._-]/g, "-")
-      .replace(/\.{2,}/g, "-")
-      .replace(/^[^A-Za-z0-9]+/, "")
-      .slice(-160)
-      .replace(/^[^A-Za-z0-9]+/, "") || "upload"
-  );
 }

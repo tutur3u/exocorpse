@@ -9,16 +9,32 @@ export function adminId(value: string) {
   return value;
 }
 
-export function storagePath(value: string, allowRoot = false) {
-  if (allowRoot && value === "") return value;
+export function storagePath(value: string) {
   if (
+    !value ||
     value.length > 1024 ||
     value.includes("..") ||
-    !value
-      .split("/")
-      .every((part) => /^[\p{L}\p{N}][\p{L}\p{N}._ -]{0,159}$/u.test(part))
+    /[%\\\p{Cc}\p{Cf}]/u.test(value) ||
+    value.split("/").some((part) => !part || part === ".")
   )
     throw new AdminInputError("Invalid storage path.");
+  return value;
+}
+
+export function drivePath(value: string, allowOverview = false) {
+  if (allowOverview && value === "") return value;
+  storagePath(value);
+  if (value !== "drive/root" && !value.startsWith("drive/root/")) {
+    throw new AdminInputError("Path must be under Managed Drive.");
+  }
+  return value;
+}
+
+export function storageName(value: string) {
+  storagePath(value);
+  if (!/^[\p{L}\p{N}][\p{L}\p{N}._ -]{0,159}$/u.test(value)) {
+    throw new AdminInputError("Invalid storage name.");
+  }
   return value;
 }
 

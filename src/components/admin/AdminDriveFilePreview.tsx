@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import { isInlineMedia } from "@/lib/upload-policy";
+import { isInlineMedia } from "@/lib/upload-media";
 import type { AdminDriveItem } from "@/types/admin-integrations";
 
 export default function AdminDriveFilePreview({

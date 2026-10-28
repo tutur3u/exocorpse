@@ -1,5 +1,5 @@
 import { driveFileResponse } from "@/lib/drive-file-response";
-import { storagePath } from "@/lib/admin-input";
+import { drivePath } from "@/lib/admin-input";
 import { verifyAuth } from "@/lib/auth/utils";
 import { adminErrorResponse } from "@/lib/admin-input";
 import {
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams;
     const filePath = params.get("filePath");
     if (filePath) {
-      storagePath(filePath);
+      drivePath(filePath);
       if (params.get("content") === "1")
         return await driveFileResponse(
           request,

@@ -288,13 +288,6 @@ async function validateSession(session: ExocorpseAdminSession) {
     });
     if (response.ok) return "valid" as const;
     if (response.status === 401) return "expired" as const;
-    if (
-      response.status >= 400 &&
-      response.status < 500 &&
-      response.status !== 429
-    ) {
-      return "invalid" as const;
-    }
     return "invalid" as const;
   } catch {
     return "invalid" as const;
