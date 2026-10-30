@@ -46,15 +46,16 @@ test("an About item keeps its middle caret during save and applies refreshed tex
   await user.click(summary);
   const field = card.querySelector("input");
   if (!field) throw new Error("Missing title");
+  const saveButton = Array.from(card.querySelectorAll("button")).find(
+    (button) => button.textContent?.trim() === "Save",
+  );
+  if (!saveButton) throw new Error("Missing Save");
+  expect(saveButton.disabled).toBe(true);
   await act(async () => {
     field.focus();
     field.setSelectionRange(5, 5);
   });
   await user.keyboard("X");
-  const saveButton = Array.from(card.querySelectorAll("button")).find(
-    (button) => button.textContent?.trim() === "Save",
-  );
-  if (!saveButton) throw new Error("Missing Save");
   expect(saveButton.disabled).toBe(false);
   await user.click(saveButton);
   await act(async () => {

@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
+type BlurResult = { applied: false } | { applied: true; accepted: boolean };
+
 /** Local echoes never replace a live draft; external values wait for blur. */
 export function useDeferredEditorValue(
   value: string,
   apply: (value: string) => void,
-  commit: (value: string) => void,
+  commit: (value: string) => void | false,
 ) {
   const focused = useRef(false);
   const emitted = useRef<string | null>(null);
@@ -34,18 +36,23 @@ export function useDeferredEditorValue(
       focused.current = true;
     },
     emit: (next: string) => {
+      const previous = emitted.current;
       emitted.current = next;
-      callbacks.current.commit(next);
+      const accepted = callbacks.current.commit(next) !== false;
+      if (!accepted) emitted.current = previous;
+      return accepted;
     },
-    blur: () => {
+    blur: (): BlurResult => {
       focused.current = false;
       const next = pending.current;
-      if (next === null) return false;
+      if (next === null) return { applied: false };
       pending.current = null;
+      const previous = emitted.current;
       emitted.current = next;
       callbacks.current.apply(next);
-      callbacks.current.commit(next);
-      return true;
+      const accepted = callbacks.current.commit(next) !== false;
+      if (!accepted) emitted.current = previous;
+      return { applied: true, accepted };
     },
   };
 }

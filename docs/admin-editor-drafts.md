@@ -15,10 +15,14 @@ Numbers, dates, date/time, JSON and string arrays parse on blur. Structured text
 stays raw during typing, including intermediate whitespace and incomplete
 syntax. `DraftEdits` marks these local edits immediately so Save is enabled;
 clicking Save blurs and commits the field before its click handler runs. Invalid
-JSON remains visible with its validation error.
+JSON remains visible with its validation error and counts as unsaved work. Rejected
+commits do not settle a draft, and CMS Save refuses to persist until the invalid
+field is corrected.
 
 CMS saves retain the editing session and local block keys when the server assigns
-IDs. If the user edits while an explicit save is in flight, its acknowledgment
+IDs. Saved blocks match by server id first, then by submitted array position only
+for a new draft with the same block type; duplicate sort orders never share a key.
+If the user edits while an explicit save is in flight, its acknowledgment
 updates server identity and the saved baseline while retaining newer local text,
 block additions and removals. It does not close the editor over those edits.
 Explicit entry navigation, create, restore and discard start a new session.

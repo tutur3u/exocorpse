@@ -6,15 +6,13 @@ export function savedBlockKeys(
   submitted: CmsBlockDraft[],
 ) {
   return new Map(
-    saved.map((block) => {
+    saved.map((block, index) => {
+      const atIndex = submitted[index];
       const previous =
         submitted.find((draft) => draft.id === block.id) ??
-        submitted.find(
-          (draft) =>
-            !draft.id &&
-            draft.sortOrder === block.sort_order &&
-            draft.blockType === block.block_type,
-        );
+        (atIndex && !atIndex.id && atIndex.blockType === block.block_type
+          ? atIndex
+          : undefined);
       return [block.id, previous?.key ?? block.id];
     }),
   );

@@ -154,6 +154,7 @@ function JsonInput({
             setError(null);
           } catch {
             setError("Please review the value in this field.");
+            return false;
           }
         }}
         spellCheck={false}

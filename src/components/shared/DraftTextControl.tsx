@@ -16,7 +16,8 @@ import { useDeferredEditorValue } from "@/hooks/useDeferredEditorValue";
 
 type DraftProps = {
   value?: string | number;
-  onValueChange?: (value: string) => void;
+  /** Return false to reject a synchronous commit and retain unsaved work. */
+  onValueChange?: (value: string) => void | false;
   commitOnBlur?: boolean;
   unstyled?: boolean;
 };
@@ -66,6 +67,7 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
         };
       }
       setDraft(next);
+      mark?.(id, false);
     },
     (next) => onValueChange?.(next),
   );
@@ -74,11 +76,14 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
     ref,
     sync,
     settled: () => mark?.(id, false),
+    rejected: () => edits?.reject(id),
     change: (next: string, deferred: boolean) => {
       edits?.touch();
       setDraft(next);
-      if (!deferred) sync.emit(next);
-      else mark?.(id, next !== source);
+      if (!deferred) {
+        if (sync.emit(next)) mark?.(id, false);
+        else edits?.reject(id);
+      } else mark?.(id, next !== source);
     },
     focus: () => {
       sync.focus();
@@ -128,9 +133,12 @@ export function DraftInput({
         onFocus?.(event);
       }}
       onBlur={(event) => {
-        if (!control.sync.blur() && deferred)
-          control.sync.emit(event.target.value);
-        control.settled();
+        const result = control.sync.blur();
+        const accepted = result.applied
+          ? result.accepted
+          : !deferred || control.sync.emit(event.target.value);
+        if (accepted) control.settled();
+        else control.rejected();
         onBlur?.(event);
       }}
     />
@@ -165,9 +173,12 @@ export function DraftTextarea({
         onFocus?.(event);
       }}
       onBlur={(event) => {
-        if (!control.sync.blur() && commitOnBlur)
-          control.sync.emit(event.target.value);
-        control.settled();
+        const result = control.sync.blur();
+        const accepted = result.applied
+          ? result.accepted
+          : !commitOnBlur || control.sync.emit(event.target.value);
+        if (accepted) control.settled();
+        else control.rejected();
         onBlur?.(event);
       }}
     />

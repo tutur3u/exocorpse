@@ -472,6 +472,13 @@ export function useCmsManagementWorkspace({
   }
 
   function save(onSuccess?: () => void) {
+    if (draftEdits?.invalid) {
+      setMessage({
+        kind: "error",
+        text: "Please review the value in this field.",
+      });
+      return;
+    }
     const savingSession = editorSessionKey;
     const savingRevision = draftEdits?.revision() ?? 0;
     let payload;
