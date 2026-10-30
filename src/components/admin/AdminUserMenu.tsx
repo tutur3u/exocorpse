@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@tuturuuu/ui/dropdown-menu";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { Label } from "@tuturuuu/ui/label";
 import {
   Camera,
@@ -401,7 +401,7 @@ export default function AdminUserMenu({ initialUser }: { initialUser: User }) {
               <Input
                 id="profile-display-name"
                 maxLength={100}
-                onChange={(event) => setDisplayName(event.target.value)}
+                onValueChange={(nextValue) => setDisplayName(nextValue)}
                 value={displayName}
               />
             </div>

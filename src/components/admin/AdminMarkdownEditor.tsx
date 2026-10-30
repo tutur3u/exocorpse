@@ -5,7 +5,9 @@ import { RichTextEditor } from "@tuturuuu/editor/react";
 import { Eye, Maximize2, Minimize2, Pencil } from "lucide-react";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { CSSProperties } from "react";
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
+import { useDraftEdits } from "@/components/shared/DraftEdits";
+import { useDeferredEditorValue } from "@/hooks/useDeferredEditorValue";
 
 import EditorOverflow from "./EditorOverflow";
 
@@ -76,27 +78,24 @@ export default function AdminMarkdownEditor({
   showWordCount?: boolean;
   value: string;
 }) {
+  const draftEdits = useDraftEdits();
   const rootRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [preview, setPreview] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [content, setContent] = useState(() => markdownToJSON(value));
-  const emittedValue = useRef<string | null>(null);
-  const pendingValue = useRef<string | null>(null);
   const pendingSelection = useRef<ReturnType<typeof selectionOffsets>>(null);
-  useEffect(() => {
-    // Markdown round trips are lossy (including in-progress whitespace).
-    // The live rich document owns its selection; never echo it through setContent.
-    if (value === emittedValue.current) return;
-    if (rootRef.current?.contains(document.activeElement)) {
-      pendingValue.current = value;
-      return;
-    }
-    pendingValue.current = null;
-    pendingSelection.current = null;
-    emittedValue.current = null;
-    setContent(markdownToJSON(value));
-  }, [value]);
+  const sync = useDeferredEditorValue(
+    value,
+    (next) => {
+      const editable = rootRef.current?.querySelector<HTMLElement>(
+        "[contenteditable=true]",
+      );
+      pendingSelection.current = editable ? selectionOffsets(editable) : null;
+      setContent(markdownToJSON(next));
+    },
+    onChange,
+  );
   const style = {
     "--tuturuuu-editor-min-height": expanded ? "34rem" : minHeight,
   } as CSSProperties;
@@ -105,6 +104,7 @@ export default function AdminMarkdownEditor({
     <div
       ref={rootRef}
       onFocus={(event) => {
+        sync.focus();
         const offsets = pendingSelection.current;
         if (
           !offsets ||
@@ -121,16 +121,7 @@ export default function AdminMarkdownEditor({
           event.currentTarget.contains(event.relatedTarget)
         )
           return;
-        const pending = pendingValue.current;
-        if (pending === null) return;
-        const editable = event.currentTarget.querySelector<HTMLElement>(
-          "[contenteditable=true]",
-        );
-        pendingSelection.current = editable ? selectionOffsets(editable) : null;
-        pendingValue.current = null;
-        emittedValue.current = pending;
-        setContent(markdownToJSON(pending));
-        onChange(pending);
+        sync.blur();
       }}
       onKeyDown={(event) => {
         if (
@@ -153,8 +144,8 @@ export default function AdminMarkdownEditor({
         onChange={(nextContent) => {
           const markdown = jsonToMarkdown(nextContent);
           if (maxLength && markdown.length > maxLength) return;
-          emittedValue.current = markdown;
-          onChange(markdown);
+          draftEdits?.touch();
+          sync.emit(markdown);
         }}
         onImageUpload={
           onImageUpload

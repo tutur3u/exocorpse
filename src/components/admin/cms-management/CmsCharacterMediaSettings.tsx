@@ -6,7 +6,7 @@ import { characterCrop } from "@/lib/character-media";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { Slider } from "@tuturuuu/ui/slider";
 import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
@@ -226,8 +226,8 @@ export default function CmsCharacterMediaSettings({
           <label className="block space-y-2 text-sm">
             <span>Custom warning (optional)</span>
             <Input
-              onChange={(event) =>
-                setProfile("sensitiveLabel", event.target.value)
+              onValueChange={(nextValue) =>
+                setProfile("sensitiveLabel", nextValue)
               }
               placeholder="Sensitive image — click to reveal"
               value={

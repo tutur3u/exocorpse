@@ -1,11 +1,12 @@
 "use client";
+import { withDraftEdits, useDraftEdits } from "@/components/shared/DraftEdits";
 
 import CmsAssetManager from "@/components/admin/cms-management/CmsAssetManager";
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import type { AboutPageSettings } from "@/lib/about";
 import type { ExocorpseCmsAsset } from "@/types/exocorpse-cms";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { Button } from "@tuturuuu/ui/button";
 import { ChevronDown } from "lucide-react";
 
@@ -99,7 +100,7 @@ function SettingsSection({
   );
 }
 
-export default function AboutSettingsForm({
+function AboutSettingsForm({
   assets,
   mediaPending,
   onDeleteAsset,
@@ -112,7 +113,9 @@ export default function AboutSettingsForm({
   const [saving, setSaving] = useState(false);
   const [section, setSection] = useState<"hero" | "labels">("hero");
   const initialDraft = useMemo(() => toDraft(settings), [settings]);
-  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
+  const pendingDraftEdits = useDraftEdits()?.pending ?? false;
+  const hasChanges =
+    pendingDraftEdits || JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
   useEffect(() => {
     setDraft(toDraft(settings));
@@ -195,7 +198,7 @@ export default function AboutSettingsForm({
               </span>
               <Input
                 value={draft.hero_name}
-                onChange={(event) => setField("hero_name", event.target.value)}
+                onValueChange={(nextValue) => setField("hero_name", nextValue)}
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
             </label>
@@ -205,8 +208,8 @@ export default function AboutSettingsForm({
               </span>
               <Input
                 value={draft.hero_image_alt}
-                onChange={(event) =>
-                  setField("hero_image_alt", event.target.value)
+                onValueChange={(nextValue) =>
+                  setField("hero_image_alt", nextValue)
                 }
                 className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
@@ -217,8 +220,8 @@ export default function AboutSettingsForm({
               </span>
               <Input
                 value={draft.hero_subtitle}
-                onChange={(event) =>
-                  setField("hero_subtitle", event.target.value)
+                onValueChange={(nextValue) =>
+                  setField("hero_subtitle", nextValue)
                 }
                 className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
@@ -299,8 +302,8 @@ export default function AboutSettingsForm({
                     ) : (
                       <Input
                         className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                        onChange={(event) =>
-                          setField(fieldKey, event.target.value)
+                        onValueChange={(nextValue) =>
+                          setField(fieldKey, nextValue)
                         }
                         value={draft[fieldKey]}
                       />
@@ -315,3 +318,5 @@ export default function AboutSettingsForm({
     </section>
   );
 }
+
+export default withDraftEdits(AboutSettingsForm);

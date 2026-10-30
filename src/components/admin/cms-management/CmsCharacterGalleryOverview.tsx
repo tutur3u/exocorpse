@@ -8,7 +8,7 @@ import CmsCardQuickActions from "@/components/admin/cms-management/CmsCardQuickA
 import { cmsEntryPublicPath } from "@/components/admin/cms-management/cms-entry-public-url";
 import type { ExocorpseCmsStudio } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { ImageIcon, Loader2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
@@ -178,7 +178,7 @@ export default function CmsCharacterGalleryOverview({
                 <Input
                   aria-label="Artwork title"
                   className="w-full"
-                  onChange={(event) => setTitle(event.target.value)}
+                  onValueChange={(nextValue) => setTitle(nextValue)}
                   placeholder="Artwork title"
                   value={title}
                 />

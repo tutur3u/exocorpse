@@ -1,5 +1,5 @@
 "use client";
-
+import { DraftInput } from "@/components/shared/DraftTextControl";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import { addonServiceIds } from "@/lib/admin-addon-links";
 import CmsLegacyServiceExamples from "./CmsLegacyServiceExamples";
@@ -434,15 +434,16 @@ export default function CmsEntryEditor({
                   <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Nickname
                   </span>
-                  <input
+                  <DraftInput
+                    unstyled
                     className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700"
-                    onChange={(event) =>
+                    onValueChange={(nextValue) =>
                       onDraftChange({
                         ...draft,
-                        subtitle: event.target.value || null,
+                        subtitle: nextValue || null,
                         profile_data: {
                           ...profile,
-                          nickname: event.target.value,
+                          nickname: nextValue,
                         },
                       })
                     }

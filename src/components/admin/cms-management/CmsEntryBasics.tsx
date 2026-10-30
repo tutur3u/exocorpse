@@ -1,5 +1,7 @@
 "use client";
 
+import { DraftInput } from "@/components/shared/DraftTextControl";
+
 import type { CmsEntryDraft } from "./editor-types";
 
 const inputClassName =
@@ -70,10 +72,11 @@ export default function CmsEntryBasics({
           <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {isName ? "Name" : "Title"} *
           </span>
-          <input
+          <DraftInput
+            unstyled
             className={inputClassName}
             maxLength={160}
-            onChange={(event) => onTitleChange(event.target.value)}
+            onValueChange={(nextValue) => onTitleChange(nextValue)}
             placeholder={placeholders[collectionSlug] ?? "Enter title"}
             required
             value={draft.title}
@@ -86,10 +89,11 @@ export default function CmsEntryBasics({
           <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Slug *
           </span>
-          <input
+          <DraftInput
+            unstyled
             className={inputClassName}
-            onChange={(event) =>
-              onChange({ ...draft, slug: event.target.value })
+            onValueChange={(nextValue) =>
+              onChange({ ...draft, slug: nextValue })
             }
             placeholder="url-friendly-slug"
             required
@@ -107,10 +111,11 @@ export default function CmsEntryBasics({
               ? "Excerpt"
               : "Summary"}
           </span>
-          <input
+          <DraftInput
+            unstyled
             className={inputClassName}
-            onChange={(event) =>
-              onChange({ ...draft, summary: event.target.value || null })
+            onValueChange={(nextValue) =>
+              onChange({ ...draft, summary: nextValue || null })
             }
             placeholder="A brief one-line summary"
             value={draft.summary ?? ""}

@@ -1,4 +1,5 @@
 "use client";
+import { withDraftEdits, useDraftEdits } from "@/components/shared/DraftEdits";
 
 import type { AboutContentItem, AboutContentSection } from "@/lib/about";
 import {
@@ -9,7 +10,7 @@ import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import SortableList from "@/components/admin/SortableList";
 import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -116,7 +117,9 @@ function ItemCard({
     () => createDraft(section, item),
     [item, section],
   );
-  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
+  const pendingDraftEdits = useDraftEdits()?.pending ?? false;
+  const hasChanges =
+    pendingDraftEdits || JSON.stringify(draft) !== JSON.stringify(initialDraft);
   const itemSummary = useMemo(() => aboutContentItemSummary(draft), [draft]);
 
   useEffect(() => {
@@ -260,12 +263,10 @@ function FieldInput({
       type={field.type === "number" ? "number" : "text"}
       value={field.type === "number" ? Number(value) : String(value)}
       placeholder={field.placeholder}
-      onChange={(event) =>
+      onValueChange={(nextValue) =>
         onChange(
           field.key,
-          field.type === "number"
-            ? Number(event.target.value || 0)
-            : event.target.value,
+          field.type === "number" ? Number(nextValue || 0) : nextValue,
         )
       }
       className={baseInputClass}
@@ -416,3 +417,5 @@ export default function AboutContentItemsEditor({
     </details>
   );
 }
+
+const ContentItemCard = withDraftEdits(ContentItemCardForm);

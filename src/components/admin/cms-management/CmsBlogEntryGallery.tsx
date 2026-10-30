@@ -1,4 +1,6 @@
 "use client";
+
+import { DraftInput } from "@/components/shared/DraftTextControl";
 import type {
   ExocorpseCmsAsset,
   ExocorpseCmsEntry,
@@ -279,10 +281,11 @@ export default function CmsBlogEntryGallery({
             </span>
             <span className="relative block">
               <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <input
+              <DraftInput
+                unstyled
                 type="search"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onValueChange={(nextValue) => setSearchTerm(nextValue)}
                 placeholder="Title, slug, excerpt, or content snippet"
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-11 py-3 text-sm text-zinc-100 transition outline-none placeholder:text-zinc-500 focus:border-red-500"
               />

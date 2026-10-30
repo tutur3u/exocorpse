@@ -1,5 +1,7 @@
 "use client";
 
+import { DraftInput } from "@/components/shared/DraftTextControl";
+
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
@@ -183,11 +185,12 @@ export default function BlacklistClient({
 
       {/* Search */}
       <div>
-        <input
+        <DraftInput
+          unstyled
           type="text"
           placeholder="Search by username..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onValueChange={(nextValue) => setSearchTerm(nextValue)}
           className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
         />
       </div>
