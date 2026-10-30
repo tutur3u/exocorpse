@@ -13,6 +13,7 @@ Object.assign(globalThis, {
   HTMLElement: dom.window.HTMLElement,
   Element: dom.window.Element,
   Node: dom.window.Node,
+  Event: dom.window.Event,
   MutationObserver: dom.window.MutationObserver,
   getComputedStyle: dom.window.getComputedStyle,
   requestAnimationFrame: (callback: FrameRequestCallback) =>
@@ -87,6 +88,18 @@ test("typing in the middle preserves the rich editor selection through Markdown 
   expect(document.getSelection()?.focusOffset).toBe(6);
   await user.keyboard("Y");
   await waitFor(() => expect(editable.textContent).toBe("HelloXY world"));
+  await act(async () => {
+    editable.blur();
+  });
+  await waitFor(() => expect(editable.textContent).toBe("Saved world"));
+  await act(async () => {
+    editable.focus();
+  });
+  expect(document.getSelection()?.anchorNode?.textContent).toBe("world");
+  expect(document.getSelection()?.anchorOffset).toBe(1);
+  expect(document.getSelection()?.focusOffset).toBe(1);
+  await user.keyboard("Z");
+  await waitFor(() => expect(editable.textContent).toBe("Saved wZorld"));
 });
 
 test("external resets can return to the last locally emitted Markdown", async () => {

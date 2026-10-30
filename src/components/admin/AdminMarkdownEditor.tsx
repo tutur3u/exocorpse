@@ -9,6 +9,52 @@ import { useEffect, useState, useRef } from "react";
 
 import EditorOverflow from "./EditorOverflow";
 
+function selectionOffsets(root: HTMLElement) {
+  const selection = document.getSelection();
+  if (
+    !selection?.anchorNode ||
+    !selection.focusNode ||
+    !root.contains(selection.anchorNode) ||
+    !root.contains(selection.focusNode)
+  )
+    return null;
+  const offset = (node: Node, position: number) => {
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    range.setEnd(node, position);
+    return range.toString().length;
+  };
+  return {
+    anchor: offset(selection.anchorNode, selection.anchorOffset),
+    focus: offset(selection.focusNode, selection.focusOffset),
+  };
+}
+
+function restoreSelection(
+  root: HTMLElement,
+  offsets: { anchor: number; focus: number },
+) {
+  const position = (offset: number) => {
+    const walker = document.createTreeWalker(root, 4);
+    let node = walker.nextNode();
+    while (node) {
+      const length = node.textContent?.length ?? 0;
+      if (offset <= length) return { node, offset };
+      offset -= length;
+      const next = walker.nextNode();
+      if (!next) return { node, offset: length };
+      node = next;
+    }
+    return { node: root, offset: 0 };
+  };
+  const anchor = position(offsets.anchor);
+  const focus = position(offsets.focus);
+  document
+    .getSelection()
+    ?.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+  document.dispatchEvent(new Event("selectionchange"));
+}
+
 export default function AdminMarkdownEditor({
   compact = false,
   maxLength,
@@ -36,11 +82,18 @@ export default function AdminMarkdownEditor({
   const [imageError, setImageError] = useState<string | null>(null);
   const [content, setContent] = useState(() => markdownToJSON(value));
   const emittedValue = useRef<string | null>(null);
+  const pendingValue = useRef<string | null>(null);
+  const pendingSelection = useRef<ReturnType<typeof selectionOffsets>>(null);
   useEffect(() => {
     // Markdown round trips are lossy (including in-progress whitespace).
     // The live rich document owns its selection; never echo it through setContent.
     if (value === emittedValue.current) return;
-    if (rootRef.current?.contains(document.activeElement)) return;
+    if (rootRef.current?.contains(document.activeElement)) {
+      pendingValue.current = value;
+      return;
+    }
+    pendingValue.current = null;
+    pendingSelection.current = null;
     emittedValue.current = null;
     setContent(markdownToJSON(value));
   }, [value]);
@@ -51,6 +104,34 @@ export default function AdminMarkdownEditor({
   return (
     <div
       ref={rootRef}
+      onFocus={(event) => {
+        const offsets = pendingSelection.current;
+        if (
+          !offsets ||
+          !(event.target instanceof HTMLElement) ||
+          !event.target.matches("[contenteditable=true]")
+        )
+          return;
+        pendingSelection.current = null;
+        restoreSelection(event.target, offsets);
+      }}
+      onBlur={(event) => {
+        if (
+          event.relatedTarget instanceof Node &&
+          event.currentTarget.contains(event.relatedTarget)
+        )
+          return;
+        const pending = pendingValue.current;
+        if (pending === null) return;
+        const editable = event.currentTarget.querySelector<HTMLElement>(
+          "[contenteditable=true]",
+        );
+        pendingSelection.current = editable ? selectionOffsets(editable) : null;
+        pendingValue.current = null;
+        emittedValue.current = pending;
+        setContent(markdownToJSON(pending));
+        onChange(pending);
+      }}
       onKeyDown={(event) => {
         if (
           event.key === "Escape" &&
