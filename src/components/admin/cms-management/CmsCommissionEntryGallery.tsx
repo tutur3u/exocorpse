@@ -8,7 +8,7 @@ import type {
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
 import { useMemo, useState } from "react";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import SortableList, {
@@ -97,7 +97,7 @@ export default function CmsCommissionEntryGallery({
           <div className="flex flex-col gap-4 sm:flex-row">
             <Input
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-              onChange={(event) => setQuery(event.target.value)}
+              onValueChange={(nextValue) => setQuery(nextValue)}
               placeholder="Search add-ons..."
               type="search"
               value={query}

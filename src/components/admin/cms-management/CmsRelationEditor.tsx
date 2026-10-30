@@ -9,7 +9,7 @@ import type {
 } from "@/types/exocorpse-cms";
 import { Check, ChevronDown, Link2, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 
 type RelationControlProps = {
   definition: ExocorpseCmsRelationDefinition;
@@ -69,7 +69,7 @@ function RelationControl({
           <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
             className="w-full rounded border border-gray-300 bg-white py-2 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-            onChange={(event) => setQuery(event.target.value)}
+            onValueChange={(nextValue) => setQuery(nextValue)}
             placeholder={`Search ${definition.label.toLowerCase()}…`}
             value={query}
           />

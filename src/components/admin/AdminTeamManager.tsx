@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  DraftTextarea,
+  DraftInput,
+} from "@/components/shared/DraftTextControl";
+
 import ConfirmDeleteDialog from "@/components/admin/ConfirmDeleteDialog";
 import type {
   AdminTeamMember,
@@ -188,11 +193,12 @@ export default function AdminTeamManager({
           </div>
         </div>
         <div className="mt-4 flex flex-col gap-3 lg:flex-row">
-          <textarea
+          <DraftTextarea
+            unstyled
             aria-label="Invitation email addresses"
             className="min-h-24 flex-1 resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm transition outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             disabled={!data.context.canManageMembers || mutation.isPending}
-            onChange={(event) => setEmails(event.target.value)}
+            onValueChange={(nextValue) => setEmails(nextValue)}
             placeholder="artist@example.com, editor@example.com"
             value={emails}
           />
@@ -217,10 +223,11 @@ export default function AdminTeamManager({
               Roles are synchronized directly with Tuturuuu.
             </p>
           </div>
-          <input
+          <DraftInput
+            unstyled
             aria-label="Search team members"
             className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-cyan-500 sm:w-64 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            onChange={(event) => setSearch(event.target.value)}
+            onValueChange={(nextValue) => setSearch(nextValue)}
             placeholder="Search people..."
             value={search}
           />

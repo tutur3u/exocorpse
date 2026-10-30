@@ -9,13 +9,12 @@ import type {
 } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
 import { Checkbox } from "@tuturuuu/ui/checkbox";
-import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
+import { DraftTextarea as Textarea } from "@/components/shared/DraftTextControl";
 import { Music2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   parseStringArrayInput,
-  reconcileStringArrayInput,
   stringArrayInputValue,
 } from "./string-array-input";
 
@@ -35,20 +34,13 @@ function StringArrayInput({
   onChange,
   value,
 }: Pick<Props, "onChange" | "value">) {
-  const serialized = stringArrayInputValue(value);
-  const [text, setText] = useState(serialized);
-  useEffect(() => {
-    setText((current) => reconcileStringArrayInput(current, serialized));
-  }, [serialized]);
   return (
     <Textarea
       className={`${inputClassName} min-h-24`}
-      onChange={(event) => {
-        setText(event.target.value);
-        onChange(parseStringArrayInput(event.target.value));
-      }}
+      commitOnBlur
+      onValueChange={(text) => onChange(parseStringArrayInput(text))}
       placeholder="One value per line"
-      value={text}
+      value={stringArrayInputValue(value)}
     />
   );
 }
@@ -97,14 +89,14 @@ function ColorPaletteInput({
             <Input
               aria-label={`Choose palette color ${index + 1}`}
               className="h-10 w-12 shrink-0 cursor-pointer p-1"
-              onChange={(event) => updateColor(index, event.target.value)}
+              onValueChange={(nextValue) => updateColor(index, nextValue)}
               type="color"
               value={isHexColor(color) ? color : "#000000"}
             />
             <Input
               aria-label={`Palette color ${index + 1}`}
               className={inputClassName}
-              onChange={(event) => updateColor(index, event.target.value)}
+              onValueChange={(nextValue) => updateColor(index, nextValue)}
               placeholder="#000000"
               value={color}
             />
@@ -148,24 +140,25 @@ function JsonInput({
   onChange: Props["onChange"];
   value: ExocorpseJson | undefined;
 }) {
-  const [text, setText] = useState(() => JSON.stringify(value ?? {}, null, 2));
   const [error, setError] = useState<string | null>(null);
 
   return (
     <>
       <Textarea
         className={`${inputClassName} min-h-32 font-mono text-xs`}
-        onBlur={() => {
+        commitOnBlur
+        onValueApplied={() => setError(null)}
+        onValueChange={(text) => {
           try {
             onChange(JSON.parse(text) as ExocorpseJson);
             setError(null);
           } catch {
             setError("Please review the value in this field.");
+            return false;
           }
         }}
-        onChange={(event) => setText(event.target.value)}
         spellCheck={false}
-        value={text}
+        value={JSON.stringify(value ?? {}, null, 2)}
       />
       {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
     </>
@@ -266,7 +259,7 @@ export default function CmsFieldEditor({
           </div>
           <Input
             className={inputClassName}
-            onChange={(event) => onChange(event.target.value || undefined)}
+            onValueChange={(nextValue) => onChange(nextValue || undefined)}
             placeholder="Paste a direct MP3, OGG, or WAV link"
             type="url"
             value={stringValue}
@@ -300,7 +293,7 @@ export default function CmsFieldEditor({
       ) : definition.key === "distinguishingFeatures" ? (
         <Textarea
           className={inputClassName}
-          onChange={(event) => onChange(event.target.value)}
+          onValueChange={(nextValue) => onChange(nextValue)}
           rows={4}
           value={stringValue}
           placeholder="Scars, tattoos, cybernetic implants, glowing eyes, etc..."
@@ -318,13 +311,13 @@ export default function CmsFieldEditor({
           <Input
             aria-label={`Choose ${label.toLowerCase()}`}
             className="h-10 w-12 shrink-0 cursor-pointer p-1"
-            onChange={(event) => onChange(event.target.value)}
+            onValueChange={(nextValue) => onChange(nextValue)}
             type="color"
             value={isHexColor(stringValue) ? stringValue : "#000000"}
           />
           <Input
             className={inputClassName}
-            onChange={(event) => onChange(event.target.value || undefined)}
+            onValueChange={(nextValue) => onChange(nextValue || undefined)}
             placeholder="#000000"
             value={stringValue}
           />
@@ -336,8 +329,8 @@ export default function CmsFieldEditor({
       ) : (
         <Input
           className={inputClassName}
-          onChange={(event) => {
-            const next = event.target.value;
+          onValueChange={(nextValue) => {
+            const next = nextValue;
             if (definition.field_type === "number") {
               onChange(next === "" ? undefined : Number(next));
               return;

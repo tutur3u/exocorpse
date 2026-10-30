@@ -1,4 +1,5 @@
 "use client";
+import { withDraftEdits, useDraftEdits } from "@/components/shared/DraftEdits";
 
 import AboutContentItemsEditor, {
   type ContentFieldConfig,
@@ -14,8 +15,8 @@ import {
 } from "@/lib/about";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
+import { DraftTextarea as Textarea } from "@/components/shared/DraftTextControl";
 
 type AboutFaqEditorProps = {
   data: AboutPageData;
@@ -127,7 +128,7 @@ function FaqField({
         <Input
           type={type}
           value={String(value)}
-          onChange={(event) => onChange(event.target.value)}
+          onValueChange={(nextValue) => onChange(nextValue)}
           className={className}
         />
       )}
@@ -135,7 +136,7 @@ function FaqField({
   );
 }
 
-function FaqCard({
+function FaqCardForm({
   faq,
   children,
   onUpdateFaq,
@@ -148,7 +149,9 @@ function FaqCard({
   const [saving, setSaving] = useState(false);
   const usernameTemplateRef = useRef<HTMLTextAreaElement | null>(null);
   const initialDraft = toFaqDraft(faq);
-  const hasChanges = JSON.stringify(draft) !== JSON.stringify(initialDraft);
+  const pendingDraftEdits = useDraftEdits()?.pending ?? false;
+  const hasChanges =
+    pendingDraftEdits || JSON.stringify(draft) !== JSON.stringify(initialDraft);
 
   useEffect(() => {
     setDraft(toFaqDraft(faq));
@@ -299,8 +302,8 @@ function FaqCard({
                   value={draft.username_template}
                   rows={3}
                   placeholder="{{left}}skeleton + {{right}} = {{result}}"
-                  onChange={(event) =>
-                    setField("username_template", event.target.value)
+                  onValueChange={(nextValue) =>
+                    setField("username_template", nextValue)
                   }
                   className="resize-y rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 transition outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                 />
@@ -569,3 +572,5 @@ export default function AboutFaqEditor({
     </div>
   );
 }
+
+const FaqCard = withDraftEdits(FaqCardForm);

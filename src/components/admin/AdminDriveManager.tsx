@@ -1,5 +1,7 @@
 "use client";
 
+import { DraftInput } from "@/components/shared/DraftTextControl";
+
 import AdminDriveFilePreview from "./AdminDriveFilePreview";
 import { uploadFilename } from "@/lib/upload-media";
 
@@ -477,10 +479,11 @@ export default function AdminDriveManager({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="relative flex-1">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
+              <DraftInput
+                unstyled
                 aria-label="Search Drive"
                 className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 pr-3 pl-9 text-sm outline-none focus:border-cyan-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                onChange={(event) => setSearch(event.target.value)}
+                onValueChange={(nextValue) => setSearch(nextValue)}
                 placeholder="Search this folder..."
                 value={search}
               />
@@ -684,10 +687,11 @@ export default function AdminDriveManager({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <input
+            <DraftInput
+              unstyled
               autoFocus
               className="mt-5 h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-cyan-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-              onChange={(event) => setEntryName(event.target.value)}
+              onValueChange={(nextValue) => setEntryName(nextValue)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") void saveEntry();
               }}

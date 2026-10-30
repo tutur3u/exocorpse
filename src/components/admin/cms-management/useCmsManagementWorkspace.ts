@@ -1,6 +1,13 @@
 "use client";
+import { useDraftEdits } from "@/components/shared/DraftEdits";
 
-import { configuredEditorFields } from "./editor-fields";
+import {
+  configuredEditorFields,
+  ensureStorySoundtrackField,
+  applyFieldDefaults,
+} from "./editor-fields";
+import { retainEditsAfterSave } from "./retain-edits-after-save";
+import { savedBlockKeys } from "./saved-block-keys";
 
 import {
   blocksToDrafts,
@@ -57,54 +64,6 @@ function hasRequiredValue(value: ExocorpseJson | undefined) {
   return !Array.isArray(value) || value.length > 0;
 }
 
-function applyFieldDefaults(
-  draft: CmsEntryDraft,
-  fields: ExocorpseCmsFieldDefinition[],
-) {
-  return fields.reduce((current, definition) => {
-    if (definition.default_value === null) return current;
-    const scope = definition.field_scope;
-    const record = isJsonRecord(current[scope]) ? current[scope] : {};
-    return {
-      ...current,
-      [scope]: { ...record, [definition.key]: definition.default_value },
-    };
-  }, draft);
-}
-
-function ensureStorySoundtrackField(
-  collectionId: string,
-  collectionSlug: string | undefined,
-  fields: ExocorpseCmsFieldDefinition[],
-) {
-  if (
-    collectionSlug !== "stories" ||
-    fields.some((definition) => definition.key === "themeSoundtrackUrl")
-  ) {
-    return fields;
-  }
-
-  return [
-    ...fields,
-    {
-      collection_id: collectionId,
-      default_value: null,
-      description:
-        "Choose a soundtrack for this story, or keep the site default.",
-      field_scope: "profile_data" as const,
-      field_type: "string" as const,
-      id: `exocorpse:${collectionId}:themeSoundtrackUrl`,
-      is_enabled: true,
-      is_required: false,
-      key: "themeSoundtrackUrl",
-      label: "Story soundtrack",
-      options: [],
-      sort_order: Number.MAX_SAFE_INTEGER,
-      source: "exocorpse",
-    },
-  ];
-}
-
 export function useCmsManagementWorkspace({
   initialStudio,
   section,
@@ -112,6 +71,8 @@ export function useCmsManagementWorkspace({
   initialStudio: ExocorpseCmsStudio;
   section: AdminCmsSection;
 }) {
+  const draftEdits = useDraftEdits();
+  const pendingDraftEdits = draftEdits?.pending ?? false;
   const pendingAddonLinksRef = useRef(new Map<string, string[]>());
   const galleryUploadSequenceRef = useRef(0);
   const hydratedEditorSourceRef = useRef("");
@@ -150,6 +111,14 @@ export function useCmsManagementWorkspace({
     firstEntryId(initialStudio, defaultCollection?.id ?? ""),
   );
   const [creatingEntry, setCreatingEntry] = useState(false);
+  const [editorSessionKey, setEditorSessionKey] = useState(0);
+  const currentEditorRef = useRef<ReturnType<typeof captureEditor> | null>(
+    null,
+  );
+  useEffect(() => {
+    currentEditorRef.current = captureEditor();
+  });
+  const blockKeysRef = useRef(new Map<string, string>());
   const [draft, setDraft] = useState<CmsEntryDraft>(() =>
     entryDraft(
       initialStudio.entries.find((entry) => entry.id === entryId) ?? null,
@@ -263,6 +232,8 @@ export function useCmsManagementWorkspace({
       studio.blocks.filter((block) => block.entry_id === entry?.id),
       studio.assets.filter((asset) => asset.entry_id === entry?.id),
     );
+    for (const block of nextBlocks)
+      block.key = blockKeysRef.current.get(block.id ?? "") ?? block.key;
     const nextRelations = initialRelationSelections(
       studio,
       entry?.id ?? "",
@@ -287,6 +258,7 @@ export function useCmsManagementWorkspace({
   }, [collection, creatingEntry, definitions, entryId, fields, studio]);
 
   function setEntryId(nextEntryId: string) {
+    setEditorSessionKey((key) => key + 1);
     hydratedEditorSourceRef.current = "";
     setCreatingEntry(false);
     setEntryIdState(nextEntryId);
@@ -296,6 +268,7 @@ export function useCmsManagementWorkspace({
     return {
       collectionId,
       entryId,
+      editorSessionKey,
       draft,
       blocks,
       relationSelections,
@@ -305,6 +278,7 @@ export function useCmsManagementWorkspace({
     };
   }
   function restoreEditor(snapshot: ReturnType<typeof captureEditor>) {
+    setEditorSessionKey((key) => key + 1);
     restoredEditorRef.current = snapshot;
     hydratedEditorSourceRef.current = "";
     setCreatingEntry(false);
@@ -319,6 +293,7 @@ export function useCmsManagementWorkspace({
   }
 
   function selectCollection(nextCollectionId: string) {
+    setEditorSessionKey((key) => key + 1);
     hydratedEditorSourceRef.current = "";
     setMessage(null);
     setCreatingEntry(false);
@@ -331,6 +306,7 @@ export function useCmsManagementWorkspace({
     initialRelations: CmsRelationSelections = {},
   ) {
     if (!collection) return;
+    setEditorSessionKey((key) => key + 1);
     hydratedEditorSourceRef.current = "";
     setCreatingEntry(true);
     setEntryIdState("");
@@ -384,6 +360,7 @@ export function useCmsManagementWorkspace({
       (item) => item.id === nextCollectionId,
     );
     if (!nextCollection) return;
+    setEditorSessionKey((key) => key + 1);
     const nextFields = (studio.fieldDefinitions ?? [])
       .filter(
         (definition) =>
@@ -495,6 +472,15 @@ export function useCmsManagementWorkspace({
   }
 
   function save(onSuccess?: () => void) {
+    if (draftEdits?.invalid) {
+      setMessage({
+        kind: "error",
+        text: "Please review the value in this field.",
+      });
+      return;
+    }
+    const savingSession = editorSessionKey;
+    const savingRevision = draftEdits?.revision() ?? 0;
     let payload;
     try {
       const normalizedDraft = validate();
@@ -525,6 +511,26 @@ export function useCmsManagementWorkspace({
         }),
       selectedEntry ? "Changes saved." : "Your new item is ready.",
       async (bundle) => {
+        blockKeysRef.current = savedBlockKeys(bundle.blocks, blocks);
+        const current = currentEditorRef.current;
+        if (
+          current?.editorSessionKey === savingSession &&
+          (draftEdits?.revision() ?? 0) !== savingRevision
+        ) {
+          restoredEditorRef.current = {
+            ...current,
+            ...retainEditsAfterSave(current, bundle, blockKeysRef.current),
+            savedEditorState: cmsEditorStateFingerprint({
+              draft: entryDraft(bundle.entry, collection.id),
+              blocks: blocksToDrafts(bundle.blocks, studio.assets),
+              relationSelections: initialRelationSelections(
+                { ...studio, relations: bundle.relations },
+                bundle.entry.id,
+                definitions,
+              ),
+            }),
+          };
+        }
         setStudio((current) => ({
           ...current,
           blocks: [
@@ -544,15 +550,23 @@ export function useCmsManagementWorkspace({
             ...bundle.relations,
           ],
         }));
+        if (current?.editorSessionKey !== savingSession) return;
         if (collection.slug === "commission-addons")
           pendingAddonLinksRef.current.set(bundle.entry.id, linkedServiceIds);
-        setEntryId(bundle.entry.id);
+        setCreatingEntry(false);
+        setEntryIdState(bundle.entry.id);
         if (collection.slug === "commission-addons") {
           const updatedStudio = await saveAdminCmsAddonLinks(
             bundle.entry.id,
             linkedServiceIds,
           );
           pendingAddonLinksRef.current.delete(bundle.entry.id);
+          const latest = currentEditorRef.current;
+          if (
+            latest?.editorSessionKey === savingSession &&
+            (draftEdits?.revision() ?? 0) !== savingRevision
+          )
+            restoredEditorRef.current = latest;
           setStudio(updatedStudio);
         }
         if (pendingUploadFile) {
@@ -619,7 +633,7 @@ export function useCmsManagementWorkspace({
             setUploadStatus(null);
           }
         }
-        onSuccess?.();
+        if ((draftEdits?.revision() ?? 0) === savingRevision) onSuccess?.();
       },
     );
   }
@@ -1145,6 +1159,7 @@ export function useCmsManagementWorkspace({
   }
 
   function discardChanges() {
+    setEditorSessionKey((key) => key + 1);
     setPendingUploadFile(null);
     if (!collection) return;
     const entry = studio.entries.find((item) => item.id === entryId) ?? null;
@@ -1155,6 +1170,8 @@ export function useCmsManagementWorkspace({
       studio.blocks.filter((block) => block.entry_id === entry?.id),
       studio.assets.filter((asset) => asset.entry_id === entry?.id),
     );
+    for (const block of nextBlocks)
+      block.key = blockKeysRef.current.get(block.id ?? "") ?? block.key;
     const nextRelations = initialRelationSelections(
       studio,
       entry?.id ?? "",
@@ -1179,6 +1196,7 @@ export function useCmsManagementWorkspace({
     JSON.stringify([...linkedServiceIds].sort()) !==
       JSON.stringify(addonServiceIds(studio, entryId).sort());
   const isDirty =
+    pendingDraftEdits ||
     hasLinkChanges ||
     savedEditorState !==
       cmsEditorStateFingerprint({ blocks, draft, relationSelections });
@@ -1201,6 +1219,7 @@ export function useCmsManagementWorkspace({
     draft,
     entries,
     entryId,
+    editorSessionKey,
     fields,
     isDirty,
     message,

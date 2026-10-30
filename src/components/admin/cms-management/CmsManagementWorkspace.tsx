@@ -1,4 +1,5 @@
 "use client";
+import { withDraftEdits } from "@/components/shared/DraftEdits";
 
 import CmsEntryEditor from "@/components/admin/cms-management/CmsEntryEditor";
 import CmsEntryEditorDialog from "@/components/admin/cms-management/CmsEntryEditorDialog";
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-export default function CmsManagementWorkspace({
+function CmsManagementWorkspace({
   cmsHref,
   initialStudio,
   section,
@@ -77,6 +78,7 @@ export default function CmsManagementWorkspace({
     draft,
     entries,
     entryId,
+    editorSessionKey,
     fields,
     isDirty,
     message,
@@ -585,7 +587,7 @@ export default function CmsManagementWorkspace({
             definitions={definitions}
             draft={draft}
             fields={fields}
-            key={`${collection.id}:${entryId || "new"}`}
+            key={editorSessionKey}
             onBlocksChange={setBlocks}
             onDelete={() => deleteEntry(undefined, returnToParentEditor)}
             onDeleteAsset={deleteAsset}
@@ -683,3 +685,5 @@ export default function CmsManagementWorkspace({
     </div>
   );
 }
+
+export default withDraftEdits(CmsManagementWorkspace);

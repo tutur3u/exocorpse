@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  DraftInput,
+  DraftTextarea,
+} from "@/components/shared/DraftTextControl";
+
 import { CalendarClock, FileText, Link2, NotebookPen } from "lucide-react";
 import type { ReactNode } from "react";
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
@@ -126,9 +131,10 @@ export default function CmsLegacyBlogEditor({
               <span className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Title
               </span>
-              <input
+              <DraftInput
+                unstyled
                 className={fieldClass}
-                onChange={(event) => onTitleChange(event.target.value)}
+                onValueChange={(nextValue) => onTitleChange(nextValue)}
                 placeholder="The anatomy of a perfect archive entry"
                 required
                 value={draft.title}
@@ -138,10 +144,11 @@ export default function CmsLegacyBlogEditor({
               <span className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Slug
               </span>
-              <input
+              <DraftInput
+                unstyled
                 className={fieldClass}
-                onChange={(event) =>
-                  onDraftChange({ ...draft, slug: event.target.value })
+                onValueChange={(nextValue) =>
+                  onDraftChange({ ...draft, slug: nextValue })
                 }
                 placeholder="anatomy-of-a-perfect-archive-entry"
                 required
@@ -155,11 +162,12 @@ export default function CmsLegacyBlogEditor({
               <span className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Publish date
               </span>
-              <input
+              <DraftInput
+                unstyled
                 className={fieldClass}
-                onChange={(event) => {
-                  const publishedAt = event.target.value
-                    ? new Date(event.target.value).toISOString()
+                onValueChange={(nextValue) => {
+                  const publishedAt = nextValue
+                    ? new Date(nextValue).toISOString()
                     : null;
                   const scheduled = Boolean(
                     publishedAt && new Date(publishedAt) > new Date(),
@@ -187,13 +195,14 @@ export default function CmsLegacyBlogEditor({
               <span className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Excerpt
               </span>
-              <textarea
+              <DraftTextarea
+                unstyled
                 className={fieldClass}
                 maxLength={280}
-                onChange={(event) =>
+                onValueChange={(nextValue) =>
                   onDraftChange({
                     ...draft,
-                    summary: event.target.value || null,
+                    summary: nextValue || null,
                   })
                 }
                 placeholder="A compact teaser that makes the archive card feel intentional."

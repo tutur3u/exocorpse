@@ -10,9 +10,3 @@ export function parseStringArrayInput(text: string) {
 export function stringArrayInputValue(value: ExocorpseJson | undefined) {
   return Array.isArray(value) ? value.join("\n") : "";
 }
-
-export function reconcileStringArrayInput(text: string, serialized: string) {
-  return parseStringArrayInput(text).join("\n") === serialized
-    ? text
-    : serialized;
-}

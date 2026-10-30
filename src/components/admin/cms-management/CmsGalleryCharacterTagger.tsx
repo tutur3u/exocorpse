@@ -7,7 +7,7 @@ import type {
   ExocorpseCmsStudio,
 } from "@/types/exocorpse-cms";
 import { Button } from "@tuturuuu/ui/button";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { Check, Plus, Search, UserRound, X } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -160,7 +160,7 @@ export default function CmsGalleryCharacterTagger({
               <Input
                 autoFocus
                 className="w-full pl-9"
-                onChange={(event) => setQuery(event.target.value)}
+                onValueChange={(nextValue) => setQuery(nextValue)}
                 placeholder="Search characters…"
                 value={query}
               />

@@ -133,7 +133,7 @@ export default function CmsStructuredFields({
                   ? "min-w-0 @xl:col-span-2"
                   : "min-w-0"
               }
-              key={`${draft.id || "new"}:${definition.id}`}
+              key={definition.id}
             >
               <CmsFieldEditor
                 definition={definition}
@@ -163,7 +163,7 @@ export default function CmsStructuredFields({
               return (
                 <CmsFieldEditor
                   definition={definition}
-                  key={`${draft.id || "new"}:${definition.id}`}
+                  key={definition.id}
                   onChange={(value) => update(definition, value)}
                   onImageUpload={onImageUpload}
                   value={record[definition.key]}

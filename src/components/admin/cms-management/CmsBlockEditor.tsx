@@ -8,8 +8,8 @@ import type { CmsBlockDraft } from "@/components/admin/cms-management/editor-typ
 import AdminMarkdownEditor from "@/components/admin/AdminMarkdownEditor";
 import SortableList from "@/components/admin/SortableList";
 import { Button } from "@tuturuuu/ui/button";
-import { Input } from "@tuturuuu/ui/input";
-import { Textarea } from "@tuturuuu/ui/textarea";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
+import { DraftTextarea as Textarea } from "@/components/shared/DraftTextControl";
 import { ChevronDown, FileText, Plus, Trash2 } from "lucide-react";
 
 type Props = {
@@ -45,14 +45,19 @@ export default function CmsBlockEditor({
   }
 
   if (singleDocument) {
-    const content = blocks
-      .map((block, index) => {
-        const heading =
-          index > 0 && block.title.trim() ? `## ${block.title.trim()}\n\n` : "";
-        return `${heading}${block.contentText}`.trim();
-      })
-      .filter(Boolean)
-      .join("\n\n");
+    const content =
+      blocks.length <= 1
+        ? (blocks[0]?.contentText ?? "")
+        : blocks
+            .map((block, index) => {
+              const heading =
+                index > 0 && block.title.trim()
+                  ? `## ${block.title.trim()}\n\n`
+                  : "";
+              return `${heading}${block.contentText}`.trim();
+            })
+            .filter(Boolean)
+            .join("\n\n");
 
     return (
       <section className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-700">
@@ -187,8 +192,8 @@ export default function CmsBlockEditor({
                 </div>
                 <Input
                   className="w-full bg-white text-sm dark:bg-zinc-900"
-                  onChange={(event) =>
-                    update(index, { title: event.target.value })
+                  onValueChange={(nextValue) =>
+                    update(index, { title: nextValue })
                   }
                   placeholder={`Optional ${sectionNoun} title`}
                   value={block.title}
@@ -204,8 +209,8 @@ export default function CmsBlockEditor({
                 ) : (
                   <Textarea
                     className={`${inputClassName} min-h-44 font-mono text-xs`}
-                    onChange={(event) =>
-                      update(index, { contentText: event.target.value })
+                    onValueChange={(nextValue) =>
+                      update(index, { contentText: nextValue })
                     }
                     placeholder="Add the section details…"
                     spellCheck={false}

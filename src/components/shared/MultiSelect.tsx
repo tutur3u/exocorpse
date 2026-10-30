@@ -1,5 +1,7 @@
 "use client";
 
+import { DraftInput } from "@/components/shared/DraftTextControl";
+
 import { ChevronDown, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -174,12 +176,13 @@ export function MultiSelect({
                     : "border-b border-input p-3"
                 }
               >
-                <input
+                <DraftInput
+                  unstyled
                   ref={inputRef}
                   type="text"
                   placeholder={placeholder}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onValueChange={(nextValue) => setSearchTerm(nextValue)}
                   className={inputClassName}
                   aria-label={`Search ${label || "items"}`}
                 />

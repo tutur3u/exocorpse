@@ -8,7 +8,7 @@ import {
   Link,
   SlidersHorizontal,
 } from "lucide-react";
-import { Input } from "@tuturuuu/ui/input";
+import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 
 const inputClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white";
@@ -71,11 +71,11 @@ export default function CmsPublishingSettings({
               </span>
               <Input
                 className={inputClassName}
-                onChange={(event) =>
+                onValueChange={(nextValue) =>
                   onChange({
                     ...draft,
-                    scheduled_for: event.target.value
-                      ? new Date(event.target.value).toISOString()
+                    scheduled_for: nextValue
+                      ? new Date(nextValue).toISOString()
                       : null,
                   })
                 }
@@ -113,8 +113,8 @@ export default function CmsPublishingSettings({
               <Input
                 className="min-w-0 flex-1 bg-transparent px-1 py-2.5 font-mono text-sm outline-none"
                 maxLength={120}
-                onChange={(event) =>
-                  onChange({ ...draft, slug: event.target.value })
+                onValueChange={(nextValue) =>
+                  onChange({ ...draft, slug: nextValue })
                 }
                 placeholder="page-address"
                 value={draft.slug}
