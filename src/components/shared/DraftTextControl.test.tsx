@@ -370,3 +370,50 @@ test("JSON errors survive equal-content props and focused external updates until
   expect(container.querySelector("output")?.textContent).toBe("clean");
   expect(committed).toEqual([{ name: "External" }]);
 });
+
+for (const kind of ["input", "textarea"] as const) {
+  test(`${kind}: untouched deferred blurs do not commit and edited blurs commit once`, async () => {
+    const committed: string[] = [];
+    function Form() {
+      const [value, setValue] = useState(kind === "input" ? "7" : "{}");
+      const onValueChange = (next: string) => {
+        committed.push(next);
+        setValue(next);
+      };
+      return (
+        <>
+          {kind === "input" ? (
+            <DraftInput
+              aria-label="Deferred"
+              type="number"
+              value={value}
+              onValueChange={onValueChange}
+            />
+          ) : (
+            <DraftTextarea
+              aria-label="Deferred"
+              commitOnBlur
+              value={value}
+              onValueChange={onValueChange}
+            />
+          )}
+          <button>Outside</button>
+        </>
+      );
+    }
+    const { getByLabelText } = render(<Form />);
+    const field = getByLabelText("Deferred");
+    const user = userEvent.setup({ document: dom.window.document });
+    await user.click(field);
+    await user.tab();
+    expect(committed).toEqual([]);
+    await user.clear(field);
+    if (kind === "input") await user.type(field, "42");
+    else await user.paste('{"ok":true}');
+    await user.tab();
+    expect(committed).toEqual([kind === "input" ? "42" : '{"ok":true}']);
+    await user.click(field);
+    await user.tab();
+    expect(committed).toHaveLength(1);
+  });
+}

@@ -708,6 +708,11 @@ export function useCmsManagementWorkspace({
 
   async function uploadAsset(file: File) {
     if (!collection) return;
+    if (!selectedEntry && draftEdits?.invalid) {
+      const error = new Error("Please review the value in this field.");
+      setMessage({ kind: "error", text: error.message });
+      throw error;
+    }
     const canCreateFromMedia = [
       "character-gallery",
       "location-gallery",

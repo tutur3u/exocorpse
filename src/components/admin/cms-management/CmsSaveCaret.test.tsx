@@ -1,10 +1,11 @@
-import { afterEach, expect, mock, test } from "bun:test";
+import { afterEach, expect, mock, spyOn, test } from "bun:test";
 import { act } from "react";
 import { dom, render, cleanup, waitFor, userEvent } from "@/test/dom";
 import type { ExocorpseCmsEntry } from "@/types/exocorpse-cms";
 
 type Bundle = { entry: ExocorpseCmsEntry; blocks: []; relations: [] };
 let saveCalls = 0;
+let assetRegistrations = 0;
 let finishSave: (bundle: Bundle) => void = () => {};
 const pendingSave = new Promise<Bundle>((resolve) => {
   finishSave = resolve;
@@ -22,7 +23,21 @@ mock.module("@/lib/actions/cms", () => ({
   saveAdminCmsAddonLinks: unused,
   reorderAdminCmsEntries: unused,
   reorderAdminCmsAssets: unused,
-  registerAdminCmsAsset: unused,
+  registerAdminCmsAsset: async ({ entryId }: { entryId: string }) => {
+    assetRegistrations += 1;
+    return {
+      id: "asset",
+      entry_id: entryId,
+      asset_type: "image",
+      asset_url: null,
+      alt_text: null,
+      metadata: {},
+      sort_order: 0,
+      source_url: null,
+      storage_path: "fixture/upload.png",
+      updated_at: "version",
+    };
+  },
   setAdminCmsEntryVisibility: unused,
 }));
 const { useCmsManagementWorkspace } =
@@ -281,4 +296,248 @@ test("invalid visible JSON remains dirty with an error and cannot be committed o
   expect(container.textContent).toContain(
     "Please review the value in this field.",
   );
+});
+
+const assetUpload = await import("@/lib/cms-asset-upload");
+const { isJsonRecord } = await import("./editor-utils");
+
+function uploadEntry(): ExocorpseCmsEntry {
+  return {
+    id: "existing-upload",
+    collection_id: "collection",
+    title: "Existing",
+    slug: "existing",
+    metadata: {},
+    profile_data: {},
+    subtitle: null,
+    summary: null,
+    status: "draft",
+    sort_order: 0,
+    scheduled_for: null,
+    published_at: null,
+    stable_source_id: null,
+    created_at: "created",
+    updated_at: "version",
+  };
+}
+
+for (const scenario of ["new-story", "new-media", "existing"] as const) {
+  test(`upload ${scenario}: invalid drafts block entry creation while existing-entry uploads still work`, async () => {
+    const beforeSaves = saveCalls;
+    const beforeRegistrations = assetRegistrations;
+    const upload = spyOn(assetUpload, "uploadCmsAssetDirect").mockResolvedValue(
+      "fixture/upload.png",
+    );
+    try {
+      const slug = scenario === "new-media" ? "portfolio-art" : "stories";
+      const studio = {
+        collections: [
+          {
+            id: "collection",
+            slug,
+            title: "Collection",
+            collection_type: "content",
+          },
+        ],
+        entries: scenario === "existing" ? [uploadEntry()] : [],
+        blocks: [],
+        assets: [],
+      };
+      const definition = {
+        id: "document",
+        key: "document",
+        label: "Document",
+        collection_id: "collection",
+        field_scope: "metadata" as const,
+        field_type: "json" as const,
+        default_value: null,
+        description: null,
+        is_enabled: true,
+        is_required: false,
+        options: [],
+        sort_order: 0,
+        source: "test",
+      };
+      let rejected: unknown;
+      const Form = withDraftEdits(function Form() {
+        const editor = useCmsManagementWorkspace({
+          initialStudio: studio,
+          section:
+            slug === "stories"
+              ? ADMIN_CMS_SECTIONS.stories
+              : ADMIN_CMS_SECTIONS.portfolio,
+        });
+        return (
+          <>
+            <DraftInput
+              aria-label="Title"
+              value={editor.draft.title}
+              onValueChange={editor.changeTitle}
+            />
+            <CmsFieldEditor
+              definition={definition}
+              value={editor.draft.metadata}
+              onChange={(value) =>
+                editor.setDraft((current) => ({
+                  ...current,
+                  metadata: value ?? {},
+                }))
+              }
+            />
+            <button
+              onClick={() => {
+                void editor
+                  .uploadAsset(
+                    new File(["fixture"], "art.png", { type: "image/png" }),
+                  )
+                  .catch((error) => {
+                    rejected = error;
+                  });
+              }}
+            >
+              Upload
+            </button>
+            <aside data-kind={editor.message?.kind}>
+              {editor.message?.text}
+            </aside>
+            <output data-entry={editor.entryId}>
+              {editor.isDirty ? "dirty" : "clean"}
+            </output>
+          </>
+        );
+      });
+      const { container, getByRole, getByLabelText } = render(<Form />);
+      const user = userEvent.setup({ document: dom.window.document });
+      if (scenario !== "existing")
+        await user.type(getByLabelText("Title"), "New entry");
+      const field = container.querySelector("textarea");
+      if (!field) throw new Error("Missing JSON field");
+      await user.clear(field);
+      await user.type(field, "invalid JSON");
+      await user.tab();
+      await user.click(getByRole("button", { name: "Upload" }));
+      expect(saveCalls).toBe(beforeSaves);
+      if (scenario === "existing") {
+        await waitFor(() =>
+          expect(assetRegistrations).toBe(beforeRegistrations + 1),
+        );
+        expect(upload).toHaveBeenCalledTimes(1);
+        expect(rejected).toBeUndefined();
+        await waitFor(() =>
+          expect(container.querySelector("aside")?.textContent).toBe(
+            "Media uploaded.",
+          ),
+        );
+        expect(
+          container.querySelector("output")?.getAttribute("data-entry"),
+        ).toBe("existing-upload");
+      } else {
+        await waitFor(() => expect(rejected).toBeInstanceOf(Error));
+        expect(upload).not.toHaveBeenCalled();
+        expect(assetRegistrations).toBe(beforeRegistrations);
+        expect(
+          container.querySelector("aside")?.getAttribute("data-kind"),
+        ).toBe("error");
+        expect(container.querySelector("aside")?.textContent).toBe(
+          "Please review the value in this field.",
+        );
+        expect(
+          container.querySelector("output")?.getAttribute("data-entry"),
+        ).toBe("");
+      }
+      expect(field.value).toBe("invalid JSON");
+      expect(container.querySelector("output")?.textContent).toBe("dirty");
+    } finally {
+      upload.mockRestore();
+    }
+  });
+}
+
+test("blurring an untouched optional JSON document does not create a value or dirty the entry", async () => {
+  let commits = 0;
+  const studio = {
+    collections: [
+      {
+        id: "collection",
+        slug: "stories",
+        title: "Stories",
+        collection_type: "content",
+      },
+    ],
+    entries: [uploadEntry()],
+    blocks: [],
+    assets: [],
+  };
+  const definition = {
+    id: "optional",
+    key: "optional",
+    label: "Optional",
+    collection_id: "collection",
+    field_scope: "metadata" as const,
+    field_type: "json" as const,
+    default_value: null,
+    description: null,
+    is_enabled: true,
+    is_required: false,
+    options: [],
+    sort_order: 0,
+    source: "test",
+  };
+  const Form = withDraftEdits(function Form() {
+    const editor = useCmsManagementWorkspace({
+      initialStudio: studio,
+      section: ADMIN_CMS_SECTIONS.stories,
+    });
+    const metadata = isJsonRecord(editor.draft.metadata)
+      ? editor.draft.metadata
+      : {};
+    return (
+      <>
+        <CmsFieldEditor
+          definition={definition}
+          value={metadata.optional}
+          onChange={(value) => {
+            commits += 1;
+            editor.setDraft((current) => ({
+              ...current,
+              metadata: {
+                ...(isJsonRecord(current.metadata) ? current.metadata : {}),
+                optional: value,
+              },
+            }));
+          }}
+        />
+        <button>Outside</button>
+        <output>{editor.isDirty ? "dirty" : "clean"}</output>
+        <pre>
+          {metadata.optional === undefined
+            ? "unset"
+            : JSON.stringify(metadata.optional)}
+        </pre>
+      </>
+    );
+  });
+  const { container } = render(<Form />);
+  const field = container.querySelector("textarea");
+  if (!field) throw new Error("Missing optional JSON");
+  const user = userEvent.setup({ document: dom.window.document });
+  expect(field.value).toBe("{}");
+  await act(async () => {
+    field.focus();
+  });
+  await user.tab();
+  expect(commits).toBe(0);
+  expect(container.querySelector("output")?.textContent).toBe("clean");
+  expect(container.querySelector("pre")?.textContent).toBe("unset");
+  await user.clear(field);
+  await user.paste('{"ok":true}');
+  await user.tab();
+  expect(commits).toBe(1);
+  expect(container.querySelector("output")?.textContent).toBe("dirty");
+  expect(container.querySelector("pre")?.textContent).toBe('{"ok":true}');
+  await act(async () => {
+    field.focus();
+  });
+  await user.tab();
+  expect(commits).toBe(1);
 });

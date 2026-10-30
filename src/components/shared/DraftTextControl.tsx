@@ -73,7 +73,9 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
     },
     (next) => onValueChange?.(next),
   );
+  const hasChanged = (next: string) => next !== source;
   return {
+    hasChanged,
     draft,
     ref,
     sync,
@@ -85,7 +87,7 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
       if (!deferred) {
         if (sync.emit(next)) mark?.(id, false);
         else edits?.reject(id);
-      } else mark?.(id, next !== source);
+      } else mark?.(id, hasChanged(next));
     },
     focus: () => {
       sync.focus();
@@ -138,7 +140,9 @@ export function DraftInput({
         const result = control.sync.blur();
         const accepted = result.applied
           ? result.accepted
-          : !deferred || control.sync.emit(event.target.value);
+          : !deferred ||
+            !control.hasChanged(event.target.value) ||
+            control.sync.emit(event.target.value);
         if (accepted) control.settled();
         else control.rejected();
         onBlur?.(event);
@@ -179,7 +183,9 @@ export function DraftTextarea({
         const result = control.sync.blur();
         const accepted = result.applied
           ? result.accepted
-          : !commitOnBlur || control.sync.emit(event.target.value);
+          : !commitOnBlur ||
+            !control.hasChanged(event.target.value) ||
+            control.sync.emit(event.target.value);
         if (accepted) control.settled();
         else control.rejected();
         onBlur?.(event);
