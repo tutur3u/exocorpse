@@ -39,6 +39,7 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
   value: string | number | undefined,
   onValueChange: DraftProps["onValueChange"],
   forwarded: Ref<T> | undefined,
+  onValueApplied?: () => void,
 ) {
   const edits = useDraftEdits();
   const mark = edits?.mark;
@@ -68,6 +69,7 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
       }
       setDraft(next);
       mark?.(id, false);
+      onValueApplied?.();
     },
     (next) => onValueChange?.(next),
   );
@@ -149,10 +151,11 @@ type TextareaProps = Omit<
   ComponentProps<"textarea">,
   "value" | "defaultValue" | "onChange"
 > &
-  DraftProps;
+  DraftProps & { onValueApplied?: () => void };
 export function DraftTextarea({
   value,
   onValueChange,
+  onValueApplied,
   commitOnBlur = false,
   unstyled = false,
   ref,
@@ -160,7 +163,7 @@ export function DraftTextarea({
   onFocus,
   ...props
 }: TextareaProps) {
-  const control = useTextControl(value, onValueChange, ref);
+  const control = useTextControl(value, onValueChange, ref, onValueApplied);
   const Component = unstyled ? "textarea" : Textarea;
   return (
     <Component

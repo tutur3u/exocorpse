@@ -318,3 +318,55 @@ test("string-array drafts retain blank lines and unfinished delimiters until blu
     unmount();
   }
 });
+
+test("JSON errors survive equal-content props and focused external updates until valid text applies", async () => {
+  let refresh: (value: ExocorpseJson) => void = () => {};
+  const committed: (ExocorpseJson | undefined)[] = [];
+  const Form = withDraftEdits(function Form() {
+    const [value, setValue] = useState<ExocorpseJson>({ name: "Original" });
+    refresh = setValue;
+    const edits = useDraftEdits();
+    return (
+      <>
+        <CmsFieldEditor
+          definition={definition("json")}
+          value={value}
+          onChange={(next) => {
+            committed.push(next);
+            if (next !== undefined) setValue(next);
+          }}
+        />
+        <button>Outside</button>
+        <output>{edits?.pending ? "dirty" : "clean"}</output>
+      </>
+    );
+  });
+  const { container, getByText, queryByText } = render(<Form />);
+  const field = container.querySelector("textarea");
+  if (!field) throw new Error("Missing JSON input");
+  const user = userEvent.setup({ document: dom.window.document });
+  await user.clear(field);
+  await user.type(field, "invalid JSON");
+  await user.tab();
+  expect(getByText("Please review the value in this field.")).toBeTruthy();
+  await act(async () => {
+    refresh({ name: "Original" });
+  });
+  expect(field.value).toBe("invalid JSON");
+  expect(getByText("Please review the value in this field.")).toBeTruthy();
+  expect(container.querySelector("output")?.textContent).toBe("dirty");
+  expect(committed).toEqual([]);
+  await act(async () => {
+    field.focus();
+    refresh({ name: "External" });
+  });
+  expect(field.value).toBe("invalid JSON");
+  expect(getByText("Please review the value in this field.")).toBeTruthy();
+  expect(container.querySelector("output")?.textContent).toBe("dirty");
+  expect(committed).toEqual([]);
+  await user.tab();
+  expect(field.value).toContain("External");
+  expect(queryByText("Please review the value in this field.")).toBeNull();
+  expect(container.querySelector("output")?.textContent).toBe("clean");
+  expect(committed).toEqual([{ name: "External" }]);
+});

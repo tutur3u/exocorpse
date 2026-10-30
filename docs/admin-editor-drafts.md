@@ -17,7 +17,8 @@ syntax. `DraftEdits` marks these local edits immediately so Save is enabled;
 clicking Save blurs and commits the field before its click handler runs. Invalid
 JSON remains visible with its validation error and counts as unsaved work. Rejected
 commits do not settle a draft, and CMS Save refuses to persist until the invalid
-field is corrected.
+field is corrected. Validation clears when accepted or external content actually
+replaces the live draft, rather than when a props object changes.
 
 CMS saves retain the editing session and local block keys when the server assigns
 IDs. Saved blocks match by server id first, then by submitted array position only

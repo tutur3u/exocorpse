@@ -12,7 +12,7 @@ import { Checkbox } from "@tuturuuu/ui/checkbox";
 import { DraftInput as Input } from "@/components/shared/DraftTextControl";
 import { DraftTextarea as Textarea } from "@/components/shared/DraftTextControl";
 import { Music2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   parseStringArrayInput,
   stringArrayInputValue,
@@ -141,13 +141,13 @@ function JsonInput({
   value: ExocorpseJson | undefined;
 }) {
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => setError(null), [value]);
 
   return (
     <>
       <Textarea
         className={`${inputClassName} min-h-32 font-mono text-xs`}
         commitOnBlur
+        onValueApplied={() => setError(null)}
         onValueChange={(text) => {
           try {
             onChange(JSON.parse(text) as ExocorpseJson);
