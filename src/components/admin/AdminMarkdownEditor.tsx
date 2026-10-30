@@ -41,6 +41,7 @@ export default function AdminMarkdownEditor({
     // The live rich document owns its selection; never echo it through setContent.
     if (value === emittedValue.current) return;
     if (rootRef.current?.contains(document.activeElement)) return;
+    emittedValue.current = null;
     setContent(markdownToJSON(value));
   }, [value]);
   const style = {

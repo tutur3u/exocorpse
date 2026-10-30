@@ -88,3 +88,58 @@ test("typing in the middle preserves the rich editor selection through Markdown 
   await user.keyboard("Y");
   await waitFor(() => expect(editable.textContent).toBe("HelloXY world"));
 });
+
+test("external resets can return to the last locally emitted Markdown", async () => {
+  let emitted = "";
+  const onChange = (next: string) => {
+    emitted = next;
+  };
+  const { container, rerender } = render(
+    <AdminMarkdownEditor
+      value="Hello world"
+      onChange={onChange}
+      placeholder="Write"
+    />,
+  );
+  const editable = await waitFor(() => {
+    const element = container.querySelector<HTMLElement>(
+      "[contenteditable=true]",
+    );
+    if (!element) throw new Error("Editor was not mounted");
+    return element;
+  });
+  await act(async () => {
+    editable.focus();
+    const text = editable.querySelector("p")?.firstChild;
+    if (!text) throw new Error("Missing paragraph");
+    const range = document.createRange();
+    range.setStart(text, 5);
+    range.collapse(true);
+    document.getSelection()?.removeAllRanges();
+    document.getSelection()?.addRange(range);
+    document.dispatchEvent(new dom.window.Event("selectionchange"));
+  });
+  await userEvent.setup({ document: dom.window.document }).keyboard("X");
+  await waitFor(() => expect(emitted).toBe("HelloX world"));
+  await act(async () => {
+    editable.blur();
+  });
+  rerender(
+    <AdminMarkdownEditor
+      value="External replacement"
+      onChange={onChange}
+      placeholder="Write"
+    />,
+  );
+  await waitFor(() =>
+    expect(editable.textContent).toBe("External replacement"),
+  );
+  rerender(
+    <AdminMarkdownEditor
+      value={emitted}
+      onChange={onChange}
+      placeholder="Write"
+    />,
+  );
+  await waitFor(() => expect(editable.textContent).toBe("HelloX world"));
+});
