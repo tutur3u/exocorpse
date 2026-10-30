@@ -44,6 +44,7 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
   const edits = useDraftEdits();
   const mark = edits?.mark;
   const id = useId();
+  const rejected = useRef(false);
   useEffect(() => () => mark?.(id, false), [id, mark]);
   const source = value === undefined ? "" : String(value);
   const [draft, setDraft] = useState(source);
@@ -68,24 +69,39 @@ function useTextControl<T extends HTMLInputElement | HTMLTextAreaElement>(
         };
       }
       setDraft(next);
+      rejected.current = false;
       mark?.(id, false);
       onValueApplied?.();
     },
     (next) => onValueChange?.(next),
   );
+  const hasChanged = (next: string) => next !== source;
   return {
+    hasChanged,
     draft,
     ref,
     sync,
-    settled: () => mark?.(id, false),
-    rejected: () => edits?.reject(id),
+    settled: () => {
+      if (rejected.current) onValueApplied?.();
+      rejected.current = false;
+      mark?.(id, false);
+    },
+    rejected: () => {
+      rejected.current = true;
+      edits?.reject(id);
+    },
     change: (next: string, deferred: boolean) => {
       edits?.touch();
       setDraft(next);
       if (!deferred) {
-        if (sync.emit(next)) mark?.(id, false);
-        else edits?.reject(id);
-      } else mark?.(id, next !== source);
+        if (sync.emit(next)) {
+          rejected.current = false;
+          mark?.(id, false);
+        } else {
+          rejected.current = true;
+          edits?.reject(id);
+        }
+      } else mark?.(id, rejected.current || hasChanged(next));
     },
     focus: () => {
       sync.focus();
@@ -138,7 +154,9 @@ export function DraftInput({
         const result = control.sync.blur();
         const accepted = result.applied
           ? result.accepted
-          : !deferred || control.sync.emit(event.target.value);
+          : !deferred ||
+            !control.hasChanged(event.target.value) ||
+            control.sync.emit(event.target.value);
         if (accepted) control.settled();
         else control.rejected();
         onBlur?.(event);
@@ -179,7 +197,9 @@ export function DraftTextarea({
         const result = control.sync.blur();
         const accepted = result.applied
           ? result.accepted
-          : !commitOnBlur || control.sync.emit(event.target.value);
+          : !commitOnBlur ||
+            !control.hasChanged(event.target.value) ||
+            control.sync.emit(event.target.value);
         if (accepted) control.settled();
         else control.rejected();
         onBlur?.(event);

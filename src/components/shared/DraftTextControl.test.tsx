@@ -370,3 +370,97 @@ test("JSON errors survive equal-content props and focused external updates until
   expect(container.querySelector("output")?.textContent).toBe("clean");
   expect(committed).toEqual([{ name: "External" }]);
 });
+
+for (const kind of ["input", "textarea"] as const) {
+  test(`${kind}: untouched deferred blurs do not commit and edited blurs commit once`, async () => {
+    const committed: string[] = [];
+    function Form() {
+      const [value, setValue] = useState(kind === "input" ? "7" : "{}");
+      const onValueChange = (next: string) => {
+        committed.push(next);
+        setValue(next);
+      };
+      return (
+        <>
+          {kind === "input" ? (
+            <DraftInput
+              aria-label="Deferred"
+              type="number"
+              value={value}
+              onValueChange={onValueChange}
+            />
+          ) : (
+            <DraftTextarea
+              aria-label="Deferred"
+              commitOnBlur
+              value={value}
+              onValueChange={onValueChange}
+            />
+          )}
+          <button>Outside</button>
+        </>
+      );
+    }
+    const { getByLabelText } = render(<Form />);
+    const field = getByLabelText("Deferred");
+    const user = userEvent.setup({ document: dom.window.document });
+    await user.click(field);
+    await user.tab();
+    expect(committed).toEqual([]);
+    await user.clear(field);
+    if (kind === "input") await user.type(field, "42");
+    else await user.paste('{"ok":true}');
+    await user.tab();
+    expect(committed).toEqual([kind === "input" ? "42" : '{"ok":true}']);
+    await user.click(field);
+    await user.tab();
+    expect(committed).toHaveLength(1);
+  });
+}
+
+test("reverting rejected JSON to saved text clears error and invalid state without a commit", async () => {
+  const committed: unknown[] = [];
+  const Form = withDraftEdits(function Form() {
+    const edits = useDraftEdits();
+    return (
+      <>
+        <CmsFieldEditor
+          definition={definition("json")}
+          value={{ name: "Saved" }}
+          onChange={(value) => {
+            committed.push(value);
+          }}
+        />
+        <button>Outside</button>
+        <output data-invalid={String(edits?.invalid)}>
+          {edits?.pending ? "dirty" : "clean"}
+        </output>
+      </>
+    );
+  });
+  const { container, queryByText } = render(<Form />);
+  const field = container.querySelector("textarea");
+  if (!field) throw new Error("Missing JSON");
+  const saved = field.value;
+  const user = userEvent.setup({ document: dom.window.document });
+  await user.clear(field);
+  await user.type(field, "invalid");
+  await user.tab();
+  expect(queryByText("Please review the value in this field.")).not.toBeNull();
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "true",
+  );
+  await user.clear(field);
+  await user.paste(saved);
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "true",
+  );
+  expect(container.querySelector("output")?.textContent).toBe("dirty");
+  await user.tab();
+  expect(queryByText("Please review the value in this field.")).toBeNull();
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "false",
+  );
+  expect(container.querySelector("output")?.textContent).toBe("clean");
+  expect(committed).toEqual([]);
+});
