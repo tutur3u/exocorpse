@@ -541,3 +541,124 @@ test("blurring an untouched optional JSON document does not create a value or di
   await user.tab();
   expect(commits).toBe(1);
 });
+
+test("Save and implicit upload stay blocked until reverted JSON blurs and clears its error", async () => {
+  const beforeSaves = saveCalls;
+  let rejected: unknown;
+  let commits = 0;
+  const studio = {
+    collections: [
+      {
+        id: "collection",
+        slug: "stories",
+        title: "Stories",
+        collection_type: "content",
+      },
+    ],
+    entries: [],
+    blocks: [],
+    assets: [],
+  };
+  const definition = {
+    id: "json",
+    key: "json",
+    label: "JSON",
+    collection_id: "collection",
+    field_scope: "metadata" as const,
+    field_type: "json" as const,
+    default_value: null,
+    description: null,
+    is_enabled: true,
+    is_required: false,
+    options: [],
+    sort_order: 0,
+    source: "test",
+  };
+  const Form = withDraftEdits(function Form() {
+    const editor = useCmsManagementWorkspace({
+      initialStudio: studio,
+      section: ADMIN_CMS_SECTIONS.stories,
+    });
+    const edits = useDraftEdits();
+    return (
+      <>
+        <DraftInput
+          aria-label="Title"
+          value={editor.draft.title}
+          onValueChange={editor.changeTitle}
+        />
+        <CmsFieldEditor
+          definition={definition}
+          value={editor.draft.metadata}
+          onChange={(value) => {
+            commits++;
+            editor.setDraft((current) => ({
+              ...current,
+              metadata: value ?? {},
+            }));
+          }}
+        />
+        <button
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => editor.save()}
+        >
+          Save
+        </button>
+        <button
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => {
+            void editor
+              .uploadAsset(
+                new File(["fixture"], "art.png", { type: "image/png" }),
+              )
+              .catch((error) => {
+                rejected = error;
+              });
+          }}
+        >
+          Upload
+        </button>
+        <output data-invalid={String(edits?.invalid)}>
+          {edits?.pending ? "dirty" : "clean"}
+        </output>
+      </>
+    );
+  });
+  const { container, getByRole, getByLabelText, queryByText } = render(
+    <Form />,
+  );
+  const user = userEvent.setup({ document: dom.window.document });
+  await user.type(getByLabelText("Title"), "New entry");
+  const field = container.querySelector("textarea");
+  if (!field) throw new Error("Missing JSON");
+  const saved = field.value;
+  await user.clear(field);
+  await user.type(field, "invalid");
+  await user.tab();
+  await user.click(getByRole("button", { name: "Save" }));
+  await user.click(getByRole("button", { name: "Upload" }));
+  await waitFor(() => expect(rejected).toBeInstanceOf(Error));
+  expect(saveCalls).toBe(beforeSaves);
+  rejected = undefined;
+  await user.clear(field);
+  await user.paste(saved);
+  await user.click(getByRole("button", { name: "Save" }));
+  await user.click(getByRole("button", { name: "Upload" }));
+  await waitFor(() => expect(rejected).toBeInstanceOf(Error));
+  expect(document.activeElement).toBe(field);
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "true",
+  );
+  expect(queryByText("Please review the value in this field.")).not.toBeNull();
+  expect(saveCalls).toBe(beforeSaves);
+  expect(commits).toBe(0);
+  await user.tab();
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "false",
+  );
+  expect(container.querySelector("output")?.textContent).toBe("clean");
+  expect(queryByText("Please review the value in this field.")).toBeNull();
+  expect(commits).toBe(0);
+  await user.click(getByRole("button", { name: "Save" }));
+  await waitFor(() => expect(saveCalls).toBe(beforeSaves + 1));
+});

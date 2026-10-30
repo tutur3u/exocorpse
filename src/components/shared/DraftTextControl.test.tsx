@@ -417,3 +417,50 @@ for (const kind of ["input", "textarea"] as const) {
     expect(committed).toHaveLength(1);
   });
 }
+
+test("reverting rejected JSON to saved text clears error and invalid state without a commit", async () => {
+  const committed: unknown[] = [];
+  const Form = withDraftEdits(function Form() {
+    const edits = useDraftEdits();
+    return (
+      <>
+        <CmsFieldEditor
+          definition={definition("json")}
+          value={{ name: "Saved" }}
+          onChange={(value) => {
+            committed.push(value);
+          }}
+        />
+        <button>Outside</button>
+        <output data-invalid={String(edits?.invalid)}>
+          {edits?.pending ? "dirty" : "clean"}
+        </output>
+      </>
+    );
+  });
+  const { container, queryByText } = render(<Form />);
+  const field = container.querySelector("textarea");
+  if (!field) throw new Error("Missing JSON");
+  const saved = field.value;
+  const user = userEvent.setup({ document: dom.window.document });
+  await user.clear(field);
+  await user.type(field, "invalid");
+  await user.tab();
+  expect(queryByText("Please review the value in this field.")).not.toBeNull();
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "true",
+  );
+  await user.clear(field);
+  await user.paste(saved);
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "true",
+  );
+  expect(container.querySelector("output")?.textContent).toBe("dirty");
+  await user.tab();
+  expect(queryByText("Please review the value in this field.")).toBeNull();
+  expect(container.querySelector("output")?.getAttribute("data-invalid")).toBe(
+    "false",
+  );
+  expect(container.querySelector("output")?.textContent).toBe("clean");
+  expect(committed).toEqual([]);
+});

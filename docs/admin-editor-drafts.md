@@ -21,7 +21,10 @@ field is corrected. Uploads that implicitly create an entry use the same guard;
 uploads to an existing entry remain available without saving its draft. Untouched
 deferred fields do not commit on blur, so displaying an unset JSON value as `{}`
 does not create a stored value or mark the entry dirty. Validation clears when accepted or external content actually
-replaces the live draft, rather than when a props object changes.
+replaces the live draft, rather than when a props object changes. Reverting a
+rejected field to its saved text clears validation and its invalid/pending mark
+on blur without committing a value. Save and implicit-create uploads stay
+blocked until that blur; an untouched field never commits its displayed default.
 
 CMS saves retain the editing session and local block keys when the server assigns
 IDs. Saved blocks match by server id first, then by submitted array position only
