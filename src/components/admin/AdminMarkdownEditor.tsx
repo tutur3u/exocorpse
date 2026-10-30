@@ -5,7 +5,7 @@ import { RichTextEditor } from "@tuturuuu/editor/react";
 import { Eye, Maximize2, Minimize2, Pencil } from "lucide-react";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import type { CSSProperties } from "react";
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import EditorOverflow from "./EditorOverflow";
 
@@ -34,7 +34,15 @@ export default function AdminMarkdownEditor({
   const [expanded, setExpanded] = useState(false);
   const [preview, setPreview] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
-  const content = useMemo(() => markdownToJSON(value), [value]);
+  const [content, setContent] = useState(() => markdownToJSON(value));
+  const emittedValue = useRef<string | null>(null);
+  useEffect(() => {
+    // Markdown round trips are lossy (including in-progress whitespace).
+    // The live rich document owns its selection; never echo it through setContent.
+    if (value === emittedValue.current) return;
+    if (rootRef.current?.contains(document.activeElement)) return;
+    setContent(markdownToJSON(value));
+  }, [value]);
   const style = {
     "--tuturuuu-editor-min-height": expanded ? "34rem" : minHeight,
   } as CSSProperties;
@@ -63,6 +71,7 @@ export default function AdminMarkdownEditor({
         onChange={(nextContent) => {
           const markdown = jsonToMarkdown(nextContent);
           if (maxLength && markdown.length > maxLength) return;
+          emittedValue.current = markdown;
           onChange(markdown);
         }}
         onImageUpload={
