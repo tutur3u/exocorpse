@@ -95,7 +95,7 @@ function serializeDraft(draft: AboutContentItemDraft) {
   };
 }
 
-function ItemCard({
+function ItemCardForm({
   item,
   section,
   fields,
@@ -418,4 +418,4 @@ export default function AboutContentItemsEditor({
   );
 }
 
-const ContentItemCard = withDraftEdits(ContentItemCardForm);
+const ItemCard = withDraftEdits(ItemCardForm);
