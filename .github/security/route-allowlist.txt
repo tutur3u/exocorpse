@@ -5,4 +5,5 @@ src/app/api/admin/team/route.ts
 src/app/api/auth/session/refresh/route.ts
 src/app/api/auth/tuturuuu-logout/route.ts
 src/app/api/auth/verify-app-token/route.ts
+src/app/api/csp-report/route.ts
 src/app/api/og-image/route.ts
